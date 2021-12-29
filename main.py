@@ -28,7 +28,10 @@ class Monster:
         return sum([random.randint(1, roll_dice) for _ in range(dice_count)])
 
 
-def populate_dungeon() -> List[Monster]:
+def populate_dungeon() -> List[str]:
+    """
+    :return: list of monsters names
+    """
     with open("monsters_list.json", "r") as f:
         data = json.loads(f.read())
         monsters_count = int(data['count'])
@@ -38,6 +41,11 @@ def populate_dungeon() -> List[Monster]:
 
 
 def request_monster(index_name: str) -> Monster:
+    """
+    Send a request to the DnD API for a monster's characteristic
+    :param index_name: name of the monster
+    :return: Monster object
+    """
     # api-endpoint
     url = f"https://www.dnd5eapi.co/api/monsters/{index_name}"
     r = requests.get(url=url)
