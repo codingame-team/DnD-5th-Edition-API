@@ -1,4 +1,4 @@
-# D-D-5th-Edition-API-
+# DnD-5th-Edition-API-
 
 Simple project to illustrate usage of D&D 5th Edition API!
 
