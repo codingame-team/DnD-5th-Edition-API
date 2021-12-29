@@ -1,1 +1,6 @@
-/usr/local/bin/python3.8 /Users/display/PycharmProjects/DnD-5th-Edition-API/main.pyAcolyte attacks philRG and philRG takes 14 hpSkeleton attacks philRG and philRG takes 10 hpSpider attacks philRG and philRG takes 2 hpGiant Elk attacks philRG and philRG takes 26 hpCharacter(name='philRG', ac=10, hp=-2) has been finally killed by a Giant Elk after 4 attacks
+/usr/local/bin/python3.8 /Users/display/PycharmProjects/DnD-5th-Edition-API/main.py
+Acolyte attacks philRG and philRG takes 14 hp
+Skeleton attacks philRG and philRG takes 10 hp
+Spider attacks philRG and philRG takes 2 hp
+Giant Elk attacks philRG and philRG takes 26 hp
+Character(name='philRG', ac=10, hp=-2) has been finally killed by a Giant Elk after 4 attacks
