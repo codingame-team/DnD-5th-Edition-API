@@ -1,5 +1,6 @@
 import json
 import random
+from copy import copy
 from dataclasses import dataclass
 from typing import List
 
@@ -11,7 +12,18 @@ class Character:
     name: str
     armor_class: int
     hit_points: int
+    max_hit_points: int
+    hit_dice: str
     xp: int
+    level: int
+    healing_potions: List[int]
+
+    def attack(self):
+        """
+        :return: damage generated
+        """
+        dice_count, roll_dice = map(int, self.hit_dice.split('d'))
+        return sum([random.randint(1, roll_dice) for _ in range(dice_count)])
 
 
 @dataclass
@@ -22,6 +34,14 @@ class Monster:
     hit_dice: str
     xp: int
     challenge_rating: int
+
+    @property
+    def level(self):
+        dice_count, roll_dice = map(int, self.hit_dice.split('d'))
+        return dice_count * roll_dice
+
+    def __copy__(self):
+        return Monster(self.name, self.armor_class, self.hit_points, self.hit_dice, self.xp, self.challenge_rating)
 
     def attack(self):
         """
@@ -94,16 +114,79 @@ def request_monster(index_name: str) -> Monster:
 
 
 if __name__ == '__main__':
-    character: Character = Character(name='philRG', armor_class=10, hit_points=500, xp=0)
+    character: Character = Character(name='philRG', armor_class=10, hit_points=10, max_hit_points=10, hit_dice="1d10", xp=0, level=1, healing_potions=[10]*10)
+    infile = open("xp_levels.txt", "r")
+    xp_levels = []
+    for line in infile:
+        xp_needed, level, master_bonus = line.split(' ')
+        # xp_levels.append((xp_needed, master_bonus))
+        xp_levels.append(int(xp_needed))
     monsters_names: List[str] = populate_dungeon()
     roster: List[Monster] = [request_monster(name) for name in monsters_names]
-    monsters_to_fight = [m for m in roster if m.challenge_rating > 20]
+    # monsters_to_fight = [m for m in roster if m.challenge_rating < 1]
+    # for monster in monsters_to_fight:
+    #     print(f"{monster} - level = {monster.level}")
     attack_count = 0
-    while character.hit_points > 0:
-        monster = random.choice(monsters_to_fight)
-        hp_damage = monster.attack()
-        character.hit_points -= hp_damage
-        character.xp += monster.xp
-        print(f'{monster.name} attacks {character.name} and {character.name} takes {hp_damage} hp')
-        attack_count += 1
-    print(f'{character} has been finally killed by a {monster.name} after {attack_count} attacks')
+    monster_kills = 0
+    while character.hit_points > 0 and character.level < 20:
+        monsters_to_fight = [m for m in roster if m.level <= 5 + character.level]
+        if character.xp > xp_levels[character.level]:
+            character.level += 1
+            hp_gained = random.randint(1, 10)
+            character.max_hit_points += hp_gained
+            print(f'{character.name} reached level #{character.level} and gained {hp_gained} hit points')
+        if character.hit_points < 0.5 * character.max_hit_points and character.healing_potions:
+            restore_hp = character.max_hit_points - character.hit_points
+            available_potions = [p for p in character.healing_potions if p >= restore_hp]
+            best_potion = min(available_potions) if available_potions else max(character.healing_potions)
+            character.healing_potions.remove(best_potion)
+            character.hit_points += best_potion
+            print(f'{character.name} drinks healing potion and has {best_potion} hit points restored!')
+        monster: Monster = copy(random.choice(monsters_to_fight))
+        # print(f'new encounter! {monster}')
+        while monster.hit_points > 0:
+            if character.hit_points < 0.3 * character.max_hit_points and character.healing_potions:
+                restore_hp = character.max_hit_points - character.hit_points
+                available_potions = [p for p in character.healing_potions if p >= restore_hp]
+                best_potion = min(available_potions) if available_potions else max(character.healing_potions)
+                character.healing_potions.remove(best_potion)
+                character.hit_points += best_potion
+                print(f'{character.name} drinks healing potion and has {best_potion} hit points restored!')
+            attack_count += 1
+            monster_hp_damage = monster.attack()
+            character_hp_damage = character.attack()
+            priority_dice = random.randint(0, 1)
+            if priority_dice == 0:  # monster attacks first
+                character.hit_points -= monster_hp_damage
+                if character.hit_points <= 0:
+                    break
+                monster.hit_points -= character_hp_damage
+                if monster.hit_points <= 0:
+                    character.xp += monster.xp
+                    monster_kills += 1
+                    print(f'{character.name} killed {monster.name} and gained {monster.xp} XP!')
+                    treasure_dice = random.randint(1, 3)
+                    if treasure_dice == 3:
+                        print(f"{character.name} found a healing potion!")
+                        character.healing_potions.append(random.randint(5, 15))
+                    break
+            else:   # character attacks first
+                monster.hit_points -= character_hp_damage
+                if monster.hit_points <= 0:
+                    character.xp += monster.xp
+                    monster_kills += 1
+                    print(f'{character.name} killed {monster.name} and gained {monster.xp} XP!')
+                    treasure_dice = random.randint(1, 5)
+                    if treasure_dice == 5:
+                        print(f"{character.name} found a healing potion!")
+                        character.healing_potions.append(random.randint(1, 10))
+                    break
+                character.hit_points -= monster_hp_damage
+                if character.hit_points <= 0:
+                    break
+
+    if character.hit_points <= 0:
+        print(f'{character} has been finally killed by a {monster.name} after {attack_count} attack rounds and {monster_kills} monsters kills and reached level #{character.level}')
+    else:
+        print(f'{character} has killed {monster_kills} monsters and reached level #{character.level}')
+
