@@ -11,29 +11,17 @@ import requests
 @dataclass
 class Character:
     name: str
-    ac: int
-    hp: int
-
-    def __init__(self, name, armor_class, hit_points):
-        self.name = name
-        self.ac = armor_class
-        self.hp = hit_points
+    armor_class: int
+    hit_points: int
 
 
 @dataclass
 class Monster:
     name: str
-    ac: int
-    hp: int
+    armor_class: int
+    hit_points: int
     hit_dice: str
     xp: int
-
-    def __init__(self, name, armor_class, hit_points, hit_dice, xp):
-        self.name = name
-        self.ac = armor_class
-        self.hp = hit_points
-        self.hit_dice = hit_dice
-        self.xp = xp
 
     def attack(self):
         dice_count, roll_dice = map(int, self.hit_dice.split('d'))
@@ -59,15 +47,14 @@ def request_monster(index_name: str) -> Monster:
 
 
 if __name__ == '__main__':
-    character: Character = Character(name='philRG', armor_class=10, hit_points=50)
+    character: Character = Character(name='philRG', armor_class=10, hit_points=100)
     monsters: List[str] = populate_dungeon()
     attack_count = 0
-    while character.hp > 0:
+    while character.hit_points > 0:
         monster_name = random.choice(monsters)
         monster: Monster = request_monster(index_name=monster_name)
         hp_damage = monster.attack()
-        character.hp -= hp_damage
+        character.hit_points -= hp_damage
         print(f'{monster.name} attacks {character.name} and {character.name} takes {hp_damage} hp')
         attack_count += 1
     print(f'{character} has been finally killed by a {monster.name} after {attack_count} attacks')
-
