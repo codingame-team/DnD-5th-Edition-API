@@ -207,15 +207,15 @@ if __name__ == '__main__':
             character.raise_level()
         monster: Monster = copy(random.choice(monsters_to_fight))
         print(f'{color.PURPLE}-----------------------------------------------------------------------------------------------------------------------------{color.END}')
-        print(f'{color.PURPLE} new encounter! {monster} {color.END}')
+        print(f'{color.PURPLE} New encounter! {monster} {color.END}')
         print(f'{color.PURPLE}-----------------------------------------------------------------------------------------------------------------------------{color.END}')
         round_num = 0
         monster_max_hp = monster.hit_points
         while monster.hit_points > 0:
             round_num += 1
-            print('--------------------')
+            print('------------------------------------------')
             print(f'Round {round_num}: {character.name} ({character.hit_points}/{character.max_hit_points}) vs {monster.name} ({monster.hit_points}/{monster_max_hp})')
-            print('--------------------')
+            print('------------------------------------------')
             print(f'{character.name}: {character.hit_points}/{character.max_hit_points}')
             if character.hit_points < 0.5 * character.max_hit_points and character.healing_potions:
                 character.drink_potion()
