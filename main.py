@@ -7,6 +7,19 @@ from typing import List
 import requests
 
 
+class color:
+    PURPLE = '\033[95m'
+    CYAN = '\033[96m'
+    DARKCYAN = '\033[36m'
+    BLUE = '\033[94m'
+    GREEN = '\033[92m'
+    YELLOW = '\033[93m'
+    RED = '\033[91m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+    END = '\033[0m'
+
+
 @dataclass
 class Monster:
     name: str
@@ -34,7 +47,7 @@ class Monster:
             dice_count, roll_dice = map(int, self.hit_dice.split('d'))
             damage_roll = sum([random.randint(1, roll_dice) for _ in range(dice_count)])
         if damage_roll:
-            print(f'{self.name} hits {character.name} for {damage_roll} hit points!')
+            print(f'{color.RED}{self.name}{color.END} hits {color.GREEN}{character.name}{color.END} for {damage_roll} hit points!')
         else:
             print(f'{self.name} misses {character.name}!')
         return damage_roll
@@ -75,7 +88,10 @@ class Character:
         self.level += 1
         hp_gained = random.randint(1, 10)
         character.max_hit_points += hp_gained
-        print(f'{self.name} reached level #{self.level} and gained {hp_gained} hit points')
+        print(f'{color.BLUE}New level #{self.level} reached!!!{color.END}')
+        print(f'{self.name} gained {hp_gained} hit points')
+        print(f'{color.UNDERLINE}hit a key to continue adventure :-){color.END}')
+        key = input()
 
     def attack(self, monster: Monster):
         """
@@ -87,7 +103,7 @@ class Character:
             dice_count, roll_dice = map(int, self.hit_dice.split('d'))
             damage_roll = sum([random.randint(1, roll_dice) for _ in range(dice_count)])
         if damage_roll:
-            print(f'{self.name} hits {monster.name} for {damage_roll} hit points!')
+            print(f'{color.GREEN}{self.name}{color.END} hits {color.RED}{monster.name}{color.END} for {damage_roll} hit points!')
         else:
             print(f'{self.name} misses {monster.name}!')
         return damage_roll
@@ -173,9 +189,9 @@ if __name__ == '__main__':
         if character.xp > xp_levels[character.level]:
             character.raise_level()
         monster: Monster = copy(random.choice(monsters_to_fight))
-        print('------------------------------')
-        print(f'new encounter! {monster}')
-        print('------------------------------')
+        print(f'{color.PURPLE}-----------------------------------------------------------------------------------------------------------------------------{color.END}')
+        print(f'{color.PURPLE} new encounter! {monster} {color.END}')
+        print(f'{color.PURPLE}-----------------------------------------------------------------------------------------------------------------------------{color.END}')
         round_num = 0
         monster_max_hp = monster.hit_points
         while monster.hit_points > 0:
