@@ -8,6 +8,39 @@ import requests
 
 
 @dataclass
+class Monster:
+    name: str
+    armor_class: int
+    hit_points: int
+    hit_dice: str
+    xp: int
+    challenge_rating: int
+
+    @property
+    def level(self):
+        dice_count, roll_dice = map(int, self.hit_dice.split('d'))
+        return dice_count * roll_dice
+
+    def __copy__(self):
+        return Monster(self.name, self.armor_class, self.hit_points, self.hit_dice, self.xp, self.challenge_rating)
+
+    def attack(self, character):
+        """
+        :return: damage generated
+        """
+        attack_roll = random.randint(1, 20)
+        damage_roll = 0
+        if attack_roll >= character.armor_class:
+            dice_count, roll_dice = map(int, self.hit_dice.split('d'))
+            damage_roll = sum([random.randint(1, roll_dice) for _ in range(dice_count)])
+        if damage_roll:
+            print(f'{self.name} hits {character.name} for {damage_roll} hit points!')
+        else:
+            print(f'{self.name} misses {character.name}!')
+        return damage_roll
+
+
+@dataclass
 class Character:
     name: str
     armor_class: int
@@ -24,7 +57,7 @@ class Character:
         available_potions = [p for p in self.healing_potions if p >= restore_hp]
         best_potion = min(available_potions) if available_potions else max(self.healing_potions)
         self.healing_potions.remove(best_potion)
-        self.hit_points += best_potion
+        self.hit_points = min(self.hit_points + best_potion, self.max_hit_points)
         print(f'{self.name} drinks healing potion and has {best_potion} hit points restored!')
 
     def victory(self, monster):
@@ -44,37 +77,20 @@ class Character:
         character.max_hit_points += hp_gained
         print(f'{self.name} reached level #{self.level} and gained {hp_gained} hit points')
 
-    def attack(self):
+    def attack(self, monster: Monster):
         """
         :return: damage generated
         """
-        dice_count, roll_dice = map(int, self.hit_dice.split('d'))
-        return sum([random.randint(1, roll_dice) for _ in range(dice_count)])
-
-
-@dataclass
-class Monster:
-    name: str
-    armor_class: int
-    hit_points: int
-    hit_dice: str
-    xp: int
-    challenge_rating: int
-
-    @property
-    def level(self):
-        dice_count, roll_dice = map(int, self.hit_dice.split('d'))
-        return dice_count * roll_dice
-
-    def __copy__(self):
-        return Monster(self.name, self.armor_class, self.hit_points, self.hit_dice, self.xp, self.challenge_rating)
-
-    def attack(self):
-        """
-        :return: damage generated
-        """
-        dice_count, roll_dice = map(int, self.hit_dice.split('d'))
-        return sum([random.randint(1, roll_dice) for _ in range(dice_count)])
+        attack_roll = random.randint(1, 20)
+        damage_roll = 0
+        if attack_roll >= monster.armor_class:
+            dice_count, roll_dice = map(int, self.hit_dice.split('d'))
+            damage_roll = sum([random.randint(1, roll_dice) for _ in range(dice_count)])
+        if damage_roll:
+            print(f'{self.name} hits {monster.name} for {damage_roll} hit points!')
+        else:
+            print(f'{self.name} misses {monster.name}!')
+        return damage_roll
 
 
 def download_monster(index_name: str):
@@ -157,14 +173,22 @@ if __name__ == '__main__':
         if character.xp > xp_levels[character.level]:
             character.raise_level()
         monster: Monster = copy(random.choice(monsters_to_fight))
+        print('------------------------------')
         print(f'new encounter! {monster}')
+        print('------------------------------')
+        round_num = 0
+        monster_max_hp = monster.hit_points
         while monster.hit_points > 0:
+            round_num += 1
+            print('--------------------')
+            print(f'Round {round_num}: {character.name} ({character.hit_points}/{character.max_hit_points}) vs {monster.name} ({monster.hit_points}/{monster_max_hp})')
+            print('--------------------')
             print(f'{character.name}: {character.hit_points}/{character.max_hit_points}')
             if character.hit_points < 0.5 * character.max_hit_points and character.healing_potions:
                 character.drink_potion()
             attack_count += 1
-            monster_hp_damage = monster.attack()
-            character_hp_damage = character.attack()
+            monster_hp_damage = monster.attack(character)
+            character_hp_damage = character.attack(monster)
             priority_dice = random.randint(0, 1)
             if priority_dice == 0:  # monster attacks first
                 character.hit_points -= monster_hp_damage
@@ -186,6 +210,6 @@ if __name__ == '__main__':
                     break
 
     if character.hit_points <= 0:
-        print(f'{character} has been finally killed by a {monster} after {attack_count} attack rounds and {character.monster_kills} monsters kills and reached level #{character.level}')
+        print(f'{character.name} has been killed by a {monster.name} after {attack_count} attack rounds and {character.monster_kills} monsters kills and reached level #{character.level}')
     else:
         print(f'{character} has killed {character.monster_kills} monsters and reached level #{character.level}')
