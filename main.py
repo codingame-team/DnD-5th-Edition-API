@@ -6,6 +6,8 @@ from typing import List
 
 import requests
 
+PAUSE_ON_RAISE_LEVEL = False
+
 
 class color:
     PURPLE = '\033[95m'
@@ -90,8 +92,8 @@ class Character:
         character.max_hit_points += hp_gained
         print(f'{color.BLUE}New level #{self.level} reached!!!{color.END}')
         print(f'{self.name} gained {hp_gained} hit points')
-        print(f'{color.UNDERLINE}hit a key to continue adventure :-){color.END}')
-        key = input()
+        if PAUSE_ON_RAISE_LEVEL:
+            input(f'{color.UNDERLINE}{color.DARKCYAN}hit Enter to continue adventure :-){color.END}')
 
     def attack(self, monster: Monster):
         """
@@ -171,6 +173,20 @@ def request_monster(index_name: str) -> Monster:
                    challenge_rating=data['challenge_rating'])
 
 
+def welcome_message():
+    global PAUSE_ON_RAISE_LEVEL
+    print(f'{color.PURPLE}-------------------------------------------------------{color.END}')
+    print(f'{color.PURPLE} Combat simulation engine based on DnD 5th edition API{color.END}')
+    print(f'{color.PURPLE}-------------------------------------------------------{color.END}')
+    print(f'{color.DARKCYAN}Do you want to pause output after new level? (Y/N){color.END}')
+    response = input()
+    while response not in ['y', 'n', 'Y', 'N']:
+        print(f'{color.DARKCYAN} Do you want to pause output after new level? (Y/N){color.END}')
+        response = input()
+    if response in ['y', 'Y']:
+        PAUSE_ON_RAISE_LEVEL = True
+
+
 if __name__ == '__main__':
     character: Character = Character(name='philRG', armor_class=10, hit_points=10, max_hit_points=10, hit_dice="1d10", xp=0, level=1, healing_potions=[20] * 10, monster_kills=0)
     infile = open("xp_levels.txt", "r")
@@ -181,6 +197,7 @@ if __name__ == '__main__':
         xp_levels.append(int(xp_needed))
     monsters_names: List[str] = populate_dungeon()
     roster: List[Monster] = [request_monster(name) for name in monsters_names]
+    welcome_message()
     attack_count = 0
     while character.hit_points > 0 and character.level < 20:
         # monsters_to_fight = [m for m in roster if m.challenge_rating < 1]
