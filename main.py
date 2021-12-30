@@ -33,10 +33,10 @@ class Character:
         print(f'{self.name} killed {monster.name} and gained {monster.xp} XP!')
 
     def treasure(self):
-        treasure_dice = random.randint(1, 3)
-        if treasure_dice == 3:
+        treasure_dice = random.randint(1, 2)
+        if treasure_dice == 2:
             print(f"{self.name} found a healing potion!")
-            self.healing_potions.append(random.randint(5, 15))
+            self.healing_potions.append(random.randint(10, 15))
 
     def raise_level(self):
         self.level += 1
@@ -152,12 +152,14 @@ if __name__ == '__main__':
     attack_count = 0
     while character.hit_points > 0 and character.level < 20:
         # monsters_to_fight = [m for m in roster if m.challenge_rating < 1]
+        # monsters_to_fight = [m for m in roster if 2 + character.level <= m.level <= 5 + character.level]
         monsters_to_fight = [m for m in roster if m.level <= 5 + character.level]
         if character.xp > xp_levels[character.level]:
             character.raise_level()
         monster: Monster = copy(random.choice(monsters_to_fight))
         print(f'new encounter! {monster}')
         while monster.hit_points > 0:
+            print(f'{character.name}: {character.hit_points}/{character.max_hit_points}')
             if character.hit_points < 0.5 * character.max_hit_points and character.healing_potions:
                 character.drink_potion()
             attack_count += 1
