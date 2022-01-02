@@ -1,0 +1,23 @@
+{
+  "index": "studded-leather-armor",
+  "name": "Studded Leather Armor",
+  "equipment_category": {
+    "index": "armor",
+    "name": "Armor",
+    "url": "/api/equipment-categories/armor"
+  },
+  "armor_category": "Light",
+  "armor_class": {
+    "base": 12,
+    "dex_bonus": "True",
+    "max_bonus": "None"
+  },
+  "str_minimum": 0,
+  "stealth_disadvantage": "False",
+  "weight": 13,
+  "cost": {
+    "quantity": 45,
+    "unit": "gp"
+  },
+  "url": "/api/equipment/studded-leather-armor"
+}

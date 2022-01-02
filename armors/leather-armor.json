@@ -1,0 +1,23 @@
+{
+  "index": "leather-armor",
+  "name": "Leather Armor",
+  "equipment_category": {
+    "index": "armor",
+    "name": "Armor",
+    "url": "/api/equipment-categories/armor"
+  },
+  "armor_category": "Light",
+  "armor_class": {
+    "base": 11,
+    "dex_bonus": "True",
+    "max_bonus": "None"
+  },
+  "str_minimum": 0,
+  "stealth_disadvantage": "False",
+  "weight": 10,
+  "cost": {
+    "quantity": 10,
+    "unit": "gp"
+  },
+  "url": "/api/equipment/leather-armor"
+}

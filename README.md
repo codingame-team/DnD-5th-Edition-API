@@ -6,3 +6,5 @@ http://www.dnd5eapi.co/
 https://www.aidedd.org/regles/creation-de-perso/suite/
 https://www.aidedd.org/
 
+    TODO:
+        - combat v1
