@@ -5,7 +5,7 @@ from typing import List
 from dao_classes import Monster, Armor, Weapon
 
 
-def populate(collection_name: str, key_name: str) -> List[str]:
+def populate(collection_name: str, key_name: str, with_url=False) -> List[str]:
     """
     :return: list of collection names
     """
@@ -13,7 +13,10 @@ def populate(collection_name: str, key_name: str) -> List[str]:
         data = json.loads(f.read())
         # collection_count = int(data['count'])
         collection_json_list = data[key_name]
-    data_list = [json_data['index'] for json_data in collection_json_list]
+    if with_url:
+        data_list = [(json_data['index'], json_data['url']) for json_data in collection_json_list]
+    else:
+        data_list = [json_data['index'] for json_data in collection_json_list]
     return data_list
 
 

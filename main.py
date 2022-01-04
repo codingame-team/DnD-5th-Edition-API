@@ -115,14 +115,14 @@ if __name__ == '__main__':
     boltac_weapons: List[Armor] = [request_weapon(name) for name in weapons_names]
     boltac_weapons = [w for w in boltac_weapons if w]
     """ Character creation """
-    races = populate(collection_name='races', key_name='results')
+    races: List[str] = populate(collection_name='races', key_name='results')
     names = dict()
     for race in races:
         if race not in ['human', 'half-elf']:
             names[race] = populate_names(race)
-    human_names = populate_human_names()
-    classes = populate(collection_name='classes', key_name='results')
-    alignments = populate(collection_name='alignments', key_name='results')
+    human_names: List[str] = populate_human_names()
+    classes: List[str] = populate(collection_name='classes', key_name='results')
+    alignments: List[str] = populate(collection_name='alignments', key_name='results')
     race, genre, name, class_type, ethnic = create_character(races, classes, names, human_names)
     character: Character = Character(name=name,
                                      race=race,

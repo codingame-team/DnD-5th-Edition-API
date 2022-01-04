@@ -1,25 +1,19 @@
+from typing import List
+
 import requests
 
+from populate_functions import populate
 
-def download_monster(index_name: str):
+
+def download_data(data_type: str, index_name: str, url: str):
     """
-    Downloads a monster's characteristic to a local .json file
-    :param index_name: name of the monster
+    Downloads a DnD type's characteristic to a local .json file
+    :param data_type: data's type (monsters, armors, weapons, classes, races)
+    :param index_name: name of the data
     :return:
     """
-    # api-endpoint
-    url = f"https://www.dnd5eapi.co/api/monsters/{index_name}"
-    r = requests.get(url=url)
-    # extracting data in json format
-    data = r.json()
-    with open(f"monsters/{index_name}.json", "w") as f:
-        f.write(str(data))
-
-
-def download_weapon(index_name: str, url: str):
     """
-    Downloads a weapon's characteristic to a local .json file
-    :param index_name: name of the weapon
+    :param index_name: name of the data belonging to a 
     :return:
     """
     # api-endpoint
@@ -27,69 +21,27 @@ def download_weapon(index_name: str, url: str):
     r = requests.get(url=url)
     # extracting data in json format
     data = r.json()
-    with open(f"weapons/{index_name}.json", "w") as f:
-        f.write(str(data))
-
-
-def download_armor(index_name: str, url: str):
-    """
-    Downloads a armors's characteristic to a local .json file
-    :param index_name: name of the armors
-    :return:
-    """
-    # api-endpoint
-    url = f"https://www.dnd5eapi.co{url}"
-    r = requests.get(url=url)
-    # extracting data in json format
-    data = r.json()
-    with open(f"data/armors/{index_name}.json", "w") as f:
-        f.write(str(data))
-
-
-def download_race(index_name: str):
-    """
-    Downloads a race's characteristic to a local .json file
-    :param index_name: name of the race
-    :return:
-    """
-    # api-endpoint
-    url = f"https://www.dnd5eapi.co/api/races/{index_name}"
-    r = requests.get(url=url)
-    # extracting data in json format
-    data = r.json()
-    with open(f"data/races/{index_name}.json", "w") as f:
-        f.write(str(data))
-
-
-def download_class(index_name: str):
-    """
-    Downloads a class' characteristic to a local .json file
-    :param index_name: name of the class
-    :return:
-    """
-    # api-endpoint
-    url = f"https://www.dnd5eapi.co/api/classes/{index_name}"
-    r = requests.get(url=url)
-    # extracting data in json format
-    data = r.json()
-    with open(f"data/classes/{index_name}.json", "w") as f:
+    with open(f"{data_type}/{index_name}.json", "w") as f:
         f.write(str(data))
 
 
 if __name__ == '__main__':
     pass
-    # monsters_names: List[str] = populate_dungeon()
-    # for monster in monsters_names:
-    #     download_monster(monster)
-    # boltac_armors = populate_boltac_armors()
-    # for armor_name, url in boltac_armors:
-    #     download_armor(armor_name, url)
-    # boltac_weapons = populate_boltac_weapons()
-    # for weapon_name, url in boltac_weapons:
-    #     download_weapon(weapon_name, url)
-    # races = populate_races()
-    # for race_name in races:
-    #     download_race(race_name)
-    # classes = populate_classes()
-    # for class_name in classes:
-    #     download_class(class_name)
+    monsters_names: List[str] = populate(collection_name='monsters', key_name='results')
+    boltac_armors: List[str] = populate(collection_name='armors', key_name='equipment', with_url=True)
+    boltac_weapons: List[str] = populate(collection_name='weapons', key_name='equipment', with_url=True)
+    races = populate(collection_name='races', key_name='results')
+    classes: List[str] = populate(collection_name='classes', key_name='results')
+    alignments: List[str] = populate(collection_name='alignments', key_name='results')
+    for monster in monsters_names:
+        download_data(data_type='monsters', index_name=monster, url=f'/api/monsters/{monster}')
+    for armor, url in boltac_armors:
+        download_data(data_type='armors', index_name=armor, url=url)
+    for weapon, url in boltac_weapons:
+        download_data(data_type='weapons', index_name=weapon, url=url)
+    for race in races:
+        download_data(data_type='races', index_name=race, url=f'/api/monsters/{race}')
+    for class_name in classes:
+        download_data(data_type='classes', index_name=class_name, url=f'/api/monsters/{class_name}')
+    for alignment in alignments:
+        download_data(data_type='alignments', index_name=alignment, url=f'/api/alignments/{alignment}')
