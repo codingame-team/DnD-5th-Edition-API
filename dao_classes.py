@@ -2,8 +2,6 @@ import random
 from dataclasses import dataclass
 from typing import List
 
-PAUSE_ON_RAISE_LEVEL = True
-
 """ Needs to separate presentation layer from data layer """
 
 
@@ -75,11 +73,11 @@ class Armor:
     stealth_disadvantage: bool
 
 
-@dataclass
-class Inventory:
-    weapons: List[Weapon]
-    armors: List[Armor]
-    pass
+# @dataclass
+# class Inventory:
+#     weapons: List[Weapon]
+#     armors: List[Armor]
+#     pass
 
 
 @dataclass
@@ -99,18 +97,10 @@ class Potion:
 
 @dataclass
 class Race:
-    pass
-
-
-@dataclass
-class Name:
-    sex: str
-    race: str
-
-
-@dataclass
-class Class:
-    pass
+    name: str
+    ability_bonuses: dict()
+    speed: int
+    size: str
 
 
 @dataclass
@@ -118,14 +108,14 @@ class Character:
     name: str
     race: Race
     ethnic: str
-    genre: str
-    class_type: Class
-    # cha: int
-    # con: int
-    # dex: int
-    # int: int
-    # str: int
-    # wis: int
+    gender: str
+    class_type: str
+    str: int
+    dex: int
+    con: int
+    int: int
+    wis: int
+    cha: int
     hit_points: int
     max_hit_points: int
     xp: int
@@ -135,11 +125,42 @@ class Character:
     healing_potions: List[Potion]
     monster_kills: int
 
+    @property
+    def strength(self):
+        return self.str if 'str' not in self.race.ability_bonuses else self.str + self.race.ability_bonuses['str']
+
+    @property
+    def dexterity(self):
+        return self.dex if 'dex' not in self.race.ability_bonuses else self.dex + self.race.ability_bonuses['dex']
+
+    @property
+    def constitution(self):
+        return self.con if 'con' not in self.race.ability_bonuses else self.con + self.race.ability_bonuses['con']
+
+    @property
+    def intelligence(self):
+        return self.int if 'int' not in self.race.ability_bonuses else self.int + self.race.ability_bonuses['int']
+
+    @property
+    def wisdom(self):
+        return self.wis if 'wis' not in self.race.ability_bonuses else self.wis + self.race.ability_bonuses['wis']
+
+    @property
+    def charism(self):
+        return self.cha if 'cha' not in self.race.ability_bonuses else self.cha + self.race.ability_bonuses['cha']
+
+    @property
+    def abilities(self):
+        return self.strength, self.dexterity, self.constitution, self.intelligence, self.wisdom, self.charism
+
+    def display_abilities(self):
+        print(f'Ability scores:\n\tstr: {self.strength}\n\tdex: {self.dexterity}\n\tcon: {self.constitution}\n\tint: {self.intelligence}\n\twis: {self.wisdom}\n\tcha: {self.charism}')
+
     def __repr__(self):
         if not self.ethnic:
-            return f"{self.name} ({self.genre} {self.race} - class: {self.class_type} - AC {self.armor_class} HD: {self.hit_dice} - w: {self.weapon.name} a: {self.armor.name} - potions: {len(self.healing_potions)})"
+            return f"{self.name} - Abilities: {self.abilities} - ({self.gender} {self.race} - class: {self.class_type} - AC {self.armor_class} HD: {self.hit_dice} - w: {self.weapon.name} a: {self.armor.name} - potions: {len(self.healing_potions)})"
         else:
-            return f"{self.name} (ethnic: {self.ethnic} - {self.genre} {self.race} - class: {self.class_type} - AC {self.armor_class} HD: {self.hit_dice} - w: {self.weapon.name} a: {self.armor.name} - potions: {len(self.healing_potions)})"
+            return f"{self.name} - Abilities: {self.abilities} - (ethnic: {self.ethnic} - {self.gender} {self.race} - class: {self.class_type} - AC {self.armor_class} HD: {self.hit_dice} - w: {self.weapon.name} a: {self.armor.name} - potions: {len(self.healing_potions)})"
 
     @property
     def armor_class(self):
@@ -164,7 +185,6 @@ class Character:
         else:
             print(f'{self.name} drinks healing potion and has {min(hp_to_recover, hp_restored)} hit points restored!')
 
-    #
     def victory(self, monster):
         self.xp += monster.xp
         self.monster_kills += 1

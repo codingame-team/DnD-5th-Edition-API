@@ -2,7 +2,7 @@ import csv
 import json
 from typing import List
 
-from dao_classes import Monster, Armor, Weapon
+from dao_classes import Monster, Armor, Weapon, Race
 
 
 def populate(collection_name: str, key_name: str, with_url=False) -> List[str]:
@@ -102,3 +102,18 @@ def request_weapon(index_name: str) -> Weapon:
                       damage_type=data['damage']['damage_type']['index'],
                       range_dict=data['range'])
     return None
+
+
+def request_race(index_name: str) -> Race:
+    """
+    Send a request to local database for a weapon's characteristic
+    :param index_name: name of the weapon
+    :return: Weapon object
+    """
+    with open(f"data/races/{index_name}.json", "r") as f:
+        data = json.loads(f.read())
+        ability_bonuses = dict([(ability_bonus['ability_score']['index'], ability_bonus['bonus']) for ability_bonus in data['ability_bonuses']])
+        return Race(name=data['index'],
+                    ability_bonuses=ability_bonuses,
+                    speed=data['speed'],
+                    size=data['size'])

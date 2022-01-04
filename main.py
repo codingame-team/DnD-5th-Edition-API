@@ -2,6 +2,7 @@ from copy import copy
 
 from dao_classes import *
 from populate_functions import *
+from tools.ability_scores_roll import ability_rolls
 
 
 def continue_message():
@@ -66,7 +67,7 @@ def read_choice(item_name: str, choice_list: List[str]) -> str:
     choice = None
     while choice not in range(1, len(choice_list) + 1):
         items_list = '\n'.join([f'{i + 1}) {item}' for i, item in enumerate(choice_list)])
-        print(f'Choose a {item_name}:\n{items_list}')
+        print(f'Choose {item_name}:\n{items_list}')
         err_msg = f'Bad value! Please enter a number between 1 and {len(choice_list)}'
         try:
             choice = int(input())
@@ -78,11 +79,29 @@ def read_choice(item_name: str, choice_list: List[str]) -> str:
     return choice_list[choice - 1]
 
 
-def create_character(races: List[str], classes: List[Class], names: dict(), human_names: dict()):
+def create_character(races: List[str], classes: List[str], names: dict(), human_names: dict()):
     print(f'{color.PURPLE}-------------------------------------------------------{color.END}')
     print(f'{color.PURPLE} Character creation based on DnD 5th edition API{color.END}')
     print(f'{color.PURPLE}-------------------------------------------------------{color.END}')
+    """ 1. Choose a race """
     race = read_choice('race', races)
+    """ 2. Choose a class """
+    class_type = read_choice('class', classes)
+    """ 3. Determine ability scores (Strength, Dexterity, Constitution, Intelligence, Wisdom, and Charisma.)"""
+    ability_scores = ability_rolls()
+    abilities = {}
+    abilities['str'] = read_choice('strength', ability_scores)
+    ability_scores.remove(abilities['str'])
+    abilities['dex'] = read_choice('dexterity', ability_scores)
+    ability_scores.remove(abilities['dex'])
+    abilities['con'] = read_choice('constitution', ability_scores)
+    ability_scores.remove(abilities['con'])
+    abilities['int'] = read_choice('intelligence', ability_scores)
+    ability_scores.remove(abilities['int'])
+    abilities['wis'] = read_choice('wisdom', ability_scores)
+    ability_scores.remove(abilities['wis'])
+    abilities['cha'] = read_choice('charisma', ability_scores)
+    """ 4. Describe your character (name, gender, clan/family/ """
     genders = ['male', 'female']
     gender = read_choice('genre', genders)
     ethnic = None
@@ -90,8 +109,8 @@ def create_character(races: List[str], classes: List[Class], names: dict(), huma
         name, ethnic = read_name(race, gender, human_names)
     else:
         name = read_name(race, gender, names)
-    class_type = read_choice('class', classes)
-    return race, gender, name, class_type, ethnic
+    """ 5. Choose equipment """
+    return race, class_type, abilities, name, gender, ethnic
 
 
 if __name__ == '__main__':
@@ -123,12 +142,14 @@ if __name__ == '__main__':
     human_names: List[str] = populate_human_names()
     classes: List[str] = populate(collection_name='classes', key_name='results')
     alignments: List[str] = populate(collection_name='alignments', key_name='results')
-    race, genre, name, class_type, ethnic = create_character(races, classes, names, human_names)
-    character: Character = Character(name=name,
-                                     race=race,
-                                     ethnic=ethnic,
-                                     genre=genre,
+    race, class_type, abilities, name, gender, ethnic = create_character(races, classes, names, human_names)
+
+    character: Character = Character(race=request_race(race),
                                      class_type=class_type,
+                                     str=abilities['str'], dex=abilities['dex'], con=abilities['con'], int=abilities['int'], wis=abilities['wis'], cha=abilities['cha'],
+                                     gender=gender,
+                                     name=name,
+                                     ethnic=ethnic,
                                      armor=boltac_armors[0],
                                      weapon=boltac_weapons[1],
                                      hit_points=10,
