@@ -10,12 +10,12 @@ output_dir="../data/races/names"
 
 new_file="${output_dir}/human.csv"
 
-echo "Ethnic, Category, Name" >$new_file
-
+# echo "Ethnic, Category, Name" >$new_file
+>$new_file
 for ethnic in $ethnics; do
   for cat in male female surname; do
     file="${input_dir}/${cat}-${ethnic}-human.csv"
-    echo "$file"
+    # echo "$file"
     if [ -e "$file" ]; then
       # shellcheck disable=SC2162
       # shellcheck disable=SC2002
@@ -26,4 +26,4 @@ for ethnic in $ethnics; do
   done
 done
 
-cp -p human.csv half-elf.csv
+# cp -p ${output_dir}/human.csv ${output_dir}/half-elf.csv

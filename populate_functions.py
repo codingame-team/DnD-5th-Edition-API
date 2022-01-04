@@ -1,76 +1,20 @@
 import csv
 import json
-from collections import defaultdict
 from typing import List
 
 from dao_classes import Monster, Armor, Weapon
 
 
-def populate_dungeon() -> List[str]:
+def populate(collection_name: str, key_name: str) -> List[str]:
     """
-    :return: list of monsters names
+    :return: list of collection names
     """
-    with open("collections/monsters_list.json", "r") as f:
+    with open(f"collections/{collection_name}.json", "r") as f:
         data = json.loads(f.read())
-        # monsters_count = int(data['count'])
-        monsters_json_list = data['results']
-    monster_list = [json_data['index'] for json_data in monsters_json_list]
-    return monster_list
-
-
-def populate_boltac_weapons() -> List[str]:
-    """
-    :return: list of weapons names
-    """
-    with open("collections/weapons_list.json", "r") as f:
-        data = json.loads(f.read())
-        weapons_json_list = data['equipment']
-    weapons_list = [(json_data['index'], json_data['url']) for json_data in weapons_json_list]
-    return weapons_list
-
-
-def populate_boltac_armors() -> List[str]:
-    """
-    :return: list of armors names
-    """
-    with open("collections/armors_list.json", "r") as f:
-        data = json.loads(f.read())
-        armors_json_list = data['equipment']
-    armors_list = [(json_data['index'], json_data['url']) for json_data in armors_json_list]
-    return armors_list
-
-
-def populate_races() -> List[str]:
-    """
-    :return: list of races
-    """
-    with open("collections/races.json", "r") as f:
-        data = json.loads(f.read())
-        races_json_list = data['results']
-    races_list = [json_data['index'] for json_data in races_json_list]
-    return races_list
-
-
-def populate_classes() -> List[str]:
-    """
-    :return: list of classes
-    """
-    with open("collections/classes.json", "r") as f:
-        data = json.loads(f.read())
-        classes_json_list = data['results']
-    classes_list = [json_data['index'] for json_data in classes_json_list]
-    return classes_list
-
-
-def populate_alignments() -> List[str]:
-    """
-    :return: list of alignments
-    """
-    with open("collections/alignments.json", "r") as f:
-        data = json.loads(f.read())
-        alignments_json_list = data['results']
-    alignments_list = [json_data['index'] for json_data in alignments_json_list]
-    return alignments_list
+        # collection_count = int(data['count'])
+        collection_json_list = data[key_name]
+    data_list = [json_data['index'] for json_data in collection_json_list]
+    return data_list
 
 
 def populate_names(race: str) -> List[str]:

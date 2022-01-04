@@ -3,8 +3,16 @@ from copy import copy
 from dao_classes import *
 from populate_functions import *
 
-PAUSE_ON_RAISE_LEVEL = True
-POTION_INITIAL_PACK = 5
+
+def continue_message():
+    print(f'{color.DARKCYAN}Do you want to start a combat simulation? (Y/N){color.END}')
+    response = input()
+    while response not in ['y', 'n', 'Y', 'N']:
+        print(f'{color.DARKCYAN}Do you want to start a combat simulation? (Y/N){color.END}')
+        response = input()
+    if response in ['y', 'y']:
+        return True
+    return False
 
 
 def welcome_message():
@@ -29,18 +37,28 @@ def read_name_simple(race: str, sex: str):
     return name
 
 
-def read_name(race: str, genre: str, names: dict()):
+def read_name(race: str, gender: str, names: dict()):
+    """
+
+    :param race: name of the race
+    :param genre: name of the gender ['male', 'female', 'nickname', 'surname']
+    :param names: dictionary of names
+    :return:
+    """
     if race in ['human', 'half-elf']:
         ethnic = read_choice('ethnic', list(names.keys()))
-        name = read_choice('name', names[ethnic][genre])
+        names_list = names[ethnic][gender]
+        if len(names[ethnic]) > 2:
+            other_key = [key for key in names[ethnic] if key not in ['male', 'female']][0]
+            names_list += names[ethnic][other_key]
+        name = read_choice('name', names_list)
         return name, ethnic
     else:
-        names_list = names[race][genre] + [names[race][s] for s in names[race] if s not in ['male', 'female']]
-        try:
-            name = read_choice('name', names_list)
-        except TypeError:
-            print(f'Error: race = {race} - genre = {genre} - names = {names_list}')
-            exit(0)
+        names_list = names[race][gender]
+        if len(names[race]) > 2:
+            other_key = [key for key in names[race] if key not in ['male', 'female']][0]
+            names_list += names[race][other_key]
+        name = read_choice('name', names_list)
         return name
 
 
@@ -65,19 +83,21 @@ def create_character(races: List[str], classes: List[Class], names: dict(), huma
     print(f'{color.PURPLE} Character creation based on DnD 5th edition API{color.END}')
     print(f'{color.PURPLE}-------------------------------------------------------{color.END}')
     race = read_choice('race', races)
-    genres = ['male', 'female']
-    genre = read_choice('genre', genres)
+    genders = ['male', 'female']
+    gender = read_choice('genre', genders)
     ethnic = None
-    if race == 'human':
-        name, ethnic = read_name(race, genre, human_names)
+    if race in ['human', 'half-elf']:
+        name, ethnic = read_name(race, gender, human_names)
     else:
-        name = read_name(race, genre, names)
+        name = read_name(race, gender, names)
     class_type = read_choice('class', classes)
-    return race, genre, name, class_type, ethnic
+    return race, gender, name, class_type, ethnic
 
 
 if __name__ == '__main__':
     random.seed()
+    PAUSE_ON_RAISE_LEVEL = True
+    POTION_INITIAL_PACK = 5
     """ Load XP Levels """
     infile = open("Tables/xp_levels.txt", "r")
     xp_levels = []
@@ -86,23 +106,23 @@ if __name__ == '__main__':
         # xp_levels.append((xp_needed, master_bonus))
         xp_levels.append(int(xp_needed))
     """ Load Monster, Armor and Weapon databases """
-    monsters_names: List[str] = populate_dungeon()
-    armors_names: List[str] = [x[0] for x in populate_boltac_armors()]
-    weapons_names: List[str] = [x[0] for x in populate_boltac_weapons()]
+    monsters_names: List[str] = populate(collection_name='monsters', key_name='results')
+    armors_names: List[str] = populate(collection_name='armors', key_name='equipment')
+    weapons_names: List[str] = populate(collection_name='weapons', key_name='equipment')
     roster: List[Monster] = [request_monster(name) for name in monsters_names]
     boltac_armors: List[Armor] = [request_armor(name) for name in armors_names]
     boltac_armors = [a for a in boltac_armors if a]
     boltac_weapons: List[Armor] = [request_weapon(name) for name in weapons_names]
     boltac_weapons = [w for w in boltac_weapons if w]
     """ Character creation """
-    races = populate_races()
+    races = populate(collection_name='races', key_name='results')
     names = dict()
     for race in races:
         if race not in ['human', 'half-elf']:
             names[race] = populate_names(race)
     human_names = populate_human_names()
-    classes = populate_classes()
-    alignments = populate_alignments()
+    classes = populate(collection_name='classes', key_name='results')
+    alignments = populate(collection_name='alignments', key_name='results')
     race, genre, name, class_type, ethnic = create_character(races, classes, names, human_names)
     character: Character = Character(name=name,
                                      race=race,
@@ -117,7 +137,9 @@ if __name__ == '__main__':
                                      healing_potions=[Potion('2d4')] * POTION_INITIAL_PACK,
                                      monster_kills=0)
     print(character)
-    exit(0)
+    if not continue_message():
+        print(f'Bye {character.name}, see you in a next adventure :-)')
+        exit(0)
     """ Combat simulation """
     welcome_message()
     attack_count = 0
@@ -126,7 +148,7 @@ if __name__ == '__main__':
         # monsters_to_fight = [m for m in roster if 2 + character.level <= m.level <= 5 + character.level]
         monsters_to_fight = [m for m in roster if m.level <= 5 + character.level]
         if character.xp > xp_levels[character.level]:
-            character.gain_level()
+            character.gain_level(pause=PAUSE_ON_RAISE_LEVEL)
         monster: Monster = copy(random.choice(monsters_to_fight))
         print(f'{color.PURPLE}-------------------------------------------------------------------------------------------------------------------------------------------{color.END}')
         print(f'{color.PURPLE} New encounter! {character} vs {monster}{color.END}')

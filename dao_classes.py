@@ -30,7 +30,7 @@ class Monster:
     challenge_rating: int
 
     def __repr__(self):
-        return f"{self.name} (AC {self.armor_class} HD: {character.hit_dice})"
+        return f"{self.name} (AC {self.armor_class} HD: {self.hit_dice})"
 
     @property
     def level(self):
@@ -186,14 +186,14 @@ class Character:
                 print(f"{self.name} found a better armor {new_armor}!")
                 self.armor = new_armor
 
-    def gain_level(self):
+    def gain_level(self, pause: bool):
         self.level += 1
         hp_gained = random.randint(1, 10)
         self.max_hit_points += hp_gained
         print(f'{color.BLUE}New level #{self.level} gained!!!{color.END}')
         print(f'{self.name} gained {hp_gained} hit points')
-        if PAUSE_ON_RAISE_LEVEL:
-            input(f'{color.UNDERLINE}{color.DARKCYAN}hit Enter to continue adventure :-) (potions remaining: {len(character.healing_potions)}){color.END}')
+        if pause:
+            input(f'{color.UNDERLINE}{color.DARKCYAN}hit Enter to continue adventure :-) (potions remaining: {len(self.healing_potions)}){color.END}')
 
     def attack(self, monster: Monster):
         """

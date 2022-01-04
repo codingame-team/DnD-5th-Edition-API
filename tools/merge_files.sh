@@ -10,7 +10,7 @@ output_dir="../data/races/names"
 
 for race in $races; do
   new_file=".${output_dir}/${race}.csv"
-  echo "Category, Name" >"$new_file"
+  # echo "Category, Name" >"$new_file"
   for cat in male female surname nickname; do
     file="${input_dir}/${cat}-${race}.csv"
     if [ -e "$file" ]; then

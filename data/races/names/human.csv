@@ -7,7 +7,6 @@ Chondathan,male,Helm
 Chondathan,male,Malark
 Chondathan,male,Morn
 Chondathan,male,Randal
-Chondathan,male,Stedd
 Chondathan,female,Arveene
 Chondathan,female,Esvele
 Chondathan,female,Jhessail
@@ -16,7 +15,6 @@ Chondathan,female,Lureene
 Chondathan,female,Miri
 Chondathan,female,Rowan
 Chondathan,female,Shandri
-Chondathan,female,Tessele
 Chondathan,surname,Amblecrown
 Chondathan,surname,Buckman
 Chondathan,surname,Dundragon
@@ -33,7 +31,6 @@ Damaran,male,Kosef
 Damaran,male,Mival
 Damaran,male,Orel
 Damaran,male,Pavel
-Damaran,male,Sergor
 Damaran,female,Alethra
 Damaran,female,Kara
 Damaran,female,Katernin
@@ -41,15 +38,13 @@ Damaran,female,Mara
 Damaran,female,Natali
 Damaran,female,Olma
 Damaran,female,Tana
-Damaran,female,Zora
-Damaran,surname,Alethra
-Damaran,surname,Kara
-Damaran,surname,Katernin
-Damaran,surname,Mara
-Damaran,surname,Natali
-Damaran,surname,Olma
-Damaran,surname,Tana
-Damaran,surname,Zora
+Damaran,surname,Bersk
+Damaran,surname,Chernin
+Damaran,surname,Dotsk
+Damaran,surname,Kulenov
+Damaran,surname,Marsk
+Damaran,surname,Nemetsk
+Damaran,surname,Shemov
 Illuskan,male,Ander
 Illuskan,male,Blath
 Illuskan,male,Bran
@@ -68,13 +63,11 @@ Illuskan,female,Kethra
 Illuskan,female,Mara
 Illuskan,female,Olga
 Illuskan,female,Silifrey
-Illuskan,female,Westra
 Illuskan,surname,Brightwood
 Illuskan,surname,Helder
 Illuskan,surname,Hornraven
 Illuskan,surname,Lackman
 Illuskan,surname,Stormwind
-Illuskan,surname,Windrivver
 Mulan,male,Aoth
 Mulan,male,Bareris
 Mulan,male,Ehput-Ki
@@ -83,7 +76,6 @@ Mulan,male,Mumed
 Mulan,male,Ramas
 Mulan,male,So-Kehur
 Mulan,male,Thazar-De
-Mulan,male,Urhur
 Mulan,female,Arizima
 Mulan,female,Chathi
 Mulan,female,Nephis
@@ -107,7 +99,6 @@ Rashemi,male,Kanithar
 Rashemi,male,Madislak
 Rashemi,male,Ralmevik
 Rashemi,male,Shaumar
-Rashemi,male,Vladislak
 Rashemi,female,Fyevarra
 Rashemi,female,Hulmarra
 Rashemi,female,Immith
@@ -115,7 +106,6 @@ Rashemi,female,Imzel
 Rashemi,female,Navarra
 Rashemi,female,Shevarra
 Rashemi,female,Tammith
-Rashemi,female,Yuldra
 Rashemi,surname,Chergoba
 Rashemi,surname,Dyernina
 Rashemi,surname,Iltazyara
@@ -134,7 +124,6 @@ Shou,male,Meng
 Shou,male,On
 Shou,male,Shan
 Shou,male,Shui
-Shou,male,Wen
 Shou,female,Bai
 Shou,female,Chao
 Shou,female,Jia
@@ -154,7 +143,6 @@ Shou,surname,Pin
 Shou,surname,Shin
 Shou,surname,Sum
 Shou,surname,Tan
-Shou,surname,Wan
 Turami,male,Anton
 Turami,male,Diero
 Turami,male,Marcon
@@ -162,7 +150,6 @@ Turami,male,Pieron
 Turami,male,Rimardo
 Turami,male,Romero
 Turami,male,Salazar
-Turami,male,Umbero
 Turami,female,Balama
 Turami,female,Dona
 Turami,female,Faila
@@ -171,7 +158,6 @@ Turami,female,Luisa
 Turami,female,Marta
 Turami,female,Quara
 Turami,female,Selise
-Turami,female,Vonda
 Turami,surname,Agosto
 Turami,surname,Astorio
 Turami,surname,Calabra
@@ -179,14 +165,12 @@ Turami,surname,Domine
 Turami,surname,Falone
 Turami,surname,Marivaldi
 Turami,surname,Pisacar
-Turami,surname,Ramondo
 Calishite,male,Aseir
 Calishite,male,Bardeid
 Calishite,male,Haseid
 Calishite,male,Khemed
 Calishite,male,Mehmen
 Calishite,male,Sudeiman
-Calishite,male,Zasheir
 Calishite,female,Atala
 Calishite,female,Ceidil
 Calishite,female,Hama
@@ -194,11 +178,9 @@ Calishite,female,Jasmal
 Calishite,female,Meilil
 Calishite,female,Seipora
 Calishite,female,Yasheira
-Calishite,female,Zasheida
 Calishite,surname,Basha
 Calishite,surname,Dumein
 Calishite,surname,Jassan
 Calishite,surname,Khalid
 Calishite,surname,Mostana
 Calishite,surname,Pashar
-Calishite,surname,Rein
