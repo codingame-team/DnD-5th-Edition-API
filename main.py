@@ -19,9 +19,9 @@ def continue_message():
 def welcome_message():
     global PAUSE_ON_RAISE_LEVEL
     if PAUSE_ON_RAISE_LEVEL:
-        print(f'{color.PURPLE}-------------------------------------------------------{color.END}')
+        print(f'{color.PURPLE}-----------------------------------------------------------{color.END}')
         print(f'{color.PURPLE} Combat simulation engine based on DnD 5th edition API{color.END}')
-        print(f'{color.PURPLE}-------------------------------------------------------{color.END}')
+        print(f'{color.PURPLE}-----------------------------------------------------------{color.END}')
         print(f'{color.DARKCYAN}Do you want to pause output after new level? (Y/N){color.END}')
         response = input()
         while response not in ['y', 'n', 'Y', 'N']:
@@ -30,12 +30,12 @@ def welcome_message():
         PAUSE_ON_RAISE_LEVEL = True if response in ['y', 'Y'] else False
 
 
-def read_name_simple(race: str, sex: str):
-    name: str = None
-    while not name or not name.isalpha():
-        print(f'Enter name of character: ')
-        name = input()
-    return name
+def read_simple_text(input_message: str):
+    text: str = None
+    while not text:
+        print(f'{input_message}: ')
+        text = input()
+    return text
 
 
 def read_name(race: str, gender: str, names: dict()):
