@@ -55,7 +55,11 @@ def read_name(race: str, gender: str, names: dict()):
         name = read_choice('name', names_list)
         return name, ethnic
     else:
-        names_list = names[race][gender]
+        try:
+            names_list = names[race][gender]
+        except:
+            print(names)
+            exit(0)
         if len(names[race]) > 2:
             other_key = [key for key in names[race] if key not in ['male', 'female']][0]
             names_list += names[race][other_key]
@@ -79,12 +83,17 @@ def read_choice(item_name: str, choice_list: List[str]) -> str:
     return choice_list[choice - 1]
 
 
-def create_character(races: List[str], classes: List[str], names: dict(), human_names: dict()):
+def create_character(races: List[str], subraces: List[str], classes: List[str], names: dict(), human_names: dict()):
     print(f'{color.PURPLE}-------------------------------------------------------{color.END}')
     print(f'{color.PURPLE} Character creation based on DnD 5th edition API{color.END}')
     print(f'{color.PURPLE}-------------------------------------------------------{color.END}')
     """ 1. Choose a race """
     race: str = read_choice('race', races)
+    # subraces = [s for s in subraces for r in races if r == '-'.join(s.split('-')[1:])]
+    subraces = [s for s in subraces for r in races if r == race and r in s]
+    subrace = None
+    if subraces:
+        subrace: str = read_choice('subrace', subraces)
     """ 2. Choose a class """
     class_type: str = read_choice('class', classes)
     """ 3. Determine ability scores (Strength, Dexterity, Constitution, Intelligence, Wisdom, and Charisma.)"""
@@ -100,7 +109,10 @@ def create_character(races: List[str], classes: List[str], names: dict(), human_
     wisdom: int = read_choice('wisdom', ability_scores)
     ability_scores.remove(wisdom)
     charisma: int = read_choice('charisma', ability_scores)
+    mod = lambda x: (x - 10) // 2
     abilities: Abilities = Abilities(strength, dexterity, constitution, intelligence, wisdom, charisma)
+    ability_modifiers: Abilities = Abilities(mod(strength), mod(dexterity), mod(constitution), mod(intelligence), mod(wisdom), mod(charisma))
+
     """ 4. Describe your character (name, gender, clan/family/ """
     genders = ['male', 'female']
     gender: str = read_choice('genre', genders)
@@ -110,7 +122,7 @@ def create_character(races: List[str], classes: List[str], names: dict(), human_
     else:
         name = read_name(race, gender, names)
     """ 5. Choose equipment """
-    return race, class_type, abilities, name, gender, ethnic
+    return race, subrace, class_type, abilities, ability_modifiers, name, gender, ethnic
 
 
 if __name__ == '__main__':
@@ -137,6 +149,7 @@ if __name__ == '__main__':
     proficiencies = [request_proficiency(name) for name in proficiencies_names]
     """ Character creation """
     races: List[str] = populate(collection_name='races', key_name='results')
+    subraces: List[str] = populate(collection_name='subraces', key_name='results')
     names = dict()
     for race in races:
         if race not in ['human', 'half-elf']:
@@ -144,10 +157,12 @@ if __name__ == '__main__':
     human_names: List[str] = populate_human_names()
     classes: List[str] = populate(collection_name='classes', key_name='results')
     alignments: List[str] = populate(collection_name='alignments', key_name='results')
-    race, class_type, abilities, name, gender, ethnic = create_character(races, classes, names, human_names)
+    race, subrace, class_type, abilities, ability_modifiers, name, gender, ethnic = create_character(races, subraces, classes, names, human_names)
     character: Character = Character(race=request_race(race),
+                                     subrace=request_subrace(subrace),
                                      class_type=class_type,
                                      abilities=abilities,
+                                     ability_modifiers=ability_modifiers,
                                      gender=gender,
                                      name=name,
                                      ethnic=ethnic,

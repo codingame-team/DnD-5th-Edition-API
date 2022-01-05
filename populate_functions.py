@@ -129,7 +129,7 @@ def request_subrace(index_name: str) -> SubRace:
     :param index_name: name of the subrace
     :return: SubRace object
     """
-    with open(f"data/races/{index_name}.json", "r") as f:
+    with open(f"data/subraces/{index_name}.json", "r") as f:
         data = json.loads(f.read())
         ability_bonuses = dict([(ability_bonus['ability_score']['index'], ability_bonus['bonus']) for ability_bonus in data['ability_bonuses']])
         starting_proficiencies = None
@@ -139,6 +139,7 @@ def request_subrace(index_name: str) -> SubRace:
                        ability_bonuses=ability_bonuses,
                        starting_proficiencies=starting_proficiencies)
 
+
 def request_proficiency(index_name: str) -> Proficiency:
     """
     Send a request to local database for a proficiency's characteristic
@@ -147,10 +148,5 @@ def request_proficiency(index_name: str) -> Proficiency:
     """
     with open(f"data/proficiencies/{index_name}.json", "r") as f:
         data = json.loads(f.read())
-        ability_bonuses = dict([(ability_bonus['ability_score']['index'], ability_bonus['bonus']) for ability_bonus in data['ability_bonuses']])
-        starting_proficiencies = None
-        if data['starting_proficiencies']:
-            starting_proficiencies = data['starting_proficiencies']
         return Proficiency(name=data['index'],
-                       ability_bonuses=ability_bonuses,
-                       starting_proficiencies=starting_proficiencies)
+                           prof_type=data['type'])

@@ -69,7 +69,7 @@ class ProficiencyType(Enum):
 @dataclass
 class Proficiency:
     name: str
-    prof_type: ProficiencyType
+    prof_type: str
 
 
 @dataclass
@@ -146,11 +146,7 @@ class Abilities:
     wis: int
     cha: int
 
-    # def __init__(self, strength, dexterity, constitution, intelligence, wisdom, charisma):
-    #     self.strength, self.dexterity, self.constitution, self.intelligence, self.wisdom, self.charisma = strength, dexterity, constitution, intelligence, wisdom, charisma
-
     def __repr__(self):
-        # return f'str: {self.strength} dex: {self.dexterity} con: {self.constitution} int: {self.intelligence} wis: {self.wisdom} cha: {self.charisma}'
         return f'str: {self.str} dex: {self.dex} con: {self.con} int: {self.int} wis: {self.wis} cha: {self.cha}'
 
 
@@ -158,11 +154,12 @@ class Abilities:
 class Character:
     name: str
     race: Race
-    sub_race: SubRace
+    subrace: SubRace
     ethnic: str
     gender: str
     class_type: str
     abilities: Abilities
+    ability_modifiers: Abilities
     hit_points: int
     max_hit_points: int
     xp: int
@@ -197,9 +194,9 @@ class Character:
         return self.abilities.cha if 'cha' not in self.race.ability_bonuses else self.abilities.cha + self.race.ability_bonuses['cha']
 
     def __repr__(self):
-        race = self.sub_race if self.sub_race else self.race
+        race = self.subrace if self.subrace else self.race
         ethnic = f'ethnic: {self.ethnic} - ' if self.ethnic else ''
-        return f"{self.name} - Abilities: {self.abilities} - ({ethnic}{self.gender} {race} - class: {self.class_type} - AC {self.armor_class} HD: {self.hit_dice} - w: {self.weapon.name} a: {self.armor.name} - potions: {len(self.healing_potions)})"
+        return f"{self.name} - Abilities: {self.abilities} - Ability modifiers: {self.ability_modifiers} - ({ethnic}{self.gender} {race.name} - class: {self.class_type} - AC {self.armor_class} HD: {self.hit_dice} - w: {self.weapon.name} a: {self.armor.name} - potions: {len(self.healing_potions)})"
 
     @property
     def armor_class(self):
