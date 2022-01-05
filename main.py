@@ -109,11 +109,11 @@ def create_character(races: List[str], subraces: List[str], classes: List[str], 
     wisdom: int = read_choice('wisdom', ability_scores)
     ability_scores.remove(wisdom)
     charisma: int = read_choice('charisma', ability_scores)
-    mod = lambda x: (x - 10) // 2
     abilities: Abilities = Abilities(strength, dexterity, constitution, intelligence, wisdom, charisma)
+    mod = lambda x: (x - 10) // 2
     ability_modifiers: Abilities = Abilities(mod(strength), mod(dexterity), mod(constitution), mod(intelligence), mod(wisdom), mod(charisma))
 
-    """ 4. Describe your character (name, gender, clan/family/ """
+    """ 4. Describe your character (name, gender, clan/family/virtue, ...) """
     genders = ['male', 'female']
     gender: str = read_choice('genre', genders)
     ethnic: str = None
