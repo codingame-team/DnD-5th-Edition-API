@@ -98,13 +98,7 @@
         {
           "damage_type": {
             "index": "slashing",
-            "name": "Slashing",
-            "url": "/api/damage-types/slashing"
-          },
-          "damage_dice": "2d6+4"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/troll"
+            "name": "Slashing", "url": "/api/damage-types/slashing"
+    }, "damage_dice": "2d6+4"
+  }]}], "url": "/api/monsters/troll"
 }

@@ -116,7 +116,5 @@
     {
       "name": "Parry",
       "desc": "The knight adds 2 to its AC against one melee attack that would hit it. To do so, the knight must see the attacker and be wielding a melee weapon."
-    }
-  ],
-  "url": "/api/monsters/knight"
+}], "url": "/api/monsters/knight"
 }

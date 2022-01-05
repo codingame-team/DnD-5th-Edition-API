@@ -5,8 +5,8 @@
 
 races="dragonborn dwarf elf gnome half-elf half-orc halfling human tiefling"
 
-input_dir="../data/races/names/source"
-output_dir="../data/races/names"
+input_dir="../data/names/source"
+output_dir="../data/names"
 
 for race in $races; do
   new_file=".${output_dir}/${race}.csv"

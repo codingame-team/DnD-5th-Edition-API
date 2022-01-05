@@ -96,11 +96,6 @@
             "index": "slashing",
             "name": "Slashing",
             "url": "/api/damage-types/slashing"
-          },
-          "damage_dice": "2d6+2"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/giant-vulture"
+    }, "damage_dice": "2d6+2"
+  }]}], "url": "/api/monsters/giant-vulture"
 }

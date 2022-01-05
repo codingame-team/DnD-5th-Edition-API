@@ -179,27 +179,11 @@
                   "index": "lightning",
                   "name": "Lightning",
                   "url": "/api/damage-types/lightning"
-                },
-                "damage_dice": "10d10"
-              }
-            ]
-          },
-          {
-            "name": "Repulsion Breath",
-            "dc": {
-              "dc_type": {
-                "index": "str",
-                "name": "STR",
-                "url": "/api/ability-scores/str"
-              },
-              "dc_value": 15,
-              "success_type": "none"
-            }
-          }
-        ]
-      },
-      "damage": []
-    }
-  ],
-  "url": "/api/monsters/young-bronze-dragon"
+        }, "damage_dice": "10d10"
+      }]}, {
+      "name": "Repulsion Breath", "dc": {
+        "dc_type": {
+          "index": "str", "name": "STR", "url": "/api/ability-scores/str"
+        }, "dc_value": 15, "success_type": "none"
+      }}]}, "damage": []}], "url": "/api/monsters/young-bronze-dragon"
 }

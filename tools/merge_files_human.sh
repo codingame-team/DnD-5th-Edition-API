@@ -5,8 +5,8 @@
 
 ethnics="Chondathan Damaran Illuskan Mulan Rashemi Shou Turami Calishite"
 
-input_dir="../data/races/names/source"
-output_dir="../data/races/names"
+input_dir="../data/names/source"
+output_dir="../data/names"
 
 new_file="${output_dir}/human.csv"
 

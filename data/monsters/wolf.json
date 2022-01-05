@@ -66,11 +66,6 @@
             "index": "piercing",
             "name": "Piercing",
             "url": "/api/damage-types/piercing"
-          },
-          "damage_dice": "2d4+2"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/wolf"
+          }, "damage_dice": "2d4+2"
+  }]}], "url": "/api/monsters/wolf"
 }

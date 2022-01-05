@@ -70,11 +70,6 @@
             "index": "piercing",
             "name": "Piercing",
             "url": "/api/damage-types/piercing"
-          },
-          "damage_dice": "1d6+3"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/orc"
+    }, "damage_dice": "1d6+3"
+  }]}], "url": "/api/monsters/orc"
 }

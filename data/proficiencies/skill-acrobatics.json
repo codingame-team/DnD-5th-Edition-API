@@ -1,0 +1,12 @@
+{
+  "index": "skill-acrobatics",
+  "type": "Skills",
+  "name": "Skill: Acrobatics",
+  "classes": [],
+  "races": [],
+  "url": "/api/proficiencies/skill-acrobatics",
+  "reference": {
+    "index": "acrobatics",
+    "name": "Acrobatics",
+    "url": "/api/skills/acrobatics"
+}}

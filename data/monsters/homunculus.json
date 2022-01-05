@@ -62,9 +62,5 @@
             "url": "/api/damage-types/piercing"
           },
           "damage_dice": "1"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/homunculus"
+  }]}], "url": "/api/monsters/homunculus"
 }

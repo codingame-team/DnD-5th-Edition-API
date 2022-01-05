@@ -141,21 +141,10 @@
                 "index": "bludgeoning",
                 "name": "Bludgeoning",
                 "url": "/api/damage-types/bludgeoning"
-              },
-              "damage_dice": "1d6"
-            },
-            {
-              "damage_type": {
-                "index": "bludgeoning",
-                "name": "Bludgeoning",
-                "url": "/api/damage-types/bludgeoning"
-              },
-              "damage_dice": "1d8+2"
-            }
-          ]
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/druid"
+      }, "damage_dice": "1d6"
+    }, {
+      "damage_type": {
+        "index": "bludgeoning", "name": "Bludgeoning", "url": "/api/damage-types/bludgeoning"
+      }, "damage_dice": "1d8+2"
+    }]}]}], "url": "/api/monsters/druid"
 }

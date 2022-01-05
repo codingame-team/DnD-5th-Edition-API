@@ -1,0 +1,23 @@
+{
+  "index": "half-plate-armor",
+  "name": "Half Plate Armor",
+  "equipment_category": {
+    "index": "armor",
+    "name": "Armor",
+    "url": "/api/equipment-categories/armor"
+  },
+  "armor_category": "Medium",
+  "armor_class": {
+    "base": 15,
+    "dex_bonus": "True",
+    "max_bonus": 2
+  },
+  "str_minimum": 0,
+  "stealth_disadvantage": "True",
+  "weight": 40,
+  "cost": {
+    "quantity": 750,
+    "unit": "gp"
+  },
+  "url": "/api/equipment/half-plate-armor"
+}

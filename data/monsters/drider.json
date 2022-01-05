@@ -209,27 +209,13 @@
     },
     {
       "name": "Longbow",
-      "desc": "Ranged Weapon Attack: +6 to hit, range 150/600 ft., one target. Hit: 7 (1d8 + 3) piercing damage plus 4 (1d8) poison damage.",
-      "attack_bonus": 6,
-      "damage": [
-        {
-          "damage_type": {
-            "index": "piercing",
-            "name": "Piercing",
-            "url": "/api/damage-types/piercing"
-          },
-          "damage_dice": "1d8+3"
-        },
-        {
-          "damage_type": {
-            "index": "poison",
-            "name": "Poison",
-            "url": "/api/damage-types/poison"
-          },
-          "damage_dice": "1d8"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/drider"
+      "desc": "Ranged Weapon Attack: +6 to hit, range 150/600 ft., one target. Hit: 7 (1d8 + 3) piercing damage plus 4 (1d8) poison damage.", "attack_bonus": 6, "damage": [{
+    "damage_type": {
+      "index": "piercing", "name": "Piercing", "url": "/api/damage-types/piercing"
+    }, "damage_dice": "1d8+3"
+  }, {
+    "damage_type": {
+      "index": "poison", "name": "Poison", "url": "/api/damage-types/poison"
+    }, "damage_dice": "1d8"
+  }]}], "url": "/api/monsters/drider"
 }

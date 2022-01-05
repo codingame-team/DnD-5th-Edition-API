@@ -1,0 +1,12 @@
+{
+  "index": "calligraphers-supplies",
+  "type": "Artisan's Tools",
+  "name": "Calligrapher's Supplies",
+  "classes": [],
+  "races": [],
+  "url": "/api/proficiencies/calligraphers-supplies",
+  "reference": {
+    "index": "calligraphers-supplies",
+    "name": "Calligrapher's Supplies",
+    "url": "/api/equipment/calligraphers-supplies"
+}}

@@ -138,14 +138,7 @@
       "dc": {
         "dc_type": {
           "index": "cha",
-          "name": "CHA",
-          "url": "/api/ability-scores/cha"
-        },
-        "dc_value": 13,
-        "success_type": "none"
-      },
-      "damage": []
-    }
-  ],
-  "url": "/api/monsters/ghost"
+          "name": "CHA", "url": "/api/ability-scores/cha"
+    }, "dc_value": 13, "success_type": "none"
+  }, "damage": []}], "url": "/api/monsters/ghost"
 }

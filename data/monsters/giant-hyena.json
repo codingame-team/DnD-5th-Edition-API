@@ -56,9 +56,5 @@
             "url": "/api/damage-types/piercing"
           },
           "damage_dice": "2d6+3"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/giant-hyena"
+  }]}], "url": "/api/monsters/giant-hyena"
 }

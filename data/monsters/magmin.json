@@ -73,11 +73,6 @@
             "index": "fire",
             "name": "Fire",
             "url": "/api/damage-types/fire"
-          },
-          "damage_dice": "2d6"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/magmin"
+    }, "damage_dice": "2d6"
+  }]}], "url": "/api/monsters/magmin"
 }

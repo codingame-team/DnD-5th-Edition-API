@@ -47,5 +47,6 @@
       "name": "Two-Handed",
       "url": "/api/weapon-properties/two-handed"
     }
-  ], "url": "/api/equipment/crossbow-heavy"
+  ],
+  "url": "/api/equipment/crossbow-heavy"
 }

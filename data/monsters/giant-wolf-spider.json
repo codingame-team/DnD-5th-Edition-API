@@ -75,9 +75,5 @@
             "url": "/api/damage-types/piercing"
           },
           "damage_dice": "1d6+1"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/giant-wolf-spider"
+  }]}], "url": "/api/monsters/giant-wolf-spider"
 }

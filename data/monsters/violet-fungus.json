@@ -79,11 +79,6 @@
             "index": "necrotic",
             "name": "Necrotic",
             "url": "/api/damage-types/necrotic"
-          },
-          "damage_dice": "1d8"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/violet-fungus"
+          }, "damage_dice": "1d8"
+  }]}], "url": "/api/monsters/violet-fungus"
 }

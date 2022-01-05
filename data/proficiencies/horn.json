@@ -1,0 +1,12 @@
+{
+  "index": "horn",
+  "type": "Musical Instruments",
+  "name": "Horn",
+  "classes": [],
+  "races": [],
+  "url": "/api/proficiencies/horn",
+  "reference": {
+    "index": "horn",
+    "name": "Horn",
+    "url": "/api/equipment/horn"
+}}

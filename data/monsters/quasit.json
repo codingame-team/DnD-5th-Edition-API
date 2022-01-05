@@ -101,9 +101,5 @@
     },
     {
       "name": "Invisibility",
-      "desc": "The quasit magically turns invisible until it attacks or uses Scare, or until its concentration ends (as if concentrating on a spell). Any equipment the quasit wears or carries is invisible with it.",
-      "damage": []
-    }
-  ],
-  "url": "/api/monsters/quasit"
+      "desc": "The quasit magically turns invisible until it attacks or uses Scare, or until its concentration ends (as if concentrating on a spell). Any equipment the quasit wears or carries is invisible with it.", "damage": []}], "url": "/api/monsters/quasit"
 }

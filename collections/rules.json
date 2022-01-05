@@ -1,0 +1,35 @@
+{
+  "count": 6,
+  "results": [
+    {
+      "name": "Adventuring",
+      "index": "adventuring",
+      "url": "/api/rules/adventuring"
+    },
+    {
+      "name": "Appendix",
+      "index": "appendix",
+      "url": "/api/rules/appendix"
+    },
+    {
+      "name": "Combat",
+      "index": "combat",
+      "url": "/api/rules/combat"
+    },
+    {
+      "name": "Equipment",
+      "index": "equipment",
+      "url": "/api/rules/equipment"
+    },
+    {
+      "name": "Spellcasting",
+      "index": "spellcasting",
+      "url": "/api/rules/spellcasting"
+    },
+    {
+      "name": "Using Ability Scores",
+      "index": "using-ability-scores",
+      "url": "/api/rules/using-ability-scores"
+    }
+  ]
+}

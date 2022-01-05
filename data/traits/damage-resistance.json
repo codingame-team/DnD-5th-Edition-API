@@ -1,0 +1,17 @@
+{
+  "index": "damage-resistance",
+  "races": [
+    {
+      "index": "dragonborn",
+      "name": "Dragonborn",
+      "url": "/api/races/dragonborn"
+    }
+  ],
+  "subraces": [],
+  "name": "Damage Resistance",
+  "desc": [
+    "You have resistance to the damage type associated with your draconic ancestry."
+  ],
+  "proficiencies": [],
+  "url": "/api/traits/damage-resistance"
+}

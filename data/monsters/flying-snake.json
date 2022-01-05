@@ -58,9 +58,5 @@
             "url": "/api/damage-types/poison"
           },
           "damage_dice": "3d4"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/flying-snake"
+  }]}], "url": "/api/monsters/flying-snake"
 }

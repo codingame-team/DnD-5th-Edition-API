@@ -175,19 +175,9 @@
   "actions": [
     {
       "name": "Dagger",
-      "desc": "Melee or Ranged Weapon Attack: +5 to hit, reach 5 ft. or range 20/60 ft., one target. Hit: 4 (1d4 + 2) piercing damage.",
-      "attack_bonus": 5,
-      "damage": [
-        {
-          "damage_type": {
-            "index": "piercing",
-            "name": "Piercing",
-            "url": "/api/damage-types/piercing"
-          },
-          "damage_dice": "1d4+2"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/mage"
+      "desc": "Melee or Ranged Weapon Attack: +5 to hit, reach 5 ft. or range 20/60 ft., one target. Hit: 4 (1d4 + 2) piercing damage.", "attack_bonus": 5, "damage": [{
+    "damage_type": {
+      "index": "piercing", "name": "Piercing", "url": "/api/damage-types/piercing"
+    }, "damage_dice": "1d4+2"
+  }]}], "url": "/api/monsters/mage"
 }

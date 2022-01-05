@@ -87,11 +87,6 @@
             "index": "bludgeoning",
             "name": "Bludgeoning",
             "url": "/api/damage-types/bludgeoning"
-          },
-          "damage_dice": "3d8+7"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/tyrannosaurus-rex"
+    }, "damage_dice": "3d8+7"
+  }]}], "url": "/api/monsters/tyrannosaurus-rex"
 }

@@ -118,13 +118,7 @@
         {
           "damage_type": {
             "index": "piercing",
-            "name": "Piercing",
-            "url": "/api/damage-types/piercing"
-          },
-          "damage_dice": "1d8+2"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/weretiger-human"
+            "name": "Piercing", "url": "/api/damage-types/piercing"
+    }, "damage_dice": "1d8+2"
+  }]}], "url": "/api/monsters/weretiger-human"
 }

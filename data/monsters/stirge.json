@@ -45,7 +45,5 @@
           "damage_dice": "1d4+3"
         }
       ]
-    }
-  ],
-  "url": "/api/monsters/stirge"
+    }], "url": "/api/monsters/stirge"
 }

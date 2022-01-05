@@ -179,14 +179,6 @@
     },
     {
       "name": "Unarmed Strike",
-      "desc": "The vampire makes one unarmed strike.",
-      "attack_bonus": 0
-    },
-    {
-      "name": "Bite (Costs 2 Actions)",
-      "desc": "The vampire makes one bite attack.",
-      "attack_bonus": 0
-    }
-  ],
-  "url": "/api/monsters/vampire"
+      "desc": "The vampire makes one unarmed strike.", "attack_bonus": 0}, {
+  "name": "Bite (Costs 2 Actions)", "desc": "The vampire makes one bite attack.", "attack_bonus": 0}], "url": "/api/monsters/vampire"
 }

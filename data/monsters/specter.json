@@ -108,11 +108,6 @@
             "index": "necrotic",
             "name": "Necrotic",
             "url": "/api/damage-types/necrotic"
-          },
-          "damage_dice": "3d6"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/specter"
+    }, "damage_dice": "3d6"
+  }]}], "url": "/api/monsters/specter"
 }

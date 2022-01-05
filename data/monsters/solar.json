@@ -297,18 +297,9 @@
       ]
     },
     {
-      "name": "Blinding Gaze (Costs 3 Actions)",
-      "desc": "The solar targets one creature it can see within 30 ft. of it. If the target can see it, the target must succeed on a DC 15 Constitution saving throw or be blinded until magic such as the lesser restoration spell removes the blindness.",
-      "dc": {
-        "dc_type": {
-          "index": "con",
-          "name": "CON",
-          "url": "/api/ability-scores/con"
-        },
-        "dc_value": 15,
-        "success_type": "none"
-      }
-    }
-  ],
-  "url": "/api/monsters/solar"
+      "name": "Blinding Gaze (Costs 3 Actions)", "desc": "The solar targets one creature it can see within 30 ft. of it. If the target can see it, the target must succeed on a DC 15 Constitution saving throw or be blinded until magic such as the lesser restoration spell removes the blindness.", "dc": {
+    "dc_type": {
+      "index": "con", "name": "CON", "url": "/api/ability-scores/con"
+    }, "dc_value": 15, "success_type": "none"
+  }}], "url": "/api/monsters/solar"
 }

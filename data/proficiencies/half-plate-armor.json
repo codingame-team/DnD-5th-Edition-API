@@ -1,0 +1,12 @@
+{
+  "index": "half-plate-armor",
+  "type": "Armor",
+  "name": "Half Plate Armor",
+  "classes": [],
+  "races": [],
+  "url": "/api/proficiencies/half-plate-armor",
+  "reference": {
+    "index": "half-plate-armor",
+    "name": "Half Plate Armor",
+    "url": "/api/equipment/half-plate-armor"
+}}

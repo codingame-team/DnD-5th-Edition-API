@@ -128,14 +128,7 @@
       "damage": [
         {
           "damage_type": {
-            "index": "cold",
-            "name": "Cold",
-            "url": "/api/damage-types/cold"
-          },
-          "damage_dice": "5d8"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/white-dragon-wyrmling"
+      "index": "cold", "name": "Cold", "url": "/api/damage-types/cold"
+    }, "damage_dice": "5d8"
+  }]}], "url": "/api/monsters/white-dragon-wyrmling"
 }

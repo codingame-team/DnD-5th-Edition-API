@@ -42,8 +42,5 @@
           },
           "damage_dice": "1d4"
         }
-      ]
-    }
-  ],
-  "url": "/api/monsters/camel"
+      ]}], "url": "/api/monsters/camel"
 }

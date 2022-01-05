@@ -61,9 +61,5 @@
             "url": "/api/damage-types/piercing"
           },
           "damage_dice": "1d8+2"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/reef-shark"
+  }]}], "url": "/api/monsters/reef-shark"
 }

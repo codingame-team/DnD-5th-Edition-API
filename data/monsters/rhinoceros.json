@@ -49,7 +49,5 @@
           "damage_dice": "2d8+5"
         }
       ]
-    }
-  ],
-  "url": "/api/monsters/rhinoceros"
+    }], "url": "/api/monsters/rhinoceros"
 }

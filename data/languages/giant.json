@@ -1,0 +1,11 @@
+{
+  "index": "giant",
+  "name": "Giant",
+  "type": "Standard",
+  "typical_speakers": [
+    "Ogres",
+    "Giants"
+  ],
+  "script": "Dwarvish",
+  "url": "/api/languages/giant"
+}

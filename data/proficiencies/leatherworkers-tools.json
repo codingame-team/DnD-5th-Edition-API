@@ -1,0 +1,12 @@
+{
+  "index": "leatherworkers-tools",
+  "type": "Artisan's Tools",
+  "name": "Leatherworker's Tools",
+  "classes": [],
+  "races": [],
+  "url": "/api/proficiencies/leatherworkers-tools",
+  "reference": {
+    "index": "leatherworkers-tools",
+    "name": "Leatherworker's Tools",
+    "url": "/api/equipment/leatherworkers-tools"
+}}

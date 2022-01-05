@@ -83,13 +83,6 @@
       "usage": {
         "type": "recharge after rest",
         "rest_types": [
-          "short",
-          "long"
-        ]
-      },
-      "attack_bonus": 0,
-      "damage": []
-    }
-  ],
-  "url": "/api/monsters/octopus"
+          "short", "long"
+    ]}, "attack_bonus": 0, "damage": []}], "url": "/api/monsters/octopus"
 }

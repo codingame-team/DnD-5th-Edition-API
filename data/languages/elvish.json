@@ -1,0 +1,11 @@
+{
+  "index": "elvish",
+  "name": "Elvish",
+  "desc": "Elvish is fluid, with subtle intonations and intricate grammar. Elven literature is rich and varied, and their songs and poems are famous among other races. Many bards learn their language so they can add Elvish ballads to their repertoires.",
+  "type": "Standard",
+  "typical_speakers": [
+    "Elves"
+  ],
+  "script": "Elvish",
+  "url": "/api/languages/elvish"
+}

@@ -40,5 +40,7 @@
   ],
   "throw_range": {
     "normal": 30,
-    "long": 120}, "url": "/api/equipment/javelin"
+    "long": 120
+  },
+  "url": "/api/equipment/javelin"
 }

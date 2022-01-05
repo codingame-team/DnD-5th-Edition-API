@@ -254,27 +254,13 @@
     },
     {
       "name": "Wing Attack (Costs 2 Actions)",
-      "desc": "The dragon beats its wings. Each creature within 10 ft. of the dragon must succeed on a DC 20 Dexterity saving throw or take 14 (2d6 + 7) bludgeoning damage and be knocked prone. The dragon can then fly up to half its flying speed.",
-      "dc": {
-        "dc_type": {
-          "index": "dex",
-          "name": "DEX",
-          "url": "/api/ability-scores/dex"
-        },
-        "dc_value": 20,
-        "success_type": "none"
-      },
-      "damage": [
-        {
-          "damage_type": {
-            "index": "bludgeoning",
-            "name": "Bludgeoning",
-            "url": "/api/damage-types/bludgeoning"
-          },
-          "damage_dice": "2d6+7"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/adult-bronze-dragon"
+      "desc": "The dragon beats its wings. Each creature within 10 ft. of the dragon must succeed on a DC 20 Dexterity saving throw or take 14 (2d6 + 7) bludgeoning damage and be knocked prone. The dragon can then fly up to half its flying speed.", "dc": {
+    "dc_type": {
+      "index": "dex", "name": "DEX", "url": "/api/ability-scores/dex"
+    }, "dc_value": 20, "success_type": "none"
+  }, "damage": [{
+    "damage_type": {
+      "index": "bludgeoning", "name": "Bludgeoning", "url": "/api/damage-types/bludgeoning"
+    }, "damage_dice": "2d6+7"
+  }]}], "url": "/api/monsters/adult-bronze-dragon"
 }

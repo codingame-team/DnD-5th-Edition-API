@@ -161,7 +161,5 @@
     {
       "name": "Parry",
       "desc": "The marilith adds 5 to its AC against one melee attack that would hit it. To do so, the marilith must see the attacker and be wielding a melee weapon."
-    }
-  ],
-  "url": "/api/monsters/marilith"
+}], "url": "/api/monsters/marilith"
 }

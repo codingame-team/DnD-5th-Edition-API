@@ -66,9 +66,5 @@
             "url": "/api/damage-types/piercing"
           },
           "damage_dice": "1d10+2"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/phase-spider"
+  }]}], "url": "/api/monsters/phase-spider"
 }

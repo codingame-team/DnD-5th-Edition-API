@@ -1,0 +1,11 @@
+{
+  "index": "dwarvish",
+  "name": "Dwarvish",
+  "desc": "Dwarvish is full of hard consonants and guttural sounds.",
+  "type": "Standard",
+  "typical_speakers": [
+    "Dwarves"
+  ],
+  "script": "Dwarvish",
+  "url": "/api/languages/dwarvish"
+}

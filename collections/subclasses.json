@@ -1,0 +1,65 @@
+{
+  "count": 12,
+  "results": [
+    {
+      "index": "berserker",
+      "name": "Berserker",
+      "url": "/api/subclasses/berserker"
+    },
+    {
+      "index": "champion",
+      "name": "Champion",
+      "url": "/api/subclasses/champion"
+    },
+    {
+      "index": "devotion",
+      "name": "Devotion",
+      "url": "/api/subclasses/devotion"
+    },
+    {
+      "index": "draconic",
+      "name": "Draconic",
+      "url": "/api/subclasses/draconic"
+    },
+    {
+      "index": "evocation",
+      "name": "Evocation",
+      "url": "/api/subclasses/evocation"
+    },
+    {
+      "index": "fiend",
+      "name": "Fiend",
+      "url": "/api/subclasses/fiend"
+    },
+    {
+      "index": "hunter",
+      "name": "Hunter",
+      "url": "/api/subclasses/hunter"
+    },
+    {
+      "index": "land",
+      "name": "Land",
+      "url": "/api/subclasses/land"
+    },
+    {
+      "index": "life",
+      "name": "Life",
+      "url": "/api/subclasses/life"
+    },
+    {
+      "index": "lore",
+      "name": "Lore",
+      "url": "/api/subclasses/lore"
+    },
+    {
+      "index": "open-hand",
+      "name": "Open Hand",
+      "url": "/api/subclasses/open-hand"
+    },
+    {
+      "index": "thief",
+      "name": "Thief",
+      "url": "/api/subclasses/thief"
+    }
+  ]
+}

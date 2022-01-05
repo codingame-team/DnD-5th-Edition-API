@@ -56,9 +56,5 @@
             "url": "/api/damage-types/piercing"
           },
           "damage_dice": "1d8+1"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/bandit"
+  }]}], "url": "/api/monsters/bandit"
 }

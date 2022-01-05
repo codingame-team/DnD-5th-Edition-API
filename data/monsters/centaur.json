@@ -133,17 +133,9 @@
       "name": "Longbow",
       "desc": "Ranged Weapon Attack: +4 to hit, range 150/600 ft., one target. Hit: 6 (1d8 + 2) piercing damage.",
       "attack_bonus": 4,
-      "damage": [
-        {
-          "damage_type": {
-            "index": "piercing",
-            "name": "Piercing",
-            "url": "/api/damage-types/piercing"
-          },
-          "damage_dice": "1d8+2"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/centaur"
+      "damage": [{
+    "damage_type": {
+      "index": "piercing", "name": "Piercing", "url": "/api/damage-types/piercing"
+    }, "damage_dice": "1d8+2"
+  }]}], "url": "/api/monsters/centaur"
 }

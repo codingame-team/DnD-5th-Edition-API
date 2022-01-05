@@ -140,21 +140,9 @@
             ]
           },
           {
-            "name": "Weakening Breath",
-            "dc": {
-              "dc_type": {
-                "index": "str",
-                "name": "STR",
-                "url": "/api/ability-scores/str"
-              },
-              "dc_value": 13,
-              "success_type": "none"
-            }
-          }
-        ]
-      },
-      "damage": []
-    }
-  ],
-  "url": "/api/monsters/gold-dragon-wyrmling"
+            "name": "Weakening Breath", "dc": {
+        "dc_type": {
+          "index": "str", "name": "STR", "url": "/api/ability-scores/str"
+        }, "dc_value": 13, "success_type": "none"
+      }}]}, "damage": []}], "url": "/api/monsters/gold-dragon-wyrmling"
 }

@@ -112,13 +112,7 @@
         {
           "damage_type": {
             "index": "bludgeoning",
-            "name": "Bludgeoning",
-            "url": "/api/damage-types/bludgeoning"
-          },
-          "damage_dice": "4d10+7"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/fire-giant"
+            "name": "Bludgeoning", "url": "/api/damage-types/bludgeoning"
+    }, "damage_dice": "4d10+7"
+  }]}], "url": "/api/monsters/fire-giant"
 }

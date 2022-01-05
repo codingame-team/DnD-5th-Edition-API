@@ -87,14 +87,7 @@
       "damage": [
         {
           "damage_type": {
-            "index": "piercing",
-            "name": "Piercing",
-            "url": "/api/damage-types/piercing"
-          },
-          "damage_dice": "1d8+1"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/gnoll"
+            "index": "piercing", "name": "Piercing", "url": "/api/damage-types/piercing"
+    }, "damage_dice": "1d8+1"
+  }]}], "url": "/api/monsters/gnoll"
 }

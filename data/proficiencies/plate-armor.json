@@ -1,0 +1,12 @@
+{
+  "index": "plate-armor",
+  "type": "Armor",
+  "name": "Plate Armor",
+  "classes": [],
+  "races": [],
+  "url": "/api/proficiencies/plate-armor",
+  "reference": {
+    "index": "plate-armor",
+    "name": "Plate Armor",
+    "url": "/api/equipment/plate-armor"
+}}

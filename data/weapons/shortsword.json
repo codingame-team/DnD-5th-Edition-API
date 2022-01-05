@@ -41,5 +41,7 @@
       "index": "monk",
       "name": "Monk",
       "url": "/api/weapon-properties/monk"
-    }], "url": "/api/equipment/shortsword"
+    }
+  ],
+  "url": "/api/equipment/shortsword"
 }

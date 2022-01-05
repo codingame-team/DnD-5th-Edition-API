@@ -39,5 +39,7 @@
       "index": "bludgeoning",
       "name": "Bludgeoning",
       "url": "/api/damage-types/bludgeoning"
-  }}, "url": "/api/equipment/warhammer"
+    }
+  },
+  "url": "/api/equipment/warhammer"
 }

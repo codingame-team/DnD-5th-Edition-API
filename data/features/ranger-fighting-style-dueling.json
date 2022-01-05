@@ -1,0 +1,20 @@
+{
+  "index": "ranger-fighting-style-dueling",
+  "class": {
+    "index": "ranger",
+    "name": "Ranger",
+    "url": "/api/classes/ranger"
+  },
+  "name": "Fighting Style: Dueling",
+  "level": 2,
+  "prerequisites": [],
+  "desc": [
+    "When you are wielding a melee weapon in one hand and no other weapons, you gain a +2 bonus to damage rolls with that weapon."
+  ],
+  "parent": {
+    "index": "ranger-fighting-style",
+    "name": "Fighting Style",
+    "url": "/api/features/ranger-fighting-style"
+  },
+  "url": "/api/features/ranger-fighting-style-dueling"
+}

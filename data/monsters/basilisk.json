@@ -63,11 +63,6 @@
             "index": "poison",
             "name": "Poison",
             "url": "/api/damage-types/poison"
-          },
-          "damage_dice": "2d6"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/basilisk"
+    }, "damage_dice": "2d6"
+  }]}], "url": "/api/monsters/basilisk"
 }

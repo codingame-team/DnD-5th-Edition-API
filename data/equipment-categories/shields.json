@@ -1,0 +1,12 @@
+{
+  "index": "shields",
+  "name": "Shields",
+  "equipment": [
+    {
+      "index": "shield",
+      "name": "Shield",
+      "url": "/api/equipment/shield"
+    }
+  ],
+  "url": "/api/equipment-categories/shields"
+}

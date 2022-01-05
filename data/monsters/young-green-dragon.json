@@ -177,21 +177,10 @@
           "index": "con",
           "name": "CON",
           "url": "/api/ability-scores/con"
-        },
-        "dc_value": 14,
-        "success_type": "half"
-      },
-      "damage": [
-        {
-          "damage_type": {
-            "index": "poison",
-            "name": "Poison",
-            "url": "/api/damage-types/poison"
-          },
-          "damage_dice": "12d6"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/young-green-dragon"
+    }, "dc_value": 14, "success_type": "half"
+  }, "damage": [{
+    "damage_type": {
+      "index": "poison", "name": "Poison", "url": "/api/damage-types/poison"
+    }, "damage_dice": "12d6"
+  }]}], "url": "/api/monsters/young-green-dragon"
 }

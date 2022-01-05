@@ -96,11 +96,6 @@
             "index": "bludgeoning",
             "name": "Bludgeoning",
             "url": "/api/damage-types/bludgeoning"
-          },
-          "damage_dice": "2d6+3"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/wereboar-human"
+    }, "damage_dice": "2d6+3"
+  }]}], "url": "/api/monsters/wereboar-human"
 }

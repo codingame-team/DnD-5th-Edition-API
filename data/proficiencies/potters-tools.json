@@ -1,0 +1,12 @@
+{
+  "index": "potters-tools",
+  "type": "Artisan's Tools",
+  "name": "Potter's Tools",
+  "classes": [],
+  "races": [],
+  "url": "/api/proficiencies/potters-tools",
+  "reference": {
+    "index": "potters-tools",
+    "name": "Potter's Tools",
+    "url": "/api/equipment/potters-tools"
+}}

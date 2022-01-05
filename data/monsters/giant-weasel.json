@@ -65,9 +65,5 @@
             "url": "/api/damage-types/piercing"
           },
           "damage_dice": "1d4+3"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/giant-weasel"
+  }]}], "url": "/api/monsters/giant-weasel"
 }

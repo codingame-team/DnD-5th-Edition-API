@@ -1,0 +1,25 @@
+{
+  "index": "eldritch-invocation-mire-the-mind",
+  "class": {
+    "index": "warlock",
+    "name": "Warlock",
+    "url": "/api/classes/warlock"
+  },
+  "name": "Eldritch Invocation: Mire the Mind",
+  "level": 5,
+  "prerequisites": [
+    {
+      "type": "level",
+      "level": 5
+    }
+  ],
+  "desc": [
+    "You can cast slow once using a warlock spell slot. You can't do so again until you finish a long rest."
+  ],
+  "parent": {
+    "index": "eldritch-invocations-1",
+    "name": "Eldritch Invocations",
+    "url": "/api/features/eldritch-invocations-1"
+  },
+  "url": "/api/features/eldritch-invocation-mire-the-mind"
+}

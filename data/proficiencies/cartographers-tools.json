@@ -1,0 +1,12 @@
+{
+  "index": "cartographers-tools",
+  "type": "Artisan's Tools",
+  "name": "Cartographer's Tools",
+  "classes": [],
+  "races": [],
+  "url": "/api/proficiencies/cartographers-tools",
+  "reference": {
+    "index": "cartographers-tools",
+    "name": "Cartographer's Tools",
+    "url": "/api/equipment/cartographers-tools"
+}}

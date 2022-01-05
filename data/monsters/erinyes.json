@@ -179,15 +179,7 @@
     },
     {
       "name": "Variant: Rope of Entanglement",
-      "desc": "Some erinyes carry a rope of entanglement (detailed in the Dungeon Master's Guide). When such an erinyes uses its Multiattack, the erinyes can use the rope in place of two of the attacks.",
-      "damage": []
-    }
-  ],
-  "reactions": [
-    {
-      "name": "Parry",
-      "desc": "The erinyes adds 4 to its AC against one melee attack that would hit it. To do so, the erinyes must see the attacker and be wielding a melee weapon."
-    }
-  ],
-  "url": "/api/monsters/erinyes"
+      "desc": "Some erinyes carry a rope of entanglement (detailed in the Dungeon Master's Guide). When such an erinyes uses its Multiattack, the erinyes can use the rope in place of two of the attacks.", "damage": []}], "reactions": [{
+  "name": "Parry", "desc": "The erinyes adds 4 to its AC against one melee attack that would hit it. To do so, the erinyes must see the attacker and be wielding a melee weapon."
+}], "url": "/api/monsters/erinyes"
 }

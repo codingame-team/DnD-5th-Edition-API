@@ -36,5 +36,7 @@
       "index": "reach",
       "name": "Reach",
       "url": "/api/weapon-properties/reach"
-}], "url": "/api/equipment/whip"
+    }
+  ],
+  "url": "/api/equipment/whip"
 }

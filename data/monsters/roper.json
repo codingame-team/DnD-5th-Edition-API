@@ -112,9 +112,5 @@
     },
     {
       "name": "Reel",
-      "desc": "The roper pulls each creature grappled by it up to 25 ft. straight toward it.",
-      "damage": []
-    }
-  ],
-  "url": "/api/monsters/roper"
+      "desc": "The roper pulls each creature grappled by it up to 25 ft. straight toward it.", "damage": []}], "url": "/api/monsters/roper"
 }

@@ -124,12 +124,6 @@
           "index": "wis",
           "name": "WIS",
           "url": "/api/ability-scores/wis"
-        },
-        "dc_value": 17,
-        "success_type": "none"
-      },
-      "damage": []
-    }
-  ],
-  "url": "/api/monsters/stone-golem"
+    }, "dc_value": 17, "success_type": "none"
+  }, "damage": []}], "url": "/api/monsters/stone-golem"
 }

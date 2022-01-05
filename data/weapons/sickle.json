@@ -36,5 +36,7 @@
       "index": "monk",
       "name": "Monk",
       "url": "/api/weapon-properties/monk"
-    }], "url": "/api/equipment/sickle"
+    }
+  ],
+  "url": "/api/equipment/sickle"
 }

@@ -128,14 +128,7 @@
       "damage": [
         {
           "damage_type": {
-            "index": "piercing",
-            "name": "Piercing",
-            "url": "/api/damage-types/piercing"
-          },
-          "damage_dice": "1d6+2"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/wererat-human"
+            "index": "piercing", "name": "Piercing", "url": "/api/damage-types/piercing"
+    }, "damage_dice": "1d6+2"
+  }]}], "url": "/api/monsters/wererat-human"
 }

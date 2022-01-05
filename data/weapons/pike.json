@@ -41,5 +41,7 @@
       "index": "two-handed",
       "name": "Two-Handed",
       "url": "/api/weapon-properties/two-handed"
-}], "url": "/api/equipment/pike"
+    }
+  ],
+  "url": "/api/equipment/pike"
 }

@@ -1,0 +1,21 @@
+{
+  "index": "metamagic-distant-spell",
+  "class": {
+    "index": "sorcerer",
+    "name": "Sorcerer",
+    "url": "/api/classes/sorcerer"
+  },
+  "name": "Metamagic: Distant Spell",
+  "level": 3,
+  "prerequisites": [],
+  "desc": [
+    "When you cast a spell that has a range of 5 feet or greater, you can spend 1 sorcery point to double the range of the spell.",
+    "When you cast a spell that has a range of touch, you can spend 1 sorcery point to make the range of the spell 30 feet."
+  ],
+  "parent": {
+    "index": "metamagic-1",
+    "name": "Metamagic",
+    "url": "/api/features/metamagic-1"
+  },
+  "url": "/api/features/metamagic-distant-spell"
+}

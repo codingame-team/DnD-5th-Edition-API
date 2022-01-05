@@ -165,21 +165,10 @@
           "index": "dex",
           "name": "DEX",
           "url": "/api/ability-scores/dex"
-        },
-        "dc_value": 15,
-        "success_type": "half"
-      },
-      "damage": [
-        {
-          "damage_type": {
-            "index": "fire",
-            "name": "Fire",
-            "url": "/api/damage-types/fire"
-          },
-          "damage_dice": "7d8"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/chimera"
+    }, "dc_value": 15, "success_type": "half"
+  }, "damage": [{
+    "damage_type": {
+      "index": "fire", "name": "Fire", "url": "/api/damage-types/fire"
+    }, "damage_dice": "7d8"
+  }]}], "url": "/api/monsters/chimera"
 }

@@ -94,14 +94,7 @@
       "damage": [
         {
           "damage_type": {
-            "index": "fire",
-            "name": "Fire",
-            "url": "/api/damage-types/fire"
-          },
-          "damage_dice": "6d6"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/hell-hound"
+            "index": "fire", "name": "Fire", "url": "/api/damage-types/fire"
+    }, "damage_dice": "6d6"
+  }]}], "url": "/api/monsters/hell-hound"
 }

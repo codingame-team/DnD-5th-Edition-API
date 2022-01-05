@@ -143,17 +143,9 @@
             "url": "/api/damage-types/piercing"
           },
           "damage_dice": "2d8+4"
-        },
-        {
-          "damage_type": {
-            "index": "poison",
-            "name": "Poison",
-            "url": "/api/damage-types/poison"
-          },
-          "damage_dice": "5d6"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/bone-devil"
+  }, {
+    "damage_type": {
+      "index": "poison", "name": "Poison", "url": "/api/damage-types/poison"
+    }, "damage_dice": "5d6"
+  }]}], "url": "/api/monsters/bone-devil"
 }

@@ -1,0 +1,13 @@
+{
+  "index": "athletics",
+  "name": "Athletics",
+  "desc": [
+    "Your Strength (Athletics) check covers difficult situations you encounter while climbing, jumping, or swimming."
+  ],
+  "ability_score": {
+    "index": "str",
+    "name": "STR",
+    "url": "/api/ability-scores/str"
+  },
+  "url": "/api/skills/athletics"
+}

@@ -134,21 +134,9 @@
             ]
           },
           {
-            "name": "Slowing Breath",
-            "dc": {
-              "dc_type": {
-                "index": "con",
-                "name": "CON",
-                "url": "/api/ability-scores/con"
-              },
-              "dc_value": 11,
-              "success_type": "none"
-            }
-          }
-        ]
-      },
-      "damage": []
-    }
-  ],
-  "url": "/api/monsters/copper-dragon-wyrmling"
+            "name": "Slowing Breath", "dc": {
+        "dc_type": {
+          "index": "con", "name": "CON", "url": "/api/ability-scores/con"
+        }, "dc_value": 11, "success_type": "none"
+      }}]}, "damage": []}], "url": "/api/monsters/copper-dragon-wyrmling"
 }

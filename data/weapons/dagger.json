@@ -49,5 +49,8 @@
     }
   ],
   "throw_range": {
-    "normal": 20, "long": 60}, "url": "/api/equipment/dagger"
+    "normal": 20,
+    "long": 60
+  },
+  "url": "/api/equipment/dagger"
 }

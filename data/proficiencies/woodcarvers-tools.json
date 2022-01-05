@@ -1,0 +1,12 @@
+{
+  "index": "woodcarvers-tools",
+  "type": "Artisan's Tools",
+  "name": "Woodcarver's Tools",
+  "classes": [],
+  "races": [],
+  "url": "/api/proficiencies/woodcarvers-tools",
+  "reference": {
+    "index": "woodcarvers-tools",
+    "name": "Woodcarver's Tools",
+    "url": "/api/equipment/woodcarvers-tools"
+}}

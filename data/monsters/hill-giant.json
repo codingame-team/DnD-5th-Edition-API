@@ -80,11 +80,6 @@
             "index": "bludgeoning",
             "name": "Bludgeoning",
             "url": "/api/damage-types/bludgeoning"
-          },
-          "damage_dice": "3d10+5"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/hill-giant"
+    }, "damage_dice": "3d10+5"
+  }]}], "url": "/api/monsters/hill-giant"
 }

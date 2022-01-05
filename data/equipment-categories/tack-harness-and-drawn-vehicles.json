@@ -1,0 +1,129 @@
+{
+  "index": "tack-harness-and-drawn-vehicles",
+  "name": "Tack, Harness, and Drawn Vehicles",
+  "equipment": [
+    {
+      "index": "barding-padded",
+      "name": "Barding: Padded",
+      "url": "/api/equipment/barding-padded"
+    },
+    {
+      "index": "barding-leather",
+      "name": "Barding: Leather",
+      "url": "/api/equipment/barding-leather"
+    },
+    {
+      "index": "barding-studded-leather",
+      "name": "Barding: Studded Leather",
+      "url": "/api/equipment/barding-studded-leather"
+    },
+    {
+      "index": "barding-hide",
+      "name": "Barding: Hide",
+      "url": "/api/equipment/barding-hide"
+    },
+    {
+      "index": "barding-chain-shirt",
+      "name": "Barding: Chain shirt",
+      "url": "/api/equipment/barding-chain-shirt"
+    },
+    {
+      "index": "barding-scale-mail",
+      "name": "Barding: Scale mail",
+      "url": "/api/equipment/barding-scale-mail"
+    },
+    {
+      "index": "barding-breastplate",
+      "name": "Barding: Breastplate",
+      "url": "/api/equipment/barding-breastplate"
+    },
+    {
+      "index": "barding-half-plate",
+      "name": "Barding: Half plate",
+      "url": "/api/equipment/barding-half-plate"
+    },
+    {
+      "index": "barding-ring-mail",
+      "name": "Barding: Ring mail",
+      "url": "/api/equipment/barding-ring-mail"
+    },
+    {
+      "index": "barding-chain-mail",
+      "name": "Barding: Chain mail",
+      "url": "/api/equipment/barding-chain-mail"
+    },
+    {
+      "index": "barding-splint",
+      "name": "Barding: Splint",
+      "url": "/api/equipment/barding-splint"
+    },
+    {
+      "index": "barding-plate",
+      "name": "Barding: Plate",
+      "url": "/api/equipment/barding-plate"
+    },
+    {
+      "index": "bit-and-bridle",
+      "name": "Bit and bridle",
+      "url": "/api/equipment/bit-and-bridle"
+    },
+    {
+      "index": "carriage",
+      "name": "Carriage",
+      "url": "/api/equipment/carriage"
+    },
+    {
+      "index": "cart",
+      "name": "Cart",
+      "url": "/api/equipment/cart"
+    },
+    {
+      "index": "chariot",
+      "name": "Chariot",
+      "url": "/api/equipment/chariot"
+    },
+    {
+      "index": "animal-feed-1-day",
+      "name": "Animal Feed (1 day)",
+      "url": "/api/equipment/animal-feed-1-day"
+    },
+    {
+      "index": "saddle-exotic",
+      "name": "Saddle, Exotic",
+      "url": "/api/equipment/saddle-exotic"
+    },
+    {
+      "index": "saddle-military",
+      "name": "Saddle, Military",
+      "url": "/api/equipment/saddle-military"
+    },
+    {
+      "index": "saddle-pack",
+      "name": "Saddle, Pack",
+      "url": "/api/equipment/saddle-pack"
+    },
+    {
+      "index": "saddle-riding",
+      "name": "Saddle, Riding",
+      "url": "/api/equipment/saddle-riding"
+    },
+    {
+      "index": "saddlebags",
+      "name": "Saddlebags",
+      "url": "/api/equipment/saddlebags"
+    },
+    {
+      "index": "sled",
+      "name": "Sled",
+      "url": "/api/equipment/sled"
+    },
+    {
+      "index": "stabling-1-day",
+      "name": "Stabling (1 day)",
+      "url": "/api/equipment/stabling-1-day"
+    },
+    {
+      "index": "wagon",
+      "name": "Wagon", "url": "/api/equipment/wagon"
+}], "url": "/api/equipment-categories/tack-harness-and-drawn-vehicles"
+}

@@ -1,0 +1,25 @@
+{
+  "index": "eldritch-invocation-eldritch-spear",
+  "class": {
+    "index": "warlock",
+    "name": "Warlock",
+    "url": "/api/classes/warlock"
+  },
+  "name": "Eldritch Invocation: Eldritch Spear",
+  "level": 2,
+  "prerequisites": [
+    {
+      "type": "Spell",
+      "spell": "/api/spells/dominate-monster"
+    }
+  ],
+  "desc": [
+    "When you cast eldritch blast, its range is 300 feet."
+  ],
+  "parent": {
+    "index": "eldritch-invocations-1",
+    "name": "Eldritch Invocations",
+    "url": "/api/features/eldritch-invocations-1"
+  },
+  "url": "/api/features/eldritch-invocation-eldritch-spear"
+}

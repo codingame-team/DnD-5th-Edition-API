@@ -80,11 +80,6 @@
             "index": "bludgeoning",
             "name": "Bludgeoning",
             "url": "/api/damage-types/bludgeoning"
-          },
-          "damage_dice": "1d6+2"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/death-dog"
+    }, "damage_dice": "1d6+2"
+  }]}], "url": "/api/monsters/death-dog"
 }

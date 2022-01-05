@@ -65,9 +65,5 @@
             "url": "/api/damage-types/bludgeoning"
           },
           "damage_dice": "2d8+4"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/ogre-zombie"
+  }]}], "url": "/api/monsters/ogre-zombie"
 }

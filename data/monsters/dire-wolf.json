@@ -68,9 +68,5 @@
             "url": "/api/damage-types/piercing"
           },
           "damage_dice": "2d6+3"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/dire-wolf"
+  }]}], "url": "/api/monsters/dire-wolf"
 }

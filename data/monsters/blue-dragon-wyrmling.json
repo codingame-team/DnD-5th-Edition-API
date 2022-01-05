@@ -127,14 +127,7 @@
       "damage": [
         {
           "damage_type": {
-            "index": "bludgeoning",
-            "name": "Bludgeoning",
-            "url": "/api/damage-types/bludgeoning"
-          },
-          "damage_dice": "4d10"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/blue-dragon-wyrmling"
+            "index": "bludgeoning", "name": "Bludgeoning", "url": "/api/damage-types/bludgeoning"
+    }, "damage_dice": "4d10"
+  }]}], "url": "/api/monsters/blue-dragon-wyrmling"
 }

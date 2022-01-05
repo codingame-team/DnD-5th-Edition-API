@@ -1,0 +1,12 @@
+{
+  "index": "skill-stealth",
+  "type": "Skills",
+  "name": "Skill: Stealth",
+  "classes": [],
+  "races": [],
+  "url": "/api/proficiencies/skill-stealth",
+  "reference": {
+    "index": "stealth",
+    "name": "Stealth",
+    "url": "/api/skills/stealth"
+}}

@@ -99,11 +99,6 @@
             "index": "piercing",
             "name": "Piercing",
             "url": "/api/damage-types/piercing"
-          },
-          "damage_dice": "4d4"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/swarm-of-spiders"
+    }, "damage_dice": "4d4"
+  }]}], "url": "/api/monsters/swarm-of-spiders"
 }

@@ -36,5 +36,7 @@
       "index": "two-handed",
       "name": "Two-Handed",
       "url": "/api/weapon-properties/two-handed"
-}], "url": "/api/equipment/maul"
+    }
+  ],
+  "url": "/api/equipment/maul"
 }

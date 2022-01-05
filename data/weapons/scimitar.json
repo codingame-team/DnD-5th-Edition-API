@@ -37,5 +37,6 @@
       "name": "Light",
       "url": "/api/weapon-properties/light"
     }
-  ], "url": "/api/equipment/scimitar"
+  ],
+  "url": "/api/equipment/scimitar"
 }

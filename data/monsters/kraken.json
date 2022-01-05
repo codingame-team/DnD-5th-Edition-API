@@ -224,24 +224,11 @@
       "attack_bonus": 0,
       "dc": {
         "dc_type": {
-          "index": "con",
-          "name": "CON",
-          "url": "/api/ability-scores/con"
-        },
-        "dc_value": 23,
-        "success_type": "half"
-      },
-      "damage": [
-        {
-          "damage_type": {
-            "index": "poison",
-            "name": "Poison",
-            "url": "/api/damage-types/poison"
-          },
-          "damage_dice": "3d10"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/kraken"
+      "index": "con", "name": "CON", "url": "/api/ability-scores/con"
+    }, "dc_value": 23, "success_type": "half"
+  }, "damage": [{
+    "damage_type": {
+      "index": "poison", "name": "Poison", "url": "/api/damage-types/poison"
+    }, "damage_dice": "3d10"
+  }]}], "url": "/api/monsters/kraken"
 }

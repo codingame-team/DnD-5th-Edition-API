@@ -1,0 +1,10 @@
+{
+  "index": "primordial",
+  "name": "Primordial",
+  "type": "Exotic",
+  "typical_speakers": [
+    "Elementals"
+  ],
+  "script": "Dwarvish",
+  "url": "/api/languages/primordial"
+}

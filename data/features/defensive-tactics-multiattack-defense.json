@@ -1,0 +1,25 @@
+{
+  "index": "defensive-tactics-multiattack-defense",
+  "class": {
+    "index": "ranger",
+    "name": "Ranger",
+    "url": "/api/classes/ranger"
+  },
+  "subclass": {
+    "index": "hunter",
+    "name": "Hunter",
+    "url": "/api/subclasses/hunter"
+  },
+  "name": "Defensive Tactics: Multiattack Defense",
+  "level": 7,
+  "prerequisites": [],
+  "desc": [
+    "When a creature hits you with an attack, you gain a +4 bonus to AC against all subsequent attacks made by that creature for the rest of the turn."
+  ],
+  "parent": {
+    "index": "defensive-tactics",
+    "name": "Defensive Tactics",
+    "url": "/api/features/defensive-tactics"
+  },
+  "url": "/api/features/defensive-tactics-multiattack-defense"
+}

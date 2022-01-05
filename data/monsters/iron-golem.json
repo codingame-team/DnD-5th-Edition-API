@@ -155,17 +155,9 @@
         "dc_value": 19,
         "success_type": "nhalfone"
       },
-      "damage": [
-        {
-          "damage_type": {
-            "index": "poison",
-            "name": "Poison",
-            "url": "/api/damage-types/poison"
-          },
-          "damage_dice": "10d8"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/iron-golem"
+      "damage": [{
+    "damage_type": {
+      "index": "poison", "name": "Poison", "url": "/api/damage-types/poison"
+    }, "damage_dice": "10d8"
+  }]}], "url": "/api/monsters/iron-golem"
 }

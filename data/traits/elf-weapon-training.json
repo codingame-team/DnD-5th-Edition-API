@@ -1,0 +1,38 @@
+{
+  "index": "elf-weapon-training",
+  "races": [],
+  "subraces": [
+    {
+      "index": "high-elf",
+      "name": "High Elf",
+      "url": "/api/subraces/high-elf"
+    }
+  ],
+  "name": "Elf Weapon Training",
+  "desc": [
+    "You have proficiency with the longsword, shortsword, shortbow, and longbow."
+  ],
+  "proficiencies": [
+    {
+      "index": "longswords",
+      "name": "Longswords",
+      "url": "/api/proficiencies/longswords"
+    },
+    {
+      "index": "shortswords",
+      "name": "Shortswords",
+      "url": "/api/proficiencies/shortswords"
+    },
+    {
+      "index": "shortbows",
+      "name": "Shortbows",
+      "url": "/api/proficiencies/shortbows"
+    },
+    {
+      "index": "longbows",
+      "name": "Longbows",
+      "url": "/api/proficiencies/longbows"
+    }
+  ],
+  "url": "/api/traits/elf-weapon-training"
+}

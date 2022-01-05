@@ -100,13 +100,7 @@
         {
           "damage_type": {
             "index": "piercing",
-            "name": "Piercing",
-            "url": "/api/damage-types/piercing"
-          },
-          "damage_dice": "3d6+9"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/purple-worm"
+            "name": "Piercing", "url": "/api/damage-types/piercing"
+    }, "damage_dice": "3d6+9"
+  }]}], "url": "/api/monsters/purple-worm"
 }

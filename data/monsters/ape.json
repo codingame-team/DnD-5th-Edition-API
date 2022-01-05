@@ -89,11 +89,6 @@
             "index": "bludgeoning",
             "name": "Bludgeoning",
             "url": "/api/damage-types/bludgeoning"
-          },
-          "damage_dice": "1d6+3"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/ape"
+    }, "damage_dice": "1d6+3"
+  }]}], "url": "/api/monsters/ape"
 }

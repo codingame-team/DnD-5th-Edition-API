@@ -173,27 +173,11 @@
                   "index": "acid",
                   "name": "Acid",
                   "url": "/api/damage-types/acid"
-                },
-                "damage_dice": "9d8"
-              }
-            ]
-          },
-          {
-            "name": "Slowing Breath",
-            "dc": {
-              "dc_type": {
-                "index": "con",
-                "name": "CON",
-                "url": "/api/ability-scores/con"
-              },
-              "dc_value": 14,
-              "success_type": "none"
-            }
-          }
-        ]
-      },
-      "damage": []
-    }
-  ],
-  "url": "/api/monsters/young-copper-dragon"
+        }, "damage_dice": "9d8"
+      }]}, {
+      "name": "Slowing Breath", "dc": {
+        "dc_type": {
+          "index": "con", "name": "CON", "url": "/api/ability-scores/con"
+        }, "dc_value": 14, "success_type": "none"
+      }}]}, "damage": []}], "url": "/api/monsters/young-copper-dragon"
 }

@@ -185,19 +185,9 @@
     },
     {
       "name": "Hurl Flame",
-      "desc": "Ranged Spell Attack: +5 to hit, range 150 ft., one target. Hit: 10 (3d6) fire damage. If the target is a flammable object that isn't being worn or carried, it also catches fire.",
-      "attack_bonus": 5,
-      "damage": [
-        {
-          "damage_type": {
-            "index": "fire",
-            "name": "Fire",
-            "url": "/api/damage-types/fire"
-          },
-          "damage_dice": "3d6"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/barbed-devil"
+      "desc": "Ranged Spell Attack: +5 to hit, range 150 ft., one target. Hit: 10 (3d6) fire damage. If the target is a flammable object that isn't being worn or carried, it also catches fire.", "attack_bonus": 5, "damage": [{
+    "damage_type": {
+      "index": "fire", "name": "Fire", "url": "/api/damage-types/fire"
+    }, "damage_dice": "3d6"
+  }]}], "url": "/api/monsters/barbed-devil"
 }

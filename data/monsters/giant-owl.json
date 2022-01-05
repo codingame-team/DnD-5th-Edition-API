@@ -70,9 +70,5 @@
             "url": "/api/damage-types/slashing"
           },
           "damage_dice": "2d6+1"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/giant-owl"
+  }]}], "url": "/api/monsters/giant-owl"
 }

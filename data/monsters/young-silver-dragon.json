@@ -180,27 +180,11 @@
                   "index": "cold",
                   "name": "Cold",
                   "url": "/api/damage-types/cold"
-                },
-                "damage_dice": "12d8"
-              }
-            ]
-          },
-          {
-            "name": "Paralyzing Breath",
-            "dc": {
-              "dc_type": {
-                "index": "con",
-                "name": "CON",
-                "url": "/api/ability-scores/con"
-              },
-              "dc_value": 17,
-              "success_type": "none"
-            }
-          }
-        ]
-      },
-      "damage": []
-    }
-  ],
-  "url": "/api/monsters/young-silver-dragon"
+        }, "damage_dice": "12d8"
+      }]}, {
+      "name": "Paralyzing Breath", "dc": {
+        "dc_type": {
+          "index": "con", "name": "CON", "url": "/api/ability-scores/con"
+        }, "dc_value": 17, "success_type": "none"
+      }}]}, "damage": []}], "url": "/api/monsters/young-silver-dragon"
 }

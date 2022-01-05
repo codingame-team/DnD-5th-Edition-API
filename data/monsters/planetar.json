@@ -227,20 +227,8 @@
             "index": "radiant",
             "name": "Radiant",
             "url": "/api/damage-types/radiant"
-          },
-          "damage_dice": "5d8"
-        }
-      ]
-    },
-    {
-      "name": "Healing Touch",
-      "desc": "The planetar touches another creature. The target magically regains 30 (6d8 + 3) hit points and is freed from any curse, disease, poison, blindness, or deafness.",
-      "usage": {
-        "type": "per day",
-        "times": 4
-      },
-      "damage": []
-    }
-  ],
-  "url": "/api/monsters/planetar"
+          }, "damage_dice": "5d8"
+  }]}, {
+  "name": "Healing Touch", "desc": "The planetar touches another creature. The target magically regains 30 (6d8 + 3) hit points and is freed from any curse, disease, poison, blindness, or deafness.", "usage": {
+    "type": "per day", "times": 4}, "damage": []}], "url": "/api/monsters/planetar"
 }

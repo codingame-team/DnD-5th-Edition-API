@@ -1,0 +1,10 @@
+{
+  "index": "infernal",
+  "name": "Infernal",
+  "type": "Exotic",
+  "typical_speakers": [
+    "Devils"
+  ],
+  "script": "Infernal",
+  "url": "/api/languages/infernal"
+}

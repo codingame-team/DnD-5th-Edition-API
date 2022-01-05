@@ -53,5 +53,7 @@
       "index": "piercing",
       "name": "Piercing",
       "url": "/api/damage-types/piercing"
-  }}, "url": "/api/equipment/spear"
+    }
+  },
+  "url": "/api/equipment/spear"
 }

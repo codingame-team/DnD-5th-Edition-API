@@ -58,9 +58,5 @@
             "url": "/api/damage-types/bludgeoning"
           },
           "damage_dice": "1"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/crab"
+  }]}], "url": "/api/monsters/crab"
 }

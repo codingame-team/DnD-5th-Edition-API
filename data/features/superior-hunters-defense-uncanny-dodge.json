@@ -1,0 +1,25 @@
+{
+  "index": "superior-hunters-defense-uncanny-dodge",
+  "class": {
+    "index": "ranger",
+    "name": "Ranger",
+    "url": "/api/classes/ranger"
+  },
+  "subclass": {
+    "index": "hunter",
+    "name": "Hunter",
+    "url": "/api/subclasses/hunter"
+  },
+  "name": "Superior Hunter's Defense: Uncanny Dodge",
+  "level": 15,
+  "prerequisites": [],
+  "desc": [
+    "When an attacker that you can see hits you with an attack, you can use your reaction to halve the attack's damage against you."
+  ],
+  "parent": {
+    "index": "superior-hunters-defense",
+    "name": "Superior Hunter's Defense",
+    "url": "/api/features/superior-hunters-defense"
+  },
+  "url": "/api/features/superior-hunters-defense-uncanny-dodge"
+}

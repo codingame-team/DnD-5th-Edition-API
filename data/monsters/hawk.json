@@ -57,9 +57,5 @@
             "url": "/api/damage-types/slashing"
           },
           "damage_dice": "1"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/hawk"
+  }]}], "url": "/api/monsters/hawk"
 }

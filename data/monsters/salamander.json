@@ -125,19 +125,10 @@
             "index": "bludgeoning",
             "name": "Bludgeoning",
             "url": "/api/damage-types/bludgeoning"
-          },
-          "damage_dice": "2d6+4"
-        },
-        {
-          "damage_type": {
-            "index": "fire",
-            "name": "Fire",
-            "url": "/api/damage-types/fire"
-          },
-          "damage_dice": "2d6"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/salamander"
+    }, "damage_dice": "2d6+4"
+  }, {
+    "damage_type": {
+      "index": "fire", "name": "Fire", "url": "/api/damage-types/fire"
+    }, "damage_dice": "2d6"
+  }]}], "url": "/api/monsters/salamander"
 }

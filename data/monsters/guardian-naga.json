@@ -209,11 +209,5 @@
       ]
     },
     {
-      "name": "Spit Poison",
-      "desc": "Ranged Weapon Attack: +8 to hit, range 15/30 ft., one creature. Hit: The target must make a DC 15 Constitution saving throw, taking 45 (10d8) poison damage on a failed save, or half as much damage on a successful one.",
-      "attack_bonus": 8,
-      "damage": []
-    }
-  ],
-  "url": "/api/monsters/guardian-naga"
+      "name": "Spit Poison", "desc": "Ranged Weapon Attack: +8 to hit, range 15/30 ft., one creature. Hit: The target must make a DC 15 Constitution saving throw, taking 45 (10d8) poison damage on a failed save, or half as much damage on a successful one.", "attack_bonus": 8, "damage": []}], "url": "/api/monsters/guardian-naga"
 }

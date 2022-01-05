@@ -164,21 +164,10 @@
           "index": "con",
           "name": "CON",
           "url": "/api/ability-scores/con"
-        },
-        "dc_value": 15,
-        "success_type": "half"
-      },
-      "damage": [
-        {
-          "damage_type": {
-            "index": "cold",
-            "name": "Cold",
-            "url": "/api/damage-types/cold"
-          },
-          "damage_dice": "10d8"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/young-white-dragon"
+        }, "dc_value": 15, "success_type": "half"
+  }, "damage": [{
+    "damage_type": {
+      "index": "cold", "name": "Cold", "url": "/api/damage-types/cold"
+    }, "damage_dice": "10d8"
+  }]}], "url": "/api/monsters/young-white-dragon"
 }

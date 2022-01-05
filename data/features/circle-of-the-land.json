@@ -1,0 +1,58 @@
+{
+  "index": "circle-of-the-land",
+  "class": {
+    "index": "druid",
+    "name": "Druid",
+    "url": "/api/classes/druid"
+  },
+  "subclass": {
+    "index": "land",
+    "name": "Land",
+    "url": "/api/subclasses/land"
+  },
+  "name": "Circle of the Land",
+  "level": 2,
+  "prerequisites": [],
+  "desc": [
+    "The Circle of the Land is made up of mystics and sages who safeguard ancient knowledge and rites through a vast oral tradition. These druids meet within sacred circles of trees or standing stones to whisper primal secrets in Druidic. The circle's wisest members preside as the chief priests of communities that hold to the Old Faith and serve as advisors to the rulers of those folk. As a member of this circle, your magic is influenced by the land where you were initiated into the circle's mysterious rites."
+  ],
+  "feature_specific": {
+    "subfeature_options": {
+      "choose": 1,
+      "type": "feature",
+      "from": [
+        {
+          "index": "circle-of-the-land-arctic",
+          "name": "Circle of the Land: Arctic",
+          "url": "/api/features/circle-of-the-land-arctic"
+        },
+        {
+          "index": "circle-of-the-land-coast",
+          "name": "Circle of the Land: Coast",
+          "url": "/api/features/circle-of-the-land-coast"
+        },
+        {
+          "index": "circle-of-the-land-desert",
+          "name": "Circle of the Land: Desert",
+          "url": "/api/features/circle-of-the-land-desert"
+        },
+        {
+          "index": "circle-of-the-land-forest",
+          "name": "Circle of the Land: Forest",
+          "url": "/api/features/circle-of-the-land-forest"
+        },
+        {
+          "index": "circle-of-the-land-grassland",
+          "name": "Circle of the Land: Grassland",
+          "url": "/api/features/circle-of-the-land-grassland"
+        },
+        {
+          "index": "circle-of-the-land-mountain",
+          "name": "Circle of the Land: Mountain",
+          "url": "/api/features/circle-of-the-land-mountain"
+        },
+        {
+          "index": "circle-of-the-land-swamp",
+          "name": "Circle of the Land: Swamp", "url": "/api/features/circle-of-the-land-swamp"
+    }]}}, "url": "/api/features/circle-of-the-land"
+}

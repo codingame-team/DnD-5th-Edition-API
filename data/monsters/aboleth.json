@@ -189,19 +189,9 @@
     },
     {
       "name": "Psychic Drain (Costs 2 Actions)",
-      "desc": "One creature charmed by the aboleth takes 10 (3d6) psychic damage, and the aboleth regains hit points equal to the damage the creature takes.",
-      "attack_bonus": 0,
-      "damage": [
-        {
-          "damage_type": {
-            "index": "psychic",
-            "name": "Psychic",
-            "url": "/api/damage-types/psychic"
-          },
-          "damage_dice": "3d6"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/aboleth"
+      "desc": "One creature charmed by the aboleth takes 10 (3d6) psychic damage, and the aboleth regains hit points equal to the damage the creature takes.", "attack_bonus": 0, "damage": [{
+    "damage_type": {
+      "index": "psychic", "name": "Psychic", "url": "/api/damage-types/psychic"
+    }, "damage_dice": "3d6"
+  }]}], "url": "/api/monsters/aboleth"
 }

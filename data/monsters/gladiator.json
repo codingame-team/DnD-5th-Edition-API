@@ -176,15 +176,7 @@
             "url": "/api/damage-types/bludgeoning"
           },
           "damage_dice": "2d4+4"
-        }
-      ]
-    }
-  ],
-  "reactions": [
-    {
-      "name": "Parry",
-      "desc": "The gladiator adds 3 to its AC against one melee attack that would hit it. To do so, the gladiator must see the attacker and be wielding a melee weapon."
-    }
-  ],
-  "url": "/api/monsters/gladiator"
+  }]}], "reactions": [{
+  "name": "Parry", "desc": "The gladiator adds 3 to its AC against one melee attack that would hit it. To do so, the gladiator must see the attacker and be wielding a melee weapon."
+}], "url": "/api/monsters/gladiator"
 }

@@ -145,19 +145,9 @@
     },
     {
       "name": "Dagger",
-      "desc": "Melee or Ranged Weapon Attack: +4 to hit, reach 5 ft. or range 20/60 ft., one creature. Hit: 4 (1d4 + 2) piercing damage.",
-      "attack_bonus": 4,
-      "damage": [
-        {
-          "damage_type": {
-            "index": "piercing",
-            "name": "Piercing",
-            "url": "/api/damage-types/piercing"
-          },
-          "damage_dice": "1d4+2"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/cult-fanatic"
+      "desc": "Melee or Ranged Weapon Attack: +4 to hit, reach 5 ft. or range 20/60 ft., one creature. Hit: 4 (1d4 + 2) piercing damage.", "attack_bonus": 4, "damage": [{
+    "damage_type": {
+      "index": "piercing", "name": "Piercing", "url": "/api/damage-types/piercing"
+    }, "damage_dice": "1d4+2"
+  }]}], "url": "/api/monsters/cult-fanatic"
 }

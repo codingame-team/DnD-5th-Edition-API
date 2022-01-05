@@ -44,5 +44,7 @@
       "index": "bludgeoning",
       "name": "Bludgeoning",
       "url": "/api/damage-types/bludgeoning"
-  }}, "url": "/api/equipment/quarterstaff"
+    }
+  },
+  "url": "/api/equipment/quarterstaff"
 }

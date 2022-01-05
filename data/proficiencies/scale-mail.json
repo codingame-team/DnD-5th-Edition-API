@@ -1,0 +1,12 @@
+{
+  "index": "scale-mail",
+  "type": "Armor",
+  "name": "Scale Mail",
+  "classes": [],
+  "races": [],
+  "url": "/api/proficiencies/scale-mail",
+  "reference": {
+    "index": "scale-mail",
+    "name": "Scale Mail",
+    "url": "/api/equipment/scale-mail"
+}}

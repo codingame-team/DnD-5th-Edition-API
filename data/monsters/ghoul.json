@@ -73,11 +73,6 @@
             "index": "slashing",
             "name": "Slashing",
             "url": "/api/damage-types/slashing"
-          },
-          "damage_dice": "2d4+2"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/ghoul"
+    }, "damage_dice": "2d4+2"
+  }]}], "url": "/api/monsters/ghoul"
 }

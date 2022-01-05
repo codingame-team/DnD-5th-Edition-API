@@ -85,11 +85,6 @@
             "index": "piercing",
             "name": "Piercing",
             "url": "/api/damage-types/piercing"
-          },
-          "damage_dice": "1d10+5"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/hydra"
+    }, "damage_dice": "1d10+5"
+  }]}], "url": "/api/monsters/hydra"
 }

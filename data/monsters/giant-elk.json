@@ -69,11 +69,6 @@
             "index": "bludgeoning",
             "name": "Bludgeoning",
             "url": "/api/damage-types/bludgeoning"
-          },
-          "damage_dice": "4d8+4"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/giant-elk"
+          }, "damage_dice": "4d8+4"
+  }]}], "url": "/api/monsters/giant-elk"
 }

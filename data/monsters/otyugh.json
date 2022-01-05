@@ -111,14 +111,7 @@
       "dc": {
         "dc_type": {
           "index": "con",
-          "name": "CON",
-          "url": "/api/ability-scores/con"
-        },
-        "dc_value": 14,
-        "success_type": "half"
-      },
-      "damage": []
-    }
-  ],
-  "url": "/api/monsters/otyugh"
+          "name": "CON", "url": "/api/ability-scores/con"
+    }, "dc_value": 14, "success_type": "half"
+  }, "damage": []}], "url": "/api/monsters/otyugh"
 }

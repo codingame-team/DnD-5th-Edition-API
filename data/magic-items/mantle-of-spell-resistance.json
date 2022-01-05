@@ -1,0 +1,14 @@
+{
+  "index": "mantle-of-spell-resistance",
+  "name": "Mantle of Spell Resistance",
+  "equipment_category": {
+    "index": "wondrous-items",
+    "name": "Wondrous Items",
+    "url": "/api/equipment-categories/wondrous-items"
+  },
+  "desc": [
+    "Wondrous item, rare (requires attunement)",
+    "You have advantage on saving throws against spells while you wear this cloak."
+  ],
+  "url": "/api/magic-items/mantle-of-spell-resistance"
+}

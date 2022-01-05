@@ -1,0 +1,12 @@
+{
+  "index": "tridents",
+  "type": "Weapons",
+  "name": "Tridents",
+  "classes": [],
+  "races": [],
+  "url": "/api/proficiencies/tridents",
+  "reference": {
+    "index": "trident",
+    "name": "Trident",
+    "url": "/api/equipment/trident"
+}}

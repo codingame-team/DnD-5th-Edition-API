@@ -52,9 +52,5 @@
             "url": "/api/damage-types/piercing"
           },
           "damage_dice": "1"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/quipper"
+  }]}], "url": "/api/monsters/quipper"
 }

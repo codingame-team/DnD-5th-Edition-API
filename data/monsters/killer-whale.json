@@ -65,9 +65,5 @@
             "url": "/api/damage-types/piercing"
           },
           "damage_dice": "5d6+4"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/killer-whale"
+  }]}], "url": "/api/monsters/killer-whale"
 }

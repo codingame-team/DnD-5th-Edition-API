@@ -1,0 +1,12 @@
+{
+  "index": "poisoners-kit",
+  "type": "Other",
+  "name": "Poisoner's Kit",
+  "classes": [],
+  "races": [],
+  "url": "/api/proficiencies/poisoners-kit",
+  "reference": {
+    "index": "poisoners-kit",
+    "name": "Poisoner's Kit",
+    "url": "/api/equipment/poisoners-kit"
+}}

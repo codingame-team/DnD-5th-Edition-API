@@ -52,9 +52,5 @@
             "url": "/api/damage-types/piercing"
           },
           "damage_dice": "1d4+2"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/giant-rat"
+        }]}], "url": "/api/monsters/giant-rat"
 }

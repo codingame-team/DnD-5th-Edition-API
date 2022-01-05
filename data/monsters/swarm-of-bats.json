@@ -100,11 +100,6 @@
             "index": "piercing",
             "name": "Piercing",
             "url": "/api/damage-types/piercing"
-          },
-          "damage_dice": "2d4"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/swarm-of-bats"
+    }, "damage_dice": "2d4"
+  }]}], "url": "/api/monsters/swarm-of-bats"
 }

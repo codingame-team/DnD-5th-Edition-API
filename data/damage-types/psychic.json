@@ -1,0 +1,8 @@
+{
+  "index": "psychic",
+  "name": "Psychic",
+  "desc": [
+    "Mental abilities such as a psionic blast deal psychic damage."
+  ],
+  "url": "/api/damage-types/psychic"
+}

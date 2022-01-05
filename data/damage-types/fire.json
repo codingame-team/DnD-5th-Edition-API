@@ -1,0 +1,8 @@
+{
+  "index": "fire",
+  "name": "Fire",
+  "desc": [
+    "Red dragons breathe fire, and many spells conjure flames to deal fire damage."
+  ],
+  "url": "/api/damage-types/fire"
+}

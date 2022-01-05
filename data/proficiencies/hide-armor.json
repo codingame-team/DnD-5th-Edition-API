@@ -1,0 +1,12 @@
+{
+  "index": "hide-armor",
+  "type": "Armor",
+  "name": "Hide Armor",
+  "classes": [],
+  "races": [],
+  "url": "/api/proficiencies/hide-armor",
+  "reference": {
+    "index": "hide-armor",
+    "name": "Hide Armor",
+    "url": "/api/equipment/hide-armor"
+}}

@@ -76,11 +76,6 @@
             "index": "piercing",
             "name": "Piercing",
             "url": "/api/damage-types/piercing"
-          },
-          "damage_dice": "2d8+4"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/minotaur-skeleton"
+          }, "damage_dice": "2d8+4"
+  }]}], "url": "/api/monsters/minotaur-skeleton"
 }

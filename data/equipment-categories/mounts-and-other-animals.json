@@ -1,0 +1,42 @@
+{
+  "index": "mounts-and-other-animals",
+  "name": "Mounts and Other Animals",
+  "equipment": [
+    {
+      "index": "mule",
+      "name": "Mule",
+      "url": "/api/equipment/mule"
+    },
+    {
+      "index": "elephant",
+      "name": "Elephant",
+      "url": "/api/equipment/elephant"
+    },
+    {
+      "index": "horse-draft",
+      "name": "Horse, draft",
+      "url": "/api/equipment/horse-draft"
+    },
+    {
+      "index": "horse-riding",
+      "name": "Horse, riding",
+      "url": "/api/equipment/horse-riding"
+    },
+    {
+      "index": "mastiff",
+      "name": "Mastiff",
+      "url": "/api/equipment/mastiff"
+    },
+    {
+      "index": "pony",
+      "name": "Pony",
+      "url": "/api/equipment/pony"
+    },
+    {
+      "index": "warhorse",
+      "name": "Warhorse",
+      "url": "/api/equipment/warhorse"
+    }
+  ],
+  "url": "/api/equipment-categories/mounts-and-other-animals"
+}

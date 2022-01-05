@@ -202,19 +202,9 @@
     },
     {
       "name": "Rock",
-      "desc": "Ranged Weapon Attack: +12 to hit, range 60/240 ft., one target. Hit: 30 (4d10 + 8) bludgeoning damage.",
-      "attack_bonus": 12,
-      "damage": [
-        {
-          "damage_type": {
-            "index": "bludgeoning",
-            "name": "Bludgeoning",
-            "url": "/api/damage-types/bludgeoning"
-          },
-          "damage_dice": "4d10+8"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/cloud-giant"
+      "desc": "Ranged Weapon Attack: +12 to hit, range 60/240 ft., one target. Hit: 30 (4d10 + 8) bludgeoning damage.", "attack_bonus": 12, "damage": [{
+    "damage_type": {
+      "index": "bludgeoning", "name": "Bludgeoning", "url": "/api/damage-types/bludgeoning"
+    }, "damage_dice": "4d10+8"
+  }]}], "url": "/api/monsters/cloud-giant"
 }

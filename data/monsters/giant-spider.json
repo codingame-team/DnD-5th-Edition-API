@@ -78,9 +78,5 @@
         "dice": "1d6",
         "min_value": 5
       },
-      "attack_bonus": 5,
-      "damage": []
-    }
-  ],
-  "url": "/api/monsters/giant-spider"
+      "attack_bonus": 5, "damage": []}], "url": "/api/monsters/giant-spider"
 }

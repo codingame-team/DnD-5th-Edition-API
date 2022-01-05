@@ -1,0 +1,13 @@
+{
+  "index": "performance",
+  "name": "Performance",
+  "desc": [
+    "Your Charisma (Performance) check determines how well you can delight an audience with music, dance, acting, storytelling, or some other form of entertainment."
+  ],
+  "ability_score": {
+    "index": "cha",
+    "name": "CHA",
+    "url": "/api/ability-scores/cha"
+  },
+  "url": "/api/skills/performance"
+}

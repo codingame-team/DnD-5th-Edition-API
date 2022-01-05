@@ -187,27 +187,11 @@
                   "index": "fire",
                   "name": "Fire",
                   "url": "/api/damage-types/fire"
-                },
-                "damage_dice": "10d10"
-              }
-            ]
-          },
-          {
-            "name": "Weakening Breath",
-            "dc": {
-              "dc_type": {
-                "index": "str",
-                "name": "STR",
-                "url": "/api/ability-scores/str"
-              },
-              "dc_value": 17,
-              "success_type": "none"
-            }
-          }
-        ]
-      },
-      "damage": []
-    }
-  ],
-  "url": "/api/monsters/young-gold-dragon"
+        }, "damage_dice": "10d10"
+      }]}, {
+      "name": "Weakening Breath", "dc": {
+        "dc_type": {
+          "index": "str", "name": "STR", "url": "/api/ability-scores/str"
+        }, "dc_value": 17, "success_type": "none"
+      }}]}, "damage": []}], "url": "/api/monsters/young-gold-dragon"
 }

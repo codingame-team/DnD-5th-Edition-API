@@ -65,9 +65,5 @@
             "url": "/api/damage-types/bludgeoning"
           },
           "damage_dice": "3d6+4"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/plesiosaurus"
+  }]}], "url": "/api/monsters/plesiosaurus"
 }

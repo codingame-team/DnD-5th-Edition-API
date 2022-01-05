@@ -62,9 +62,5 @@
             "url": "/api/damage-types/bludgeoning"
           },
           "damage_dice": "3d10+6"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/triceratops"
+  }]}], "url": "/api/monsters/triceratops"
 }

@@ -57,9 +57,5 @@
             "url": "/api/damage-types/bludgeoning"
           },
           "damage_dice": "2d6+4"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/warhorse-skeleton"
+        }]}], "url": "/api/monsters/warhorse-skeleton"
 }

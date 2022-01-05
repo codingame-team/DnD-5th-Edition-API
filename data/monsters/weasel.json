@@ -62,11 +62,6 @@
             "index": "piercing",
             "name": "Piercing",
             "url": "/api/damage-types/piercing"
-          },
-          "damage_dice": "1"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/weasel"
+          }, "damage_dice": "1"
+  }]}], "url": "/api/monsters/weasel"
 }

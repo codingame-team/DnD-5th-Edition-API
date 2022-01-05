@@ -60,9 +60,5 @@
             "url": "/api/damage-types/piercing"
           },
           "damage_dice": "1d4-1"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/jackal"
+  }]}], "url": "/api/monsters/jackal"
 }

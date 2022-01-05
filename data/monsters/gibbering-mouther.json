@@ -106,12 +106,6 @@
           "index": "dex",
           "name": "DEX",
           "url": "/api/ability-scores/dex"
-        },
-        "dc_value": 13,
-        "success_type": "none"
-      },
-      "damage": []
-    }
-  ],
-  "url": "/api/monsters/gibbering-mouther"
+    }, "dc_value": 13, "success_type": "none"
+  }, "damage": []}], "url": "/api/monsters/gibbering-mouther"
 }

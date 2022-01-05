@@ -48,8 +48,5 @@
           },
           "damage_dice": "1d12+3"
         }
-      ]
-    }
-  ],
-  "url": "/api/monsters/berserker"
+      ]}], "url": "/api/monsters/berserker"
 }

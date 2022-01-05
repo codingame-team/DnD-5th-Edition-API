@@ -120,14 +120,7 @@
       "damage": [
         {
           "damage_type": {
-            "index": "piercing",
-            "name": "Piercing",
-            "url": "/api/damage-types/piercing"
-          },
-          "damage_dice": "2d6+4"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/merrow"
+      "index": "piercing", "name": "Piercing", "url": "/api/damage-types/piercing"
+    }, "damage_dice": "2d6+4"
+  }]}], "url": "/api/monsters/merrow"
 }

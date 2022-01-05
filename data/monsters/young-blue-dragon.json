@@ -160,18 +160,9 @@
         },
         "dc_value": 16,
         "success_type": "half"
-      },
-      "damage": [
-        {
-          "damage_type": {
-            "index": "lightning",
-            "name": "Lightning",
-            "url": "/api/damage-types/lightning"
-          },
-          "damage_dice": "10d10"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/young-blue-dragon"
+  }, "damage": [{
+    "damage_type": {
+      "index": "lightning", "name": "Lightning", "url": "/api/damage-types/lightning"
+    }, "damage_dice": "10d10"
+  }]}], "url": "/api/monsters/young-blue-dragon"
 }

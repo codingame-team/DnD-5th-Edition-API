@@ -231,13 +231,8 @@
       "desc": "The sphinx makes one claw attack."
     },
     {
-      "name": "Teleport (Costs 2 Actions)",
-      "desc": "The sphinx magically teleports, along with any equipment it is wearing or carrying, up to 120 feet to an unoccupied space it can see."
-    },
-    {
-      "name": "Cast a Spell (Costs 3 Actions)",
-      "desc": "The sphinx casts a spell from its list of prepared spells, using a spell slot as normal."
-    }
-  ],
-  "url": "/api/monsters/gynosphinx"
+      "name": "Teleport (Costs 2 Actions)", "desc": "The sphinx magically teleports, along with any equipment it is wearing or carrying, up to 120 feet to an unoccupied space it can see."
+}, {
+  "name": "Cast a Spell (Costs 3 Actions)", "desc": "The sphinx casts a spell from its list of prepared spells, using a spell slot as normal."
+}], "url": "/api/monsters/gynosphinx"
 }

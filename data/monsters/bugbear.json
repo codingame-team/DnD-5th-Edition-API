@@ -82,11 +82,6 @@
             "index": "piercing",
             "name": "Piercing",
             "url": "/api/damage-types/piercing"
-          },
-          "damage_dice": "2d6+2"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/bugbear"
+    }, "damage_dice": "2d6+2"
+  }]}], "url": "/api/monsters/bugbear"
 }

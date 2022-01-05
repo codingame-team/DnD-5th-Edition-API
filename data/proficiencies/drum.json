@@ -1,0 +1,12 @@
+{
+  "index": "drum",
+  "type": "Musical Instruments",
+  "name": "Drum",
+  "classes": [],
+  "races": [],
+  "url": "/api/proficiencies/drum",
+  "reference": {
+    "index": "drum",
+    "name": "Drum",
+    "url": "/api/equipment/drum"
+}}

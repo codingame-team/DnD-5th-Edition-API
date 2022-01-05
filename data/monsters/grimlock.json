@@ -93,11 +93,6 @@
             "index": "piercing",
             "name": "Piercing",
             "url": "/api/damage-types/piercing"
-          },
-          "damage_dice": "1d4"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/grimlock"
+    }, "damage_dice": "1d4"
+  }]}], "url": "/api/monsters/grimlock"
 }

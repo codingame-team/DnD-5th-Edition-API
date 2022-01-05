@@ -218,20 +218,9 @@
       ]
     },
     {
-      "name": "Tail",
-      "desc": "Melee Weapon Attack: +14 to hit, reach 10ft., one target. Hit: 24 (3d1O + 8) bludgeoning damage.",
-      "attack_bonus": 14,
-      "damage": [
-        {
-          "damage_type": {
-            "index": "bludgeoning",
-            "name": "Bludgeoning",
-            "url": "/api/damage-types/bludgeoning"
-          },
-          "damage_dice": "3d10+8"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/pit-fiend"
+      "name": "Tail", "desc": "Melee Weapon Attack: +14 to hit, reach 10ft., one target. Hit: 24 (3d1O + 8) bludgeoning damage.", "attack_bonus": 14, "damage": [{
+    "damage_type": {
+      "index": "bludgeoning", "name": "Bludgeoning", "url": "/api/damage-types/bludgeoning"
+    }, "damage_dice": "3d10+8"
+  }]}], "url": "/api/monsters/pit-fiend"
 }

@@ -32,5 +32,6 @@
       "name": "Monk",
       "url": "/api/weapon-properties/monk"
     }
-  ], "url": "/api/equipment/mace"
+  ],
+  "url": "/api/equipment/mace"
 }

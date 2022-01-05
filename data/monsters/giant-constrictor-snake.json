@@ -67,9 +67,5 @@
             "url": "/api/damage-types/bludgeoning"
           },
           "damage_dice": "2d8+4"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/giant-constrictor-snake"
+  }]}], "url": "/api/monsters/giant-constrictor-snake"
 }

@@ -86,11 +86,6 @@
             "index": "piercing",
             "name": "Piercing",
             "url": "/api/damage-types/piercing"
-          },
-          "damage_dice": "1d10"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/thug"
+    }, "damage_dice": "1d10"
+  }]}], "url": "/api/monsters/thug"
 }

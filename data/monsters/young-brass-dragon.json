@@ -173,27 +173,11 @@
                   "index": "fire",
                   "name": "Fire",
                   "url": "/api/damage-types/fire"
-                },
-                "damage_dice": "12d6"
-              }
-            ]
-          },
-          {
-            "name": "Sleep Breath",
-            "dc": {
-              "dc_type": {
-                "index": "con",
-                "name": "CON",
-                "url": "/api/ability-scores/con"
-              },
-              "dc_value": 14,
-              "success_type": "none"
-            }
-          }
-        ]
-      },
-      "damage": []
-    }
-  ],
-  "url": "/api/monsters/young-brass-dragon"
+        }, "damage_dice": "12d6"
+      }]}, {
+      "name": "Sleep Breath", "dc": {
+        "dc_type": {
+          "index": "con", "name": "CON", "url": "/api/ability-scores/con"
+        }, "dc_value": 14, "success_type": "none"
+      }}]}, "damage": []}], "url": "/api/monsters/young-brass-dragon"
 }

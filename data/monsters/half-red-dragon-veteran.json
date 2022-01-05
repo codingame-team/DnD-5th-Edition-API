@@ -131,18 +131,9 @@
         },
         "dc_value": 15,
         "success_type": "half"
-      },
-      "damage": [
-        {
-          "damage_type": {
-            "index": "fire",
-            "name": "Fire",
-            "url": "/api/damage-types/fire"
-          },
-          "damage_dice": "7d6"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/half-red-dragon-veteran"
+  }, "damage": [{
+    "damage_type": {
+      "index": "fire", "name": "Fire", "url": "/api/damage-types/fire"
+    }, "damage_dice": "7d6"
+  }]}], "url": "/api/monsters/half-red-dragon-veteran"
 }

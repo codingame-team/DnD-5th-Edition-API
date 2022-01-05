@@ -1,0 +1,37 @@
+{
+  "index": "ammunition",
+  "name": "Ammunition",
+  "equipment": [
+    {
+      "index": "arrow",
+      "name": "Arrow",
+      "url": "/api/equipment/arrow"
+    },
+    {
+      "index": "blowgun-needle",
+      "name": "Blowgun needle",
+      "url": "/api/equipment/blowgun-needle"
+    },
+    {
+      "index": "crossbow-bolt",
+      "name": "Crossbow bolt",
+      "url": "/api/equipment/crossbow-bolt"
+    },
+    {
+      "index": "sling-bullet",
+      "url": "/api/equipment/sling-bullet",
+      "name": "Sling bullet"
+    },
+    {
+      "index": "ammunition",
+      "name": "Ammunition, +1, +2, or +3",
+      "url": "/api/magic-items/ammunition"
+    },
+    {
+      "index": "arrow-of-slaying",
+      "name": "Arrow of Slaying",
+      "url": "/api/magic-items/arrow-of-slaying"
+    }
+  ],
+  "url": "/api/equipment-categories/ammunition"
+}

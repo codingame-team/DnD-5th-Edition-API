@@ -39,5 +39,7 @@
       "index": "slashing",
       "name": "Slashing",
       "url": "/api/damage-types/slashing"
-  }}, "url": "/api/equipment/longsword"
+    }
+  },
+  "url": "/api/equipment/longsword"
 }

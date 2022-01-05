@@ -158,20 +158,10 @@
           "name": "DEX",
           "url": "/api/ability-scores/dex"
         },
-        "dc_value": 17,
-        "success_type": "half"
-      },
-      "damage": [
-        {
-          "damage_type": {
-            "index": "fire",
-            "name": "Fire",
-            "url": "/api/damage-types/fire"
-          },
-          "damage_dice": "16d6"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/young-red-dragon"
+        "dc_value": 17, "success_type": "half"
+  }, "damage": [{
+    "damage_type": {
+      "index": "fire", "name": "Fire", "url": "/api/damage-types/fire"
+    }, "damage_dice": "16d6"
+  }]}], "url": "/api/monsters/young-red-dragon"
 }

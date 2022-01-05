@@ -45,7 +45,5 @@
           "damage_dice": "1"
         }
       ]
-    }
-  ],
-  "url": "/api/monsters/lizard"
+    }], "url": "/api/monsters/lizard"
 }

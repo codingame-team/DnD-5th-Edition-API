@@ -104,13 +104,7 @@
         {
           "damage_type": {
             "index": "piercing",
-            "name": "Piercing",
-            "url": "/api/damage-types/piercing"
-          },
-          "damage_dice": "1d8+3"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/manticore"
+            "name": "Piercing", "url": "/api/damage-types/piercing"
+    }, "damage_dice": "1d8+3"
+  }]}], "url": "/api/monsters/manticore"
 }

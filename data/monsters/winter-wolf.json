@@ -98,13 +98,7 @@
         {
           "damage_type": {
             "index": "cold",
-            "name": "Cold",
-            "url": "/api/damage-types/cold"
-          },
-          "damage_dice": "4d8"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/winter-wolf"
+            "name": "Cold", "url": "/api/damage-types/cold"
+    }, "damage_dice": "4d8"
+  }]}], "url": "/api/monsters/winter-wolf"
 }

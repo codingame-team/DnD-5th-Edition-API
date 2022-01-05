@@ -1,5 +1,6 @@
 import random
 from dataclasses import dataclass
+from enum import Enum
 from typing import List
 
 """ Needs to separate presentation layer from data layer """
@@ -16,6 +17,9 @@ class color:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
     END = '\033[0m'
+
+
+""" Monster classes """
 
 
 @dataclass
@@ -52,6 +56,20 @@ class Monster:
         else:
             print(f'{self.name} misses {character.name}!')
         return damage_roll
+
+
+""" Character classes """
+
+
+class ProficiencyType(Enum):
+    ARMOR = 'Armor'
+    WEAPON = 'Weapon'
+
+
+@dataclass
+class Proficiency:
+    name: str
+    prof_type: ProficiencyType
 
 
 @dataclass
@@ -99,23 +117,52 @@ class Potion:
 class Race:
     name: str
     ability_bonuses: dict()
+    starting_proficiencies: List[Proficiency]
     speed: int
     size: str
 
 
 @dataclass
-class Character:
+class SubRace:
     name: str
-    race: Race
-    ethnic: str
-    gender: str
-    class_type: str
+    ability_bonuses: dict()
+    starting_proficiencies: List[Proficiency]
+
+
+# @dataclass
+# class Class:
+#     name: str
+#     ability_bonuses: dict()
+#     starting_proficiencies: List[Proficiency]
+#     speed: int
+#     size: str
+
+@dataclass
+class Abilities:
     str: int
     dex: int
     con: int
     int: int
     wis: int
     cha: int
+
+    # def __init__(self, strength, dexterity, constitution, intelligence, wisdom, charisma):
+    #     self.strength, self.dexterity, self.constitution, self.intelligence, self.wisdom, self.charisma = strength, dexterity, constitution, intelligence, wisdom, charisma
+
+    def __repr__(self):
+        # return f'str: {self.strength} dex: {self.dexterity} con: {self.constitution} int: {self.intelligence} wis: {self.wisdom} cha: {self.charisma}'
+        return f'str: {self.str} dex: {self.dex} con: {self.con} int: {self.int} wis: {self.wis} cha: {self.cha}'
+
+
+@dataclass
+class Character:
+    name: str
+    race: Race
+    sub_race: SubRace
+    ethnic: str
+    gender: str
+    class_type: str
+    abilities: Abilities
     hit_points: int
     max_hit_points: int
     xp: int
@@ -127,40 +174,32 @@ class Character:
 
     @property
     def strength(self):
-        return self.str if 'str' not in self.race.ability_bonuses else self.str + self.race.ability_bonuses['str']
+        return self.abilities.str if 'str' not in self.race.ability_bonuses else self.abilities.str + self.race.ability_bonuses['str']
 
     @property
     def dexterity(self):
-        return self.dex if 'dex' not in self.race.ability_bonuses else self.dex + self.race.ability_bonuses['dex']
+        return self.abilities.dex if 'dex' not in self.race.ability_bonuses else self.abilities.dex + self.race.ability_bonuses['dex']
 
     @property
     def constitution(self):
-        return self.con if 'con' not in self.race.ability_bonuses else self.con + self.race.ability_bonuses['con']
+        return self.abilities.con if 'con' not in self.race.ability_bonuses else self.abilities.con + self.race.ability_bonuses['con']
 
     @property
     def intelligence(self):
-        return self.int if 'int' not in self.race.ability_bonuses else self.int + self.race.ability_bonuses['int']
+        return self.abilities.int if 'int' not in self.race.ability_bonuses else self.abilities.int + self.race.ability_bonuses['int']
 
     @property
     def wisdom(self):
-        return self.wis if 'wis' not in self.race.ability_bonuses else self.wis + self.race.ability_bonuses['wis']
+        return self.abilities.wis if 'wis' not in self.race.ability_bonuses else self.abilities.wis + self.race.ability_bonuses['wis']
 
     @property
     def charism(self):
-        return self.cha if 'cha' not in self.race.ability_bonuses else self.cha + self.race.ability_bonuses['cha']
-
-    @property
-    def abilities(self):
-        return self.strength, self.dexterity, self.constitution, self.intelligence, self.wisdom, self.charism
-
-    def display_abilities(self):
-        print(f'Ability scores:\n\tstr: {self.strength}\n\tdex: {self.dexterity}\n\tcon: {self.constitution}\n\tint: {self.intelligence}\n\twis: {self.wisdom}\n\tcha: {self.charism}')
+        return self.abilities.cha if 'cha' not in self.race.ability_bonuses else self.abilities.cha + self.race.ability_bonuses['cha']
 
     def __repr__(self):
-        if not self.ethnic:
-            return f"{self.name} - Abilities: {self.abilities} - ({self.gender} {self.race} - class: {self.class_type} - AC {self.armor_class} HD: {self.hit_dice} - w: {self.weapon.name} a: {self.armor.name} - potions: {len(self.healing_potions)})"
-        else:
-            return f"{self.name} - Abilities: {self.abilities} - (ethnic: {self.ethnic} - {self.gender} {self.race} - class: {self.class_type} - AC {self.armor_class} HD: {self.hit_dice} - w: {self.weapon.name} a: {self.armor.name} - potions: {len(self.healing_potions)})"
+        race = self.sub_race if self.sub_race else self.race
+        ethnic = f'ethnic: {self.ethnic} - ' if self.ethnic else ''
+        return f"{self.name} - Abilities: {self.abilities} - ({ethnic}{self.gender} {race} - class: {self.class_type} - AC {self.armor_class} HD: {self.hit_dice} - w: {self.weapon.name} a: {self.armor.name} - potions: {len(self.healing_potions)})"
 
     @property
     def armor_class(self):

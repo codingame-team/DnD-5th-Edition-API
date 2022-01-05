@@ -57,9 +57,5 @@
             "url": "/api/damage-types/bludgeoning"
           },
           "damage_dice": "1d10+2"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/crocodile"
+  }]}], "url": "/api/monsters/crocodile"
 }

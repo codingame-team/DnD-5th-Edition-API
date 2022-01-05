@@ -134,19 +134,9 @@
                 "url": "/api/damage-types/piercing"
               },
               "damage_dice": "1d6+1"
-            },
-            {
-              "damage_type": {
-                "index": "piercing",
-                "name": "Piercing",
-                "url": "/api/damage-types/piercing"
-              },
-              "damage_dice": "1d8+1"
-            }
-          ]
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/sahuagin"
+    }, {
+      "damage_type": {
+        "index": "piercing", "name": "Piercing", "url": "/api/damage-types/piercing"
+      }, "damage_dice": "1d8+1"
+    }]}]}], "url": "/api/monsters/sahuagin"
 }

@@ -105,13 +105,7 @@
         {
           "damage_type": {
             "index": "acid",
-            "name": "Acid",
-            "url": "/api/damage-types/acid"
-          },
-          "damage_dice": "2d6"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/gray-ooze"
+            "name": "Acid", "url": "/api/damage-types/acid"
+    }, "damage_dice": "2d6"
+  }]}], "url": "/api/monsters/gray-ooze"
 }

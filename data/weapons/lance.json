@@ -39,5 +39,7 @@
     }
   ],
   "special": [
-    "You have disadvantage when you use a lance to attack a target within 5 feet of you. Also, a lance requires two hands to wield when you aren't mounted."], "url": "/api/equipment/lance"
+    "You have disadvantage when you use a lance to attack a target within 5 feet of you. Also, a lance requires two hands to wield when you aren't mounted."
+  ],
+  "url": "/api/equipment/lance"
 }

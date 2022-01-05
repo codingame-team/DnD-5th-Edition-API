@@ -100,11 +100,6 @@
             "index": "piercing",
             "name": "Piercing",
             "url": "/api/damage-types/piercing"
-          },
-          "damage_dice": "4d6"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/swarm-of-quippers"
+    }, "damage_dice": "4d6"
+  }]}], "url": "/api/monsters/swarm-of-quippers"
 }

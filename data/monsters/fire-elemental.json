@@ -125,13 +125,7 @@
         {
           "damage_type": {
             "index": "fire",
-            "name": "Fire",
-            "url": "/api/damage-types/fire"
-          },
-          "damage_dice": "2d6+3"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/fire-elemental"
+            "name": "Fire", "url": "/api/damage-types/fire"
+    }, "damage_dice": "2d6+3"
+  }]}], "url": "/api/monsters/fire-elemental"
 }

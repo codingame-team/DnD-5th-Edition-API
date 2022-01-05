@@ -61,9 +61,5 @@
             "url": "/api/damage-types/piercing"
           },
           "damage_dice": "3d10+6"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/giant-shark"
+  }]}], "url": "/api/monsters/giant-shark"
 }

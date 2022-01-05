@@ -58,9 +58,5 @@
             "url": "/api/damage-types/slashing"
           },
           "damage_dice": "2d6+3"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/giant-boar"
+  }]}], "url": "/api/monsters/giant-boar"
 }

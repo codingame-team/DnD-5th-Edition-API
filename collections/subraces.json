@@ -1,0 +1,25 @@
+{
+  "count": 4,
+  "results": [
+    {
+      "index": "high-elf",
+      "name": "High Elf",
+      "url": "/api/subraces/high-elf"
+    },
+    {
+      "index": "hill-dwarf",
+      "name": "Hill Dwarf",
+      "url": "/api/subraces/hill-dwarf"
+    },
+    {
+      "index": "lightfoot-halfling",
+      "name": "Lightfoot Halfling",
+      "url": "/api/subraces/lightfoot-halfling"
+    },
+    {
+      "index": "rock-gnome",
+      "name": "Rock Gnome",
+      "url": "/api/subraces/rock-gnome"
+    }
+  ]
+}

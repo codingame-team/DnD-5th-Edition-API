@@ -67,13 +67,6 @@
                 "index": "piercing",
                 "name": "Piercing",
                 "url": "/api/damage-types/piercing"
-              },
-              "damage_dice": "1d8"
-            }
-          ]
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/merfolk"
+      }, "damage_dice": "1d8"
+    }]}]}], "url": "/api/monsters/merfolk"
 }

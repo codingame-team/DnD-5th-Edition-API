@@ -105,11 +105,6 @@
             "index": "slashing",
             "name": "Slashing",
             "url": "/api/damage-types/slashing"
-          },
-          "damage_dice": "2d8+4"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/werebear-bear"
+    }, "damage_dice": "2d8+4"
+  }]}], "url": "/api/monsters/werebear-bear"
 }

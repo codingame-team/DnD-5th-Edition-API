@@ -209,24 +209,10 @@
             "url": "/api/damage-types/fire"
           },
           "damage_dice": "2d6"
-        }
-      ]
-    },
-    {
-      "name": "Hurl Flame",
-      "desc": "Ranged Spell Attack: +7 to hit, range 120 ft., one target. Hit: 17 (5d6) fire damage.",
-      "attack_bonus": 7,
-      "damage": [
-        {
-          "damage_type": {
-            "index": "fire",
-            "name": "Fire",
-            "url": "/api/damage-types/fire"
-          },
-          "damage_dice": "5d6"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/efreeti"
+  }]}, {
+  "name": "Hurl Flame", "desc": "Ranged Spell Attack: +7 to hit, range 120 ft., one target. Hit: 17 (5d6) fire damage.", "attack_bonus": 7, "damage": [{
+    "damage_type": {
+      "index": "fire", "name": "Fire", "url": "/api/damage-types/fire"
+    }, "damage_dice": "5d6"
+  }]}], "url": "/api/monsters/efreeti"
 }

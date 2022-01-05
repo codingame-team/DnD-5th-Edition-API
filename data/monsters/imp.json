@@ -111,9 +111,5 @@
     },
     {
       "name": "Invisibility",
-      "desc": "The imp magically turns invisible until it attacks, or until its concentration ends (as if concentrating on a spell). Any equipment the imp wears or carries is invisible with it.",
-      "damage": []
-    }
-  ],
-  "url": "/api/monsters/imp"
+      "desc": "The imp magically turns invisible until it attacks, or until its concentration ends (as if concentrating on a spell). Any equipment the imp wears or carries is invisible with it.", "damage": []}], "url": "/api/monsters/imp"
 }

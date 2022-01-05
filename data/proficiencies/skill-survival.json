@@ -1,0 +1,12 @@
+{
+  "index": "skill-survival",
+  "type": "Skills",
+  "name": "Skill: Survival",
+  "classes": [],
+  "races": [],
+  "url": "/api/proficiencies/skill-survival",
+  "reference": {
+    "index": "survival",
+    "name": "Survival",
+    "url": "/api/skills/survival"
+}}

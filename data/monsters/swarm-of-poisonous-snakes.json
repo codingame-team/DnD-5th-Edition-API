@@ -94,9 +94,5 @@
             "url": "/api/damage-types/piercing"
           },
           "damage_dice": "2d6"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/swarm-of-poisonous-snakes"
+  }]}], "url": "/api/monsters/swarm-of-poisonous-snakes"
 }

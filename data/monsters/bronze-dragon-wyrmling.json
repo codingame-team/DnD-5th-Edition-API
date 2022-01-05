@@ -140,21 +140,9 @@
             ]
           },
           {
-            "name": "Repulsion Breath",
-            "dc": {
-              "dc_type": {
-                "index": "str",
-                "name": "STR",
-                "url": "/api/ability-scores/str"
-              },
-              "dc_value": 12,
-              "success_type": "none"
-            }
-          }
-        ]
-      },
-      "damage": []
-    }
-  ],
-  "url": "/api/monsters/bronze-dragon-wyrmling"
+            "name": "Repulsion Breath", "dc": {
+        "dc_type": {
+          "index": "str", "name": "STR", "url": "/api/ability-scores/str"
+        }, "dc_value": 12, "success_type": "none"
+      }}]}, "damage": []}], "url": "/api/monsters/bronze-dragon-wyrmling"
 }

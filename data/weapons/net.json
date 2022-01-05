@@ -36,5 +36,6 @@
   "throw_range": {
     "normal": 5,
     "long": 15
-  }, "url": "/api/equipment/net"
+  },
+  "url": "/api/equipment/net"
 }

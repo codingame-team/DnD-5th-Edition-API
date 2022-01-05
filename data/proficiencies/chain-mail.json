@@ -1,0 +1,12 @@
+{
+  "index": "chain-mail",
+  "type": "Armor",
+  "name": "Chain Mail",
+  "classes": [],
+  "races": [],
+  "url": "/api/proficiencies/chain-mail",
+  "reference": {
+    "index": "chain-mail",
+    "name": "Chain Mail",
+    "url": "/api/equipment/chain-mail"
+}}

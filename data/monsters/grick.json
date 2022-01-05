@@ -87,11 +87,6 @@
             "index": "piercing",
             "name": "Piercing",
             "url": "/api/damage-types/piercing"
-          },
-          "damage_dice": "1d6+2"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/grick"
+    }, "damage_dice": "1d6+2"
+  }]}], "url": "/api/monsters/grick"
 }

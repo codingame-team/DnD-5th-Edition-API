@@ -51,9 +51,5 @@
             "url": "/api/damage-types/slashing"
           },
           "damage_dice": "1d4-1"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/awakened-shrub"
+        }]}], "url": "/api/monsters/awakened-shrub"
 }

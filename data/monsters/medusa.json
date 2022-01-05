@@ -155,19 +155,10 @@
             "index": "piercing",
             "name": "Piercing",
             "url": "/api/damage-types/piercing"
-          },
-          "damage_dice": "1d8+2"
-        },
-        {
-          "damage_type": {
-            "index": "poison",
-            "name": "Poison",
-            "url": "/api/damage-types/poison"
-          },
-          "damage_dice": "2d6"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/medusa"
+    }, "damage_dice": "1d8+2"
+  }, {
+    "damage_type": {
+      "index": "poison", "name": "Poison", "url": "/api/damage-types/poison"
+    }, "damage_dice": "2d6"
+  }]}], "url": "/api/monsters/medusa"
 }

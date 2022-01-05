@@ -1,0 +1,18 @@
+{
+  "index": "herbalism-kit",
+  "type": "Other",
+  "name": "Herbalism Kit",
+  "classes": [
+    {
+      "index": "druid",
+      "name": "Druid",
+      "url": "/api/classes/druid"
+    }
+  ],
+  "races": [],
+  "url": "/api/proficiencies/herbalism-kit",
+  "reference": {
+    "index": "herbalism-kit",
+    "name": "Herbalism Kit",
+    "url": "/api/equipment/herbalism-kit"
+}}

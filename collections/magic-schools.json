@@ -1,0 +1,45 @@
+{
+  "count": 8,
+  "results": [
+    {
+      "index": "abjuration",
+      "name": "Abjuration",
+      "url": "/api/magic-schools/abjuration"
+    },
+    {
+      "index": "conjuration",
+      "name": "Conjuration",
+      "url": "/api/magic-schools/conjuration"
+    },
+    {
+      "index": "divination",
+      "name": "Divination",
+      "url": "/api/magic-schools/divination"
+    },
+    {
+      "index": "enchantment",
+      "name": "Enchantment",
+      "url": "/api/magic-schools/enchantment"
+    },
+    {
+      "index": "evocation",
+      "name": "Evocation",
+      "url": "/api/magic-schools/evocation"
+    },
+    {
+      "index": "illusion",
+      "name": "Illusion",
+      "url": "/api/magic-schools/illusion"
+    },
+    {
+      "index": "necromancy",
+      "name": "Necromancy",
+      "url": "/api/magic-schools/necromancy"
+    },
+    {
+      "index": "transmutation",
+      "name": "Transmutation",
+      "url": "/api/magic-schools/transmutation"
+    }
+  ]
+}

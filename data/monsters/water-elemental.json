@@ -139,14 +139,7 @@
       "damage": [
         {
           "damage_type": {
-            "index": "bludgeoning",
-            "name": "Bludgeoning",
-            "url": "/api/damage-types/bludgeoning"
-          },
-          "damage_dice": "2d8+4"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/water-elemental"
+            "index": "bludgeoning", "name": "Bludgeoning", "url": "/api/damage-types/bludgeoning"
+    }, "damage_dice": "2d8+4"
+  }]}], "url": "/api/monsters/water-elemental"
 }

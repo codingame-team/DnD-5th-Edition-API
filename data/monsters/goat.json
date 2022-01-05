@@ -51,9 +51,5 @@
             "url": "/api/damage-types/bludgeoning"
           },
           "damage_dice": "1d4+1"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/goat"
+  }]}], "url": "/api/monsters/goat"
 }

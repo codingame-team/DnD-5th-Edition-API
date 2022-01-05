@@ -88,14 +88,7 @@
       "name": "Invisibility",
       "desc": "The duergar magically turns invisible until it attacks, casts a spell, or uses its Enlarge, or until its concentration is broken, up to 1 hour (as if concentrating on a spell). Any equipment the duergar wears or carries is invisible with it .",
       "usage": {
-        "type": "recharge after rest",
-        "rest_types": [
-          "short",
-          "long"
-        ]
-      },
-      "damage": []
-    }
-  ],
-  "url": "/api/monsters/duergar"
+        "type": "recharge after rest", "rest_types": [
+      "short", "long"
+    ]}, "damage": []}], "url": "/api/monsters/duergar"
 }

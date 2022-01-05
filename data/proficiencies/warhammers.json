@@ -1,0 +1,18 @@
+{
+  "index": "warhammers",
+  "type": "Weapons",
+  "name": "Warhammers",
+  "classes": [],
+  "races": [
+    {
+      "index": "dwarf",
+      "name": "Dwarf",
+      "url": "/api/races/dwarf"
+    }
+  ],
+  "url": "/api/proficiencies/warhammers",
+  "reference": {
+    "index": "warhammer",
+    "name": "Warhammer",
+    "url": "/api/equipment/warhammer"
+}}

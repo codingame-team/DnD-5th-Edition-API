@@ -112,12 +112,6 @@
           "index": "con",
           "name": "CON",
           "url": "/api/ability-scores/con"
-        },
-        "dc_value": 13,
-        "success_type": "none"
-      },
-      "damage": []
-    }
-  ],
-  "url": "/api/monsters/chuul"
+    }, "dc_value": 13, "success_type": "none"
+  }, "damage": []}], "url": "/api/monsters/chuul"
 }

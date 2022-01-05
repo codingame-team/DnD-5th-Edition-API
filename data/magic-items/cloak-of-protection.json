@@ -1,0 +1,14 @@
+{
+  "index": "cloak-of-protection",
+  "name": "Cloak of Protection",
+  "equipment_category": {
+    "index": "wondrous-items",
+    "name": "Wondrous Items",
+    "url": "/api/equipment-categories/wondrous-items"
+  },
+  "desc": [
+    "Wondrous item, uncommon (requires attunement)",
+    "You gain a +1 bonus to AC and saving throws while you wear this cloak."
+  ],
+  "url": "/api/magic-items/cloak-of-protection"
+}

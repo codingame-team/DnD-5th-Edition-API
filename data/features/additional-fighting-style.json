@@ -1,0 +1,54 @@
+{
+  "index": "additional-fighting-style",
+  "class": {
+    "index": "fighter",
+    "name": "Fighter",
+    "url": "/api/classes/fighter"
+  },
+  "subclass": {
+    "index": "champion",
+    "name": "Champion",
+    "url": "/api/subclasses/champion"
+  },
+  "name": "Additional Fighting Style",
+  "level": 10,
+  "prerequisites": [],
+  "desc": [
+    "At 10th level, you can choose a second option from the Fighting Style class feature."
+  ],
+  "feature_specific": {
+    "subfeature_options": {
+      "choose": 1,
+      "type": "feature",
+      "from": [
+        {
+          "index": "fighter-fighting-style-archery",
+          "name": "Fighting Style: Archery",
+          "url": "/api/features/fighter-fighting-style-archery"
+        },
+        {
+          "index": "fighter-fighting-style-defense",
+          "name": "Fighting Style: Defense",
+          "url": "/api/features/fighter-fighting-style-defense"
+        },
+        {
+          "index": "fighter-fighting-style-dueling",
+          "name": "Fighting Style: Dueling",
+          "url": "/api/features/fighter-fighting-style-dueling"
+        },
+        {
+          "index": "fighter-fighting-style-great-weapon-fighting",
+          "name": "Fighting Style: Great Weapon Fighting",
+          "url": "/api/features/fighter-fighting-style-great-weapon-fighting"
+        },
+        {
+          "index": "fighter-fighting-style-protection",
+          "name": "Fighting Style: Protection",
+          "url": "/api/features/fighter-fighting-style-protection"
+        },
+        {
+          "index": "fighter-fighting-style-two-weapon-fighting",
+          "name": "Fighting Style: Two-Weapon Fighting",
+          "url": "/api/features/fighter-fighting-style-two-weapon-fighting"
+    }]}}, "url": "/api/features/additional-fighting-style"
+}

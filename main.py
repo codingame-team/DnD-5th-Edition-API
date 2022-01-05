@@ -84,27 +84,27 @@ def create_character(races: List[str], classes: List[str], names: dict(), human_
     print(f'{color.PURPLE} Character creation based on DnD 5th edition API{color.END}')
     print(f'{color.PURPLE}-------------------------------------------------------{color.END}')
     """ 1. Choose a race """
-    race = read_choice('race', races)
+    race: str = read_choice('race', races)
     """ 2. Choose a class """
-    class_type = read_choice('class', classes)
+    class_type: str = read_choice('class', classes)
     """ 3. Determine ability scores (Strength, Dexterity, Constitution, Intelligence, Wisdom, and Charisma.)"""
-    ability_scores = ability_rolls()
-    abilities = {}
-    abilities['str'] = read_choice('strength', ability_scores)
-    ability_scores.remove(abilities['str'])
-    abilities['dex'] = read_choice('dexterity', ability_scores)
-    ability_scores.remove(abilities['dex'])
-    abilities['con'] = read_choice('constitution', ability_scores)
-    ability_scores.remove(abilities['con'])
-    abilities['int'] = read_choice('intelligence', ability_scores)
-    ability_scores.remove(abilities['int'])
-    abilities['wis'] = read_choice('wisdom', ability_scores)
-    ability_scores.remove(abilities['wis'])
-    abilities['cha'] = read_choice('charisma', ability_scores)
+    ability_scores: List[int] = ability_rolls()
+    strength: int = read_choice('strength', ability_scores)
+    ability_scores.remove(strength)
+    dexterity: int = read_choice('dexterity', ability_scores)
+    ability_scores.remove(dexterity)
+    constitution: int = read_choice('constitution', ability_scores)
+    ability_scores.remove(constitution)
+    intelligence: int = read_choice('intelligence', ability_scores)
+    ability_scores.remove(intelligence)
+    wisdom: int = read_choice('wisdom', ability_scores)
+    ability_scores.remove(wisdom)
+    charisma: int = read_choice('charisma', ability_scores)
+    abilities: Abilities = Abilities(strength, dexterity, constitution, intelligence, wisdom, charisma)
     """ 4. Describe your character (name, gender, clan/family/ """
     genders = ['male', 'female']
-    gender = read_choice('genre', genders)
-    ethnic = None
+    gender: str = read_choice('genre', genders)
+    ethnic: str = None
     if race in ['human', 'half-elf']:
         name, ethnic = read_name(race, gender, human_names)
     else:
@@ -128,11 +128,13 @@ if __name__ == '__main__':
     monsters_names: List[str] = populate(collection_name='monsters', key_name='results')
     armors_names: List[str] = populate(collection_name='armors', key_name='equipment')
     weapons_names: List[str] = populate(collection_name='weapons', key_name='equipment')
+    proficiencies_names: List[str] = populate(collection_name='proficiencies', key_name='results')
     roster: List[Monster] = [request_monster(name) for name in monsters_names]
     boltac_armors: List[Armor] = [request_armor(name) for name in armors_names]
     boltac_armors = [a for a in boltac_armors if a]
     boltac_weapons: List[Armor] = [request_weapon(name) for name in weapons_names]
     boltac_weapons = [w for w in boltac_weapons if w]
+    proficiencies = [request_proficiency(name) for name in proficiencies_names]
     """ Character creation """
     races: List[str] = populate(collection_name='races', key_name='results')
     names = dict()
@@ -143,10 +145,9 @@ if __name__ == '__main__':
     classes: List[str] = populate(collection_name='classes', key_name='results')
     alignments: List[str] = populate(collection_name='alignments', key_name='results')
     race, class_type, abilities, name, gender, ethnic = create_character(races, classes, names, human_names)
-
     character: Character = Character(race=request_race(race),
                                      class_type=class_type,
-                                     str=abilities['str'], dex=abilities['dex'], con=abilities['con'], int=abilities['int'], wis=abilities['wis'], cha=abilities['cha'],
+                                     abilities=abilities,
                                      gender=gender,
                                      name=name,
                                      ethnic=ethnic,

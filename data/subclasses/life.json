@@ -1,0 +1,144 @@
+{
+  "index": "life",
+  "class": {
+    "index": "cleric",
+    "name": "Cleric",
+    "url": "/api/classes/cleric"
+  },
+  "name": "Life",
+  "subclass_flavor": "Divine Domain",
+  "desc": [
+    "The Life domain focuses on the vibrant positive energy--one of the fundamental forces of the universe--that sustains all life. The gods of life promote vitality and health through healing the sick and wounded, caring for those in need, and driving away the forces of death and undeath. Almost any non-evil deity can claim influence over this domain, particularly agricultural deities, sun gods, gods of healing or endurance, and gods of home and community."
+  ],
+  "spells": [
+    {
+      "spell": {
+        "index": "bless",
+        "name": "Bless",
+        "url": "/api/spells/bless"
+      },
+      "prerequisites": [
+        {
+          "index": "cleric-1",
+          "type": "level",
+          "name": "Cleric 1",
+          "url": "/api/classes/cleric/levels/1"
+        }
+      ]
+    },
+    {
+      "spell": {
+        "index": "cure-wounds",
+        "name": "Cure Wounds",
+        "url": "/api/spells/cure-wounds"
+      },
+      "prerequisites": [
+        {
+          "index": "cleric-1",
+          "type": "level",
+          "name": "Cleric 1",
+          "url": "/api/classes/cleric/levels/1"
+        }
+      ]
+    },
+    {
+      "spell": {
+        "index": "lesser-restoration",
+        "name": "Lesser Restoration",
+        "url": "/api/spells/lesser-restoration"
+      },
+      "prerequisites": [
+        {
+          "index": "cleric-3",
+          "type": "level",
+          "name": "Cleric 3",
+          "url": "/api/classes/cleric/levels/3"
+        }
+      ]
+    },
+    {
+      "spell": {
+        "index": "spiritual-weapon",
+        "name": "Spiritual Weapon",
+        "url": "/api/spells/spiritual-weapon"
+      },
+      "prerequisites": [
+        {
+          "index": "cleric-3",
+          "type": "level",
+          "name": "Cleric 3",
+          "url": "/api/classes/cleric/levels/3"
+        }
+      ]
+    },
+    {
+      "spell": {
+        "index": "beacon-of-hope",
+        "name": "Beacon of Hope",
+        "url": "/api/spells/beacon-of-hope"
+      },
+      "prerequisites": [
+        {
+          "index": "cleric-5",
+          "type": "level",
+          "name": "Cleric 5",
+          "url": "/api/classes/cleric/levels/5"
+        }
+      ]
+    },
+    {
+      "spell": {
+        "index": "revivify",
+        "name": "Revivify",
+        "url": "/api/spells/revivify"
+      },
+      "prerequisites": [
+        {
+          "index": "cleric-5",
+          "type": "level",
+          "name": "Cleric 5",
+          "url": "/api/classes/cleric/levels/5"
+        }
+      ]
+    },
+    {
+      "spell": {
+        "index": "death-ward",
+        "name": "Death Ward",
+        "url": "/api/spells/death-ward"
+      },
+      "prerequisites": [
+        {
+          "index": "cleric-7",
+          "type": "level",
+          "name": "Cleric 7",
+          "url": "/api/classes/cleric/levels/7"
+        }
+      ]
+    },
+    {
+      "spell": {
+        "index": "mass-cure-wounds",
+        "name": "Mass Cure Wounds",
+        "url": "/api/spells/mass-cure-wounds"
+      },
+      "prerequisites": [
+        {
+          "index": "cleric-9",
+          "type": "level",
+          "name": "Cleric 9",
+          "url": "/api/classes/cleric/levels/9"
+        }
+      ]
+    },
+    {
+      "spell": {
+        "index": "raise-dead",
+        "name": "Raise Dead",
+        "url": "/api/spells/raise-dead"
+      },
+      "prerequisites": [
+        {
+          "index": "cleric-9", "type": "level", "name": "Cleric 9", "url": "/api/classes/cleric/levels/9"
+  }]}], "subclass_levels": "/api/subclasses/life/levels", "url": "/api/subclasses/life"
+}

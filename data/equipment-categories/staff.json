@@ -1,0 +1,65 @@
+{
+  "index": "staff",
+  "name": "Staff",
+  "equipment": [
+    {
+      "index": "staff-of-charming",
+      "name": "Staff of Charming",
+      "url": "/api/magic-items/staff-of-charming"
+    },
+    {
+      "index": "staff-of-fire",
+      "name": "Staff of Fire",
+      "url": "/api/magic-items/staff-of-fire"
+    },
+    {
+      "index": "staff-of-frost",
+      "name": "Staff of Frost",
+      "url": "/api/magic-items/staff-of-frost"
+    },
+    {
+      "index": "staff-of-healing",
+      "name": "Staff of Healing",
+      "url": "/api/magic-items/staff-of-healing"
+    },
+    {
+      "index": "staff-of-power",
+      "name": "Staff of Power",
+      "url": "/api/magic-items/staff-of-power"
+    },
+    {
+      "index": "staff-of-striking",
+      "name": "Staff of Striking",
+      "url": "/api/magic-items/staff-of-striking"
+    },
+    {
+      "index": "staff-of-swarming-insects",
+      "name": "Staff of Swarming Insects",
+      "url": "/api/magic-items/staff-of-swarming-insects"
+    },
+    {
+      "index": "staff-of-the-magi",
+      "name": "Staff of the Magi",
+      "url": "/api/magic-items/staff-of-the-magi"
+    },
+    {
+      "index": "staff-of-the-python",
+      "name": "Staff of the Python",
+      "url": "/api/magic-items/staff-of-the-python"
+    },
+    {
+      "index": "staff-of-the-woodlands",
+      "name": "Staff of the Woodlands",
+      "url": "/api/magic-items/staff-of-the-woodlands"
+    },
+    {
+      "index": "staff-of-thunder-and-lightning",
+      "name": "Staff of Thunder and Lightning",
+      "url": "/api/magic-items/staff-of-thunder-and-lightning"
+    },
+    {
+      "index": "staff-of-withering",
+      "name": "Staff of Withering",
+      "url": "/api/magic-items/staff-of-withering"
+}], "url": "/api/equipment-categories/staff"
+}

@@ -1,0 +1,25 @@
+{
+  "index": "defensive-tactics-steel-will",
+  "class": {
+    "index": "ranger",
+    "name": "Ranger",
+    "url": "/api/classes/ranger"
+  },
+  "subclass": {
+    "index": "hunter",
+    "name": "Hunter",
+    "url": "/api/subclasses/hunter"
+  },
+  "name": "Defensive Tactics: Steel Will",
+  "level": 7,
+  "prerequisites": [],
+  "desc": [
+    "You have advantage on saving throws against being frightened."
+  ],
+  "parent": {
+    "index": "defensive-tactics",
+    "name": "Defensive Tactics",
+    "url": "/api/features/defensive-tactics"
+  },
+  "url": "/api/features/defensive-tactics-steel-will"
+}

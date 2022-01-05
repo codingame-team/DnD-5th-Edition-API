@@ -139,19 +139,9 @@
   "actions": [
     {
       "name": "Mace",
-      "desc": "Melee Weapon Attack: +2 to hit, reach 5 ft., one target. Hit: 3 (1d6) bludgeoning damage.",
-      "attack_bonus": 2,
-      "damage": [
-        {
-          "damage_type": {
-            "index": "bludgeoning",
-            "name": "Bludgeoning",
-            "url": "/api/damage-types/bludgeoning"
-          },
-          "damage_dice": "1d6"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/priest"
+      "desc": "Melee Weapon Attack: +2 to hit, reach 5 ft., one target. Hit: 3 (1d6) bludgeoning damage.", "attack_bonus": 2, "damage": [{
+    "damage_type": {
+      "index": "bludgeoning", "name": "Bludgeoning", "url": "/api/damage-types/bludgeoning"
+    }, "damage_dice": "1d6"
+  }]}], "url": "/api/monsters/priest"
 }

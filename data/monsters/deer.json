@@ -41,9 +41,5 @@
             "url": "/api/damage-types/piercing"
           },
           "damage_dice": "1d4"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/deer"
+        }]}], "url": "/api/monsters/deer"
 }

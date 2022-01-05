@@ -1,0 +1,25 @@
+{
+  "index": "eldritch-invocation-one-with-shadows",
+  "class": {
+    "index": "warlock",
+    "name": "Warlock",
+    "url": "/api/classes/warlock"
+  },
+  "name": "Eldritch Invocation: One with Shadows",
+  "level": 5,
+  "prerequisites": [
+    {
+      "type": "level",
+      "level": 5
+    }
+  ],
+  "desc": [
+    "When you are in an area of dim light or darkness, you can use your action to become invisible until you move or take an action or a reaction."
+  ],
+  "parent": {
+    "index": "eldritch-invocations-1",
+    "name": "Eldritch Invocations",
+    "url": "/api/features/eldritch-invocations-1"
+  },
+  "url": "/api/features/eldritch-invocation-one-with-shadows"
+}

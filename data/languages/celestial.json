@@ -1,0 +1,10 @@
+{
+  "index": "celestial",
+  "name": "Celestial",
+  "type": "Exotic",
+  "typical_speakers": [
+    "Celestials"
+  ],
+  "script": "Celestial",
+  "url": "/api/languages/celestial"
+}

@@ -116,11 +116,6 @@
             "index": "necrotic",
             "name": "Necrotic",
             "url": "/api/damage-types/necrotic"
-          },
-          "damage_dice": "2d6+2"
-        }
-      ]
-    }
-  ],
-  "url": "/api/monsters/shadow"
+    }, "damage_dice": "2d6+2"
+  }]}], "url": "/api/monsters/shadow"
 }

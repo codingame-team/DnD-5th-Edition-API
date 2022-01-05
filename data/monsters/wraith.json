@@ -110,9 +110,5 @@
     },
     {
       "name": "Create Specter",
-      "desc": "The wraith targets a humanoid within 10 feet of it that has been dead for no longer than 1 minute and died violently. The target's spirit rises as a specter in the space of its corpse or in the nearest unoccupied space. The specter is under the wraith's control. The wraith can have no more than seven specters under its control at one time.",
-      "damage": []
-    }
-  ],
-  "url": "/api/monsters/wraith"
+      "desc": "The wraith targets a humanoid within 10 feet of it that has been dead for no longer than 1 minute and died violently. The target's spirit rises as a specter in the space of its corpse or in the nearest unoccupied space. The specter is under the wraith's control. The wraith can have no more than seven specters under its control at one time.", "damage": []}], "url": "/api/monsters/wraith"
 }

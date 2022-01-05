@@ -37,5 +37,6 @@
       "name": "Two-Handed",
       "url": "/api/weapon-properties/two-handed"
     }
-  ], "url": "/api/equipment/greataxe"
+  ],
+  "url": "/api/equipment/greataxe"
 }
