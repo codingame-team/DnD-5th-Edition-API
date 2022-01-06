@@ -115,6 +115,7 @@ class Potion:
 
 @dataclass
 class Race:
+    index_name: str
     name: str
     ability_bonuses: dict()
     starting_proficiencies: List[Proficiency]
@@ -124,6 +125,7 @@ class Race:
 
 @dataclass
 class SubRace:
+    index_name: str
     name: str
     ability_bonuses: dict()
     starting_proficiencies: List[Proficiency]
@@ -157,6 +159,8 @@ class Character:
     subrace: SubRace
     ethnic: str
     gender: str
+    height: str
+    weight: str
     class_type: str
     abilities: Abilities
     ability_modifiers: Abilities
@@ -196,7 +200,7 @@ class Character:
     def __repr__(self):
         race = self.subrace if self.subrace else self.race
         ethnic = f'ethnic: {self.ethnic} - ' if self.ethnic else ''
-        return f"{self.name} - Abilities: {self.abilities} - Ability modifiers: {self.ability_modifiers} - ({ethnic}{self.gender} {race.name} - class: {self.class_type} - AC {self.armor_class} HD: {self.hit_dice} - w: {self.weapon.name} a: {self.armor.name} - potions: {len(self.healing_potions)})"
+        return f"{self.name} - Abilities: {self.abilities} - Ability modifiers: {self.ability_modifiers} - ({ethnic}{self.gender} {race.name} - height: {self.height} weight: {self.weight}- class: {self.class_type} - AC {self.armor_class} HD: {self.hit_dice} - w: {self.weapon.name} a: {self.armor.name} - potions: {len(self.healing_potions)})"
 
     @property
     def armor_class(self):

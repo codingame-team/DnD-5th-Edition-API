@@ -24,10 +24,19 @@ text: str = read_simple_text('Type text to translate: ')
 top = Tk()
 top.title(f'{text} translated in {language}')
 top.geometry("500x500")
+
+
 # Code to add widgets will go here...
 my_font = Font(family=languages[language], size=64, weight='bold')
+w = Text(top, height=1, borderwidth=0)
+w.insert(1.0, text)
+w.pack()
+# w.configure(state="disabled")
+
 # my_button = Button(top, text=text, font=my_font)
 # my_button.pack(pady=20)
 my_label = Label(top, text=text, font=my_font)
+my_label.focus()
 my_label.pack(pady=20)
+#my_text.pack(pady=20)
 top.mainloop()

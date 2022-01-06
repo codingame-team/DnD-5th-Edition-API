@@ -4,38 +4,25 @@ from typing import List
 
 from dao_classes import Monster, Armor, Weapon, Race, SubRace, Proficiency
 
-
-def populate(collection_name: str, key_name: str, with_url=False) -> List[str]:
-    """
-    :return: list of collection names
-    """
-    with open(f"collections/{collection_name}.json", "r") as f:
-        data = json.loads(f.read())
-        # collection_count = int(data['count'])
-        collection_json_list = data[key_name]
-    if with_url:
-        data_list = [(json_data['index'], json_data['url']) for json_data in collection_json_list]
-    else:
-        data_list = [json_data['index'] for json_data in collection_json_list]
-    return data_list
+""" CSV loads """
 
 
-def populate_names(race: str) -> List[str]:
+def populate_names(race: Race) -> dict():
     """
     :return: list of names (except humans and half-elf)
     """
     names_list = dict()
-    with open(f"data/names/{race}.csv", newline='') as csv_file:
+    with open(f"data/names/{race.index_name}.csv", newline='') as csv_file:
         csv_data = csv.reader(csv_file, delimiter=',')
-        for sex, name in csv_data:
-            if sex not in names_list:
-                names_list[sex] = []
+        for gender, name in csv_data:
+            if gender not in names_list:
+                names_list[gender] = []
             else:
-                names_list[sex].append(name)
+                names_list[gender].append(name)
     return names_list
 
 
-def populate_human_names() -> List[str]:
+def populate_human_names() -> dict():
     """
     :return: list of names (humans and half-elf)
     """
@@ -51,6 +38,67 @@ def populate_human_names() -> List[str]:
                 else:
                     names_list[ethnic][sex].append(name)
     return names_list
+
+
+def read_csvfile_old(filename: str):
+    """
+    :param filename: csv file in Tables directory
+    :return: list of dictionaries
+    """
+    result = []
+    with open(f'Tables/{filename}', newline='') as csv_file:
+        reader = csv.reader(csv_file, delimiter=';')
+        headers = next(reader, None)
+        csv_data = csv.DictReader(csv_file, delimiter=';')
+        for row in csv_data:
+            result.append({header: row(header) for header in headers})
+    return result
+
+
+def read_csvfile(filename: str):
+    """
+    :param filename: csv file in Tables directory
+    :return: list of dictionaries
+    """
+    result = []
+    with open(f'Tables/{filename}', newline='') as csv_file:
+        reader = csv.reader(csv_file, delimiter=';')
+        next(reader, None)
+        return list(reader)
+
+
+def height_weight_table() -> List:
+    """
+    :return: List of race height/weight modifier's parameters
+    """
+    """Race;Base Height;Height Modifier;Base Weight;Weight Modifier"""
+    headers = ['Race', 'Base Height', 'Height Modifier', 'Base Weight', 'Weight Modifier']
+    hw_conv_table = []
+    with open(f"Tables/Height and Weight-Height and Weight.csv", newline='') as csv_file:
+        # csv_data = csv.reader(csv_file, delimiter=';')
+        # next(csv_data, None)
+        csv_data = csv.DictReader(csv_file, delimiter=';')
+        for row in csv_data:
+            hw_conv_table.append({header: row(header) for header in headers})
+    return hw_conv_table
+
+
+""" JSON loads """
+
+
+def populate(collection_name: str, key_name: str, with_url=False) -> List[str]:
+    """
+    :return: list of collection names
+    """
+    with open(f"collections/{collection_name}.json", "r") as f:
+        data = json.loads(f.read())
+        # collection_count = int(data['count'])
+        collection_json_list = data[key_name]
+    if with_url:
+        data_list = [(json_data['index'], json_data['url']) for json_data in collection_json_list]
+    else:
+        data_list = [json_data['index'] for json_data in collection_json_list]
+    return data_list
 
 
 def request_monster(index_name: str) -> Monster:
@@ -116,7 +164,8 @@ def request_race(index_name: str) -> Race:
         starting_proficiencies = None
         if data['starting_proficiencies']:
             starting_proficiencies = data['starting_proficiencies']
-        return Race(name=data['index'],
+        return Race(index_name=data['index'],
+                    name=data['name'],
                     ability_bonuses=ability_bonuses,
                     starting_proficiencies=starting_proficiencies,
                     speed=data['speed'],
@@ -135,7 +184,8 @@ def request_subrace(index_name: str) -> SubRace:
         starting_proficiencies = None
         if data['starting_proficiencies']:
             starting_proficiencies = data['starting_proficiencies']
-        return SubRace(name=data['index'],
+        return SubRace(index_name=data['index'],
+                       name=data['name'],
                        ability_bonuses=ability_bonuses,
                        starting_proficiencies=starting_proficiencies)
 

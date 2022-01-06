@@ -83,17 +83,19 @@ def read_choice(item_name: str, choice_list: List[str]) -> str:
     return choice_list[choice - 1]
 
 
-def create_character(races: List[str], subraces: List[str], classes: List[str], names: dict(), human_names: dict()):
+def create_character(races: List[Race], subraces: List[SubRace], classes: List[str], names: dict(), human_names: dict()):
     print(f'{color.PURPLE}-------------------------------------------------------{color.END}')
     print(f'{color.PURPLE} Character creation based on DnD 5th edition API{color.END}')
     print(f'{color.PURPLE}-------------------------------------------------------{color.END}')
     """ 1. Choose a race """
-    race: str = read_choice('race', races)
-    # subraces = [s for s in subraces for r in races if r == '-'.join(s.split('-')[1:])]
-    subraces = [s for s in subraces for r in races if r == race and r in s]
+    races_names: List[str] = [r.index_name for r in races]
+    race: str = read_choice('race', races_names)
+    race: Race = [r for r in races if r.index_name == race][0]
+    subraces_names: List[str] = [s.index_name for s in subraces for r in races if r.index_name == race.index_name and r.index_name in s.index_name]
     subrace = None
-    if subraces:
-        subrace: str = read_choice('subrace', subraces)
+    if subraces_names:
+        subrace: str = read_choice('subrace', subraces_names)
+        subrace: Race = [r for r in subraces if r.index_name == subrace][0]
     """ 2. Choose a class """
     class_type: str = read_choice('class', classes)
     """ 3. Determine ability scores (Strength, Dexterity, Constitution, Intelligence, Wisdom, and Charisma.)"""
@@ -113,16 +115,32 @@ def create_character(races: List[str], subraces: List[str], classes: List[str], 
     mod = lambda x: (x - 10) // 2
     ability_modifiers: Abilities = Abilities(mod(strength), mod(dexterity), mod(constitution), mod(intelligence), mod(wisdom), mod(charisma))
 
-    """ 4. Describe your character (name, gender, clan/family/virtue, ...) """
+    """ 4. Describe your character (name, gender, clan/family/virtue/ethnic, height/weight, ...) """
     genders = ['male', 'female']
     gender: str = read_choice('genre', genders)
     ethnic: str = None
-    if race in ['human', 'half-elf']:
-        name, ethnic = read_name(race, gender, human_names)
+    if race.index_name in ['human', 'half-elf']:
+        name, ethnic = read_name(race.index_name, gender, human_names)
     else:
-        name = read_name(race, gender, names)
+        name = read_name(race.index_name, gender, names)
+    hw_conv_table = read_csvfile("Height and Weight-Height and Weight.csv")
+    race_name = race.name if not subrace else subrace.name
+    race, base_height, height_modifier, base_weight, weight_modifier = [x for x in hw_conv_table if x[0] == race_name][0]
+    feet2inch = lambda ft, inches: 12 * ft + inches
+    inch2feet = lambda inches: f"{inches // 12}'{inches - (inches // 12) * 12}"
+    height = feet2inch(*tuple((map(int, tuple(base_height.split("'"))))))
+    roll_num, dice_num = map(int, height_modifier.split('d'))
+    height_roll_result = sum([random.randint(1, dice_num) for _ in range(roll_num)])
+    height += height_roll_result
+    weight, unit = base_weight.split(' ')
+    if 'd' in weight_modifier:
+        roll_num, dice_num = map(int, weight_modifier.split('d'))
+        weight_roll_result = sum([random.randint(1, dice_num) for _ in range(roll_num)])
+    else:
+        weight_roll_result = 1
+    weight = int(weight) + height_roll_result * weight_roll_result
     """ 5. Choose equipment """
-    return race, subrace, class_type, abilities, ability_modifiers, name, gender, ethnic
+    return race, subrace, class_type, abilities, ability_modifiers, name, gender, ethnic, inch2feet(height), f'{weight} {unit}'
 
 
 if __name__ == '__main__':
@@ -130,12 +148,17 @@ if __name__ == '__main__':
     PAUSE_ON_RAISE_LEVEL = True
     POTION_INITIAL_PACK = 5
     """ Load XP Levels """
-    infile = open("Tables/xp_levels.txt", "r")
     xp_levels = []
-    for line in infile:
-        xp_needed, level, master_bonus = line.split(' ')
+    levels = read_csvfile("XP Levels-XP Levels.csv")
+    for xp_needed, level, master_bonus in levels:
         # xp_levels.append((xp_needed, master_bonus))
         xp_levels.append(int(xp_needed))
+    # infile = open("Tables/XP Levels-XP Levels.csv", "r")
+    # xp_levels = []
+    # for line in infile:
+    #     xp_needed, level, master_bonus = line.split(' ')
+    #     # xp_levels.append((xp_needed, master_bonus))
+    #     xp_levels.append(int(xp_needed))
     """ Load Monster, Armor and Weapon databases """
     monsters_names: List[str] = populate(collection_name='monsters', key_name='results')
     armors_names: List[str] = populate(collection_name='armors', key_name='equipment')
@@ -148,24 +171,28 @@ if __name__ == '__main__':
     boltac_weapons = [w for w in boltac_weapons if w]
     proficiencies = [request_proficiency(name) for name in proficiencies_names]
     """ Character creation """
-    races: List[str] = populate(collection_name='races', key_name='results')
-    subraces: List[str] = populate(collection_name='subraces', key_name='results')
+    races_names: List[str] = populate(collection_name='races', key_name='results')
+    races: List[Race] = [request_race(name) for name in races_names]
+    subraces_names: List[str] = populate(collection_name='subraces', key_name='results')
+    subraces: List[Race] = [request_subrace(name) for name in subraces_names]
     names = dict()
     for race in races:
-        if race not in ['human', 'half-elf']:
-            names[race] = populate_names(race)
+        if race.index_name not in ['human', 'half-elf']:
+            names[race.index_name] = populate_names(race)
     human_names: List[str] = populate_human_names()
     classes: List[str] = populate(collection_name='classes', key_name='results')
     alignments: List[str] = populate(collection_name='alignments', key_name='results')
-    race, subrace, class_type, abilities, ability_modifiers, name, gender, ethnic = create_character(races, subraces, classes, names, human_names)
-    character: Character = Character(race=request_race(race),
-                                     subrace=request_subrace(subrace),
+    race, subrace, class_type, abilities, ability_modifiers, name, gender, ethnic, height, weight = create_character(races, subraces, classes, names, human_names)
+    character: Character = Character(race=race,
+                                     subrace=subrace,
                                      class_type=class_type,
                                      abilities=abilities,
                                      ability_modifiers=ability_modifiers,
                                      gender=gender,
                                      name=name,
                                      ethnic=ethnic,
+                                     height=height,
+                                     weight=weight,
                                      armor=boltac_armors[0],
                                      weapon=boltac_weapons[1],
                                      hit_points=10,

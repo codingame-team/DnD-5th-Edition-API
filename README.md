@@ -6,6 +6,8 @@ Simple project to illustrate usage of D&D 5th Edition API!
         http://www.dnd5eapi.co/
         https://www.aidedd.org/regles/creation-de-perso/suite/
         https://www.aidedd.org/
+        open source game engine (powered by Python - win/linux only?)
+            https://www.ursinaengine.org/
 
     additional esoteric resources:
         - elvish, dwarvish, draconic font's policies (alphabet): 
