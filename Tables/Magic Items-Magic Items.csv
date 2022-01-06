@@ -1,0 +1,9 @@
+Roll d100;Item
+01-25;Potions
+26-30;Rings
+31-50;Scrolls
+51-55;Wands/Staves
+56-60;Misc. Magic
+61-75;Armor
+76-80;Misc. Weapons
+81-00;Swords

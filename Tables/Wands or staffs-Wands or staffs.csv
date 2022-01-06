@@ -1,0 +1,20 @@
+Roll d100;Wand or Staff
+01-05;Wand of Cold
+06-10;Wand of Enemy Detection
+11-15;Wand of Fear
+16-20;Wand of Fire Balls
+21-25;Wand of Illusion
+26-30;Wand of Lightning Bolts
+31-35;Wand of Magic Detection
+36-50;Wand of Metal Detection
+51-55;Wand of Negation
+56-60;Wand of Paralyzation
+61-65;Wand of Polymorph
+66-70;Wand of Secret Doors & Traps Detection
+71-75;Snake Staff*
+76-80;Staff of Commanding* *
+81-90;Staff of Healing*
+91-92;Staff of Power*
+93-97;Staff of Striking**
+98-99;Staff of Withering*
+0;Staff of Wizardry+

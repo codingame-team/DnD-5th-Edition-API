@@ -1,0 +1,10 @@
+Roll d100;Scroll
+01-20;1 Spell*
+21-35;2 Spells*
+36-45;3 Spells*
+46-50;7 Spells*
+51-60;1 Curse**
+61-70;Protection: Elementals
+71-80;Protection: Lycanthropes
+81-90;Protection: Magic
+91-00;Protection: Undead
