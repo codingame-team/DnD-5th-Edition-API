@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from copy import copy
 
 from dao_classes import *
@@ -82,22 +84,91 @@ def read_choice(item_name: str, choice_list: List[str]) -> str:
             continue
     return choice_list[choice - 1]
 
+def choose_equipment_from(starting_equipment_options: List[List[Inventory]]):
+    starting_equipment: List[Equipment] = []
+    for inv_options in starting_equipment_options:
+        inv_count = 1
+        inv_choices = {}
+        for inv in inv_options:
+            try:
+                if type(inv) is list:
+                    label: str = ', '.join([f'{i.quantity} {i.equipment.index}' for i in inv])
+                else:
+                    # print(f'inv: {inv} - type: {type(inv)}')
+                    label: str = inv.equipment.index
+            except AttributeError:
+                print(f'inv: {inv}')
+                print(f'label: {label}')
+                exit(0)
+            inv_choices[label] = inv
+        plural: str = '' if inv_count == 1 else 's'
+        inv_choice: str = read_choice(f'{inv_count} equipment{plural}', list(inv_choices.keys()))
+        chosen_inv: Inventory | List[Inventory] = inv_choices[inv_choice]
+        if type(chosen_inv) is list:
+            starting_equipment += [inv.equipment for inv in chosen_inv for _ in range(inv.quantity)]
+        else:
+            if type(chosen_inv.equipment) is EquipmentCategory:
+                inv_options_cat: List[str] = populate(collection_name=chosen_inv.equipment.index, key_name='equipment', collection_path='data/equipment-categories')
+                plural: str = '' if inv_count == 1 else 's'
+                inv_choice: str = read_choice(f'{inv_count} {chosen_inv.equipment.name}{plural}', inv_options_cat)
+                starting_equipment.append(request_equipment(inv_choice))
+            else:
+                starting_equipment.append(request_equipment(chosen_inv.equipment.index))
+        # print(f'removing chosen_inv: {chosen_inv}')
+        # inv_options.remove(chosen_inv)
+        # inv_count -= 1
+    return starting_equipment
 
-def create_character(races: List[Race], subraces: List[SubRace], classes: List[str], names: dict(), human_names: dict()):
+def create_character(races: List[Race], subraces: List[SubRace], classes: List[Class], proficiencies: List[Proficiency], equipments: List[Equipment], names: dict(), human_names: dict()):
     print(f'{color.PURPLE}-------------------------------------------------------{color.END}')
     print(f'{color.PURPLE} Character creation based on DnD 5th edition API{color.END}')
     print(f'{color.PURPLE}-------------------------------------------------------{color.END}')
     """ 1. Choose a race """
-    races_names: List[str] = [r.index_name for r in races]
+    races_names: List[str] = [r.index for r in races]
     race: str = read_choice('race', races_names)
-    race: Race = [r for r in races if r.index_name == race][0]
-    subraces_names: List[str] = [s.index_name for s in subraces for r in races if r.index_name == race.index_name and r.index_name in s.index_name]
+    race: Race = [r for r in races if r.index == race][0]
+    subraces_names: List[str] = [s.index for s in subraces for r in races if r.index == race.index and r.index in s.index]
     subrace = None
     if subraces_names:
         subrace: str = read_choice('subrace', subraces_names)
-        subrace: Race = [r for r in subraces if r.index_name == subrace][0]
+        subrace: Race = [r for r in subraces if r.index == subrace][0]
+    # Choose proficiencies within the race
+    chosen_proficiencies: List[str] = []
+    for choose, proficiency_options in race.starting_proficiency_options:
+        proficiency_names: List[str] = [prof.index for prof in proficiency_options]
+        prof_count = choose
+        while prof_count:
+            prof_label = 'proficiency' if prof_count == 1 else 'proficiencies'
+            prof_name: str = read_choice(f'{prof_count} race\'s {prof_label}', proficiency_names)
+            chosen_proficiencies.append(prof_name)
+            proficiency_names.remove(prof_name)
+            prof_count -= 1
+    for chosen_prof_name in chosen_proficiencies:
+        chosen_prof: Proficiency = [prof for prof in proficiencies if prof.name == chosen_prof_name][0]
+        proficiencies.append(chosen_prof)
+    # should be deleted (duplicate with character.class_type.proficiencies)
+    proficiencies += race.starting_proficiencies
     """ 2. Choose a class """
-    class_type: str = read_choice('class', classes)
+    class_names = [c.index for c in classes]
+    class_type: str = read_choice('class', class_names)
+    class_type: Class = [c for c in classes if c.index == class_type][0]
+    # Choose proficiencies within the class
+    chosen_proficiencies: List[str] = []
+    for choose, proficiency_choices in class_type.proficiency_choices:
+        proficiency_names: List[str] = [prof.index for prof in proficiency_choices]
+        prof_count = choose
+        while prof_count:
+            prof_label = 'proficiency' if prof_count == 1 else 'proficiencies'
+            prof_name: str = read_choice(f'{prof_count} class\' {prof_label}', proficiency_names)
+            chosen_proficiencies.append(prof_name)
+            proficiency_names.remove(prof_name)
+            prof_count -= 1
+    for chosen_prof_name in chosen_proficiencies:
+        chosen_prof: Proficiency = [prof for prof in proficiencies if prof.name == chosen_prof_name][0]
+        proficiencies.append(chosen_prof)
+    # should be deleted (duplicate with character.class_type.proficiencies)
+    proficiencies += class_type.proficiencies
+
     """ 3. Determine ability scores (Strength, Dexterity, Constitution, Intelligence, Wisdom, and Charisma.)"""
     ability_scores: List[int] = ability_rolls()
     strength: int = read_choice('strength', ability_scores)
@@ -119,13 +190,19 @@ def create_character(races: List[Race], subraces: List[SubRace], classes: List[s
     genders = ['male', 'female']
     gender: str = read_choice('genre', genders)
     ethnic: str = None
-    if race.index_name in ['human', 'half-elf']:
-        name, ethnic = read_name(race.index_name, gender, human_names)
+    if race.index in ['human', 'half-elf']:
+        name, ethnic = read_name(race.index, gender, human_names)
     else:
-        name = read_name(race.index_name, gender, names)
+        name = read_name(race.index, gender, names)
     hw_conv_table = read_csvfile("Height and Weight-Height and Weight.csv")
     race_name = race.name if not subrace else subrace.name
-    race, base_height, height_modifier, base_weight, weight_modifier = [x for x in hw_conv_table if x[0] == race_name][0]
+    found_record = [x for x in hw_conv_table if x[0] == race_name]
+    if not found_record:
+        found_record = [x for x in hw_conv_table if x[0] == race.name]
+    try:
+        race_name, base_height, height_modifier, base_weight, weight_modifier = found_record[0]
+    except IndexError:
+        print(f'found_record: {found_record}')
     feet2inch = lambda ft, inches: 12 * ft + inches
     inch2feet = lambda inches: f"{inches // 12}'{inches - (inches // 12) * 12}"
     height = feet2inch(*tuple((map(int, tuple(base_height.split("'"))))))
@@ -140,7 +217,10 @@ def create_character(races: List[Race], subraces: List[SubRace], classes: List[s
         weight_roll_result = 1
     weight = int(weight) + height_roll_result * weight_roll_result
     """ 5. Choose equipment """
-    return race, subrace, class_type, abilities, ability_modifiers, name, gender, ethnic, inch2feet(height), f'{weight} {unit}'
+    # Choose starting equipment within the class
+    starting_equipment: List[Equipment] = choose_equipment_from(class_type.starting_equipment_options)
+    starting_equipment += [inv.equipment for inv in class_type.starting_equipment for _ in range(inv.quantity)]
+    return race, subrace, class_type, abilities, ability_modifiers, name, gender, ethnic, inch2feet(height), f'{weight} {unit}', starting_equipment
 
 
 if __name__ == '__main__':
@@ -163,13 +243,16 @@ if __name__ == '__main__':
     monsters_names: List[str] = populate(collection_name='monsters', key_name='results')
     armors_names: List[str] = populate(collection_name='armors', key_name='equipment')
     weapons_names: List[str] = populate(collection_name='weapons', key_name='equipment')
-    proficiencies_names: List[str] = populate(collection_name='proficiencies', key_name='results')
+    equipment_names: List[str] = populate(collection_name='equipment', key_name='results')
+    classes_names: List[str] = populate(collection_name='classes', key_name='results')
     roster: List[Monster] = [request_monster(name) for name in monsters_names]
     boltac_armors: List[Armor] = [request_armor(name) for name in armors_names]
     boltac_armors = [a for a in boltac_armors if a]
     boltac_weapons: List[Armor] = [request_weapon(name) for name in weapons_names]
     boltac_weapons = [w for w in boltac_weapons if w]
+    proficiencies_names: List[str] = populate(collection_name='proficiencies', key_name='results')
     proficiencies = [request_proficiency(name) for name in proficiencies_names]
+    proficiencies = [prof for prof in proficiencies if prof]
     """ Character creation """
     races_names: List[str] = populate(collection_name='races', key_name='results')
     races: List[Race] = [request_race(name) for name in races_names]
@@ -177,15 +260,27 @@ if __name__ == '__main__':
     subraces: List[Race] = [request_subrace(name) for name in subraces_names]
     names = dict()
     for race in races:
-        if race.index_name not in ['human', 'half-elf']:
-            names[race.index_name] = populate_names(race)
+        if race.index not in ['human', 'half-elf']:
+            names[race.index] = populate_names(race)
     human_names: List[str] = populate_human_names()
+    equipments = [request_equipment(name) for name in equipment_names]
     classes: List[str] = populate(collection_name='classes', key_name='results')
+    classes = [request_class(name) for name in classes]
     alignments: List[str] = populate(collection_name='alignments', key_name='results')
-    race, subrace, class_type, abilities, ability_modifiers, name, gender, ethnic, height, weight = create_character(races, subraces, classes, names, human_names)
+    race, subrace, class_type, abilities, ability_modifiers, name, gender, ethnic, height, weight, starting_equipment \
+        = create_character(races=races, subraces=subraces, classes=classes, equipments=equipments, proficiencies=proficiencies, names=names, human_names=human_names)
+    # Equip the character with a weapon and an armor from the starting equipment list of the class
+    available_weapons = {e.index: e for e in starting_equipment if e.equipment_category.index == 'weapon'}
+    available_armors = {e.index: e for e in starting_equipment if e.equipment_category.index == 'armor'}
+    chosen_weapon: str = read_choice(f'1 weapon to equip', list(available_weapons.keys()))
+    chosen_weapon: Weapon = available_weapons[chosen_weapon]
+    chosen_armor: str = read_choice(f'1 armor to equip', list(available_armors.keys()))
+    chosen_armor: Armor = available_armors[chosen_armor]
+    hit_points = class_type.hit_die
     character: Character = Character(race=race,
                                      subrace=subrace,
                                      class_type=class_type,
+                                     proficiencies=class_type.proficiencies + race.starting_proficiencies,
                                      abilities=abilities,
                                      ability_modifiers=ability_modifiers,
                                      gender=gender,
@@ -193,10 +288,11 @@ if __name__ == '__main__':
                                      ethnic=ethnic,
                                      height=height,
                                      weight=weight,
-                                     armor=boltac_armors[0],
-                                     weapon=boltac_weapons[1],
-                                     hit_points=10,
-                                     max_hit_points=10,
+                                     inventory=starting_equipment,
+                                     armor=chosen_armor,
+                                     weapon=chosen_weapon,
+                                     hit_points=hit_points,
+                                     max_hit_points=hit_points,
                                      xp=0, level=1,
                                      healing_potions=[Potion('2d4')] * POTION_INITIAL_PACK,
                                      monster_kills=0)

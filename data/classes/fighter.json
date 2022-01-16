@@ -254,14 +254,33 @@
         "url": "/api/proficiencies/light-armor"
       },
       {
-        "index": "medium-armor", "name": "Medium Armor", "url": "/api/proficiencies/medium-armor"
-  }, {
-    "index": "shields", "name": "Shields", "url": "/api/proficiencies/shields"
-  }, {
-    "index": "simple-weapons", "name": "Simple Weapons", "url": "/api/proficiencies/simple-weapons"
-  }, {
-    "index": "martial-weapons", "name": "Martial Weapons", "url": "/api/proficiencies/martial-weapons"
-  }]}, "subclasses": [{
-  "index": "champion", "name": "Champion", "url": "/api/subclasses/champion"
-}], "url": "/api/classes/fighter"
+        "index": "medium-armor",
+        "name": "Medium Armor",
+        "url": "/api/proficiencies/medium-armor"
+      },
+      {
+        "index": "shields",
+        "name": "Shields",
+        "url": "/api/proficiencies/shields"
+      },
+      {
+        "index": "simple-weapons",
+        "name": "Simple Weapons",
+        "url": "/api/proficiencies/simple-weapons"
+      },
+      {
+        "index": "martial-weapons",
+        "name": "Martial Weapons",
+        "url": "/api/proficiencies/martial-weapons"
+      }
+    ]
+  },
+  "subclasses": [
+    {
+      "index": "champion",
+      "name": "Champion",
+      "url": "/api/subclasses/champion"
+    }
+  ],
+  "url": "/api/classes/fighter"
 }

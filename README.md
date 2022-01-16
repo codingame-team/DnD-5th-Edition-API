@@ -13,12 +13,18 @@ Simple project to illustrate usage of D&D 5th Edition API!
             https://www.youtube.com/watch?v=p6Q2-m9i4Fg
         How to install PyQt5 in PyCharm:
             https://pythonpyqt.com/how-to-install-pyqt5-in-pycharm/
+        Which IDEs Are Compatible?
+            https://doc.qt.io/qtforpython/tutorials/pretutorial/whichide.html#pycharm
         Create Tkinter GUIs from JSON definition files:
             https://github.com/tmetsch/pytkgen
         This tutorial shows how you can use fbs to create a simple Python GUI and an associated installer:
             https://github.com/mherrmann/fbs-tutorial
         PyQt database example:
             https://github.com/pyqt/examples/tree/_/src/15%20PyQt%20database%20example
+        Python basics:
+            https://pythonbasics.org/
+        Understanding Python Dataclasses:
+            https://www.geeksforgeeks.org/understanding-python-dataclasses/
 
     additional esoteric resources:
         - elvish, dwarvish, draconic font's policies (alphabet): 

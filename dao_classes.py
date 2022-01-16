@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import random
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
-from typing import List
+from typing import List, Optional, Tuple
 
 """ Needs to separate presentation layer from data layer """
 
@@ -61,34 +63,11 @@ class Monster:
 """ Character classes """
 
 
-class ProficiencyType(Enum):
-    ARMOR = 'Armor'
-    WEAPON = 'Weapon'
-
-
 @dataclass
 class Proficiency:
+    index: str
     name: str
     prof_type: str
-
-
-@dataclass
-class Weapon:
-    name: str
-    weapon_category: str
-    weapon_range: str
-    hit_dice: str
-    damage_type: str
-    range_dict: dict()
-
-
-@dataclass
-class Armor:
-    name: str
-    armor_category: str
-    armor_class: int
-    str_minimum: int
-    stealth_disadvantage: bool
 
 
 # @dataclass
@@ -114,21 +93,209 @@ class Potion:
 
 
 @dataclass
-class Race:
-    index_name: str
+class Language:
+    index: str
     name: str
-    ability_bonuses: dict()
-    starting_proficiencies: List[Proficiency]
-    speed: int
-    size: str
+    desc: str
+    type: str
+    typical_speakers: List[str]
+    script: str
+
+
+@dataclass
+class Trait:
+    index: str
+    name: str
+    desc: str
 
 
 @dataclass
 class SubRace:
-    index_name: str
+    index: str
     name: str
+    desc: str
     ability_bonuses: dict()
     starting_proficiencies: List[Proficiency]
+    racial_traits: List[Trait]
+
+
+@dataclass
+class Race:
+    index: str
+    name: str
+    speed: int
+    ability_bonuses: dict()
+    alignment: str
+    age: str
+    size: str
+    size_description: str
+    starting_proficiencies: List[Proficiency]
+    starting_proficiency_options: List[Tuple[int, List[Proficiency]]]
+    languages: List[Language]
+    language_desc: str
+    traits: List[Trait]
+    subraces: List[SubRace]
+
+    def __repr__(self):
+        return f"{self.index}"
+
+
+@dataclass
+class Cost:
+    quantity: int
+    unit: str
+
+
+@dataclass
+class EquipmentCategory:
+    index: str
+    name: str
+    url: str
+
+    def __repr__(self):
+        return f"{self.index}"
+
+
+@dataclass
+class Equipment:
+    index: str
+    name: str
+    cost: Cost
+    weight: int
+    desc: Optional[List[str]]
+    equipment_category: EquipmentCategory
+    gear_category: str
+    tool_category: str
+    vehicle_category: str
+    equipped: bool = field(init=False)
+
+    def __repr__(self):
+        return f"{self.index} ({self.equipment_category})"
+
+
+@dataclass
+class Inventory:
+    quantity: str
+    equipment: Equipment|EquipmentCategory
+
+    def __repr__(self):
+        return f"{self.quantity} {self.equipment.index}"
+
+
+@dataclass
+class WeaponProperty():
+    index: str
+    name: str
+    desc: str
+
+
+@dataclass
+class WeaponThrowRange():
+    normal: int
+    long: int
+
+
+@dataclass
+class WeaponRange():
+    normal: int
+    long: Optional[int]
+
+
+@dataclass
+class DamageType():
+    index: str
+    name: str
+    desc: str
+
+
+@dataclass
+class Weapon(Equipment):
+    properties: List[WeaponProperty]
+    damage_type: DamageType
+    weapon_category: str
+    weapon_range: str
+    damage_dice: str
+    damage_type: str
+    range: WeaponRange
+    throw_range: WeaponThrowRange
+    is_magic: bool
+    category_range: str = field(init=False)
+
+    def __post_init__(self):
+        self.category_range = f'{self.weapon_category} {self.weapon_range}'
+
+    def __repr__(self):
+        return f"{self.index} ({self.equipment_category})"
+
+
+@dataclass
+class Armor(Equipment):
+    armor_category: str
+    armor_class: int
+    str_minimum: int
+    stealth_disadvantage: bool
+
+    def __repr__(self):
+        return f"{self.index} ({self.equipment_category})"
+
+
+class AbilityType(Enum):
+    STR = 'str'
+    CON = 'con'
+    DEX = 'dex'
+    INT = 'int'
+    WIS = 'wis'
+    CHA = 'cha'
+
+
+@dataclass
+class Class:
+    index: str
+    name: str
+    hit_die: int
+    proficiency_choices: List[Tuple[int, List[Proficiency]]]
+    proficiencies: List[Proficiency]
+    saving_throws: List[AbilityType]
+    starting_equipment: List[Inventory]
+    starting_equipment_options: List[List[Inventory|List[Inventory]]]
+    class_levels: List[str]  # Not yet implemented
+    multi_classing: List[str]  # Not yet implemented
+    subclasses: List[str]  # Not yet implemented
+    spellcasting: str  # Not yet implemented
+
+    def __repr__(self):
+        return f"{self.index}"
+
+
+@dataclass
+class Feature:
+    index: str
+    name: str
+    class_type: Class
+    class_level: int
+    prerequisites: List[str]
+    desc: List[str]
+
+
+@dataclass
+class Level:
+    index: str
+    class_type: Class
+    ability_score_bonuses: int
+    prof_bonus: int
+    features: List[Feature]
+    class_specific: dict()
+    spell_casting: Optional[dict]
+
+
+@dataclass
+class BackGround:
+    index: str
+    name: str
+    starting_proficiencies: List[Proficiency]
+    languages: List[Language]
+    starting_equipment: List[Equipment]
+    starting_equipment_options: List[Equipment]
 
 
 # @dataclass
@@ -162,16 +329,24 @@ class Character:
     height: str
     weight: str
     class_type: str
+    proficiencies: List[Proficiency]
     abilities: Abilities
     ability_modifiers: Abilities
     hit_points: int
     max_hit_points: int
     xp: int
     level: int
-    armor: Armor
-    weapon: Weapon
     healing_potions: List[Potion]
     monster_kills: int
+    inventory: List[Equipment]
+    armor: Armor
+    weapon: Weapon
+    # armor: Armor = field(init=False)
+    # weapon: Weapon = field(init=False)
+
+    # def __post_init__(self):
+    #     self.armor = [equipment for equipment in self.inventory if equipment.equipment_category == 'armor' and equipment.equiped]
+    #     self.weapon = [equipment for equipment in self.inventory if equipment.equipment_category == 'weapon' and equipment.equiped]
 
     @property
     def strength(self):
@@ -208,7 +383,7 @@ class Character:
 
     @property
     def hit_dice(self):
-        return self.weapon.hit_dice
+        return self.weapon.damage_dice
 
     """Healing (??? check rules): A Healing potion repairs one six-sided die, plus one, (2-7) points of damage, just like a Cure Light Wounds spell."""
 
@@ -237,7 +412,7 @@ class Character:
             self.healing_potions.append(Potion('2d4'))
         elif treasure_dice == 2:
             new_weapon: Weapon = random.choice(weapons)
-            if new_weapon.hit_dice > self.weapon.hit_dice:
+            if new_weapon.damage_dice > self.weapon.damage_dice:
                 print(f"{self.name} found a better weapon {new_weapon}!")
                 self.weapon = new_weapon
         else:

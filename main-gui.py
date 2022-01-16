@@ -1,6 +1,6 @@
 
 #
-# Created by: Fifi
+# Created by: philRG
 #
 import random
 import sys
