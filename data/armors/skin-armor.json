@@ -1,0 +1,23 @@
+{
+  "index": "skin-armor",
+  "name": "Skin Armor",
+  "equipment_category": {
+    "index": "armor",
+    "name": "Armor",
+    "url": "/api/equipment-categories/armor"
+  },
+  "armor_category": "Light",
+  "armor_class": {
+    "base": 10,
+    "dex_bonus": "True",
+    "max_bonus": "None"
+  },
+  "str_minimum": 0,
+  "stealth_disadvantage": "False",
+  "weight": 0,
+  "cost": {
+    "quantity": 0,
+    "unit": "gp"
+  },
+  "url": "/api/equipment/skin-armor"
+}

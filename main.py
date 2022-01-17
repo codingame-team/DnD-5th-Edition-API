@@ -91,7 +91,7 @@ def choose_equipment_from(starting_equipment_options: List[List[Inventory]]):
         inv_choices = {}
         for inv in inv_options:
             try:
-                if type(inv) is list:
+                if isinstance(inv, list):
                     label: str = ', '.join([f'{i.quantity} {i.equipment.index}' for i in inv])
                 else:
                     # print(f'inv: {inv} - type: {type(inv)}')
@@ -107,7 +107,7 @@ def choose_equipment_from(starting_equipment_options: List[List[Inventory]]):
         if type(chosen_inv) is list:
             starting_equipment += [inv.equipment for inv in chosen_inv for _ in range(inv.quantity)]
         else:
-            if type(chosen_inv.equipment) is EquipmentCategory:
+            if isinstance(chosen_inv.equipment, EquipmentCategory):
                 inv_options_cat: List[str] = populate(collection_name=chosen_inv.equipment.index, key_name='equipment', collection_path='data/equipment-categories')
                 plural: str = '' if inv_count == 1 else 's'
                 inv_choice: str = read_choice(f'{inv_count} {chosen_inv.equipment.name}{plural}', inv_options_cat)
@@ -131,7 +131,7 @@ def create_character(races: List[Race], subraces: List[SubRace], classes: List[C
     subrace = None
     if subraces_names:
         subrace: str = read_choice('subrace', subraces_names)
-        subrace: Race = [r for r in subraces if r.index == subrace][0]
+        subrace: SubRace = [r for r in subraces if r.index == subrace][0]
     # Choose proficiencies within the race
     chosen_proficiencies: List[str] = []
     for choose, proficiency_options in race.starting_proficiency_options:
@@ -274,6 +274,8 @@ if __name__ == '__main__':
     available_armors = {e.index: e for e in starting_equipment if e.equipment_category.index == 'armor'}
     chosen_weapon: str = read_choice(f'1 weapon to equip', list(available_weapons.keys()))
     chosen_weapon: Weapon = available_weapons[chosen_weapon]
+    if not available_armors:
+        available_armors = {'skin-armor': request_armor('skin-armor')}
     chosen_armor: str = read_choice(f'1 armor to equip', list(available_armors.keys()))
     chosen_armor: Armor = available_armors[chosen_armor]
     hit_points = class_type.hit_die

@@ -3,6 +3,11 @@
   "name": "Armor",
   "equipment": [
     {
+      "index": "skin-armor",
+      "name": "Skin Armor",
+      "url": "/api/equipment/skin-armor"
+    },
+    {
       "index": "padded-armor",
       "name": "Padded Armor",
       "url": "/api/equipment/padded-armor"
