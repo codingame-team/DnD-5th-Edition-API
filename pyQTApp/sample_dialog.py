@@ -10,6 +10,7 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
+from pyQTApp.additional_qt_classes import SpinBox
 
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
@@ -64,7 +65,8 @@ class Ui_Dialog(object):
         self.label = QtWidgets.QLabel(self.abilities_GroupBox)
         self.label.setObjectName("label")
         self.gridLayout_2.addWidget(self.label, 1, 0, 1, 1)
-        self.str_spinBox = QtWidgets.QSpinBox(self.abilities_GroupBox)
+        # self.str_spinBox = QtWidgets.QSpinBox(self.abilities_GroupBox)
+        self.str_spinBox = SpinBox(self.abilities_GroupBox)
         self.str_spinBox.setEnabled(True)
         self.str_spinBox.setAlignment(QtCore.Qt.AlignCenter)
         self.str_spinBox.setObjectName("str_spinBox")
@@ -72,7 +74,8 @@ class Ui_Dialog(object):
         self.label_2 = QtWidgets.QLabel(self.abilities_GroupBox)
         self.label_2.setObjectName("label_2")
         self.gridLayout_2.addWidget(self.label_2, 2, 0, 1, 1)
-        self.dex_spinBox = QtWidgets.QSpinBox(self.abilities_GroupBox)
+        # self.dex_spinBox = QtWidgets.QSpinBox(self.abilities_GroupBox)
+        self.dex_spinBox = SpinBox(self.abilities_GroupBox)
         self.dex_spinBox.setEnabled(True)
         self.dex_spinBox.setAlignment(QtCore.Qt.AlignCenter)
         self.dex_spinBox.setObjectName("dex_spinBox")
@@ -80,7 +83,8 @@ class Ui_Dialog(object):
         self.label_3 = QtWidgets.QLabel(self.abilities_GroupBox)
         self.label_3.setObjectName("label_3")
         self.gridLayout_2.addWidget(self.label_3, 3, 0, 1, 1)
-        self.con_spinBox = QtWidgets.QSpinBox(self.abilities_GroupBox)
+        # self.con_spinBox = QtWidgets.QSpinBox(self.abilities_GroupBox)
+        self.con_spinBox = SpinBox(self.abilities_GroupBox)
         self.con_spinBox.setEnabled(True)
         self.con_spinBox.setAlignment(QtCore.Qt.AlignCenter)
         self.con_spinBox.setObjectName("con_spinBox")
@@ -88,7 +92,8 @@ class Ui_Dialog(object):
         self.label_4 = QtWidgets.QLabel(self.abilities_GroupBox)
         self.label_4.setObjectName("label_4")
         self.gridLayout_2.addWidget(self.label_4, 4, 0, 1, 1)
-        self.int_spinBox = QtWidgets.QSpinBox(self.abilities_GroupBox)
+        # self.int_spinBox = QtWidgets.QSpinBox(self.abilities_GroupBox)
+        self.int_spinBox = SpinBox(self.abilities_GroupBox)
         self.int_spinBox.setEnabled(True)
         self.int_spinBox.setAlignment(QtCore.Qt.AlignCenter)
         self.int_spinBox.setObjectName("int_spinBox")
@@ -96,7 +101,8 @@ class Ui_Dialog(object):
         self.label_5 = QtWidgets.QLabel(self.abilities_GroupBox)
         self.label_5.setObjectName("label_5")
         self.gridLayout_2.addWidget(self.label_5, 5, 0, 1, 1)
-        self.wis_spinBox = QtWidgets.QSpinBox(self.abilities_GroupBox)
+        # self.wis_spinBox = QtWidgets.QSpinBox(self.abilities_GroupBox)
+        self.wis_spinBox = SpinBox(self.abilities_GroupBox)
         self.wis_spinBox.setEnabled(True)
         self.wis_spinBox.setAlignment(QtCore.Qt.AlignCenter)
         self.wis_spinBox.setObjectName("wis_spinBox")
@@ -104,7 +110,8 @@ class Ui_Dialog(object):
         self.label_6 = QtWidgets.QLabel(self.abilities_GroupBox)
         self.label_6.setObjectName("label_6")
         self.gridLayout_2.addWidget(self.label_6, 6, 0, 1, 1)
-        self.char_spinBox = QtWidgets.QSpinBox(self.abilities_GroupBox)
+        # self.char_spinBox = QtWidgets.QSpinBox(self.abilities_GroupBox)
+        self.char_spinBox = SpinBox(self.abilities_GroupBox)
         self.char_spinBox.setEnabled(True)
         self.char_spinBox.setAlignment(QtCore.Qt.AlignCenter)
         self.char_spinBox.setObjectName("char_spinBox")
@@ -113,9 +120,10 @@ class Ui_Dialog(object):
         self.buttonBox = QtWidgets.QDialogButtonBox(Dialog)
         self.buttonBox.setLayoutDirection(QtCore.Qt.LeftToRight)
         self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
-        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
+        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel | QtWidgets.QDialogButtonBox.Ok)
         self.buttonBox.setObjectName("buttonBox")
         self.formLayout.setWidget(2, QtWidgets.QFormLayout.FieldRole, self.buttonBox)
+
 
         self.retranslateUi(Dialog)
         QtCore.QMetaObject.connectSlotsByName(Dialog)
@@ -139,6 +147,7 @@ class Ui_Dialog(object):
 
 if __name__ == "__main__":
     import sys
+
     app = QtWidgets.QApplication(sys.argv)
     Dialog = QtWidgets.QDialog()
     ui = Ui_Dialog()

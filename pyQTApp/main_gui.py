@@ -1,18 +1,16 @@
 #
 # Created by: philRG
 #
-import random
 import sys
 from typing import List
 
-from PyQt5 import QtCore, QtWidgets
+from PyQt5 import QtCore
 from PyQt5.QtCore import pyqtSlot
-from PyQt5.QtGui import QFont
-from PyQt5.QtWidgets import QSpinBox
+from PyQt5.QtWidgets import QSpinBox, QApplication, QDialog
 
 from populate_functions import populate
+from pyQTApp.additional_qt_classes import SpinBox
 from pyQTApp.sample_dialog import Ui_Dialog
-from tools.ability_scores_roll import ability_rolls
 
 
 def populate_races_combo_box(ui: Ui_Dialog):
@@ -38,27 +36,24 @@ def populate_abilities_group_box(ui: Ui_Dialog) -> List[int]:
 @pyqtSlot(int)
 def sp_callback(value):
     global bonus_value, ui
-    print(f'new value: {value}')
-    # bonus_table: List[int] = [0, 1, 2, 3, 4, 5, 7, 9]
-    ability_scores_current_sum: int = sum([sp.value for sp in ui.abilities_GroupBox.findChildren(QSpinBox)])
-    print(f'ability_scores_current_sum: {ability_scores_current_sum}')
-    bonus_value = initial_bonus_value - (ability_scores_current_sum - ability_scores_initial_sum)
+    print(f'bonus_value: {bonus_value}')
+    bonus_value -= value
     # Step 1: modify bonus modifier label
     print(f'new bonus_value: {bonus_value}')
     ui.bonus_label.setText(str(bonus_value))
-    ui.bonus_label.repaint()
     # Step 2: modify maximum spinBox values
     for i, sp in enumerate(ui.abilities_GroupBox.findChildren(QSpinBox)):
         sp.setMaximum(min(18, sp.value + bonus_value))
     dialog.repaint()
 
 
+
 if __name__ == "__main__":
-    font_policies = ['Rellanic', 'Davek', 'Iokharic', 'Barazhad']
-    my_font = QFont(random.choice(font_policies))
-    my_text = "Conan"
-    app = QtWidgets.QApplication(sys.argv)
-    dialog = QtWidgets.QDialog()
+    global bonus_value, ui
+    # font_policies = ['Rellanic', 'Davek', 'Iokharic', 'Barazhad']
+    # my_font = QFont(random.choice(font_policies))
+    app = QApplication(sys.argv)
+    dialog = QDialog()
     ui = Ui_Dialog()
     ui.setupUi(dialog)
     dialog.setWindowTitle('PyQT5 Demo')
@@ -70,9 +65,6 @@ if __name__ == "__main__":
     if ui.class_cbx.currentIndexChanged:
         dialog.repaint()
 
-    # for sp in ui.abilities_GroupBox.findChildren(QSpinBox):
-    #     print(sp.objectName())
-
     ability_scores_initial_sum = sum(ability_scores)
     initial_bonus_value = bonus_value
 
@@ -80,7 +72,8 @@ if __name__ == "__main__":
         sp.setMaximum(18)
 
     for sp in ui.abilities_GroupBox.findChildren(QSpinBox):
-        sp.valueChanged.connect(sp_callback)
+        sp.downClicked.connect(sp_callback)
+        sp.upClicked.connect(sp_callback)
 
     if ui.buttonBox.rejected:
         sys.exit(app.exec_())
