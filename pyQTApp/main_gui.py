@@ -9,7 +9,6 @@ from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtWidgets import QSpinBox, QApplication, QDialog
 
 from populate_functions import populate
-from pyQTApp.additional_qt_classes import SpinBox
 from pyQTApp.sample_dialog import Ui_Dialog
 
 
@@ -33,19 +32,17 @@ def populate_abilities_group_box(ui: Ui_Dialog) -> List[int]:
     return ability_scores, bonus_value
 
 
-@pyqtSlot(int)
-def sp_callback(value):
+@pyqtSlot(int, QSpinBox)
+def sp_callback(value: int, spinBox: QSpinBox):
     global bonus_value, ui
-    print(f'bonus_value: {bonus_value}')
     bonus_value -= value
+    spinBox.value += value
     # Step 1: modify bonus modifier label
-    print(f'new bonus_value: {bonus_value}')
     ui.bonus_label.setText(str(bonus_value))
     # Step 2: modify maximum spinBox values
     for i, sp in enumerate(ui.abilities_GroupBox.findChildren(QSpinBox)):
         sp.setMaximum(min(18, sp.value + bonus_value))
     dialog.repaint()
-
 
 
 if __name__ == "__main__":
