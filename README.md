@@ -41,6 +41,8 @@ Simple project to illustrate usage of D&D 5th Edition API!
 #### Convert QT Designer project to PyQT
  ```python3.10 -m PyQt5.uic.pyuic -x sample_dialog.ui -o sample_dialog.py```
 
+ ```python3.10 -m PyQt5.uic.pyuic -x character_dialog.ui -o character_dialog.py```
+
 https://www.tutorialspoint.com/pyqt/pyqt_signals_and_slots.htm
 https://qt.developpez.com/doc/4.7/signalsandslots/
 

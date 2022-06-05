@@ -54,6 +54,8 @@ if __name__ == "__main__":
     ui = Ui_Dialog()
     ui.setupUi(dialog)
     dialog.setWindowTitle('PyQT5 Demo')
+
+    """ 1. Choose a race """
     populate_races_combo_box(ui)
     ability_scores, bonus_value = populate_abilities_group_box(ui)
     dialog.show()

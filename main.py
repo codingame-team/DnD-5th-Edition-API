@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import pickle
 from copy import copy
 
 from dao_classes import *
@@ -84,6 +85,7 @@ def read_choice(item_name: str, choice_list: List[str]) -> str:
             continue
     return choice_list[choice - 1]
 
+
 def choose_equipment_from(starting_equipment_options: List[List[Inventory]]):
     starting_equipment: List[Equipment] = []
     for inv_options in starting_equipment_options:
@@ -118,6 +120,7 @@ def choose_equipment_from(starting_equipment_options: List[List[Inventory]]):
         # inv_options.remove(chosen_inv)
         # inv_count -= 1
     return starting_equipment
+
 
 def create_character(races: List[Race], subraces: List[SubRace], classes: List[Class], proficiencies: List[Proficiency], equipments: List[Equipment], names: dict(), human_names: dict()):
     print(f'{color.PURPLE}-------------------------------------------------------{color.END}')
@@ -223,6 +226,38 @@ def create_character(races: List[Race], subraces: List[SubRace], classes: List[C
     return race, subrace, class_type, abilities, ability_modifiers, name, gender, ethnic, inch2feet(height), f'{weight} {unit}', starting_equipment
 
 
+def load_character_collections() -> Tuple:
+    """ Character creation database """
+    races_names: List[str] = populate(collection_name='races', key_name='results')
+    races: List[Race] = [request_race(name) for name in races_names]
+    subraces_names: List[str] = populate(collection_name='subraces', key_name='results')
+    subraces: List[Race] = [request_subrace(name) for name in subraces_names]
+    names = dict()
+    for race in races:
+        if race.index not in ['human', 'half-elf']:
+            names[race.index] = populate_names(race)
+    human_names: List[str] = populate_human_names()
+    classes: List[str] = populate(collection_name='classes', key_name='results')
+    classes = [request_class(name) for name in classes]
+    alignments: List[str] = populate(collection_name='alignments', key_name='results')
+    equipment_names: List[str] = populate(collection_name='equipment', key_name='results')
+    equipments = [request_equipment(name) for name in equipment_names]
+    proficiencies_names: List[str] = populate(collection_name='proficiencies', key_name='results')
+    proficiencies = [request_proficiency(name) for name in proficiencies_names]
+    return races, subraces, classes, alignments, equipments, proficiencies, names, human_names
+
+
+def load_dungeon_collections() -> Tuple:
+    """ Monster, Armor and Weapon databases """
+    monsters_names: List[str] = populate(collection_name='monsters', key_name='results')
+    monsters: List[Monster] = [request_monster(name) for name in monsters_names]
+    armors_names: List[str] = populate(collection_name='armors', key_name='equipment')
+    armors: List[Armor] = [request_armor(name) for name in armors_names]
+    weapons_names: List[str] = populate(collection_name='weapons', key_name='equipment')
+    weapons: List[Weapon] = [request_weapon(name) for name in weapons_names]
+    return monsters, armors, weapons
+
+
 if __name__ == '__main__':
     random.seed()
     PAUSE_ON_RAISE_LEVEL = True
@@ -240,38 +275,14 @@ if __name__ == '__main__':
     #     # xp_levels.append((xp_needed, master_bonus))
     #     xp_levels.append(int(xp_needed))
     """ Load Monster, Armor and Weapon databases """
-    monsters_names: List[str] = populate(collection_name='monsters', key_name='results')
-    armors_names: List[str] = populate(collection_name='armors', key_name='equipment')
-    weapons_names: List[str] = populate(collection_name='weapons', key_name='equipment')
-    equipment_names: List[str] = populate(collection_name='equipment', key_name='results')
-    classes_names: List[str] = populate(collection_name='classes', key_name='results')
-    roster: List[Monster] = [request_monster(name) for name in monsters_names]
-    boltac_armors: List[Armor] = [request_armor(name) for name in armors_names]
-    boltac_armors = [a for a in boltac_armors if a]
-    boltac_weapons: List[Armor] = [request_weapon(name) for name in weapons_names]
-    boltac_weapons = [w for w in boltac_weapons if w]
-    proficiencies_names: List[str] = populate(collection_name='proficiencies', key_name='results')
-    proficiencies = [request_proficiency(name) for name in proficiencies_names]
-    proficiencies = [prof for prof in proficiencies if prof]
+    monsters, armors, weapons = load_dungeon_collections()
     """ Character creation """
-    races_names: List[str] = populate(collection_name='races', key_name='results')
-    races: List[Race] = [request_race(name) for name in races_names]
-    subraces_names: List[str] = populate(collection_name='subraces', key_name='results')
-    subraces: List[Race] = [request_subrace(name) for name in subraces_names]
-    names = dict()
-    for race in races:
-        if race.index not in ['human', 'half-elf']:
-            names[race.index] = populate_names(race)
-    human_names: List[str] = populate_human_names()
-    equipments = [request_equipment(name) for name in equipment_names]
-    classes: List[str] = populate(collection_name='classes', key_name='results')
-    classes = [request_class(name) for name in classes]
-    alignments: List[str] = populate(collection_name='alignments', key_name='results')
+    races, subraces, classes, alignments, equipments, proficiencies, names, human_names = load_character_collections()
     race, subrace, class_type, abilities, ability_modifiers, name, gender, ethnic, height, weight, starting_equipment \
         = create_character(races=races, subraces=subraces, classes=classes, equipments=equipments, proficiencies=proficiencies, names=names, human_names=human_names)
     # Equip the character with a weapon and an armor from the starting equipment list of the class
-    available_weapons = {e.index: e for e in starting_equipment if e.equipment_category.index == 'weapon'}
-    available_armors = {e.index: e for e in starting_equipment if e.equipment_category.index == 'armor'}
+    available_weapons = {e.index: e for e in starting_equipment if e.category.index == 'weapon'}
+    available_armors = {e.index: e for e in starting_equipment if e.category.index == 'armor'}
     chosen_weapon: str = read_choice(f'1 weapon to equip', list(available_weapons.keys()))
     chosen_weapon: Weapon = available_weapons[chosen_weapon]
     if not available_armors:
@@ -298,7 +309,10 @@ if __name__ == '__main__':
                                      xp=0, level=1,
                                      healing_potions=[Potion('2d4')] * POTION_INITIAL_PACK,
                                      monster_kills=0)
-    print(character)
+    print(f'Sauvegarde personnage {character.name}')
+    path = os.path.dirname(__file__)
+    with open(f'{path}/pyQTApp/characters/{character.name}.dmp', 'wb') as f1:
+        pickle.dump(character, f1)
     if not continue_message():
         print(f'Bye {character.name}, see you in a next adventure :-)')
         exit(0)
@@ -308,7 +322,7 @@ if __name__ == '__main__':
     while character.hit_points > 0 and character.level < 20:
         # monsters_to_fight = [m for m in roster if m.challenge_rating < 1]
         # monsters_to_fight = [m for m in roster if 2 + character.level <= m.level <= 5 + character.level]
-        monsters_to_fight = [m for m in roster if m.level <= 5 + character.level]
+        monsters_to_fight = [m for m in monsters if m.level <= 5 + character.level]
         if character.xp > xp_levels[character.level]:
             character.gain_level(pause=PAUSE_ON_RAISE_LEVEL)
         monster: Monster = copy(random.choice(monsters_to_fight))
@@ -336,13 +350,13 @@ if __name__ == '__main__':
                 monster.hit_points -= character_hp_damage
                 if monster.hit_points <= 0:
                     character.victory(monster)
-                    character.treasure(boltac_weapons, boltac_armors)
+                    character.treasure(weapons, armors)
                     break
             else:  # character attacks first
                 monster.hit_points -= character_hp_damage
                 if monster.hit_points <= 0:
                     character.victory(monster)
-                    character.treasure(boltac_weapons, boltac_armors)
+                    character.treasure(weapons, armors)
                     break
                 character.hit_points -= monster_hp_damage
                 if character.hit_points <= 0:

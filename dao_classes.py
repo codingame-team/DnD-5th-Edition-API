@@ -163,20 +163,20 @@ class Equipment:
     cost: Cost
     weight: int
     desc: Optional[List[str]]
-    equipment_category: EquipmentCategory
+    category: EquipmentCategory
     gear_category: str
     tool_category: str
     vehicle_category: str
     equipped: bool = field(init=False)
 
     def __repr__(self):
-        return f"{self.index} ({self.equipment_category})"
+        return f"{self.index} ({self.category})"
 
 
 @dataclass
 class Inventory:
     quantity: str
-    equipment: Equipment|EquipmentCategory
+    equipment: Equipment | EquipmentCategory
 
     def __repr__(self):
         return f"{self.quantity} {self.equipment.index}"
@@ -225,7 +225,7 @@ class Weapon(Equipment):
         self.category_range = f'{self.weapon_category} {self.weapon_range}'
 
     def __repr__(self):
-        return f"{self.index} ({self.equipment_category})"
+        return f"{self.index} ({self.category})"
 
 
 @dataclass
@@ -236,7 +236,7 @@ class Armor(Equipment):
     stealth_disadvantage: bool
 
     def __repr__(self):
-        return f"{self.index} ({self.equipment_category})"
+        return f"{self.index} ({self.category})"
 
 
 class AbilityType(Enum):
@@ -257,7 +257,7 @@ class Class:
     proficiencies: List[Proficiency]
     saving_throws: List[AbilityType]
     starting_equipment: List[Inventory]
-    starting_equipment_options: List[List[Inventory|List[Inventory]]]
+    starting_equipment_options: List[List[Inventory | List[Inventory]]]
     class_levels: List[str]  # Not yet implemented
     multi_classing: List[str]  # Not yet implemented
     subclasses: List[str]  # Not yet implemented
@@ -341,12 +341,13 @@ class Character:
     inventory: List[Equipment]
     armor: Armor
     weapon: Weapon
+
     # armor: Armor = field(init=False)
     # weapon: Weapon = field(init=False)
 
     # def __post_init__(self):
-    #     self.armor = [equipment for equipment in self.inventory if equipment.equipment_category == 'armor' and equipment.equiped]
-    #     self.weapon = [equipment for equipment in self.inventory if equipment.equipment_category == 'weapon' and equipment.equiped]
+    #     self.armor = [equipment for equipment in self.inventory if equipment.category == 'armor' and equipment.equiped]
+    #     self.weapon = [equipment for equipment in self.inventory if equipment.category == 'weapon' and equipment.equiped]
 
     @property
     def strength(self):

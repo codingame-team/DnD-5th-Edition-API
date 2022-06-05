@@ -1,7 +1,5 @@
-import sys
-
 from PyQt5 import QtCore
-from PyQt5.QtWidgets import QApplication, QSpinBox
+from PyQt5.QtWidgets import QSpinBox
 
 
 class SpinBox(QSpinBox):
@@ -16,12 +14,3 @@ class SpinBox(QSpinBox):
             self.downClicked.emit(-self.singleStep(), self)
         elif value > last_value:
             self.upClicked.emit(self.singleStep(), self)
-
-
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-
-    window = MainWindow()
-    window.show()
-
-    app.exec()
