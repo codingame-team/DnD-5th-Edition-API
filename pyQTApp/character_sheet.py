@@ -7,6 +7,7 @@ import random
 import sys
 from typing import List
 
+from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QApplication, QDialog
 
@@ -28,12 +29,14 @@ def save_character():
     dialog.accept()
 
 
+@pyqtSlot(str)
 def change_weapon(value):
     global char
     char.weapon = [e for e in char.inventory if isinstance(e, Weapon) and e.name == value][0]
     debug(f'new equipped weapon: {char.weapon.name}')
 
 
+@pyqtSlot(str)
 def change_armor(value):
     global char
     char.armor = [e for e in char.inventory if isinstance(e, Armor) and e.name == value][0]
@@ -46,10 +49,12 @@ if __name__ == "__main__":
     ui = Ui_character_Dialog()
     ui.setupUi(dialog)
 
-    roster: List[str] = ['Ghesh. Heskan', 'Henk', 'Mei']
-    character_name: str = random.choice(roster)
+    # roster: List[str] = ['Ghesh. Heskan', 'Henk', 'Mei']
     path = os.path.dirname(__file__)
-    with open(f'{path}/characters/{character_name}.dmp', 'rb') as f1:
+    roster: List[str] = os.listdir(f'{path}/characters')
+    debug(f'{len(roster)} characters in roster: \n{roster}')
+    character_file: str = random.choice(roster)
+    with open(f'{path}/characters/{character_file}', 'rb') as f1:
         char: Character = pickle.load(f1)
 
     dialog.setWindowTitle(f'{char.name}')
@@ -82,7 +87,7 @@ if __name__ == "__main__":
     # https://www.pythonguis.com/faq/adding-images-to-pyqt5-applications/
     image_file: str = f'{path}/images/{char.race}.png'
     if not os.path.isfile(image_file):
-        image_file: str = f'{path}/images/Human.jpg'
+        image_file: str = f'{path}/images/Human.png'
     pixmap = QPixmap(image_file)
     debug(f'image file = {image_file}')
     ui.pictureLabel.setPixmap(pixmap)
