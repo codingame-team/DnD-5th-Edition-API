@@ -5,6 +5,7 @@ import os
 import pickle
 import random
 import sys
+from functools import partial
 from typing import List
 
 from PyQt5.QtCore import pyqtSlot
@@ -20,45 +21,31 @@ def debug(*args):
     print(*args, file=sys.stderr, flush=True)
 
 
-def save_character():
-    global dialog, char
+@pyqtSlot(Character, QDialog)
+def save_character(char: Character, dialog: QDialog):
     print(f'Sauvegarde personnage {char.name}')
     path = os.path.dirname(__file__)
-    with open(f'{path}/characters/{char.name}.dmp', 'wb') as f1:
+    with open(f'{path}/gameState/characters/{char.name}.dmp', 'wb') as f1:
         pickle.dump(char, f1)
     dialog.accept()
 
 
-@pyqtSlot(str)
-def change_weapon(value):
-    global char
-    char.weapon = [e for e in char.inventory if isinstance(e, Weapon) and e.name == value][0]
-    debug(f'new equipped weapon: {char.weapon.name}')
+@pyqtSlot(Character, Ui_character_Dialog,  str)
+def change_weapon(char: Character, ui: Ui_character_Dialog, weapon_name: str):
+    char.weapon = [e for e in char.inventory if isinstance(e, Weapon) and e.name == weapon_name][0]
+    ui.damage_label.setText(str(char.weapon.damage_dice))
 
 
-@pyqtSlot(str)
-def change_armor(value):
-    global char
-    char.armor = [e for e in char.inventory if isinstance(e, Armor) and e.name == value][0]
-    debug(f'new equipped armor: {char.armor.name}')
+@pyqtSlot(Character, Ui_character_Dialog, str)
+def change_armor(char: Character, ui: Ui_character_Dialog, armor_name: str):
+    char.armor = [e for e in char.inventory if isinstance(e, Armor) and e.name == armor_name][0]
+    ui.ac_label.setText(str(char.armor_class))
 
-
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    dialog = QDialog()
-    ui = Ui_character_Dialog()
-    ui.setupUi(dialog)
-
-    # roster: List[str] = ['Ghesh. Heskan', 'Henk', 'Mei']
-    path = os.path.dirname(__file__)
-    roster: List[str] = os.listdir(f'{path}/characters')
-    debug(f'{len(roster)} characters in roster: \n{roster}')
-    character_file: str = random.choice(roster)
-    with open(f'{path}/characters/{character_file}', 'rb') as f1:
-        char: Character = pickle.load(f1)
-
+def display_char_sheet(dialog: QDialog, ui: Ui_character_Dialog, char: Character):
+    dialog.setModal(False)
     dialog.setWindowTitle(f'{char.name}')
-
+    path = os.path.dirname(__file__)
+    # layout.addWidget(dialog)
     # Characteristics
     ui.name_label.setText(char.name)
     if char.subrace:
@@ -93,25 +80,44 @@ if __name__ == "__main__":
     ui.pictureLabel.setPixmap(pixmap)
 
     for equipment in char.inventory:
-        # debug(f'equipment -> Type: {type(equipment)} - name : {equipment.name}')
         if isinstance(equipment, Weapon):
             ui.weapon_cbx.addItem(equipment.name)
         elif isinstance(equipment, Armor):
             ui.armor_cbx.addItem(equipment.name)
-    weapon_index = ui.weapon_cbx.findData(char.weapon.name)
-    debug(f'weapon_index = {weapon_index}')
+
+    weapon_index = ui.weapon_cbx.findText(char.weapon.name)
     ui.weapon_cbx.setCurrentIndex(weapon_index)
-    armor_index = ui.weapon_cbx.findData(char.armor.name)
-    debug(f'armor_index = {armor_index}')
+
+    armor_index = ui.armor_cbx.findText(char.armor.name)
     ui.armor_cbx.setCurrentIndex(armor_index)
 
-    dialog.show()
-
-    ui.weapon_cbx.currentTextChanged.connect(change_weapon)
-    ui.armor_cbx.currentTextChanged.connect(change_armor)
+    # ui.weapon_cbx.currentTextChanged.connect(lambda: change_weapon(char))
+    # ui.armor_cbx.currentTextChanged.connect(lambda: change_armor(char))
+    ui.weapon_cbx.currentTextChanged.connect(partial(change_weapon, char, ui))
+    ui.armor_cbx.currentTextChanged.connect(partial(change_armor, char, ui))
 
     ui.buttonBox.rejected.connect(dialog.reject)  # type: ignore
-    ui.buttonBox.accepted.connect(save_character)  # type: ignore
+    ui.buttonBox.accepted.connect(partial(save_character, char, dialog))  # type: ignore
+
+    dialog.exec_()
+
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+
+    path = os.path.dirname(__file__)
+    roster: List[str] = os.listdir(f'{path}/gameState/characters')
+    debug(f'{len(roster)} characters in roster: \n{roster}')
+    character_file: str = random.choice(roster)
+    with open(f'{path}/gameState/characters/{character_file}', 'rb') as f1:
+        debug(f'f1: {f1.name}')
+        char: Character = pickle.load(f1)
+
+    dialog = QDialog()
+    ui = Ui_character_Dialog()
+    ui.setupUi(dialog)
+    display_char_sheet(ui, char)
+    dialog.show()
 
     if ui.buttonBox.rejected:
         sys.exit(app.exec_())

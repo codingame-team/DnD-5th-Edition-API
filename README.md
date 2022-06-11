@@ -52,3 +52,5 @@ Token Figma: figd_oAFyETol9zOTNarUaXtsigv3DqrZfZipBMjQ2H_z
 
 https://visualtk.com/
 
+https://www.gamopat.com/2017/08/retrogaming-wizardry-i-ii-iii-the-story-of-llylgamyn/snes.html
+
