@@ -45,6 +45,15 @@ Simple project to illustrate usage of D&D 5th Edition API!
 
 https://www.tutorialspoint.com/pyqt/pyqt_signals_and_slots.htm
 https://qt.developpez.com/doc/4.7/signalsandslots/
+https://vincent-vande-vyvre.developpez.com/tutoriels/pyqt/manipulation-images/
+
+#### Build QT Designer app on multiplatforms
+```Android
+iOS
+Linux
+macOS```
+
+https://www.riverbankcomputing.com/static/Docs/pyqtdeploy/
 
 #### How to use Tkinter Designer
 https://github.com/ParthJadhav/Tkinter-Designer/blob/master/docs/instructions.md#getting-started-2

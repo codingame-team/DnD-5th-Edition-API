@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'sample_dialog.ui'
+# Form implementation generated from reading ui file 'abilities_dialog.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.6
 #
@@ -10,7 +10,7 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
-from pyQTApp.additional_qt_classes import SpinBox
+from pyQTApp.unit_tests.additional_qt_classes import SpinBox
 
 
 class Ui_Dialog(object):

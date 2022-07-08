@@ -13,7 +13,7 @@ from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QApplication, QDialog
 
 from dao_classes import Character, Weapon, Armor
-from pyQTApp.character_dialog import Ui_character_Dialog
+from pyQTApp.qt_designer_widgets.character_dialog import Ui_character_Dialog
 
 
 def debug(*args):

@@ -3,6 +3,8 @@ import pickle
 import sys
 from typing import List
 
+from PyQt5.QtGui import QPixmap
+
 from dao_classes import Character
 
 
@@ -10,18 +12,21 @@ def debug(*args):
     # return
     print(*args, file=sys.stderr, flush=True)
 
+def load_welcome() -> QPixmap:
+    path = os.path.dirname(__file__)
+    image_file: str = f'{path}/images/welcome.png'
+    pixmap = QPixmap(image_file)
+    return pixmap
 
 def save_party(party: List[Character]):
-    global dialog
-    print(f'Sauvegarde groupe d''aventuriers')
+    print(f'Sauvegarde groupe d\'aventuriers')
     path = os.path.dirname(__file__)
     with open(f'{path}/gameState/party.dmp', 'wb') as f1:
         pickle.dump(party, f1)
-    dialog.accept()
 
 
 def load_party() -> List[Character]:
-    print(f'Chargement groupe d''aventuriers')
+    print(f'Chargement groupe d\'aventuriers')
     path = os.path.dirname(__file__)
     party_file: str = f'{path}/gameState/party.dmp'
     if not os.path.exists(party_file):
@@ -30,7 +35,7 @@ def load_party() -> List[Character]:
         return pickle.load(f1)
 
 
-def get_roster()-> List[Character]:
+def get_roster() -> List[Character]:
     path = os.path.dirname(__file__)
     party: List[Character] = load_party()
     party_names: List[str] = [char.name for char in party]

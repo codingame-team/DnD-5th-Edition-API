@@ -9,7 +9,7 @@ from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtWidgets import QSpinBox, QApplication, QDialog
 
 from populate_functions import populate
-from pyQTApp.sample_dialog import Ui_Dialog
+from pyQTApp.qt_designer_widgets.sample_dialog import Ui_Dialog
 
 
 def populate_races_combo_box(ui: Ui_Dialog):

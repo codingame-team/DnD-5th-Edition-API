@@ -341,6 +341,7 @@ class Character:
     inventory: List[Equipment]
     armor: Armor
     weapon: Weapon
+    OUT: bool = False
 
     # armor: Armor = field(init=False)
     # weapon: Weapon = field(init=False)
