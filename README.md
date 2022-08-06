@@ -1,5 +1,11 @@
 # DnD-5th-Edition-API
 
+Usage to run:
+    - GUI mode (used to display character sheet):
+        ./pyQT5App/wizardry
+    - console mode (used to create character sheet and also basic simulation of a fight arena):
+        ./main.py
+
 Simple project to illustrate usage of D&D 5th Edition API!
 
     useful resources:
