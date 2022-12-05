@@ -1,6 +1,7 @@
 - SQL Alchemy:
   - https://docs.sqlalchemy.org/en/20/dialects/sqlite.html#allowing-autoincrement-behavior-sqlalchemy-types-other-than-integer-integer
+  - https://koor.fr/Python/CodeSamplesSqlAlchemy/SimpleMapping.wp
   - https://koor.fr/Python/CodeSamplesSqlAlchemy/RelationMapping.wp
-  
+  - https://stackoverflow.com/questions/61458069/sqlalchemy-how-can-i-map-an-existing-class-without-modifying-it
 - SQL Alchemy + Flask:
   - https://askcodez.com/sqlalchemy-comment-faire-une-colonne-de-type-integer-auto_increment-et-unique-sans-en-faire-une-cle-primaire.html
