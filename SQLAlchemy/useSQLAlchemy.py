@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+from typing import List
 
 from sqlalchemy import Column, Integer, Text, Identity
 from sqlalchemy import create_engine
@@ -6,24 +7,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
 # Base class used by my classes (my entities)
-Base = declarative_base()  # Required
-
-
-# Definition of the Contact class
-class Contact(Base):
-    __tablename__ = 'T_Contacts'
-
-    id = Column(Integer, Identity(start=1, cycle=True), primary_key=True)
-    firstName = Column(Text)
-    lastName = Column(Text)
-
-    def __init__(self, fn="John", ln="Doe"):
-        self.firstName = fn
-        self.lastName = ln
-
-    def __str__(self):
-        return self.firstName + " " + self.lastName
-
+from dao_classes_sql_alchemy import Monster, Base
 
 # The main part
 if __name__ == '__main__':
@@ -44,35 +28,32 @@ if __name__ == '__main__':
     Session = sessionmaker(bind=engine)
     session = Session()
 
-    doe = Contact()
+    doe = Monster(name="Goblin", armor_class=7, hit_points=4, hit_dice='1d4', xp=20, challenge_rating=1)
     session.add(doe)
-
-    james = Contact("James", "Bond")
-    session.add(james)
-
-    jason = Contact("Jason", "Bourne")
-    session.add(jason)
+    session.add(doe)
+    session.add(doe)
 
     # session.add_all( [ doe, james, jason ] )
     session.commit()
 
     print("--- First select by primary key ---")
-    contact = session.query(Contact).get(3)
+    contact = session.query(Monster).get(1)
     print(contact)
 
-    print("--- Second select by firstName ---")
-    searchedContacts = session.query(Contact).filter(Contact.firstName.startswith("Ja"))
+    print("--- Second select by name ---")
+    searchedContacts = session.query(Monster).filter(Monster.name.startswith("Go"))
     for c in searchedContacts: print(c)
 
     print("--- Third select all contacts ---")
-    agenda = session.query(Contact)  # .filter_by( firstName='James' )
-    for c in agenda: print(c)
+    monsters: List[Monster] = session.query(Monster)  # .filter_by( name='James' )
+    for m in monsters: print(m)
 
     print("--- Try to update a specific contact ---")
-    contact = session.query(Contact).get(1)
-    contact.lastName += "!"
+    monster = session.query(Monster).get(2)
+    monster.hit_points += 2
+    monster.armor_class -= 2
     session.commit()  # Mandatory
 
     print("--- Try to delete a specific contact ---")
-    session.delete(contact)
-    session.commit()
+    # session.delete(monster)
+    # session.commit()
