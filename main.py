@@ -423,7 +423,7 @@ def display_character_sheet_pyQT(char: Character):
 
 if __name__ == '__main__':
     random.seed()
-    PAUSE_ON_RAISE_LEVEL = False
+    PAUSE_ON_RAISE_LEVEL = True
     POTION_INITIAL_PACK = 5
     path = os.path.dirname(__file__)
     characters_dir = f'{path}/gameState/characters'

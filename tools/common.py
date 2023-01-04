@@ -25,6 +25,6 @@ class AbilityType(Enum):
 
 
 def cprint(*args):
-    return
+    # return
     # print(*args, file=sys.stderr, flush=True)
     print(*args, flush=True)
