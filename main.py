@@ -335,9 +335,10 @@ def cure_characters(healing_char: Character, roster: List[Character]):
         roster_list: List[str] = [f'{c.name} ({c.hit_points}/{c.max_hit_points})' for c in roster]
         selected_char: str = read_choice(f'character', roster_list)
         char: Character = [c for c in roster if c.name == selected_char.split()[0]][0]
-        char.hit_points = min(char.max_hit_points, char.hit_points + healing_char.gold // 10)
+        recovered_hp = min(char.max_hit_points - char.hit_points, healing_char.gold // 10)
+        char.hit_points += recovered_hp
         print(f'{healing_char.name} has cured {char.name} -> {char.hit_points}/{char.max_hit_points}!')
-        healing_char.gold -= 1000
+        healing_char.gold -= recovered_hp * 10
         save_character(healing_char)
         save_character(char)
 
