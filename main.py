@@ -342,7 +342,7 @@ def cure_characters(healing_char: Character, roster: List[Character]):
         save_character(healing_char)
         save_character(char)
 
-def heal_prompt_ok(heal_type: str = 'raise') -> bool:
+def temple_of_cant_prompt_ok(heal_type: str = 'raise') -> bool:
     print(f'{color.DARKCYAN}Some characters needs to be cured. Do you want to {heal_type} them? (Y/N){color.END}')
     response = input()
     while response not in ['y', 'n', 'Y', 'N']:
@@ -388,6 +388,14 @@ def adventure_prompt_ok() -> bool:
         response = input()
     return True if response in ['Y', 'y'] else False
 
+def location_prompt_ok(location: str) -> bool:
+    print(f'{color.DARKCYAN}Do you want to go to {location}? (Y/N){color.END}')
+    response = input()
+    while response not in ['y', 'n', 'Y', 'N']:
+        print(f'{color.DARKCYAN}Do you want to go to {location}? (Y/N){color.END}')
+        response = input()
+    return True if response in ['Y', 'y'] else False
+
 def display_character_sheet(char: Character):
     sheet = '{:-^51}\n'.format(f' {char.name} ')
     sheet += f'| str: {str(char.strength).rjust(2)} | int: {str(char.strength).rjust(2)} | hp: {str(char.hit_points).rjust(3)} / {str(char.max_hit_points).ljust(4)}| {str(char.class_type).upper().ljust(14)}|\n'
@@ -399,7 +407,6 @@ def display_character_sheet(char: Character):
     sheet += '|{:^51}|\n'.format(f'armor = {char.armor.name.title()}')
     sheet += '|{:^51}|\n'.format(f'weapon = {char.weapon.name.title()} - Damage = {char.weapon.damage_dice}')
     sheet += '|{:^51}|\n'.format(f'gold = {char.gold} gp')
-    sheet += '|{:^51}|\n'.format('')
     sheet += '|{:^51}|\n'.format('')
     sheet += '|{:-^51}|\n'.format('')
     print(sheet)
@@ -439,6 +446,8 @@ if __name__ == '__main__':
     armors = list(filter(lambda a: a, armors))
     weapons = list(filter(lambda w: w, weapons))
 
+    castle_directions: List[str] = ['Gilgamesh''s Tavern', 'Adventurer''s Inn', 'Temple of Cant', 'Boltac''s Trading Post', 'Edge of Town']
+    edge_of_town_directions: List[str] = ['Training Grounds', 'Maze', 'Restart an OUT party', 'Leave Game', 'Castle']
     roster_list: List[Character] = list_roster()
 
     while True:
@@ -446,6 +455,10 @@ if __name__ == '__main__':
         if not alive_characters:
             print(f'no alive characters... Redirect to {color.BLUE}Training Grounds{color.END} to create a new one!')
             character = init_character()
+        if location_prompt_ok(location=edge_of_town_directions[0]):
+            character = init_character()
+            save_character(character)
+            continue
         else:
             injured_characters: List[Character] = [c for c in alive_characters if c.hit_points < c.max_hit_points]
             dead_characters: List[Character] = [c for c in roster_list if c.hit_points <= 0]
@@ -456,13 +469,13 @@ if __name__ == '__main__':
                 display_roster()
                 can_raise_chars: List[Character] = [c for c in alive_characters if c.gold > 1000]
                 if dead_characters and can_raise_chars:
-                    if not heal_prompt_ok():
+                    if not temple_of_cant_prompt_ok():
                         break
                     healing_char: Character = random.choice(can_raise_chars)
                     raise_characters(healing_char, dead_characters)
                 can_heal_chars: List[Character] = [c for c in alive_characters if c.gold > 10]
                 if injured_characters and can_heal_chars:
-                    if not heal_prompt_ok(heal_type='cure'):
+                    if not temple_of_cant_prompt_ok(heal_type='cure'):
                         break
                     healing_char: Character = random.choice(can_heal_chars)
                     cure_characters(healing_char, injured_characters)
@@ -491,7 +504,7 @@ if __name__ == '__main__':
         previous_level: int = character.level
 
         # while character.hit_points > 0 and character.level < 5:
-        while character.hit_points > 0 and attack_count < 100:
+        while character.hit_points > 0 and attack_count < 500:
             # monsters_to_fight = [m for m in roster if m.challenge_rating < 1]
             # monsters_to_fight = [m for m in roster if 2 + character.level <= m.level <= 5 + character.level]
             monsters_to_fight = [m for m in monsters if m.level <= 5 + character.level]
