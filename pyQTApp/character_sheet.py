@@ -25,7 +25,7 @@ def debug(*args):
 def save_character(char: Character, dialog: QDialog):
     print(f'Sauvegarde personnage {char.name}')
     path = os.path.dirname(__file__)
-    with open(f'{path}/gameState/characters/{char.name}.dmp', 'wb') as f1:
+    with open(f'{path}/../gameState/characters/{char.name}.dmp', 'wb') as f1:
         pickle.dump(char, f1)
     dialog.accept()
 
@@ -116,8 +116,8 @@ if __name__ == "__main__":
     dialog = QDialog()
     ui = Ui_character_Dialog()
     ui.setupUi(dialog)
-    display_char_sheet(ui, char)
-    dialog.show()
+    display_char_sheet(dialog, ui, char)
+    # dialog.show()
 
     if ui.buttonBox.rejected:
         sys.exit(app.exec_())

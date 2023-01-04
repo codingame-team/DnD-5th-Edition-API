@@ -1,11 +1,19 @@
 from __future__ import annotations
 
 import pickle
+import sys
 from copy import copy
+from os import listdir
+from os.path import isfile, join
+
+from PyQt5.QtWidgets import QApplication, QDialog
 
 from dao_classes import *
 from populate_functions import *
+from pyQTApp.character_sheet import display_char_sheet
+from pyQTApp.qt_designer_widgets.character_dialog import Ui_character_Dialog
 from tools.ability_scores_roll import ability_rolls
+from tools.common import cprint, Color
 
 
 def continue_message():
@@ -258,24 +266,7 @@ def load_dungeon_collections() -> Tuple:
     return monsters, armors, weapons
 
 
-if __name__ == '__main__':
-    random.seed()
-    PAUSE_ON_RAISE_LEVEL = True
-    POTION_INITIAL_PACK = 5
-    """ Load XP Levels """
-    xp_levels = []
-    levels = read_csvfile("XP Levels-XP Levels.csv")
-    for xp_needed, level, master_bonus in levels:
-        # xp_levels.append((xp_needed, master_bonus))
-        xp_levels.append(int(xp_needed))
-    # infile = open("Tables/XP Levels-XP Levels.csv", "r")
-    # xp_levels = []
-    # for line in infile:
-    #     xp_needed, level, master_bonus = line.split(' ')
-    #     # xp_levels.append((xp_needed, master_bonus))
-    #     xp_levels.append(int(xp_needed))
-    """ Load Monster, Armor and Weapon databases """
-    monsters, armors, weapons = load_dungeon_collections()
+def init_character() -> Character:
     """ Character creation """
     races, subraces, classes, alignments, equipments, proficiencies, names, human_names = load_character_collections()
     race, subrace, class_type, abilities, ability_modifiers, name, gender, ethnic, height, weight, starting_equipment \
@@ -308,61 +299,257 @@ if __name__ == '__main__':
                                      max_hit_points=hit_points,
                                      xp=0, level=1,
                                      healing_potions=[Potion('2d4')] * POTION_INITIAL_PACK,
-                                     monster_kills=0)
+                                     monster_kills=0,
+                                     gold=random.randint(30, 150))
     print(f'Sauvegarde personnage {character.name}')
-    path = os.path.dirname(__file__)
-    with open(f'{path}/pyQTApp/characters/{character.name}.dmp', 'wb') as f1:
+    with open(f'{characters_dir}/{character.name}.dmp', 'wb') as f1:
         pickle.dump(character, f1)
-    if not continue_message():
-        print(f'Bye {character.name}, see you in a next adventure :-)')
-        exit(0)
-    """ Combat simulation """
-    welcome_message()
-    attack_count = 0
-    while character.hit_points > 0 and character.level < 20:
-        # monsters_to_fight = [m for m in roster if m.challenge_rating < 1]
-        # monsters_to_fight = [m for m in roster if 2 + character.level <= m.level <= 5 + character.level]
-        monsters_to_fight = [m for m in monsters if m.level <= 5 + character.level]
-        if character.xp > xp_levels[character.level]:
-            character.gain_level(pause=PAUSE_ON_RAISE_LEVEL)
-        monster: Monster = copy(random.choice(monsters_to_fight))
-        print(f'{color.PURPLE}-------------------------------------------------------------------------------------------------------------------------------------------{color.END}')
-        print(f'{color.PURPLE} New encounter! {character} vs {monster}{color.END}')
-        print(f'{color.PURPLE}-------------------------------------------------------------------------------------------------------------------------------------------{color.END}')
-        round_num = 0
-        monster_max_hp = monster.hit_points
-        while monster.hit_points > 0:
-            round_num += 1
-            print('-------------------------------------------------------')
-            print(f'Round {round_num}: {character.name} ({character.hit_points}/{character.max_hit_points}) vs {monster.name} ({monster.hit_points}/{monster_max_hp})')
-            print('-------------------------------------------------------')
-            if character.hit_points < 0.5 * character.max_hit_points and character.healing_potions:
-                print(f'{len(character.healing_potions)} remaining potions')
-                character.drink_potion()
-            attack_count += 1
-            monster_hp_damage = monster.attack(character)
-            character_hp_damage = character.attack(monster)
-            priority_dice = random.randint(0, 1)
-            if priority_dice == 0:  # monster attacks first
-                character.hit_points -= monster_hp_damage
-                if character.hit_points <= 0:
-                    break
-                monster.hit_points -= character_hp_damage
-                if monster.hit_points <= 0:
-                    character.victory(monster)
-                    character.treasure(weapons, armors)
-                    break
-            else:  # character attacks first
-                monster.hit_points -= character_hp_damage
-                if monster.hit_points <= 0:
-                    character.victory(monster)
-                    character.treasure(weapons, armors)
-                    break
-                character.hit_points -= monster_hp_damage
-                if character.hit_points <= 0:
-                    break
+    return character
 
-    if character.hit_points <= 0:
-        print(f'{character.name} has been killed by a {monster.name} after {attack_count} attack rounds and {character.monster_kills} monsters kills and reached level #{character.level}')
-    else:
-        print(f'{character} has killed {character.monster_kills} monsters and reached level #{character.level}')
+def save_character(char: Character):
+    # print(f'Sauvegarde personnage {char.name}')
+    with open(f'{characters_dir}/{char.name}.dmp', 'wb') as f1:
+        pickle.dump(char, f1)
+
+def list_roster() -> List[Character]:
+    roster: List[Character] = []
+    for character_filename in char_file_list:
+        with open(f'{path}/gameState/characters/{character_filename}', 'rb') as f1:
+            roster.append(pickle.load(f1))
+    return roster
+
+def raise_characters(healing_char: Character, roster: List[Character]):
+    chars_to_raise: List[Character] = [c for c in roster if c.hit_points <= 0]
+    if healing_char.gold > 1000:
+        roster_list: List[str] = [c.name for c in chars_to_raise]
+        selected_char: str = read_choice(f'character', roster_list)
+        char: Character = [c for c in chars_to_raise if c.name == selected_char][0]
+        char.hit_points = 1
+        print(f'{char.name} has been raised by {healing_char.name}!')
+        healing_char.gold -= 1000
+        save_character(healing_char)
+        save_character(char)
+
+def cure_characters(healing_char: Character, roster: List[Character]):
+    if healing_char.gold > 10:
+        roster_list: List[str] = [f'{c.name} ({c.hit_points}/{c.max_hit_points})' for c in roster]
+        selected_char: str = read_choice(f'character', roster_list)
+        char: Character = [c for c in roster if c.name == selected_char.split()[0]][0]
+        char.hit_points = min(char.max_hit_points, char.hit_points + healing_char.gold // 10)
+        print(f'{healing_char.name} has cured {char.name} -> {char.hit_points}/{char.max_hit_points}!')
+        healing_char.gold -= 1000
+        save_character(healing_char)
+        save_character(char)
+
+def heal_prompt_ok(heal_type: str = 'raise') -> bool:
+    print(f'{color.DARKCYAN}Some characters needs to be cured. Do you want to {heal_type} them? (Y/N){color.END}')
+    response = input()
+    while response not in ['y', 'n', 'Y', 'N']:
+        print(f'{color.DARKCYAN}Some characters needs to be cured. Do you want to {heal_type} them? (Y/N){color.END}')
+        response = input()
+    return True if response in ['Y', 'y'] else False
+
+def display_roster(location: str = 'Temple of Cant'):
+    toc: str = '{:-^53}\n'.format(f' {location} ')
+    injured_characters: List[str] = []
+    dead_characters: List[str] = []
+    ok_characters: List[str] = []
+    for character_filename in char_file_list:
+        with open(f'{path}/gameState/characters/{character_filename}', 'rb') as f1:
+            char: Character = pickle.load(f1)
+            if char.hit_points <= 0:
+                dead_characters.append(char)
+            elif char.hit_points < char.max_hit_points:
+                injured_characters.append(char)
+            else:
+                ok_characters.append(char)
+    if ok_characters:
+        toc += '{:-^53}\n'.format(f' OK Characters ')
+        for char in ok_characters:
+            toc += '|{:^51}|\n'.format(f'{char.name} -> {char.hit_points}/{char.max_hit_points}  (Level {char.level})')
+    if injured_characters:
+        toc += '{:-^53}\n'.format(f' Injured Characters ')
+        for char in injured_characters:
+            toc += '|{:^51}|\n'.format(f'{char.name} -> {char.hit_points}/{char.max_hit_points} (Level {char.level})')
+    if dead_characters:
+        toc += '{:-^51}\n'.format(f' DEAD Characters ')
+        for char in dead_characters:
+            toc += '|{:^51}|\n'.format(f'{char.name} (Level {char.level})')
+
+    toc += '|{:-^51}|\n'.format('')
+    print(toc)
+
+def adventure_prompt_ok() -> bool:
+    print(f'{color.DARKCYAN}Do you want to continue adventure? (Y/N){color.END}')
+    response = input()
+    while response not in ['y', 'n', 'Y', 'N']:
+        print(f'{color.DARKCYAN}Do you want to continue adventure? (Y/N){color.END}')
+        response = input()
+    return True if response in ['Y', 'y'] else False
+
+def display_character_sheet(char: Character):
+    sheet = '{:-^51}\n'.format(f' {char.name} ')
+    sheet += f'| str: {str(char.strength).rjust(2)} | int: {str(char.strength).rjust(2)} | hp: {str(char.hit_points).rjust(3)} / {str(char.max_hit_points).ljust(4)}| {str(char.class_type).upper().ljust(14)}|\n'
+    sheet += f'| dex: {str(char.dexterity).rjust(2)} | wis: {str(char.wisdom).rjust(2)} | xp: {str(char.xp).ljust(10)}| {str(char.race).title().ljust(14)}|\n'
+    sheet += f'| con: {str(char.constitution).rjust(2)} | cha: {str(char.charism).rjust(2)} | level: {str(char.level).ljust(7)}| AC: {str(char.armor_class).ljust(10)}|\n'
+    sheet += '|{:-^51}|\n'.format('')
+    sheet += '|{:^51}|\n'.format(f'kills = {char.monster_kills}')
+    sheet += '|{:^51}|\n'.format(f'healing potions = {len(char.healing_potions)}')
+    sheet += '|{:^51}|\n'.format(f'armor = {char.armor.name.title()}')
+    sheet += '|{:^51}|\n'.format(f'weapon = {char.weapon.name.title()} - Damage = {char.weapon.damage_dice}')
+    sheet += '|{:^51}|\n'.format(f'gold = {char.gold} gp')
+    sheet += '|{:^51}|\n'.format('')
+    sheet += '|{:^51}|\n'.format('')
+    sheet += '|{:-^51}|\n'.format('')
+    print(sheet)
+
+
+def display_character_sheet_pyQT(char: Character):
+    app = QApplication(sys.argv)
+
+    dialog = QDialog()
+    ui = Ui_character_Dialog()
+    ui.setupUi(dialog)
+    display_char_sheet(dialog, ui, char)
+
+
+if __name__ == '__main__':
+    random.seed()
+    PAUSE_ON_RAISE_LEVEL = False
+    POTION_INITIAL_PACK = 5
+    path = os.path.dirname(__file__)
+    characters_dir = f'{path}/gameState/characters'
+    char_file_list: List[str] = os.listdir(f'{path}/gameState/characters')
+
+    """ Load XP Levels """
+    xp_levels = []
+    levels = read_csvfile("XP Levels-XP Levels.csv")
+    for xp_needed, level, master_bonus in levels:
+        # xp_levels.append((xp_needed, master_bonus))
+        xp_levels.append(int(xp_needed))
+    # infile = open("Tables/XP Levels-XP Levels.csv", "r")
+    # xp_levels = []
+    # for line in infile:
+    #     xp_needed, level, master_bonus = line.split(' ')
+    #     # xp_levels.append((xp_needed, master_bonus))
+    #     xp_levels.append(int(xp_needed))
+    """ Load Monster, Armor and Weapon databases """
+    monsters, armors, weapons = load_dungeon_collections()
+    armors = list(filter(lambda a: a, armors))
+    weapons = list(filter(lambda w: w, weapons))
+
+    roster_list: List[Character] = list_roster()
+
+    while True:
+        alive_characters: List[Character] = [c for c in roster_list if c.hit_points > 0]
+        if not alive_characters:
+            print(f'no alive characters... Redirect to {color.BLUE}Training Grounds{color.END} to create a new one!')
+            character = init_character()
+        else:
+            injured_characters: List[Character] = [c for c in alive_characters if c.hit_points < c.max_hit_points]
+            dead_characters: List[Character] = [c for c in roster_list if c.hit_points <= 0]
+            can_raise_chars: List[Character] = [c for c in alive_characters if c.gold > 1000]
+            can_heal_chars: List[Character] = [c for c in alive_characters if c.gold > 10]
+            while (dead_characters and can_raise_chars) or (injured_characters and can_heal_chars):
+                """ Display Temple of Cant """
+                display_roster()
+                can_raise_chars: List[Character] = [c for c in alive_characters if c.gold > 1000]
+                if dead_characters and can_raise_chars:
+                    if not heal_prompt_ok():
+                        break
+                    healing_char: Character = random.choice(can_raise_chars)
+                    raise_characters(healing_char, dead_characters)
+                can_heal_chars: List[Character] = [c for c in alive_characters if c.gold > 10]
+                if injured_characters and can_heal_chars:
+                    if not heal_prompt_ok(heal_type='cure'):
+                        break
+                    healing_char: Character = random.choice(can_heal_chars)
+                    cure_characters(healing_char, injured_characters)
+                injured_characters: List[Character] = [c for c in alive_characters if c.hit_points < c.max_hit_points]
+                dead_characters: List[Character] = [c for c in roster_list if c.hit_points <= 0]
+                can_raise_chars: List[Character] = [c for c in alive_characters if c.gold > 1000]
+                can_heal_chars: List[Character] = [c for c in alive_characters if c.gold > 10]
+
+        """ Load Character """
+        alive_characters: List[Character] = [c for c in roster_list if c.hit_points > 0]
+        roster_names_list: List[str] = [c.name for c in alive_characters]
+        display_roster(location='Training Grounds')
+        character_name: str = read_choice(f'character to {Color.GREEN}* Begin adventure *{Color.END}', roster_names_list)
+        character = [c for c in alive_characters if c.name == character_name][0]
+
+        display_character_sheet_pyQT(character)
+        display_character_sheet(character)
+
+        if not continue_message():
+            print(f'Bye {character.name}, see you in a next adventure :-)')
+            exit(0)
+        """ Combat simulation """
+        welcome_message()
+        attack_count: int = 0
+        killed_monsters: int = 0
+        previous_level: int = character.level
+
+        # while character.hit_points > 0 and character.level < 5:
+        while character.hit_points > 0 and attack_count < 100:
+            # monsters_to_fight = [m for m in roster if m.challenge_rating < 1]
+            # monsters_to_fight = [m for m in roster if 2 + character.level <= m.level <= 5 + character.level]
+            monsters_to_fight = [m for m in monsters if m.level <= 5 + character.level]
+            if character.level < len(xp_levels) and character.xp > xp_levels[character.level]:
+                character.gain_level(pause=PAUSE_ON_RAISE_LEVEL)
+            monster: Monster = copy(random.choice(monsters_to_fight))
+            cprint(f'{color.PURPLE}-------------------------------------------------------------------------------------------------------------------------------------------{color.END}')
+            cprint(f'{color.PURPLE} New encounter! {character} vs {monster}{color.END}')
+            cprint(f'{color.PURPLE}-------------------------------------------------------------------------------------------------------------------------------------------{color.END}')
+            round_num = 0
+            monster_max_hp = monster.hit_points
+            while monster.hit_points > 0:
+                round_num += 1
+                cprint('-------------------------------------------------------')
+                cprint(f'Round {round_num}: {character.name} ({character.hit_points}/{character.max_hit_points}) vs {monster.name} ({monster.hit_points}/{monster_max_hp})')
+                cprint('-------------------------------------------------------')
+                if character.hit_points < 0.5 * character.max_hit_points and character.healing_potions:
+                    cprint(f'{len(character.healing_potions)} remaining potions')
+                    character.drink_potion()
+                attack_count += 1
+                monster_hp_damage = monster.attack(character)
+                character_hp_damage = character.attack(monster)
+                priority_dice = random.randint(0, 1)
+                if priority_dice == 0:  # monster attacks first
+                    character.hit_points -= monster_hp_damage
+                    if character.hit_points <= 0:
+                        break
+                    monster.hit_points -= character_hp_damage
+                    if monster.hit_points <= 0:
+                        character.victory(monster)
+                        killed_monsters += 1
+                        character.treasure(weapons, armors)
+                        break
+                else:  # character attacks first
+                    monster.hit_points -= character_hp_damage
+                    if monster.hit_points <= 0:
+                        character.victory(monster)
+                        killed_monsters += 1
+                        character.treasure(weapons, armors)
+                        break
+                    character.hit_points -= monster_hp_damage
+                    if character.hit_points <= 0:
+                        break
+
+        level_up_msg: str = f' and reached level #{character.level}' if previous_level > character.level else ''
+
+        if character.hit_points <= 0:
+            print(f'{character.name} has been killed by a {monster.name} after {attack_count} attack rounds and {killed_monsters} monsters kills{level_up_msg}')
+        else:
+            print(f'{character.name} has killed {killed_monsters} monsters{level_up_msg}')
+
+        character.monster_kills += killed_monsters
+        save_character(character)
+        display_character_sheet(character)
+
+        if not adventure_prompt_ok():
+            break
+
+    # print(f'Sauvegarde Roster')
+    # for character in roster_list:
+    #     with open(f'{characters_dir}/{character.name}.dmp', 'wb') as f1:
+    #         pickle.dump(character, f1)

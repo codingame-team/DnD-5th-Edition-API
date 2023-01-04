@@ -3,7 +3,10 @@ from __future__ import annotations
 import random
 from dataclasses import dataclass, field
 from enum import Enum
+from math import floor
 from typing import List, Optional, Tuple
+
+from tools.common import cprint
 
 """ Needs to separate presentation layer from data layer """
 
@@ -54,9 +57,9 @@ class Monster:
             dice_count, roll_dice = map(int, self.hit_dice.split('d'))
             damage_roll = sum([random.randint(1, roll_dice) for _ in range(dice_count)])
         if damage_roll:
-            print(f'{color.RED}{self.name}{color.END} hits {color.GREEN}{character.name}{color.END} for {damage_roll} hit points!')
+            cprint(f'{color.RED}{self.name}{color.END} hits {color.GREEN}{character.name}{color.END} for {damage_roll} hit points!')
         else:
-            print(f'{self.name} misses {character.name}!')
+            cprint(f'{self.name} misses {character.name}!')
         return damage_roll
 
 
@@ -341,6 +344,7 @@ class Character:
     inventory: List[Equipment]
     armor: Armor
     weapon: Weapon
+    gold: int
     OUT: bool = False
 
     # armor: Armor = field(init=False)
@@ -398,30 +402,39 @@ class Character:
         hp_restored = 2 + random.randint(1, roll_dice) + random.randint(1, roll_dice)
         self.hit_points = min(self.hit_points + hp_restored, self.max_hit_points)
         if hp_to_recover <= hp_restored:
-            print(f'{self.name} drinks healing potion and is {color.BOLD}*fully*{color.END} healed!')
+            cprint(f'{self.name} drinks healing potion and is {color.BOLD}*fully*{color.END} healed!')
         else:
-            print(f'{self.name} drinks healing potion and has {min(hp_to_recover, hp_restored)} hit points restored!')
+            cprint(f'{self.name} drinks healing potion and has {min(hp_to_recover, hp_restored)} hit points restored!')
 
-    def victory(self, monster):
+    def victory(self, monster: Monster):
         self.xp += monster.xp
         self.monster_kills += 1
-        print(f'{self.name} killed {monster.name} and gained {monster.xp} XP!')
+        gold_dice = random.randint(1, 3)
+        gold_msg: str = ''
+        if gold_dice == 1:
+            max_gold: int = max(1, floor(10 * monster.xp / monster.level))
+            gold: int = random.randint(1, max_gold + 1)
+            gold_msg = f' and found {gold} gp!'
+            self.gold += gold
+        cprint(f'{monster.name.title()} killed!')
+        cprint(f'{self.name} gained {monster.xp} XP{gold_msg}!')
 
     def treasure(self, weapons, armors):
         treasure_dice = random.randint(1, 3)
         if treasure_dice == 1:
-            print(f"{self.name} found a healing potion!")
+            cprint(f"{self.name} found a healing potion!")
             self.healing_potions.append(Potion('2d4'))
         elif treasure_dice == 2:
             new_weapon: Weapon = random.choice(weapons)
             if new_weapon.damage_dice > self.weapon.damage_dice:
-                print(f"{self.name} found a better weapon {new_weapon}!")
+                cprint(f"{self.name} found a better weapon {new_weapon}!")
                 self.weapon = new_weapon
         else:
             new_armor: Armor = random.choice(armors)
             if new_armor.armor_class['base'] > self.armor.armor_class['base']:
-                print(f"{self.name} found a better armor {new_armor}!")
+                cprint(f"{self.name} found a better armor {new_armor}!")
                 self.armor = new_armor
+
 
     def gain_level(self, pause: bool):
         self.level += 1
@@ -442,7 +455,7 @@ class Character:
             dice_count, roll_dice = map(int, self.hit_dice.split('d'))
             damage_roll = sum([random.randint(1, roll_dice) for _ in range(dice_count)])
         if damage_roll:
-            print(f'{color.GREEN}{self.name}{color.END} hits {color.RED}{monster.name}{color.END} for {damage_roll} hit points!')
+            cprint(f'{color.GREEN}{self.name}{color.END} hits {color.RED}{monster.name}{color.END} for {damage_roll} hit points!')
         else:
-            print(f'{self.name} misses {monster.name}!')
+            cprint(f'{self.name} misses {monster.name}!')
         return damage_roll

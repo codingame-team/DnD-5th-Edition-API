@@ -14,6 +14,7 @@ class Color:
     UNDERLINE = '\033[4m'
     END = '\033[0m'
 
+
 class AbilityType(Enum):
     STR = 'str'
     CON = 'con'
@@ -21,3 +22,9 @@ class AbilityType(Enum):
     INT = 'int'
     WIS = 'wis'
     CHA = 'cha'
+
+
+def cprint(*args):
+    return
+    # print(*args, file=sys.stderr, flush=True)
+    print(*args, flush=True)
