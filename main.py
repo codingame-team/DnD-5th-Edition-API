@@ -14,7 +14,7 @@ from populate_functions import *
 from pyQTApp.character_sheet import display_char_sheet
 from pyQTApp.qt_designer_widgets.character_dialog import Ui_character_Dialog
 from tools.ability_scores_roll import ability_rolls
-from tools.common import cprint, Color, getkey
+from tools.common import cprint, Color, get_key
 
 
 def continue_message():
@@ -270,10 +270,7 @@ def load_dungeon_collections() -> Tuple:
     return monsters, armors, weapons
 
 
-def training_grounds(roster) -> Character:
-    print('+----------------------+')
-    print('|   TRAINING GROUNDS   |')
-    print('+----------------------+')
+def create_new_character(roster) -> Character:
     """ Character creation """
     races, subraces, classes, alignments, equipments, proficiencies, names, human_names = load_character_collections()
     reserved_names: List[str] = [c.name for c in roster]
@@ -430,7 +427,7 @@ def display_character_sheet(char: Character):
     print(sheet)
     print('Press [Esc] to continue')
     while True:
-        k = getkey()
+        k = get_key()
         if k == 'esc':
             break
 
@@ -598,7 +595,14 @@ def delete_member_from_party(roster, party):
         print(f'Program error! {char_name} not in the party - Please contact the administrator...')
         sleep(1)
 
+def delete_character_from_game(char: Character):
+    os.remove(f'{characters_dir}/{char.name}.dmp')
+    pass
+
 def gilgamesh_tavern(party: List[Character], roster: List[Character]) -> List[Character]:
+    print('+-----------------------------+')
+    print('|  ** GILGAMESH\'S TAVERN **  |')
+    print('+-----------------------------+')
     gt_options: List[str] = ['Add Member', 'Delete Member', 'Character Status', 'Divvy Gold', 'Exit Tavern']
     exit_tavern: bool = False
     while not exit_tavern:
@@ -640,6 +644,53 @@ def simulate_arena():
     while continue_message() and character.hit_points > 0:
         arena(character)
 
+def training_grounds(roster: List[Character]):
+    tg_options: List[str] = ['Create a New Character', 'Character Status', 'Delete a Character', 'Rename a Character', 'Change a Character\'s class', 'System', 'Return to Castle']
+    exit_training_grounds: bool = False
+    while not exit_training_grounds:
+        efface_ecran()
+        print('+------------------------+')
+        print('| ** TRAINING GROUNDS ** |')
+        print('+------------------------+')
+        option: str = read_choice('option', tg_options)
+        match option:
+            case 'Create a New Character':
+                character = create_new_character(roster)
+                save_character(character)
+                roster.append(character)
+            case 'Character Status':
+                char_names: List[str] = [c.name for c in roster]
+                name: str = read_choice('character to inspect', char_names)
+                char: Character = get_character(name, roster)
+                display_character_sheet(char)
+            case 'Delete a Character':
+                char_names: List[str] = [c.name for c in roster]
+                name: str = read_choice('character to delete', char_names)
+                char: Character = get_character(name, roster)
+                display_character_sheet(char)
+                print(f'Are you sure you want to delete {char.name} (Y/N)?')
+                while True:
+                    key = get_key()
+                    if key in ['y', 'Y']:
+                        delete_character_from_game(char)
+                        print(f'{char.name} has been ** DELETED **')
+                        sleep(2)
+                        roster.remove(char)
+                        break
+                    elif key in ['n', 'N']:
+                        print(f'Deletion cancelled :-) {char.name} ** STILL IN GAME **')
+                        sleep(2)
+                        break
+            case 'Rename a Character':
+                input('not yet created!... [Return] to main menu')
+            case 'Change a Character\'s class':
+                input('not yet created!... [Return] to main menu')
+            case 'System':
+                input('not yet created!... [Return] to main menu')
+            case 'Return to Castle':
+                exit_training_grounds = True
+
+
 def enter_dungeon(party):
     input('not yet created!... Press any key to return to Castle')
     pass
@@ -680,14 +731,13 @@ if __name__ == '__main__':
             match destination:
                 case 'Gilgamesh\'s Tavern':
                     gilgamesh_tavern(party, roster)
-                    #input('not yet created!... Press any key to return to Castle')
                 case 'Adventurer\'s Inn':
-                    input('not yet created!... Press any key to return to Castle')
+                    input('not yet created!... [Return] to Castle')
                 case 'Temple of Cant':
                     temple_of_cant(roster)
-                    input('All characters are HEALTHY - Press any key to return to Castle')
+                    input('not yet created!... [Return] to Castle')
                 case 'Boltac\'s Trading Post':
-                    input('not yet created!... Press any key to return to Castle')
+                    input('not yet created!... [Return] to Castle')
                 case 'Edge of Town':
                     location = 'Edge of Town'
                     continue
@@ -701,9 +751,8 @@ if __name__ == '__main__':
             match destination:
                 case 'Training Grounds':
                     efface_ecran()
-                    character = training_grounds(roster)
-                    save_character(character)
-                    roster.append(character)
+                    training_grounds(roster)
+                    location = 'Castle'
                 case 'Maze':
                     efface_ecran()
                     game_modes: List[str] = ['ARENA', 'WIZARDRY']
@@ -717,10 +766,10 @@ if __name__ == '__main__':
                         else:
                             if roster:
                                 print(f'** NO PARTY FOUND! ** Return to {Color.RED}Castle{Color.END} to recruit adventurers!')
-                                sleep(1)
+                                sleep(2)
                             else:
                                 print(f'** NO CHARACTERS FOUND! ** Return to {Color.RED}Training grounds{Color.END} to create one or more adventurer(s)!')
-                                sleep(1)
+                                sleep(2)
                 case 'Leave Game':
                     print(f'Bye, see you in a next adventure :-)')
                     exit(0)
