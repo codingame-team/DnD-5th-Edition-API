@@ -33,7 +33,7 @@ def cprint(*args):
     # print(*args, file=sys.stderr, flush=True)
     print(*args, flush=True)
 
-def getkey():
+def get_key():
     old_settings = termios.tcgetattr(sys.stdin)
     tty.setcbreak(sys.stdin.fileno())
     try:
