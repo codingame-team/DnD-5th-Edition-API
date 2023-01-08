@@ -5,6 +5,7 @@ import sys
 from copy import copy
 from os import listdir
 from os.path import isfile, join
+from time import sleep
 
 from PyQt5.QtWidgets import QApplication, QDialog
 
@@ -13,7 +14,7 @@ from populate_functions import *
 from pyQTApp.character_sheet import display_char_sheet
 from pyQTApp.qt_designer_widgets.character_dialog import Ui_character_Dialog
 from tools.ability_scores_roll import ability_rolls
-from tools.common import cprint, Color
+from tools.common import cprint, Color, getkey
 
 
 def continue_message():
@@ -415,20 +416,23 @@ def location_prompt_ok(location: str) -> bool:
 
 
 def display_character_sheet(char: Character):
-    sheet = '{:-^51}\n'.format(f' {char.name} ')
+    sheet = '+{:-^51}+\n'.format(f' {char.name} ')
     sheet += f'| str: {str(char.strength).rjust(2)} | int: {str(char.strength).rjust(2)} | hp: {str(char.hit_points).rjust(3)} / {str(char.max_hit_points).ljust(4)}| {str(char.class_type).upper().ljust(14)}|\n'
     sheet += f'| dex: {str(char.dexterity).rjust(2)} | wis: {str(char.wisdom).rjust(2)} | xp: {str(char.xp).ljust(10)}| {str(char.race).title().ljust(14)}|\n'
     sheet += f'| con: {str(char.constitution).rjust(2)} | cha: {str(char.charism).rjust(2)} | level: {str(char.level).ljust(7)}| AC: {str(char.armor_class).ljust(10)}|\n'
-    sheet += '|{:-^51}|\n'.format('')
+    sheet += '+{:-^51}+\n'.format('')
     sheet += '|{:^51}|\n'.format(f'kills = {char.monster_kills}')
     sheet += '|{:^51}|\n'.format(f'healing potions = {len(char.healing_potions)}')
     sheet += '|{:^51}|\n'.format(f'armor = {char.armor.name.title()}')
     sheet += '|{:^51}|\n'.format(f'weapon = {char.weapon.name.title()} - Damage = {char.weapon.damage_dice}')
     sheet += '|{:^51}|\n'.format(f'gold = {char.gold} gp')
-    sheet += '|{:^51}|\n'.format('')
-    sheet += '|{:-^51}|\n'.format('')
+    sheet += '+{:-^51}+\n'.format('')
     print(sheet)
-
+    print('Press [Esc] to continue')
+    while True:
+        k = getkey()
+        if k == 'esc':
+            break
 
 def efface_ecran():
     """
@@ -489,7 +493,7 @@ def select_character(roster: List[Character]) -> Character:
     return character
 
 
-def maze(character: Character):
+def arena(character: Character):
     """ Combat simulation """
     welcome_message()
     attack_count: int = 0
@@ -553,6 +557,92 @@ def maze(character: Character):
     save_character(character)
     display_character_sheet(character)
 
+def display_party(party: List[Character]):
+    sheet = '+{:-^47}+\n'.format(f' Party')
+    col1, col2, col3, col4, col5 = 10, 10, 3, 5, 6
+    sheet += f'| {str("Name").ljust(col1)} | {str("Class").ljust(col2)} | {str("AC").rjust(col3)} | {str("Hits").ljust(col4)}| {str("Status ").rjust(col5)}|\n'
+    if party:
+        sheet += '+{:-^47}+\n'.format('')
+    for char in party:
+        sheet += f'| {str(char.name).ljust(col1)} | {str(char.class_type).ljust(col2)} | {str(char.armor_class).rjust(col3)} | {str(char.hit_points).ljust(col4)}| {str(char.status).rjust(col5)} |\n'
+    sheet += '+{:-^47}+\n'.format('')
+    print(sheet)
+
+def add_member_to_party(roster, party):
+    if len(party) == 6:
+        print(f'Party is **FULL**')
+        sleep(1)
+        return
+    char_names: List[str] = [c.name for c in roster]
+    name: str = read_choice('character to add in party', char_names)
+    char: Character = get_character(name, roster)
+    if char:
+        party.append(char)
+        roster.remove(char)
+    else:
+        print(f'Program error! {name} unknown in Castle - Please contact the administrator...')
+        sleep(1)
+
+def delete_member_from_party(roster, party):
+    if not party:
+        print(f'no member in **PARTY**')
+        sleep(1)
+        return
+    char_names: List[str] = [c.name for c in party]
+    char_name: str = read_choice('character to remove from party', char_names)
+    char: Character = get_character(char_name, party)
+    if char:
+        party.remove(char)
+        roster.append(char)
+    else:
+        print(f'Program error! {char_name} not in the party - Please contact the administrator...')
+        sleep(1)
+
+def gilgamesh_tavern(party: List[Character], roster: List[Character]) -> List[Character]:
+    gt_options: List[str] = ['Add Member', 'Delete Member', 'Character Status', 'Divvy Gold', 'Exit Tavern']
+    exit_tavern: bool = False
+    while not exit_tavern:
+        efface_ecran()
+        display_party(party)
+        option: str = read_choice('option', gt_options)
+        match option:
+            case 'Add Member':
+                add_member_to_party(roster, party)
+            case 'Delete Member':
+                delete_member_from_party(roster, party)
+            case 'Character Status':
+                char_names: List[str] = [c.name for c in party]
+                name: str = read_choice('character to inspect', char_names)
+                char: Character = get_character(name, party)
+                display_character_sheet(char)
+            case 'Divvy Gold':
+                total_gold: int = sum([c.gold for c in party])
+                for char in party:
+                    char.gold = total_gold // len(party)
+                print("All the party's gold has been divided.")
+                for char in party:
+                    save_character(char)
+                sleep(1)
+            case 'Exit Tavern':
+                exit_tavern = True
+            case _:
+                continue
+    return party
+
+def get_character(name: str, roster: List[Character]) -> Optional[Character]:
+    char_list = [c for c in roster if c.name == name]
+    return char_list[0] if char_list else None
+
+def simulate_arena():
+    character = select_character(roster)
+    # display_character_sheet_pyQT(character)
+    display_character_sheet(character)
+    while continue_message() and character.hit_points > 0:
+        arena(character)
+
+def enter_dungeon(party):
+    input('not yet created!... Press any key to return to Castle')
+    pass
 
 if __name__ == '__main__':
     random.seed()
@@ -566,41 +656,37 @@ if __name__ == '__main__':
     xp_levels = []
     levels = read_csvfile("XP Levels-XP Levels.csv")
     for xp_needed, level, master_bonus in levels:
-        # xp_levels.append((xp_needed, master_bonus))
         xp_levels.append(int(xp_needed))
-    # infile = open("Tables/XP Levels-XP Levels.csv", "r")
-    # xp_levels = []
-    # for line in infile:
-    #     xp_needed, level, master_bonus = line.split(' ')
-    #     # xp_levels.append((xp_needed, master_bonus))
-    #     xp_levels.append(int(xp_needed))
+
     """ Load Monster, Armor and Weapon databases """
     monsters, armors, weapons = load_dungeon_collections()
     armors = list(filter(lambda a: a, armors))
     weapons = list(filter(lambda w: w, weapons))
 
     locations: List[str] = ['Edge of Town', 'Castle']
-    castle_destinations: List[str] = ['Gilgamesh''s Tavern', 'Adventurer''s Inn', 'Temple of Cant', 'Boltac''s Trading Post', 'Edge of Town']
+    castle_destinations: List[str] = ['Gilgamesh\'s Tavern', 'Adventurer\'s Inn', 'Temple of Cant', 'Boltac\'s Trading Post', 'Edge of Town']
     edge_of_town_destinations: List[str] = ['Training Grounds', 'Maze', 'Leave Game', 'Castle']
     roster: List[Character] = list_roster()
 
     location = 'Castle'
+    party: List[Character] = []
     while True:
         efface_ecran()
         if location == 'Castle':
             print('+----------------------+')
-            print('|        CASTLE        |')
+            print('|     ** CASTLE **     |')
             print('+----------------------+')
             destination: str = read_choice('destination', castle_destinations)
             match destination:
-                case 'Gilgamesh''s Tavern':
-                    input('not yet created!... Press any key to return to Castle')
-                case 'Adventurer''s Inn':
+                case 'Gilgamesh\'s Tavern':
+                    gilgamesh_tavern(party, roster)
+                    #input('not yet created!... Press any key to return to Castle')
+                case 'Adventurer\'s Inn':
                     input('not yet created!... Press any key to return to Castle')
                 case 'Temple of Cant':
                     temple_of_cant(roster)
                     input('All characters are HEALTHY - Press any key to return to Castle')
-                case 'Boltac''s Trading Post':
+                case 'Boltac\'s Trading Post':
                     input('not yet created!... Press any key to return to Castle')
                 case 'Edge of Town':
                     location = 'Edge of Town'
@@ -609,7 +695,7 @@ if __name__ == '__main__':
                     continue
         else:
             print('+----------------------+')
-            print('|     EDGE OF TOWN     |')
+            print('|  ** EDGE OF TOWN **  |')
             print('+----------------------+')
             destination: str = read_choice('destination', edge_of_town_destinations)
             match destination:
@@ -620,11 +706,21 @@ if __name__ == '__main__':
                     roster.append(character)
                 case 'Maze':
                     efface_ecran()
-                    character = select_character(roster)
-                    display_character_sheet_pyQT(character)
-                    display_character_sheet(character)
-                    while continue_message() and character.hit_points > 0:
-                        maze(character)
+                    game_modes: List[str] = ['ARENA', 'WIZARDRY']
+                    game_mode: str = read_choice('game mode', game_modes)
+                    if game_mode == 'ARENA':
+                        simulate_arena()
+                    else:
+                        if party:
+                            display_party(party)
+                            enter_dungeon(party)
+                        else:
+                            if roster:
+                                print(f'** NO PARTY FOUND! ** Return to {Color.RED}Castle{Color.END} to recruit adventurers!')
+                                sleep(1)
+                            else:
+                                print(f'** NO CHARACTERS FOUND! ** Return to {Color.RED}Training grounds{Color.END} to create one or more adventurer(s)!')
+                                sleep(1)
                 case 'Leave Game':
                     print(f'Bye, see you in a next adventure :-)')
                     exit(0)
