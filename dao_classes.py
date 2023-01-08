@@ -391,6 +391,13 @@ class Character:
     def hit_dice(self):
         return self.weapon.damage_dice
 
+    @property
+    def status(self) -> str:
+        if self.hit_points <= 0:
+            return 'DEAD'
+        else:
+            return 'OK'
+
     """Healing (??? check rules): A Healing potion repairs one six-sided die, plus one, (2-7) points of damage, just like a Cure Light Wounds spell."""
 
     def drink_potion(self):
