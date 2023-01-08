@@ -1,0 +1,6 @@
+- [ ] Character class's missing attributes: alignment, spells
+- [ ] Management: inventory, combat, treasure, etc...
+- [x] Gilgamesh Tavern (party creation, char inspection)
+- [ ] Temple of Cant: raise dead, cure poison/paralysis/stone (to be fixed)
+- [ ] Adventurer's inn: healing (stables, etc...)
+- [ ] Boltac's trading post
