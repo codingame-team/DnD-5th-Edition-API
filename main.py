@@ -5,6 +5,7 @@ import sys
 from copy import copy
 from os import listdir
 from os.path import isfile, join
+from random import randint
 from time import sleep
 
 from PyQt5.QtWidgets import QApplication, QDialog
@@ -17,7 +18,7 @@ from tools.ability_scores_roll import ability_rolls
 from tools.common import cprint, Color, get_key
 
 
-def continue_message():
+def arena_continue_message() -> bool:
     print(f'{color.DARKCYAN}Do you want to start a new combat simulation? (Y/N){color.END}')
     response = input()
     while response not in ['y', 'n', 'Y', 'N']:
@@ -59,13 +60,13 @@ def read_name(race: str, gender: str, names: dict(), reserved_names):
     :return:
     """
     if race in ['human', 'half-elf']:
-        ethnic = read_choice('ethnic', list(names.keys()))
+        ethnic = read_choice(list(names.keys()), 'Choose ethnic:')
         names_list = names[ethnic][gender]
         if len(names[ethnic]) > 2:
             other_key = [key for key in names[ethnic] if key not in ['male', 'female']][0]
             names_list += names[ethnic][other_key]
         names: List[str] = [name for name in names_list if name not in reserved_names]
-        name = read_choice('name', names)
+        name = read_choice(names, 'Choose name:')
         return name, ethnic
     else:
         try:
@@ -77,15 +78,17 @@ def read_name(race: str, gender: str, names: dict(), reserved_names):
             other_key = [key for key in names[race] if key not in ['male', 'female']][0]
             names_list += names[race][other_key]
         names: List[str] = [name for name in names_list if name not in reserved_names]
-        name = read_choice('name', names)
+        name = read_choice(names, 'Choose name:')
         return name
 
 
-def read_choice(item_name: str, choice_list: List[str]) -> str:
+def read_choice(choice_list: List[str], message: str = None) -> str:
     choice = None
     while choice not in range(1, len(choice_list) + 1):
         items_list = '\n'.join([f'{i + 1}) {item}' for i, item in enumerate(choice_list)])
-        print(f'Choose {item_name}:\n{items_list}')
+        if message:
+            print(message)
+        print(f'{items_list}')
         err_msg = f'Bad value! Please enter a number between 1 and {len(choice_list)}'
         try:
             choice = int(input())
@@ -95,6 +98,7 @@ def read_choice(item_name: str, choice_list: List[str]) -> str:
             print(err_msg)
             continue
     return choice_list[choice - 1]
+
 
 def read_char_choice(message: str, party: List[Character]) -> Character:
     choice = None
@@ -130,7 +134,7 @@ def choose_equipment_from(starting_equipment_options: List[List[Inventory]]):
                 exit(0)
             inv_choices[label] = inv
         plural: str = '' if inv_count == 1 else 's'
-        inv_choice: str = read_choice(f'{inv_count} equipment{plural}', list(inv_choices.keys()))
+        inv_choice: str = read_choice(list(inv_choices.keys()), f'Choose {inv_count} equipment{plural}:')
         chosen_inv: Inventory | List[Inventory] = inv_choices[inv_choice]
         if type(chosen_inv) is list:
             starting_equipment += [inv.equipment for inv in chosen_inv for _ in range(inv.quantity)]
@@ -138,7 +142,7 @@ def choose_equipment_from(starting_equipment_options: List[List[Inventory]]):
             if isinstance(chosen_inv.equipment, EquipmentCategory):
                 inv_options_cat: List[str] = populate(collection_name=chosen_inv.equipment.index, key_name='equipment', collection_path='data/equipment-categories')
                 plural: str = '' if inv_count == 1 else 's'
-                inv_choice: str = read_choice(f'{inv_count} {chosen_inv.equipment.name}{plural}', inv_options_cat)
+                inv_choice: str = read_choice(inv_options_cat, f'Choose {inv_count} {chosen_inv.equipment.name}{plural}:')
                 starting_equipment.append(request_equipment(inv_choice))
             else:
                 starting_equipment.append(request_equipment(chosen_inv.equipment.index))
@@ -155,12 +159,12 @@ def create_character(races: List[Race], subraces: List[SubRace], classes: List[C
     print(f'{color.PURPLE}-------------------------------------------------------{color.END}')
     """ 1. Choose a race """
     races_names: List[str] = [r.index for r in races]
-    race: str = read_choice('race', races_names)
+    race: str = read_choice(races_names, 'Choose race:')
     race: Race = [r for r in races if r.index == race][0]
     subraces_names: List[str] = [s.index for s in subraces for r in races if r.index == race.index and r.index in s.index]
     subrace = None
     if subraces_names:
-        subrace: str = read_choice('subrace', subraces_names)
+        subrace: str = read_choice(subraces_names, 'Choose subrace')
         subrace: SubRace = [r for r in subraces if r.index == subrace][0]
     # Choose proficiencies within the race
     chosen_proficiencies: List[str] = []
@@ -169,7 +173,7 @@ def create_character(races: List[Race], subraces: List[SubRace], classes: List[C
         prof_count = choose
         while prof_count:
             prof_label = 'proficiency' if prof_count == 1 else 'proficiencies'
-            prof_name: str = read_choice(f'{prof_count} race\'s {prof_label}', proficiency_names)
+            prof_name: str = read_choice(proficiency_names, f'Choose {prof_count} race\'s {prof_label}:')
             chosen_proficiencies.append(prof_name)
             proficiency_names.remove(prof_name)
             prof_count -= 1
@@ -180,7 +184,7 @@ def create_character(races: List[Race], subraces: List[SubRace], classes: List[C
     proficiencies += race.starting_proficiencies
     """ 2. Choose a class """
     class_names = [c.index for c in classes]
-    class_type: str = read_choice('class', class_names)
+    class_type: str = read_choice(class_names, 'Choose class:')
     class_type: Class = [c for c in classes if c.index == class_type][0]
     # Choose proficiencies within the class
     chosen_proficiencies: List[str] = []
@@ -189,7 +193,7 @@ def create_character(races: List[Race], subraces: List[SubRace], classes: List[C
         prof_count = choose
         while prof_count:
             prof_label = 'proficiency' if prof_count == 1 else 'proficiencies'
-            prof_name: str = read_choice(f'{prof_count} class\' {prof_label}', proficiency_names)
+            prof_name: str = read_choice(proficiency_names, f'Choose {prof_count} class\' {prof_label}:')
             chosen_proficiencies.append(prof_name)
             proficiency_names.remove(prof_name)
             prof_count -= 1
@@ -201,24 +205,24 @@ def create_character(races: List[Race], subraces: List[SubRace], classes: List[C
 
     """ 3. Determine ability scores (Strength, Dexterity, Constitution, Intelligence, Wisdom, and Charisma.)"""
     ability_scores: List[int] = ability_rolls()
-    strength: int = read_choice('strength', ability_scores)
+    strength: int = read_choice(ability_scores, 'Choose strength:')
     ability_scores.remove(strength)
-    dexterity: int = read_choice('dexterity', ability_scores)
+    dexterity: int = read_choice(ability_scores, 'Choose dexterity:')
     ability_scores.remove(dexterity)
-    constitution: int = read_choice('constitution', ability_scores)
+    constitution: int = read_choice(ability_scores, 'Choose constitution:')
     ability_scores.remove(constitution)
-    intelligence: int = read_choice('intelligence', ability_scores)
+    intelligence: int = read_choice(ability_scores, 'Choose intelligence:')
     ability_scores.remove(intelligence)
-    wisdom: int = read_choice('wisdom', ability_scores)
+    wisdom: int = read_choice(ability_scores, 'Choose wisdom:')
     ability_scores.remove(wisdom)
-    charisma: int = read_choice('charisma', ability_scores)
+    charisma: int = read_choice(ability_scores, 'Choose charisma:')
     abilities: Abilities = Abilities(strength, dexterity, constitution, intelligence, wisdom, charisma)
     mod = lambda x: (x - 10) // 2
     ability_modifiers: Abilities = Abilities(mod(strength), mod(dexterity), mod(constitution), mod(intelligence), mod(wisdom), mod(charisma))
 
     """ 4. Describe your character (name, gender, clan/family/virtue/ethnic, height/weight, ...) """
     genders = ['male', 'female']
-    gender: str = read_choice('genre', genders)
+    gender: str = read_choice(genders, 'Choose genre:')
     ethnic: str = None
     if race.index in ['human', 'half-elf']:
         name, ethnic = read_name(race.index, gender, human_names, reserved_names)
@@ -294,11 +298,11 @@ def create_new_character(roster) -> Character:
     # Equip the character with a weapon and an armor from the starting equipment list of the class
     available_weapons = {e.index: e for e in starting_equipment if e.category.index == 'weapon'}
     available_armors = {e.index: e for e in starting_equipment if e.category.index == 'armor'}
-    chosen_weapon: str = read_choice(f'1 weapon to equip', list(available_weapons.keys()))
+    chosen_weapon: str = read_choice(list(available_weapons.keys()), f'Choose 1 weapon to equip:')
     chosen_weapon: Weapon = available_weapons[chosen_weapon]
     if not available_armors:
         available_armors = {'skin-armor': request_armor('skin-armor')}
-    chosen_armor: str = read_choice(f'1 armor to equip', list(available_armors.keys()))
+    chosen_armor: str = read_choice(list(available_armors.keys()), f'Choose 1 armor to equip')
     chosen_armor: Armor = available_armors[chosen_armor]
     hit_points = class_type.hit_die
     character: Character = Character(race=race,
@@ -330,81 +334,26 @@ def save_character(char: Character):
         pickle.dump(char, f1)
 
 
-def list_roster() -> List[Character]:
+def get_roster(characters_dir: str) -> List[Character]:
     roster: List[Character] = []
+    char_file_list: List[str] = os.listdir(characters_dir)
     for character_filename in char_file_list:
         with open(f'{path}/gameState/characters/{character_filename}', 'rb') as f1:
             roster.append(pickle.load(f1))
     return roster
 
 
-def raise_characters(healing_char: Character, roster: List[Character]):
-    chars_to_raise: List[Character] = [c for c in roster if c.hit_points <= 0]
-    if healing_char.gold > 1000:
-        roster_list: List[str] = [c.name for c in chars_to_raise]
-        selected_char: str = read_choice(f'character', roster_list)
-        char: Character = [c for c in chars_to_raise if c.name == selected_char][0]
-        char.hit_points = 1
-        print(f'{char.name} has been raised by {healing_char.name}!')
-        healing_char.gold -= 1000
-        save_character(healing_char)
-        save_character(char)
-
-
-def cure_characters(healing_char: Character, roster: List[Character]):
-    if healing_char.gold > 10:
-        roster_list: List[str] = [f'{c.name} ({c.hit_points}/{c.max_hit_points})' for c in roster]
-        selected_char: str = read_choice(f'character', roster_list)
-        char: Character = [c for c in roster if c.name == selected_char.split()[0]][0]
-        recovered_hp = min(char.max_hit_points - char.hit_points, healing_char.gold // 10)
-        char.hit_points += recovered_hp
-        print(f'{healing_char.name} has cured {char.name} -> {char.hit_points}/{char.max_hit_points}!')
-        healing_char.gold -= recovered_hp * 10
-        save_character(healing_char)
-        save_character(char)
-
-
-def temple_of_cant_prompt_ok(heal_type: str = 'raise') -> bool:
-    print(f'{color.DARKCYAN}Some characters needs to be cured. Do you want to {heal_type} them? (Y/N){color.END}')
-    response = input()
-    while response not in ['y', 'n', 'Y', 'N']:
-        print(f'{color.DARKCYAN}Some characters needs to be cured. Do you want to {heal_type} them? (Y/N){color.END}')
-        response = input()
-    return True if response in ['Y', 'y'] else False
-
-
-def display_roster(location: str = 'Temple of Cant'):
+def display_adventurers(party: List[Character], roster: List[Character], location: str):
     toc: str = '{:-^53}\n'.format(f' {location} ')
-    injured_characters: List[str] = []
-    dead_characters: List[str] = []
-    ok_characters: List[str] = []
-    for character_filename in char_file_list:
-        with open(f'{path}/gameState/characters/{character_filename}', 'rb') as f1:
-            char: Character = pickle.load(f1)
-            if char.hit_points <= 0:
-                dead_characters.append(char)
-            elif char.hit_points < char.max_hit_points:
-                injured_characters.append(char)
-            else:
-                ok_characters.append(char)
-    # if location == 'Temple of Cant':
-    #     injured_characters.sort(key=lambda c: c.hit_points, reverse=True)
-    # elif location == 'Maze':
-    #     injured_characters.sort(key=lambda c: c.hit_points * c.level, reverse=True)
-    #     ok_characters.sort(key=lambda c: c.level, reverse=True)
-    if ok_characters:
-        toc += '{:-^53}\n'.format(f' OK Characters ')
-        for char in ok_characters:
-            toc += '|{:^51}|\n'.format(f'{char.name} -> {char.hit_points}/{char.max_hit_points}  (Level {char.level})')
-    if injured_characters:
-        toc += '{:-^53}\n'.format(f' Injured Characters ')
-        for char in injured_characters:
-            toc += '|{:^51}|\n'.format(f'{char.name} -> {char.hit_points}/{char.max_hit_points} (Level {char.level})')
-    if dead_characters:
-        toc += '{:-^51}\n'.format(f' DEAD Characters ')
-        for char in dead_characters:
-            toc += '|{:^51}|\n'.format(f'{char.name} (Level {char.level})')
-
+    if party:
+        toc += '{:-^53}\n'.format(f' ** NOT AVAILABLE (in a party) ** ')
+    for char in party:
+        char_status: str = f' ({char.status})' if char.status != 'OK' else ''
+        toc += '|{:^51}|\n'.format(f'{char.name}{char_status} -> {char.hit_points}/{char.max_hit_points}  (Level {char.level})')
+    toc += '{:-^53}\n'.format(f' ** AVAILABLE ** ')
+    for char in roster:
+        char_status: str = f' ({char.status})' if char.status != 'OK' else ''
+        toc += '|{:^51}|\n'.format(f'{char.name}{char_status} -> {char.hit_points}/{char.max_hit_points}  (Level {char.level})')
     toc += '|{:-^51}|\n'.format('')
     print(toc)
 
@@ -440,11 +389,8 @@ def display_character_sheet(char: Character):
     sheet += '|{:^51}|\n'.format(f'gold = {char.gold} gp')
     sheet += '+{:-^51}+\n'.format('')
     print(sheet)
-    print('Press [Esc] to continue')
-    while True:
-        k = get_key()
-        if k == 'esc':
-            break
+    exit_message()
+
 
 def efface_ecran():
     """
@@ -467,45 +413,17 @@ def display_character_sheet_pyQT(char: Character):
     display_char_sheet(dialog, ui, char)
 
 
-def temple_of_cant(roster: List[Character]):
-    alive_characters: List[Character] = [c for c in roster if c.hit_points > 0]
-    dead_characters: List[Character] = [c for c in roster if c.hit_points <= 0]
-    injured_characters: List[Character] = [c for c in alive_characters if c.hit_points < c.max_hit_points]
-    can_raise_chars: List[Character] = [c for c in alive_characters if c.gold > 1000]
-    can_heal_chars: List[Character] = [c for c in alive_characters if c.gold > 10]
-    while (dead_characters and can_raise_chars) or (injured_characters and can_heal_chars):
-        """ Display Temple of Cant """
-        display_roster()
-        can_raise_chars: List[Character] = [c for c in alive_characters if c.gold > 1000]
-        if dead_characters and can_raise_chars:
-            if not temple_of_cant_prompt_ok():
-                break
-            healing_char: Character = random.choice(can_raise_chars)
-            raise_characters(healing_char, dead_characters)
-        can_heal_chars: List[Character] = [c for c in alive_characters if c.gold > 10]
-        if injured_characters and can_heal_chars:
-            if not temple_of_cant_prompt_ok(heal_type='cure'):
-                break
-            healing_char: Character = random.choice(can_heal_chars)
-            cure_characters(healing_char, injured_characters)
-        alive_characters: List[Character] = [c for c in roster if c.hit_points > 0]
-        dead_characters: List[Character] = [c for c in roster if c.hit_points <= 0]
-        injured_characters: List[Character] = [c for c in alive_characters if c.hit_points < c.max_hit_points]
-        can_raise_chars: List[Character] = [c for c in alive_characters if c.gold > 1000]
-        can_heal_chars: List[Character] = [c for c in alive_characters if c.gold > 10]
-
-
 def select_character(roster: List[Character]) -> Character:
     """ Select Character """
-    alive_characters: List[Character] = [c for c in roster if c.hit_points > 0]
-    roster_names_list: List[str] = [c.name for c in alive_characters]
-    display_roster(location='Adventurer''s Inn')
-    character_name: str = read_choice(f'character to {Color.GREEN}* Begin adventure *{Color.END}', roster_names_list)
-    character = [c for c in alive_characters if c.name == character_name][0]
+    character_name: str = read_choice([c.name for c in roster], f'Choose a character to {Color.GREEN}* Begin adventure *{Color.END}')
+    character = [c for c in roster if c.name == character_name][0]
     return character
 
 
 def arena(character: Character):
+    if character.status != 'OK':
+        print(f'{character.name} is ** {character.status} ** - Please select another character!')
+        return
     """ Combat simulation """
     welcome_message()
     attack_count: int = 0
@@ -540,6 +458,7 @@ def arena(character: Character):
             if priority_dice == 0:  # monster attacks first
                 character.hit_points -= monster_hp_damage
                 if character.hit_points <= 0:
+                    character.status = 'DEAD'
                     break
                 monster.hit_points -= character_hp_damage
                 if monster.hit_points <= 0:
@@ -556,6 +475,7 @@ def arena(character: Character):
                     break
                 character.hit_points -= monster_hp_damage
                 if character.hit_points <= 0:
+                    character.status = 'DEAD'
                     break
 
     level_up_msg: str = f' and reached level #{character.level}' if previous_level > character.level else ''
@@ -569,6 +489,7 @@ def arena(character: Character):
     save_character(character)
     display_character_sheet(character)
 
+
 def display_party(party: List[Character]):
     sheet = '+{:-^47}+\n'.format(f' Party')
     col1, col2, col3, col4, col5 = 10, 10, 3, 5, 6
@@ -580,13 +501,14 @@ def display_party(party: List[Character]):
     sheet += '+{:-^47}+\n'.format('')
     print(sheet)
 
+
 def add_member_to_party(roster, party):
     if len(party) == 6:
         print(f'Party is **FULL**')
         sleep(1)
         return
     char_names: List[str] = [c.name for c in roster]
-    name: str = read_choice('character to add in party', char_names)
+    name: str = read_choice(char_names, 'Select character to add in party')
     char: Character = get_character(name, roster)
     if char:
         party.append(char)
@@ -595,13 +517,14 @@ def add_member_to_party(roster, party):
         print(f'Program error! {name} unknown in Castle - Please contact the administrator...')
         sleep(1)
 
+
 def delete_member_from_party(roster, party):
     if not party:
         print(f'no member in **PARTY**')
         sleep(1)
         return
     char_names: List[str] = [c.name for c in party]
-    char_name: str = read_choice('character to remove from party', char_names)
+    char_name: str = read_choice(char_names, 'Select character to remove from party')
     char: Character = get_character(char_name, party)
     if char:
         party.remove(char)
@@ -610,9 +533,7 @@ def delete_member_from_party(roster, party):
         print(f'Program error! {char_name} not in the party - Please contact the administrator...')
         sleep(1)
 
-def delete_character_from_game(char: Character):
-    os.remove(f'{characters_dir}/{char.name}.dmp')
-    pass
+
 
 def gilgamesh_tavern(party: List[Character], roster: List[Character]):
     exit_tavern: bool = False
@@ -623,18 +544,26 @@ def gilgamesh_tavern(party: List[Character], roster: List[Character]):
         print('+-----------------------------+')
         display_party(party)
         gt_options: List[str] = ['Add Member', 'Delete Member', 'Character Status', 'Divvy Gold', 'Exit Tavern']
-        option: str = read_choice('option', gt_options)
+        option: str = read_choice(gt_options)
         match option:
             case 'Add Member':
                 add_member_to_party(roster, party)
             case 'Delete Member':
                 delete_member_from_party(roster, party)
             case 'Character Status':
+                if not party:
+                    print('No characters remains in the party!')
+                    sleep(2)
+                    continue
                 char_names: List[str] = [c.name for c in party]
-                name: str = read_choice('character to inspect', char_names)
+                name: str = read_choice(char_names, 'Select a Character:')
                 char: Character = get_character(name, party)
                 display_character_sheet(char)
             case 'Divvy Gold':
+                if not party:
+                    print('No characters remains in the party!')
+                    sleep(2)
+                    continue
                 total_gold: int = sum([c.gold for c in party])
                 for char in party:
                     char.gold = total_gold // len(party)
@@ -647,12 +576,14 @@ def gilgamesh_tavern(party: List[Character], roster: List[Character]):
             case _:
                 continue
 
+
 def display_rest_message(char: Character):
     efface_ecran()
     print(f'{char.name} is Sleeping...')
     print(f'\tHits {char.hit_points}/{char.max_hit_points}')
     print(f'\t\tYou have {char.gold}GP')
     sleep(1)
+
 
 def rest_character(char: Character, fee: int):
     display_rest_message(char)
@@ -661,18 +592,120 @@ def rest_character(char: Character, fee: int):
         char.hit_points = min(char.max_hit_points, char.hit_points + fee // 10)
         char.gold -= fee
         display_rest_message(char)
+    exit_message()
+
+
+# def raise_characters(healing_char: Character, roster: List[Character]):
+#     chars_to_raise: List[Character] = [c for c in roster if c.hit_points <= 0]
+#     if healing_char.gold > 1000:
+#         roster_list: List[str] = [c.name for c in chars_to_raise]
+#         selected_char: str = read_choice(f'character', roster_list)
+#         char: Character = [c for c in chars_to_raise if c.name == selected_char][0]
+#         char.hit_points = 1
+#         print(f'{char.name} has been raised by {healing_char.name}!')
+#         healing_char.gold -= 1000
+#         save_character(healing_char)
+#         save_character(char)
+#
+#
+# def cure_characters(healing_char: Character, roster: List[Character]):
+#     if healing_char.gold > 10:
+#         roster_list: List[str] = [f'{c.name} ({c.hit_points}/{c.max_hit_points})' for c in roster]
+#         selected_char: str = read_choice(f'character', roster_list)
+#         char: Character = [c for c in roster if c.name == selected_char.split()[0]][0]
+#         recovered_hp = min(char.max_hit_points - char.hit_points, healing_char.gold // 10)
+#         char.hit_points += recovered_hp
+#         print(f'{healing_char.name} has cured {char.name} -> {char.hit_points}/{char.max_hit_points}!')
+#         healing_char.gold -= recovered_hp * 10
+#         save_character(healing_char)
+#         save_character(char)
+
+# def temple_of_cant_prompt_ok(heal_type: str = 'raise') -> bool:
+#     # not used
+#     print(f'{color.DARKCYAN}Some characters needs to be cured. Do you want to {heal_type} them? (Y/N){color.END}')
+#     response = input()
+#     while response not in ['y', 'n', 'Y', 'N']:
+#         print(f'{color.DARKCYAN}Some characters needs to be cured. Do you want to {heal_type} them? (Y/N){color.END}')
+#         response = input()
+#     return True if response in ['Y', 'y'] else False
+
+# def temple_of_cant(roster: List[Character]):
+#     alive_characters: List[Character] = [c for c in roster if c.hit_points > 0]
+#     dead_characters: List[Character] = [c for c in roster if c.hit_points <= 0]
+#     can_raise_chars: List[Character] = [c for c in alive_characters if c.gold > 1000]
+#     while dead_characters and can_raise_chars:
+#         """ Display Temple of Cant """
+#         display_roster()
+#         can_raise_chars: List[Character] = [c for c in alive_characters if c.gold > 1000]
+#         if dead_characters and can_raise_chars:
+#             if not temple_of_cant_prompt_ok():
+#                 break
+#             healing_char: Character = random.choice(can_raise_chars)
+#             raise_characters(healing_char, dead_characters)
+#         alive_characters: List[Character] = [c for c in roster if c.hit_points > 0]
+#         dead_characters: List[Character] = [c for c in roster if c.hit_points <= 0]
+#         can_raise_chars: List[Character] = [c for c in alive_characters if c.gold > 1000]
+
+def exit_message(message: str = None):
+    if message:
+        print(message)
     print('Press [Esc] to continue')
     while True:
         k = get_key()
         if k == 'esc':
             break
 
+def temple_of_cant(party: List[Character, roster: List[Character]]):
+    exit_temple: bool = False
+    while not exit_temple:
+        efface_ecran()
+        print('+----------------------------+')
+        print('|    ** TEMPLE OF CANT **    |')
+        print('+----------------------------+')
+        print('Temple of Cant -- Praise God!!!')
+        cures_costs: dict() = {'DEAD': 500, 'ASHES': 2000}
+        cures_candidates: dict() = [f'{c.name} ({cures_costs[c.status]} GP)' for c in roster if c.status not in ('OK', 'LOST')]
+        if not cures_candidates:
+            print('No character to save ** HERE! **')
+            exit_temple = True
+            sleep(2)
+            continue
+        choice: str = read_choice(cures_candidates + ['Exit Temple'], 'Who do You Want to Save?')
+        if choice == 'Exit Temple':
+            exit_temple = True
+        else:
+            efface_ecran()
+            char_to_save: Character = get_character(choice.split()[0], roster)
+            char_name: str = read_choice([c.name for c in party], 'Who will Contribute?')
+            char_to_contribute: Character = get_character(char_name, party)
+            if char_to_contribute.gold < cures_costs[char_to_save.status]:
+                print('Go away! You don\'t have enough of money!')
+                sleep(2)
+            elif char_to_save.status == 'DEAD':
+                success: bool = randint(1, 12) < char_to_save.constitution
+                if success:
+                    char_to_save.status = 'OK'
+                    char_to_save.hit_points = 1
+                    print(f'{char_to_save.name} ** LIVES! ***')
+                else:
+                    char_to_save.status = 'ASHES'
+                    print(f'{char_to_save.name} converts to ** ASHES! ***')
+                save_character(char_to_save)
+                sleep(2)
+            elif char_to_save.status == 'ASHES':
+                success: bool = randint(1, 8) < char_to_save.constitution
+                if success:
+                    char_to_save.status = 'OK'
+                    char_to_save.hit_points = 1
+                    exit_message(f'{char_to_save.name} ** LIVES! ***')
+                else:
+                    char_to_save.status = 'LOST'
+                    print(f'{char_to_save.name} is ** LOST! ***')
+                save_character(char_to_save)
+                sleep(2)
+
 
 def adventurer_inn(party):
-    if not party:
-        print('No characters remains in the party!')
-        sleep(2)
-        return
     exit_inn: bool = False
     while not exit_inn:
         efface_ecran()
@@ -680,35 +713,54 @@ def adventurer_inn(party):
         print('|   ** ADVENTURER\'S INN **   |')
         print('+-----------------------------+')
         print('Welcome to Adventurer\'s Inn!')
-        ai_options = ['Select Character', 'Exit Adventurer\'s Inn']
-        ai_option: str = read_choice('option', ai_options)
-        match ai_option:
-            case 'Select Character':
-                char: Character = read_char_choice(message='Who will Enter?', party=party)
-                efface_ecran()
-                print(f'Welcome, {char.name}!')
-                rooms: List[str] = ['The Stables (Free!)', 'A Cot (10 GP / Week)', 'Economy Room (100 GP / Week)', 'Merchant Suites (200 GP / Week)', 'The Royal Suites (500 GP / Week)']
-                fees: List[int] = [0, 10, 100, 200, 500]
-                room: str = read_choice('room', rooms)
-                fee_no: int = rooms.index(room)
-                print(f'{char.name} selected {room} - Fee is {fees[fee_no]} GP / Week!')
-                rest_character(char, fees[fee_no])
-                save_character(char)
-            case 'Exit Adventurer\'s Inn':
-                exit_inn = True
-            case _:
-                continue
+        choice: str = read_choice([c.name for c in party] + ['Exit Adventurer\'s Inn'], 'Who will Enter?')
+        if choice == 'Exit Adventurer\'s Inn':
+            exit_inn = True
+        else:
+            efface_ecran()
+            char: Character = get_character(choice, party)
+            print(f'Welcome, {char.name}!')
+            rooms: List[str] = ['The Stables (Free!)', 'A Cot (10 GP / Week)', 'Economy Room (100 GP / Week)', 'Merchant Suites (200 GP / Week)', 'The Royal Suites (500 GP / Week)']
+            fees: List[int] = [0, 10, 100, 200, 500]
+            room: str = read_choice(rooms, f'Hello {char.name}.')
+            fee_no: int = rooms.index(room)
+            # print(f'{char.name} selected {room} - Fee is {fees[fee_no]} GP / Week!')
+            rest_character(char, fees[fee_no])
+            save_character(char)
+
 
 def get_character(name: str, roster: List[Character]) -> Optional[Character]:
     char_list = [c for c in roster if c.name == name]
     return char_list[0] if char_list else None
 
-def simulate_arena():
-    character = select_character(roster)
+
+def simulate_arena(roster: List[Character]):
+    char: Character = select_character(roster)
+    if char.status != 'OK':
+        print(f'{char.name} is {char.status} ** cannot join into the adventure! **')
+        sleep(2)
+        return
     # display_character_sheet_pyQT(character)
-    display_character_sheet(character)
-    while continue_message() and character.hit_points > 0:
-        arena(character)
+    display_character_sheet(char)
+    while arena_continue_message():
+        arena(char)
+    print(f'** Returning to Castle... **')
+    sleep(2)
+
+
+def delete_character_prompt_ok(char: Character) -> bool:
+    print(f'Are you sure you want to delete {char.name} (Y/N)?')
+    while True:
+        key = get_key()
+        if key in ['y', 'Y']:
+            os.remove(f'{characters_dir}/{char.name}.dmp')
+            print(f'{char.name} has been ** DELETED **')
+            sleep(2)
+            return True
+        elif key in ['n', 'N']:
+            print(f'Deletion cancelled :-) {char.name} ** STILL IN GAME **')
+            sleep(2)
+            return False
 
 def training_grounds(roster: List[Character]):
     tg_options: List[str] = ['Create a New Character', 'Character Status', 'Delete a Character', 'Rename a Character', 'Change a Character\'s class', 'System', 'Return to Castle']
@@ -718,37 +770,39 @@ def training_grounds(roster: List[Character]):
         print('+------------------------+')
         print('| ** TRAINING GROUNDS ** |')
         print('+------------------------+')
-        option: str = read_choice('option', tg_options)
+        option: str = read_choice(tg_options)
         match option:
             case 'Create a New Character':
                 character = create_new_character(roster)
                 save_character(character)
                 roster.append(character)
             case 'Character Status':
+                efface_ecran()
                 char_names: List[str] = [c.name for c in roster]
-                name: str = read_choice('character to inspect', char_names)
+                name: str = read_choice(char_names, 'Select a Character.')
                 char: Character = get_character(name, roster)
                 display_character_sheet(char)
+                exit_message()
             case 'Delete a Character':
                 char_names: List[str] = [c.name for c in roster]
-                name: str = read_choice('character to delete', char_names)
+                name: str = read_choice(char_names, 'Select a Character to Delete.')
                 char: Character = get_character(name, roster)
                 display_character_sheet(char)
-                print(f'Are you sure you want to delete {char.name} (Y/N)?')
-                while True:
-                    key = get_key()
-                    if key in ['y', 'Y']:
-                        delete_character_from_game(char)
-                        print(f'{char.name} has been ** DELETED **')
-                        sleep(2)
+                if delete_character_prompt_ok(char):
+                    if char in roster:
                         roster.remove(char)
-                        break
-                    elif key in ['n', 'N']:
-                        print(f'Deletion cancelled :-) {char.name} ** STILL IN GAME **')
-                        sleep(2)
-                        break
+                    else:
+                        party.remove(char)
             case 'Rename a Character':
-                input('not yet created!... [Return] to main menu')
+                char_names: List[str] = [c.name for c in roster + party]
+                name: str = read_choice(char_names, 'Select a Character to Rename.')
+                char: Character = get_character(name, roster + party)
+                print(f'Current Name is {char.name}.')
+                new_name: str = input('Input New Name:')
+                print(f'{char.name} has been renamed to {new_name}!')
+                sleep(2)
+                char.name = new_name
+                save_character(char)
             case 'Change a Character\'s class':
                 input('not yet created!... [Return] to main menu')
             case 'System':
@@ -761,13 +815,13 @@ def enter_dungeon(party):
     input('not yet created!... Press any key to return to Castle')
     pass
 
+
 if __name__ == '__main__':
     random.seed()
     PAUSE_ON_RAISE_LEVEL = True
     POTION_INITIAL_PACK = 5
     path = os.path.dirname(__file__)
     characters_dir = f'{path}/gameState/characters'
-    char_file_list: List[str] = os.listdir(f'{path}/gameState/characters')
 
     """ Load XP Levels """
     xp_levels = []
@@ -783,7 +837,7 @@ if __name__ == '__main__':
     locations: List[str] = ['Edge of Town', 'Castle']
     castle_destinations: List[str] = ['Gilgamesh\'s Tavern', 'Adventurer\'s Inn', 'Temple of Cant', 'Boltac\'s Trading Post', 'Edge of Town']
     edge_of_town_destinations: List[str] = ['Training Grounds', 'Maze', 'Leave Game', 'Castle']
-    roster: List[Character] = list_roster()
+    roster: List[Character] = get_roster(characters_dir)
 
     location = 'Castle'
     party: List[Character] = []
@@ -793,15 +847,22 @@ if __name__ == '__main__':
             print('+----------------------+')
             print('|     ** CASTLE **     |')
             print('+----------------------+')
-            destination: str = read_choice('destination', castle_destinations)
+            destination: str = read_choice(castle_destinations)
             match destination:
                 case 'Gilgamesh\'s Tavern':
                     gilgamesh_tavern(party, roster)
                 case 'Adventurer\'s Inn':
+                    if not party:
+                        print('No characters remains in the party!')
+                        sleep(2)
+                        continue
                     adventurer_inn(party)
                 case 'Temple of Cant':
-                    # temple_of_cant(roster)
-                    input('in debug phase!... [Return] to Castle')
+                    if not party:
+                        print('No characters remains in the party!')
+                        sleep(2)
+                        continue
+                    temple_of_cant(party)
                 case 'Boltac\'s Trading Post':
                     input('not yet created!... [Return] to Castle')
                 case 'Edge of Town':
@@ -813,7 +874,7 @@ if __name__ == '__main__':
             print('+----------------------+')
             print('|  ** EDGE OF TOWN **  |')
             print('+----------------------+')
-            destination: str = read_choice('destination', edge_of_town_destinations)
+            destination: str = read_choice(edge_of_town_destinations)
             match destination:
                 case 'Training Grounds':
                     efface_ecran()
@@ -821,10 +882,11 @@ if __name__ == '__main__':
                     location = 'Castle'
                 case 'Maze':
                     efface_ecran()
-                    game_modes: List[str] = ['ARENA', 'WIZARDRY']
-                    game_mode: str = read_choice('game mode', game_modes)
-                    if game_mode == 'ARENA':
-                        simulate_arena()
+                    game_modes: List[str] = ['ARENA (Simulation)', 'WIZARDRY (Enter Dungeon)']
+                    game_mode: str = read_choice(game_modes, 'Choose game mode:')
+                    if game_mode == 'ARENA (Simulation)':
+                        display_adventurers(party=party, roster=roster, location=location)
+                        simulate_arena(roster)
                     else:
                         if party:
                             display_party(party)
@@ -832,6 +894,7 @@ if __name__ == '__main__':
                         else:
                             if roster:
                                 print(f'** NO PARTY FOUND! ** Return to {Color.RED}Castle{Color.END} to recruit adventurers!')
+                                location = 'Castle'
                                 sleep(2)
                             else:
                                 print(f'** NO CHARACTERS FOUND! ** Return to {Color.RED}Training grounds{Color.END} to create one or more adventurer(s)!')
