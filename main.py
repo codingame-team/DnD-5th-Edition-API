@@ -96,6 +96,21 @@ def read_choice(item_name: str, choice_list: List[str]) -> str:
             continue
     return choice_list[choice - 1]
 
+def read_char_choice(message: str, party: List[Character]) -> Character:
+    choice = None
+    while choice not in range(1, len(party) + 1):
+        char_names: str = '\n'.join([f'{i + 1}) {char.name}' for i, char in enumerate(party)])
+        print(f'{message}:\n{char_names}')
+        err_msg = f'Bad value! Please enter a number between 1 and {len(party)}'
+        try:
+            choice = int(input())
+            if choice not in range(1, len(party) + 1):
+                raise ValueError
+        except ValueError:
+            print(err_msg)
+            continue
+    return party[choice - 1]
+
 
 def choose_equipment_from(starting_equipment_options: List[List[Inventory]]):
     starting_equipment: List[Equipment] = []
@@ -599,15 +614,15 @@ def delete_character_from_game(char: Character):
     os.remove(f'{characters_dir}/{char.name}.dmp')
     pass
 
-def gilgamesh_tavern(party: List[Character], roster: List[Character]) -> List[Character]:
-    print('+-----------------------------+')
-    print('|  ** GILGAMESH\'S TAVERN **  |')
-    print('+-----------------------------+')
-    gt_options: List[str] = ['Add Member', 'Delete Member', 'Character Status', 'Divvy Gold', 'Exit Tavern']
+def gilgamesh_tavern(party: List[Character], roster: List[Character]):
     exit_tavern: bool = False
     while not exit_tavern:
         efface_ecran()
+        print('+-----------------------------+')
+        print('|  ** GILGAMESH\'S TAVERN **  |')
+        print('+-----------------------------+')
         display_party(party)
+        gt_options: List[str] = ['Add Member', 'Delete Member', 'Character Status', 'Divvy Gold', 'Exit Tavern']
         option: str = read_choice('option', gt_options)
         match option:
             case 'Add Member':
@@ -631,7 +646,58 @@ def gilgamesh_tavern(party: List[Character], roster: List[Character]) -> List[Ch
                 exit_tavern = True
             case _:
                 continue
-    return party
+
+def display_rest_message(char: Character):
+    efface_ecran()
+    print(f'{char.name} is Sleeping...')
+    print(f'\tHits {char.hit_points}/{char.max_hit_points}')
+    print(f'\t\tYou have {char.gold}GP')
+    sleep(1)
+
+def rest_character(char: Character, fee: int):
+    display_rest_message(char)
+    while fee and char.hit_points < char.max_hit_points and char.gold >= fee:
+        print(f'{char.name} gains {fee / 10} hp')
+        char.hit_points = min(char.max_hit_points, char.hit_points + fee // 10)
+        char.gold -= fee
+        display_rest_message(char)
+    print('Press [Esc] to continue')
+    while True:
+        k = get_key()
+        if k == 'esc':
+            break
+
+
+def adventurer_inn(party):
+    if not party:
+        print('No characters remains in the party!')
+        sleep(2)
+        return
+    exit_inn: bool = False
+    while not exit_inn:
+        efface_ecran()
+        print('+-----------------------------+')
+        print('|   ** ADVENTURER\'S INN **   |')
+        print('+-----------------------------+')
+        print('Welcome to Adventurer\'s Inn!')
+        ai_options = ['Select Character', 'Exit Adventurer\'s Inn']
+        ai_option: str = read_choice('option', ai_options)
+        match ai_option:
+            case 'Select Character':
+                char: Character = read_char_choice(message='Who will Enter?', party=party)
+                efface_ecran()
+                print(f'Welcome, {char.name}!')
+                rooms: List[str] = ['The Stables (Free!)', 'A Cot (10 GP / Week)', 'Economy Room (100 GP / Week)', 'Merchant Suites (200 GP / Week)', 'The Royal Suites (500 GP / Week)']
+                fees: List[int] = [0, 10, 100, 200, 500]
+                room: str = read_choice('room', rooms)
+                fee_no: int = rooms.index(room)
+                print(f'{char.name} selected {room} - Fee is {fees[fee_no]} GP / Week!')
+                rest_character(char, fees[fee_no])
+                save_character(char)
+            case 'Exit Adventurer\'s Inn':
+                exit_inn = True
+            case _:
+                continue
 
 def get_character(name: str, roster: List[Character]) -> Optional[Character]:
     char_list = [c for c in roster if c.name == name]
@@ -732,10 +798,10 @@ if __name__ == '__main__':
                 case 'Gilgamesh\'s Tavern':
                     gilgamesh_tavern(party, roster)
                 case 'Adventurer\'s Inn':
-                    input('not yet created!... [Return] to Castle')
+                    adventurer_inn(party)
                 case 'Temple of Cant':
-                    temple_of_cant(roster)
-                    input('not yet created!... [Return] to Castle')
+                    # temple_of_cant(roster)
+                    input('in debug phase!... [Return] to Castle')
                 case 'Boltac\'s Trading Post':
                     input('not yet created!... [Return] to Castle')
                 case 'Edge of Town':
