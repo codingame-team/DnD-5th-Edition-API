@@ -543,12 +543,12 @@ def gilgamesh_tavern(party: List[Character], roster: List[Character]):
         print('|  ** GILGAMESH\'S TAVERN **  |')
         print('+-----------------------------+')
         display_party(party)
-        gt_options: List[str] = ['Add Member', 'Delete Member', 'Character Status', 'Divvy Gold', 'Exit Tavern']
+        gt_options: List[str] = ['Add Member', 'Remove Member', 'Character Status', 'Divvy Gold', 'Exit Tavern']
         option: str = read_choice(gt_options)
         match option:
             case 'Add Member':
                 add_member_to_party(roster, party)
-            case 'Delete Member':
+            case 'Remove Member':
                 delete_member_from_party(roster, party)
             case 'Character Status':
                 if not party:
@@ -595,57 +595,6 @@ def rest_character(char: Character, fee: int):
     exit_message()
 
 
-# def raise_characters(healing_char: Character, roster: List[Character]):
-#     chars_to_raise: List[Character] = [c for c in roster if c.hit_points <= 0]
-#     if healing_char.gold > 1000:
-#         roster_list: List[str] = [c.name for c in chars_to_raise]
-#         selected_char: str = read_choice(f'character', roster_list)
-#         char: Character = [c for c in chars_to_raise if c.name == selected_char][0]
-#         char.hit_points = 1
-#         print(f'{char.name} has been raised by {healing_char.name}!')
-#         healing_char.gold -= 1000
-#         save_character(healing_char)
-#         save_character(char)
-#
-#
-# def cure_characters(healing_char: Character, roster: List[Character]):
-#     if healing_char.gold > 10:
-#         roster_list: List[str] = [f'{c.name} ({c.hit_points}/{c.max_hit_points})' for c in roster]
-#         selected_char: str = read_choice(f'character', roster_list)
-#         char: Character = [c for c in roster if c.name == selected_char.split()[0]][0]
-#         recovered_hp = min(char.max_hit_points - char.hit_points, healing_char.gold // 10)
-#         char.hit_points += recovered_hp
-#         print(f'{healing_char.name} has cured {char.name} -> {char.hit_points}/{char.max_hit_points}!')
-#         healing_char.gold -= recovered_hp * 10
-#         save_character(healing_char)
-#         save_character(char)
-
-# def temple_of_cant_prompt_ok(heal_type: str = 'raise') -> bool:
-#     # not used
-#     print(f'{color.DARKCYAN}Some characters needs to be cured. Do you want to {heal_type} them? (Y/N){color.END}')
-#     response = input()
-#     while response not in ['y', 'n', 'Y', 'N']:
-#         print(f'{color.DARKCYAN}Some characters needs to be cured. Do you want to {heal_type} them? (Y/N){color.END}')
-#         response = input()
-#     return True if response in ['Y', 'y'] else False
-
-# def temple_of_cant(roster: List[Character]):
-#     alive_characters: List[Character] = [c for c in roster if c.hit_points > 0]
-#     dead_characters: List[Character] = [c for c in roster if c.hit_points <= 0]
-#     can_raise_chars: List[Character] = [c for c in alive_characters if c.gold > 1000]
-#     while dead_characters and can_raise_chars:
-#         """ Display Temple of Cant """
-#         display_roster()
-#         can_raise_chars: List[Character] = [c for c in alive_characters if c.gold > 1000]
-#         if dead_characters and can_raise_chars:
-#             if not temple_of_cant_prompt_ok():
-#                 break
-#             healing_char: Character = random.choice(can_raise_chars)
-#             raise_characters(healing_char, dead_characters)
-#         alive_characters: List[Character] = [c for c in roster if c.hit_points > 0]
-#         dead_characters: List[Character] = [c for c in roster if c.hit_points <= 0]
-#         can_raise_chars: List[Character] = [c for c in alive_characters if c.gold > 1000]
-
 def exit_message(message: str = None):
     if message:
         print(message)
@@ -664,19 +613,20 @@ def temple_of_cant(party: List[Character, roster: List[Character]]):
         print('+----------------------------+')
         print('Temple of Cant -- Praise God!!!')
         cures_costs: dict() = {'DEAD': 500, 'ASHES': 2000}
-        cures_candidates: dict() = [f'{c.name} ({cures_costs[c.status]} GP)' for c in roster if c.status not in ('OK', 'LOST')]
+        cures_candidates: dict() = [f'{c.name} ({cures_costs[c.status]} GP)' for c in roster + party if c.status not in ('OK', 'LOST')]
         if not cures_candidates:
-            print('No character to save ** HERE! **')
+            print('No more character to save ** HERE! **')
             exit_temple = True
-            sleep(2)
+            sleep(3)
             continue
         choice: str = read_choice(cures_candidates + ['Exit Temple'], 'Who do You Want to Save?')
         if choice == 'Exit Temple':
             exit_temple = True
         else:
             efface_ecran()
-            char_to_save: Character = get_character(choice.split()[0], roster)
-            char_name: str = read_choice([c.name for c in party], 'Who will Contribute?')
+            char_to_save: Character = get_character(choice.split()[0], roster + party)
+            contributor_names: List[str] = [c.name for c in party if c.status == 'OK']
+            char_name: str = read_choice(contributor_names, 'Who will Contribute?')
             char_to_contribute: Character = get_character(char_name, party)
             if char_to_contribute.gold < cures_costs[char_to_save.status]:
                 print('Go away! You don\'t have enough of money!')
@@ -747,6 +697,18 @@ def simulate_arena(roster: List[Character]):
     print(f'** Returning to Castle... **')
     sleep(2)
 
+def rename_character_prompt_ok(char: Character, new_name: str) -> bool:
+    print(f'Are you sure you want to rename {char.name} to {new_name}(Y/N)?')
+    while True:
+        key = get_key()
+        if key in ['y', 'Y']:
+            print(f'{char.name} has been ** RENAMED ** to {new_name}')
+            sleep(2)
+            return True
+        elif key in ['n', 'N']:
+            print(f'Renaming of {char.name} cancelled.')
+            sleep(2)
+            return False
 
 def delete_character_prompt_ok(char: Character) -> bool:
     print(f'Are you sure you want to delete {char.name} (Y/N)?')
@@ -782,11 +744,10 @@ def training_grounds(roster: List[Character]):
                 name: str = read_choice(char_names, 'Select a Character.')
                 char: Character = get_character(name, roster)
                 display_character_sheet(char)
-                exit_message()
             case 'Delete a Character':
                 char_names: List[str] = [c.name for c in roster]
                 name: str = read_choice(char_names, 'Select a Character to Delete.')
-                char: Character = get_character(name, roster)
+                char: Character = get_character(name, roster + party)
                 display_character_sheet(char)
                 if delete_character_prompt_ok(char):
                     if char in roster:
@@ -794,15 +755,23 @@ def training_grounds(roster: List[Character]):
                     else:
                         party.remove(char)
             case 'Rename a Character':
-                char_names: List[str] = [c.name for c in roster + party]
+                char_names: List[str] = [c.name for c in roster]
                 name: str = read_choice(char_names, 'Select a Character to Rename.')
                 char: Character = get_character(name, roster + party)
                 print(f'Current Name is {char.name}.')
-                new_name: str = input('Input New Name:')
-                print(f'{char.name} has been renamed to {new_name}!')
-                sleep(2)
+                name_ok: bool = False
+                while not name_ok:
+                    new_name: str = input('Input New Name: ')
+                    if new_name in char_names:
+                        print(f'{new_name} already taken! Please choose another one!')
+                        continue
+                    name_ok = True
+                if not rename_character_prompt_ok(char, new_name):
+                    continue
+                os.remove(f'{characters_dir}/{char.name}.dmp')
                 char.name = new_name
                 save_character(char)
+                sleep(2)
             case 'Change a Character\'s class':
                 input('not yet created!... [Return] to main menu')
             case 'System':
@@ -812,7 +781,7 @@ def training_grounds(roster: List[Character]):
 
 
 def enter_dungeon(party):
-    input('not yet created!... Press any key to return to Castle')
+    input('not yet created!... [Return] to Castle')
     pass
 
 
@@ -878,7 +847,7 @@ if __name__ == '__main__':
             match destination:
                 case 'Training Grounds':
                     efface_ecran()
-                    training_grounds(roster)
+                    training_grounds(roster + party)
                     location = 'Castle'
                 case 'Maze':
                     efface_ecran()
