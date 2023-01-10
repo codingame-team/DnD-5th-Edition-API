@@ -4,6 +4,7 @@ import sys
 import termios
 import tty
 from enum import Enum
+import pexpect
 
 
 class Color:
