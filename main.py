@@ -389,7 +389,6 @@ def display_character_sheet(char: Character):
     sheet += '|{:^51}|\n'.format(f'gold = {char.gold} gp')
     sheet += '+{:-^51}+\n'.format('')
     print(sheet)
-    exit_message()
 
 
 def efface_ecran():
@@ -421,20 +420,27 @@ def select_character(roster: List[Character]) -> Character:
 
 
 def arena(character: Character):
-    if character.status != 'OK':
-        print(f'{character.name} is ** {character.status} ** - Please select another character!')
-        return
     """ Combat simulation """
     welcome_message()
     attack_count: int = 0
     killed_monsters: int = 0
     previous_level: int = character.level
 
+    difficulty: List[str] = ['HARD', 'MEDIUM', 'EASY']
+    arena_level: str = read_choice(difficulty, 'Select difficulty:')
+
+    match arena_level:
+        case 'HARD':
+            # monsters_to_fight = [m for m in monsters if m.level > character.level]
+            monsters_to_fight = [m for m in monsters if m.challenge_rating > character.level]
+        case 'MEDIUM':
+            # monsters_to_fight = [m for m in monsters if m.level < character.level + 5]
+            monsters_to_fight = [m for m in monsters if m.challenge_rating == character.level]
+        case 'EASY':
+            monsters_to_fight = [m for m in monsters if m.challenge_rating < character.level]
+
     # while character.hit_points > 0 and character.level < 5:
     while character.hit_points > 0 and attack_count < 500:
-        # monsters_to_fight = [m for m in roster if m.challenge_rating < 1]
-        # monsters_to_fight = [m for m in roster if 2 + character.level <= m.level <= 5 + character.level]
-        monsters_to_fight = [m for m in monsters if m.level <= 5 + character.level]
         if character.level < len(xp_levels) and character.xp > xp_levels[character.level]:
             character.gain_level(pause=PAUSE_ON_RAISE_LEVEL)
         monster: Monster = copy(random.choice(monsters_to_fight))
@@ -559,6 +565,7 @@ def gilgamesh_tavern(party: List[Character], roster: List[Character]):
                 name: str = read_choice(char_names, 'Select a Character:')
                 char: Character = get_character(name, party)
                 display_character_sheet(char)
+                exit_message()
             case 'Divvy Gold':
                 if not party:
                     print('No characters remains in the party!')
@@ -598,10 +605,10 @@ def rest_character(char: Character, fee: int):
 def exit_message(message: str = None):
     if message:
         print(message)
-    print('Press [Esc] to continue')
+    print('[Return] to continue')
     while True:
         k = get_key()
-        if k == 'esc':
+        if k == 'return':
             break
 
 def temple_of_cant(party: List[Character, roster: List[Character]]):
@@ -686,16 +693,18 @@ def get_character(name: str, roster: List[Character]) -> Optional[Character]:
 
 def simulate_arena(roster: List[Character]):
     char: Character = select_character(roster)
-    if char.status != 'OK':
-        print(f'{char.name} is {char.status} ** cannot join into the adventure! **')
-        sleep(2)
-        return
-    # display_character_sheet_pyQT(character)
+    while char.status != 'OK':
+        print(f'{char.name} is ** {char.status} ** - Please select another character!')
+        char: Character = select_character(roster)
     display_character_sheet(char)
     while arena_continue_message():
+        # efface_ecran()
+        # display_character_sheet_pyQT(character)
+        while char.status != 'OK':
+            print(f'{char.name} is ** {char.status} ** - Please select another character!')
+            char: Character = select_character(roster)
+            continue
         arena(char)
-    print(f'** Returning to Castle... **')
-    sleep(2)
 
 def rename_character_prompt_ok(char: Character, new_name: str) -> bool:
     print(f'Are you sure you want to rename {char.name} to {new_name}(Y/N)?')
@@ -744,6 +753,7 @@ def training_grounds(roster: List[Character]):
                 name: str = read_choice(char_names, 'Select a Character.')
                 char: Character = get_character(name, roster)
                 display_character_sheet(char)
+                exit_message()
             case 'Delete a Character':
                 char_names: List[str] = [c.name for c in roster]
                 name: str = read_choice(char_names, 'Select a Character to Delete.')
