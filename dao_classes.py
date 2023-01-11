@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-import random
 from dataclasses import dataclass, field
 from enum import Enum
 from math import floor
 from typing import List, Optional, Tuple
+from random import randint, choice
 
 from tools.common import cprint
 
@@ -51,11 +51,11 @@ class Monster:
         """
         :return: damage generated
         """
-        attack_roll = random.randint(1, 20)
+        attack_roll = randint(1, 20)
         damage_roll = 0
         if attack_roll >= character.armor_class:
             dice_count, roll_dice = map(int, self.hit_dice.split('d'))
-            damage_roll = sum([random.randint(1, roll_dice) for _ in range(dice_count)])
+            damage_roll = sum([randint(1, roll_dice) for _ in range(dice_count)])
         if damage_roll:
             cprint(f'{color.RED}{self.name}{color.END} hits {color.GREEN}{character.name}{color.END} for {damage_roll} hit points!')
         else:
@@ -331,6 +331,7 @@ class Character:
     gender: str
     height: str
     weight: str
+    age: int
     class_type: str
     proficiencies: List[Proficiency]
     abilities: Abilities
@@ -354,6 +355,10 @@ class Character:
     # def __post_init__(self):
     #     self.armor = [equipment for equipment in self.inventory if equipment.category == 'armor' and equipment.equiped]
     #     self.weapon = [equipment for equipment in self.inventory if equipment.category == 'weapon' and equipment.equiped]
+
+    @property
+    def attributes(self):
+        return [self.strength, self.dexterity, self.constitution, self.intelligence, self.wisdom, self.charism]
 
     @property
     def strength(self):
@@ -382,7 +387,7 @@ class Character:
     def __repr__(self):
         race = self.subrace if self.subrace else self.race
         ethnic = f'ethnic: {self.ethnic} - ' if self.ethnic else ''
-        return f"{self.name} - Abilities: {self.abilities} - Ability modifiers: {self.ability_modifiers} - ({ethnic}{self.gender} {race.name} - height: {self.height} weight: {self.weight}- class: {self.class_type} - AC {self.armor_class} HD: {self.hit_dice} - w: {self.weapon.name} a: {self.armor.name} - potions: {len(self.healing_potions)})"
+        return f"{self.name} - Age: {self.age // 52} - Abilities: {self.abilities} - Ability modifiers: {self.ability_modifiers} - ({ethnic}{self.gender} {race.name} - height: {self.height} weight: {self.weight}- class: {self.class_type} - AC {self.armor_class} HD: {self.hit_dice} - w: {self.weapon.name} a: {self.armor.name} - potions: {len(self.healing_potions)})"
 
     @property
     def armor_class(self):
@@ -392,13 +397,6 @@ class Character:
     def hit_dice(self):
         return self.weapon.damage_dice
 
-    # @property
-    # def status(self) -> str:
-    #     if self.hit_points <= 0:
-    #         return 'DEAD'
-    #     else:
-    #         return 'OK'
-
     """Healing (??? check rules): A Healing potion repairs one six-sided die, plus one, (2-7) points of damage, just like a Cure Light Wounds spell."""
 
     def drink_potion(self):
@@ -407,7 +405,7 @@ class Character:
         best_potion = min(available_potions, key=lambda p: p.max_hp_restored) if available_potions else max(self.healing_potions, key=lambda p: p.max_hp_restored)
         self.healing_potions.remove(best_potion)
         dice_count, roll_dice = map(int, self.hit_dice.split('d'))
-        hp_restored = 2 + random.randint(1, roll_dice) + random.randint(1, roll_dice)
+        hp_restored = 2 + randint(1, roll_dice) + randint(1, roll_dice)
         self.hit_points = min(self.hit_points + hp_restored, self.max_hit_points)
         if hp_to_recover <= hp_restored:
             cprint(f'{self.name} drinks healing potion and is {color.BOLD}*fully*{color.END} healed!')
@@ -417,51 +415,76 @@ class Character:
     def victory(self, monster: Monster):
         self.xp += monster.xp
         self.monster_kills += 1
-        gold_dice = random.randint(1, 3)
+        gold_dice = randint(1, 3)
         gold_msg: str = ''
         if gold_dice == 1:
             max_gold: int = max(1, floor(10 * monster.xp / monster.level))
-            gold: int = random.randint(1, max_gold + 1)
+            gold: int = randint(1, max_gold + 1)
             gold_msg = f' and found {gold} gp!'
             self.gold += gold
         cprint(f'{monster.name.title()} killed!')
         cprint(f'{self.name} gained {monster.xp} XP{gold_msg}!')
 
     def treasure(self, weapons, armors):
-        treasure_dice = random.randint(1, 3)
+        treasure_dice = randint(1, 3)
         if treasure_dice == 1:
             cprint(f"{self.name} found a healing potion!")
             self.healing_potions.append(Potion('2d4'))
         elif treasure_dice == 2:
-            new_weapon: Weapon = random.choice(weapons)
+            new_weapon: Weapon = choice(weapons)
             if new_weapon.damage_dice > self.weapon.damage_dice:
                 cprint(f"{self.name} found a better weapon {new_weapon}!")
                 self.weapon = new_weapon
         else:
-            new_armor: Armor = random.choice(armors)
+            new_armor: Armor = choice(armors)
             if new_armor.armor_class['base'] > self.armor.armor_class['base']:
                 cprint(f"{self.name} found a better armor {new_armor}!")
                 self.armor = new_armor
 
 
-    def gain_level(self, pause: bool):
+    def gain_level_arena(self, pause: bool):
         self.level += 1
-        hp_gained = random.randint(1, 10)
+        hp_gained = randint(1, 10)
         self.max_hit_points += hp_gained
         print(f'{color.BLUE}New level #{self.level} gained!!!{color.END}')
         print(f'{self.name} gained {hp_gained} hit points')
         if pause:
             input(f'{color.UNDERLINE}{color.DARKCYAN}hit Enter to continue adventure :-) (potions remaining: {len(self.healing_potions)}){color.END}')
 
+    def gain_level(self):
+        self.level += 1
+        hp_gained = randint(1, 10)
+        self.max_hit_points += hp_gained
+        print(f'{color.BLUE}New level #{self.level} gained!!!{color.END}')
+        print(f'{self.name} gained {hp_gained} hit points')
+        #  PROCEDURE GAINLOST;  (* P010A20 *)
+        attributes: dict = {'Strength': self.strength, 'Dexterity': self.dexterity, 'Constitution': self.constitution, 'Intelligence': self.intelligence, 'Wisdom': self.wisdom, 'Charism': self.charism}
+        for attr_name, attr_value in attributes.items():
+            if randint(0, 3) % 4:
+                if randint(0, 129) < self.age // 52:
+                    if attr_value == 18 and randint(0, 5) != 4:
+                        continue
+                    attributes[attr_name] -= 1
+                    if attr_name == 'Constitution' and attributes[attr_name] == 2:
+                        print('** YOU HAVE DIED OF OLD AGE **')
+                        self.status = 'LOST'
+                        self.hit_points = 0
+                    else:
+                        print(f'You lost {attr_name}')
+                elif attr_value < 18:
+                    attributes[attr_name] += 1
+                    print(f'You gained {attr_name}')
+
+
     def attack(self, monster: Monster):
         """
         :return: damage generated
         """
-        attack_roll = random.randint(1, 20)
+        attack_roll = randint(1, 20)
         damage_roll = 0
         if attack_roll >= monster.armor_class:
             dice_count, roll_dice = map(int, self.hit_dice.split('d'))
-            damage_roll = sum([random.randint(1, roll_dice) for _ in range(dice_count)])
+            damage_roll = sum([randint(1, roll_dice) for _ in range(dice_count)])
         if damage_roll:
             cprint(f'{color.GREEN}{self.name}{color.END} hits {color.RED}{monster.name}{color.END} for {damage_roll} hit points!')
         else:
