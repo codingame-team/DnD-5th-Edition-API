@@ -6,7 +6,7 @@ import sys
 from copy import copy
 from os import listdir
 from os.path import isfile, join
-from random import randint, seed
+from random import randint, seed, sample
 from time import sleep, time
 
 from PyQt5.QtWidgets import QApplication, QDialog
@@ -19,11 +19,11 @@ from tools.ability_scores_roll import ability_rolls
 from tools.common import cprint, Color, get_key
 
 
-def arena_continue_message() -> bool:
-    print(f'{color.DARKCYAN}Do you want to start a new combat simulation? (Y/N){color.END}')
+def continue_message(message: str = 'Do you want to continue? (Y/N)') -> bool:
+    print(f'{color.DARKCYAN}{message}{color.END}')
     response = input()
     while response not in ['y', 'n', 'Y', 'N']:
-        print(f'{color.DARKCYAN}Do you want to start a new combat simulation? (Y/N){color.END}')
+        print(f'{color.DARKCYAN}{message}{color.END}')
         response = input()
     if response in ['y', 'y']:
         return True
@@ -458,7 +458,7 @@ def arena(character: Character):
         #     character.gain_level(pause=PAUSE_ON_RAISE_LEVEL)
         monster: Monster = copy(choice(monsters_to_fight))
         cprint(f'{color.PURPLE}-------------------------------------------------------------------------------------------------------------------------------------------{color.END}')
-        cprint(f'{color.PURPLE} New encounter! {character} vs {monster}{color.END}')
+        cprint(f'{color.PURPLE} New explore_dungeon! {character} vs {monster}{color.END}')
         cprint(f'{color.PURPLE}-------------------------------------------------------------------------------------------------------------------------------------------{color.END}')
         round_num = 0
         monster_max_hp = monster.hit_points
@@ -619,7 +619,7 @@ def rest_character(char: Character, fee: int, weeks: int):
         char.age += weeks
         display_rest_message(char)
     if char.level < len(xp_levels) and char.xp > xp_levels[char.level]:
-         char.gain_level()
+        char.gain_level()
     exit_message()
 
 
@@ -631,6 +631,7 @@ def exit_message(message: str = None):
         k = get_key()
         if k == 'return':
             break
+
 
 def temple_of_cant(party: List[Character, roster: List[Character]]):
     exit_temple: bool = False
@@ -733,7 +734,7 @@ def simulate_arena(roster: List[Character]):
         print(f'{char.name} is ** {char.status} ** - Please select another character!')
         char: Character = select_character(roster)
     display_character_sheet(char)
-    while arena_continue_message():
+    while continue_message(message='Do you want to start a new combat simulation? (Y/N)'):
         # efface_ecran()
         # display_character_sheet_pyQT(character)
         while char.status != 'OK':
@@ -741,6 +742,7 @@ def simulate_arena(roster: List[Character]):
             char: Character = select_character(roster)
             continue
         arena(char)
+
 
 def rename_character_prompt_ok(char: Character, new_name: str) -> bool:
     print(f'Are you sure you want to rename {char.name} to {new_name}(Y/N)?')
@@ -755,6 +757,7 @@ def rename_character_prompt_ok(char: Character, new_name: str) -> bool:
             sleep(2)
             return False
 
+
 def delete_character_prompt_ok(char: Character) -> bool:
     print(f'Are you sure you want to delete {char.name} (Y/N)?')
     while True:
@@ -768,6 +771,7 @@ def delete_character_prompt_ok(char: Character) -> bool:
             print(f'Deletion cancelled :-) {char.name} ** STILL IN GAME **')
             sleep(2)
             return False
+
 
 def training_grounds(roster: List[Character]):
     tg_options: List[str] = ['Create a New Character', 'Character Status', 'Delete a Character', 'Rename a Character', 'Change a Character\'s class', 'System', 'Return to Castle']
@@ -823,9 +827,95 @@ def training_grounds(roster: List[Character]):
                 exit_training_grounds = True
 
 
-def enter_dungeon(party):
-    input('not yet created!... [Return] to Castle')
-    pass
+def explore_dungeon(party: List[Character], monsters: List[Monster]):
+    """ Combat simulation """
+    print(f'{color.PURPLE}-----------------------------------------------------------{color.END}')
+    print(f'{color.PURPLE} Combat simulation engine based on DnD 5th edition API{color.END}')
+    print(f'{color.PURPLE}-----------------------------------------------------------{color.END}')
+    # encounters_count: int = 0
+    # killed_monsters: int = 0
+
+    difficulty: List[str] = ['HARD', 'MEDIUM', 'EASY']
+    arena_level: str = read_choice(difficulty, 'Select difficulty:')
+
+    max_level_char: int = max([c.level for c in party])
+
+    match arena_level:
+        case 'HARD':
+            monsters_to_fight = [m for m in monsters if m.challenge_rating > max_level_char]
+        case 'MEDIUM':
+            monsters_to_fight = [m for m in monsters if m.challenge_rating == max_level_char]
+        case 'EASY':
+            monsters_to_fight = [m for m in monsters if m.challenge_rating < max_level_char]
+
+    alive_chars: List[Character] = [c for c in party if c.hit_points > 0]
+    while alive_chars:
+        if continue_message(f'Do you want to go back to [Castle]? (Y/N)'):
+            return
+        monsters_selection: List[Monster] = sample(monsters_to_fight, randint(1, 2))
+        monsters: List[Monster] = [copy(m) for m in monsters_selection]
+        cprint(f'{color.PURPLE}-------------------------------------------------------------------------------------------------------------------------------------------{color.END}')
+        cprint(f'{color.PURPLE} New encounter!{color.END}')
+        for i, monster in enumerate(monsters):
+            cprint(f'{color.PURPLE} Monster #{i} : {monster.name} ({monster.hit_points} HP){color.END}')
+        cprint(f'{color.PURPLE}-------------------------------------------------------------------------------------------------------------------------------------------{color.END}')
+        attack_queue = [(c, randint(1, c.abilities.dex)) for c in party] + [(m, randint(1, m.abilities.dex)) for m in monsters]
+        attack_queue.sort(key=lambda x: x[1], reverse=True)
+        attackers = [c for c, init_roll in attack_queue]
+        alive_monsters: List[Monster] = [c for c in monsters if c.hit_points > 0]
+        round_num = 0
+        flee_combat: bool = False
+        while alive_monsters:
+            message: str = 'engage' if not round_num else 'continue'
+            if not continue_message(f'Do you want to {message} combat? (Y/N)'):
+                flee_combat = True
+                break
+            round_num += 1
+            cprint('-------------------------------------------------------')
+            cprint(f'{color.DARKCYAN} Round {round_num} :{color.END}')
+            for i, monster in enumerate(alive_monsters):
+                cprint(f'{color.PURPLE} Monster #{i} : {monster.name} ({monster.hit_points} HP){color.END}')
+            cprint('-------------------------------------------------------')
+            display_party(party)
+            # Start of Round
+            queue = [c for c in attackers if c.hit_points > 0]
+            while queue:
+                attacker = queue.pop()
+                if attacker.hit_points > 0:
+                    if isinstance(attacker, Monster):
+                        # Monster attacks the weakest alive character
+                        chars: List[Character] = [c for c in attackers if isinstance(c, Character) if c.hit_points > 0]
+                        if not chars:
+                            break
+                        char: Character = min(chars, key=lambda c: c.hit_points)
+                        char.hit_points -= monster.attack(char)
+                        if char.hit_points <= 0:
+                            char.status = 'DEAD'
+                            cprint(f'{char.name} is ** KILLED **!')
+                    else:
+                        monsters: List[Monster] = [c for c in attackers if isinstance(c, Monster) if c.hit_points > 0]
+                        if not monsters:
+                            break
+                        if attacker.hit_points < 0.5 * attacker.max_hit_points and attacker.healing_potions:
+                            attacker.drink_potion()
+                            cprint(f'{attacker.name} has {len(attacker.healing_potions)} remaining potions')
+                        else:
+                            # Character attacks the weakest alive monster
+                            monster: Monster = min(monsters, key=lambda m: m.hit_points)
+                            monster.hit_points -= attacker.attack(monster)
+                            if monster.hit_points <= 0:
+                                attacker.victory(monster)
+                                attacker.treasure(weapons, armors)
+            # End of Round
+            alive_chars: List[Character] = [c for c in party if c.hit_points > 0]
+            alive_monsters: List[Monster] = [c for c in monsters if c.hit_points > 0]
+        if not alive_chars:
+            exit_message(f'** DEFEAT! ALL PARTY HAS BEEN KILLED **')
+            break
+        elif not alive_monsters:
+            exit_message(f'** VICTORY! **')
+        elif flee_combat:
+            exit_message(f'** Party successfully escaped! **')
 
 
 if __name__ == '__main__':
@@ -902,10 +992,16 @@ if __name__ == '__main__':
                     if game_mode == 'ARENA (Simulation)':
                         display_adventurers(roster=roster, party=party, location=location)
                         simulate_arena(roster)
+                        location = 'Castle'
                     else:
                         if party:
                             display_party(party)
-                            enter_dungeon(party)
+                            explore_dungeon(party, monsters)
+                            for char in party:
+                                if char.hit_points <= 0:
+                                    char.status = 'DEAD'
+                                save_character(char)
+                            location = 'Castle'
                         else:
                             if roster:
                                 print(f'** NO PARTY FOUND! ** Return to {Color.RED}Castle{Color.END} to recruit adventurers!')
