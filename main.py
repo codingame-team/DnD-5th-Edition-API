@@ -30,7 +30,7 @@ def arena_continue_message() -> bool:
     return False
 
 
-def welcome_message():
+def welcome_message_old():
     global PAUSE_ON_RAISE_LEVEL
     if PAUSE_ON_RAISE_LEVEL:
         print(f'{color.PURPLE}-----------------------------------------------------------{color.END}')
@@ -429,7 +429,9 @@ def select_character(roster: List[Character]) -> Character:
 
 def arena(character: Character):
     """ Combat simulation """
-    welcome_message()
+    print(f'{color.PURPLE}-----------------------------------------------------------{color.END}')
+    print(f'{color.PURPLE} Combat simulation engine based on DnD 5th edition API{color.END}')
+    print(f'{color.PURPLE}-----------------------------------------------------------{color.END}')
     attack_count: int = 0
     killed_monsters: int = 0
     previous_level: int = character.level
