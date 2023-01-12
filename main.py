@@ -242,12 +242,12 @@ def create_character(races: List[Race], subraces: List[SubRace], classes: List[C
     inch2feet = lambda inches: f"{inches // 12}'{inches - (inches // 12) * 12}"
     height = feet2inch(*tuple((map(int, tuple(base_height.split("'"))))))
     roll_num, dice_num = map(int, height_modifier.split('d'))
-    height_roll_result = sum([random.randint(1, dice_num) for _ in range(roll_num)])
+    height_roll_result = sum([randint(1, dice_num) for _ in range(roll_num)])
     height += height_roll_result
     weight, unit = base_weight.split(' ')
     if 'd' in weight_modifier:
         roll_num, dice_num = map(int, weight_modifier.split('d'))
-        weight_roll_result = sum([random.randint(1, dice_num) for _ in range(roll_num)])
+        weight_roll_result = sum([randint(1, dice_num) for _ in range(roll_num)])
     else:
         weight_roll_result = 1
     weight = int(weight) + height_roll_result * weight_roll_result
@@ -350,16 +350,17 @@ def get_roster(characters_dir: str) -> List[Character]:
     return roster
 
 
-def display_adventurers(party: List[Character], roster: List[Character], location: str):
+def display_adventurers(roster: List[Character], location: str):
     toc: str = '{:-^53}\n'.format(f' {location} ')
     if party:
-        toc += '{:-^53}\n'.format(f' ** NOT AVAILABLE (in a party) ** ')
-    for char in party:
-        char_status: str = f' ({char.status})' if char.status != 'OK' else ''
-        toc += '|{:^51}|\n'.format(f'{char.name}{char_status} -> {char.hit_points}/{char.max_hit_points}  (Level {char.level})')
+        toc += '{:-^53}\n'.format(f' ** NOT AVAILABLE (in dungeon) ** ')
+    for char in roster:
+        if char.in_dungeon:
+            char_status: str = f' ({char.status})' if char.status != 'OK' else ''
+            toc += '|{:^51}|\n'.format(f'{char.name}{char_status} -> {char.hit_points}/{char.max_hit_points}  (Level {char.level})')
     toc += '{:-^53}\n'.format(f' ** AVAILABLE ** ')
     for char in roster:
-        if char not in party:
+        if not char.in_dungeon:
             char_status: str = f' ({char.status})' if char.status != 'OK' else ''
             toc += '|{:^51}|\n'.format(f'{char.name}{char_status} -> {char.hit_points}/{char.max_hit_points}  (Level {char.level})')
     toc += '|{:-^51}|\n'.format('')
@@ -520,7 +521,7 @@ def display_party(party: List[Character]):
     print(sheet)
 
 
-def add_member_to_party(roster, party):
+def add_member_to_party(roster: List[Character], party: List[Character]):
     if len(party) == 6:
         print(f'Party is **FULL**')
         sleep(1)
@@ -529,7 +530,11 @@ def add_member_to_party(roster, party):
         print(f'No more character in roster! Go to [Training Grounds] to create one.')
         sleep(2)
         return
-    char_names: List[str] = [c.name for c in roster if c.status == 'OK']
+    char_names: List[str] = [c.name for c in roster if c.status == 'OK' and not c.in_dungeon]
+    if not char_names:
+        print(f'All characters are busy in an adventure! Go to [Training Grounds] to create one.')
+        sleep(2)
+        return
     name: str = read_choice(char_names, 'Select character to add in party')
     char: Character = get_character(name, roster)
     if char:
@@ -540,7 +545,7 @@ def add_member_to_party(roster, party):
         sleep(1)
 
 
-def delete_member_from_party(roster, party):
+def delete_member_from_party(roster: List[Character], party: List[Character]):
     if not party:
         print(f'no member in **PARTY**')
         sleep(1)
@@ -666,6 +671,7 @@ def temple_of_cant(party: List[Character, roster: List[Character]]):
                 if success:
                     char_to_save.status = 'OK'
                     char_to_save.hit_points = 1
+                    char_to_save.age += randint(1, 52)
                     print(f'{char_to_save.name} ** LIVES! ***')
                 else:
                     char_to_save.status = 'ASHES'
@@ -676,7 +682,8 @@ def temple_of_cant(party: List[Character, roster: List[Character]]):
                 success: bool = randint(1, 100) < 40 + 3 * char_to_save.constitution
                 if success:
                     char_to_save.status = 'OK'
-                    char_to_save.hit_points = 1
+                    char_to_save.hit_points = char_to_save.max_hit_points
+                    char_to_save.age += randint(1, 52)
                     exit_message(f'{char_to_save.name} ** LIVES! ***')
                 else:
                     char_to_save.status = 'LOST'
@@ -715,8 +722,8 @@ def get_character(name: str, roster: List[Character]) -> Optional[Character]:
     return char_list[0] if char_list else None
 
 
-def simulate_arena(roster: List[Character], party: List[Character]):
-    available_chars: List[Character] = [c for c in roster if c not in party]
+def simulate_arena(roster: List[Character]):
+    available_chars: List[Character] = [c for c in roster]
     if not available_chars:
         print(f'no available characters for arena!')
         sleep(2)
@@ -846,6 +853,8 @@ if __name__ == '__main__':
     castle_destinations: List[str] = ['Gilgamesh\'s Tavern', 'Adventurer\'s Inn', 'Temple of Cant', 'Boltac\'s Trading Post', 'Edge of Town']
     edge_of_town_destinations: List[str] = ['Training Grounds', 'Maze', 'Leave Game', 'Castle']
     roster: List[Character] = get_roster(characters_dir)
+    party_ids: List[int] = set([c.id_party for c in roster if c.in_dungeon])
+    adventurer_groups: dict() = {p_id: [c for c in roster if c.id_party == p_id] for p_id in party_ids}
 
     location = 'Castle'
     party: List[Character] = []
@@ -886,15 +895,15 @@ if __name__ == '__main__':
             match destination:
                 case 'Training Grounds':
                     efface_ecran()
-                    training_grounds(roster + party)
+                    training_grounds(roster)
                     location = 'Castle'
                 case 'Maze':
                     efface_ecran()
                     game_modes: List[str] = ['ARENA (Simulation)', 'WIZARDRY (Enter Dungeon)']
                     game_mode: str = read_choice(game_modes, 'Choose game mode:')
                     if game_mode == 'ARENA (Simulation)':
-                        display_adventurers(party=party, roster=roster, location=location)
-                        simulate_arena(roster, party)
+                        display_adventurers(roster=roster, location=location)
+                        simulate_arena(roster)
                     else:
                         if party:
                             display_party(party)
