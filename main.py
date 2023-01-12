@@ -510,14 +510,17 @@ def arena(character: Character):
 
 
 def display_party(party: List[Character]):
-    sheet = '+{:-^47}+\n'.format(f' Party')
+    cols = 53
+    formatter: str = "+{:-^" + str(cols) + "}+\n"
+    sheet = formatter.format(f' Party')
     col1, col2, col3, col4, col5 = 10, 10, 3, 5, 6
-    sheet += f'| {str("Name").ljust(col1)} | {str("Class").ljust(col2)} | {str("AC").rjust(col3)} | {str("Hits").ljust(col4)}| {str("Status ").rjust(col5)}|\n'
+    col_level = 3
+    sheet += f'| {str("Name").ljust(col1)} | {str("LVL").rjust(col_level)} | {str("Class").ljust(col2)} | {str("AC").rjust(col3)} | {str("Hits").ljust(col4)}| {str("Status ").rjust(col5)}|\n'
     if party:
-        sheet += '+{:-^47}+\n'.format('')
+        sheet += formatter.format('')
     for char in party:
-        sheet += f'| {str(char.name).ljust(col1)} | {str(char.class_type).ljust(col2)} | {str(char.armor_class).rjust(col3)} | {str(char.hit_points).ljust(col4)}| {str(char.status).rjust(col5)} |\n'
-    sheet += '+{:-^47}+\n'.format('')
+        sheet += f'| {str(char.name).ljust(col1)} | {str(char.level).rjust(col_level)} | {str(char.class_type).ljust(col2)} | {str(char.armor_class).rjust(col3)} | {str(char.hit_points).ljust(col4)}| {str(char.status).rjust(col5)} |\n'
+    sheet += formatter.format('')
     print(sheet)
 
 
