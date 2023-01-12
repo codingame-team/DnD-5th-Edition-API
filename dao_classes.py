@@ -491,6 +491,7 @@ class Character:
         self.level += 1
         hp_gained = randint(1, 10)
         self.max_hit_points += hp_gained
+        self.hit_points += hp_gained
         print(f'{color.BLUE}New level #{self.level} gained!!!{color.END}')
         print(f'{self.name} gained {hp_gained} hit points')
         #  PROCEDURE GAINLOST;  (* P010A20 *)
