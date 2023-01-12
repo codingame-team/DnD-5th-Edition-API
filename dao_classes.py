@@ -318,6 +318,36 @@ class Abilities:
     wis: int
     cha: int
 
+    def get_value(self, name) -> int:
+        match name:
+            case 'Strength':
+                return self.str
+            case 'Dexterity':
+                return self.dex
+            case 'Constitution':
+                return self.con
+            case 'Intelligence':
+                return self.int
+            case 'Wisdom':
+                return self.wis
+            case 'Charism':
+                return self.cha
+
+    def set_value(self, name, value):
+        match name:
+            case 'Strength':
+                self.str = value
+            case 'Dexterity':
+                self.dex = value
+            case 'Constitution':
+                self.con = value
+            case 'Intelligence':
+                self.int = value
+            case 'Wisdom':
+                self.wis = value
+            case 'Charism':
+                self.cha = value
+
     def __repr__(self):
         return f'str: {self.str} dex: {self.dex} con: {self.con} int: {self.int} wis: {self.wis} cha: {self.cha}'
 
@@ -458,22 +488,24 @@ class Character:
         print(f'{color.BLUE}New level #{self.level} gained!!!{color.END}')
         print(f'{self.name} gained {hp_gained} hit points')
         #  PROCEDURE GAINLOST;  (* P010A20 *)
-        attributes: dict = {'Strength': self.strength, 'Dexterity': self.dexterity, 'Constitution': self.constitution, 'Intelligence': self.intelligence, 'Wisdom': self.wisdom, 'Charism': self.charism}
-        for attr_name, attr_value in attributes.items():
+        attributes: List[str] = ['Strength', 'Dexterity', 'Constitution', 'Intelligence', 'Wisdom', 'Charism']
+        for attr_name in attributes:
+            attr_value: int = self.abilities.get_value(name=attr_name)
             if randint(0, 3) % 4:
                 if randint(0, 129) < self.age // 52:
                     if attr_value == 18 and randint(0, 5) != 4:
                         continue
-                    attributes[attr_name] -= 1
-                    if attr_name == 'Constitution' and attributes[attr_name] == 2:
+                    attr_value -= 1
+                    if attr_name == 'Constitution' and attr_value == 2:
                         print('** YOU HAVE DIED OF OLD AGE **')
                         self.status = 'LOST'
                         self.hit_points = 0
                     else:
                         print(f'You lost {attr_name}')
                 elif attr_value < 18:
-                    attributes[attr_name] += 1
+                    attr_value += 1
                     print(f'You gained {attr_name}')
+            self.abilities.set_value(name=attr_name, value=attr_value)
 
 
     def attack(self, monster: Monster):
