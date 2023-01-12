@@ -377,6 +377,7 @@ class Character:
     weapon: Weapon
     gold: int
     status: str = 'OK'
+    id_party: int = -1
     OUT: bool = False
 
     # armor: Armor = field(init=False)
@@ -385,6 +386,10 @@ class Character:
     # def __post_init__(self):
     #     self.armor = [equipment for equipment in self.inventory if equipment.category == 'armor' and equipment.equiped]
     #     self.weapon = [equipment for equipment in self.inventory if equipment.category == 'weapon' and equipment.equiped]
+
+    @property
+    def in_dungeon(self):
+        return self.id_party != -1
 
     @property
     def attributes(self):
@@ -476,6 +481,7 @@ class Character:
         self.level += 1
         hp_gained = randint(1, 10)
         self.max_hit_points += hp_gained
+        self.hit_points += hp_gained
         print(f'{color.BLUE}New level #{self.level} gained!!!{color.END}')
         print(f'{self.name} gained {hp_gained} hit points')
         if pause:
