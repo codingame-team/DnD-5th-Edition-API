@@ -5,7 +5,8 @@ import json
 import os
 from typing import List, Tuple
 
-from dao_classes import Monster, Armor, Weapon, Race, SubRace, Proficiency, Class, Language, Equipment, WeaponProperty, WeaponRange, AbilityType, WeaponThrowRange, Trait, EquipmentCategory, Inventory
+from dao_classes import Monster, Armor, Weapon, Race, SubRace, Proficiency, Class, Language, Equipment, WeaponProperty, WeaponRange, AbilityType, WeaponThrowRange, Trait, EquipmentCategory, Inventory, \
+    Abilities
 
 """ CSV loads """
 
@@ -121,6 +122,7 @@ def request_monster(index_name: str) -> Monster:
     with open(f"{path}/data/monsters/{index_name}.json", "r") as f:
         data = json.loads(f.read())
     return Monster(name=data['name'],
+                   abilities=Abilities(str=data['strength'], dex=data['dexterity'], con=data['constitution'], int=data['intelligence'], wis=data['wisdom'], cha=data['charisma']),
                    armor_class=data['armor_class'],
                    hit_points=data['hit_points'],
                    hit_dice=data['hit_dice'],

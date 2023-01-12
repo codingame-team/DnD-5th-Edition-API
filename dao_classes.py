@@ -30,6 +30,7 @@ class color:
 @dataclass
 class Monster:
     name: str
+    abilities: Abilities
     armor_class: int
     hit_points: int
     hit_dice: str
@@ -45,7 +46,7 @@ class Monster:
         return dice_count * roll_dice
 
     def __copy__(self):
-        return Monster(self.name, self.armor_class, self.hit_points, self.hit_dice, self.xp, self.challenge_rating)
+        return Monster(self.name, self.abilities, self.armor_class, self.hit_points, self.hit_dice, self.xp, self.challenge_rating)
 
     def attack(self, character):
         """
@@ -457,7 +458,7 @@ class Character:
             gold: int = randint(1, max_gold + 1)
             gold_msg = f' and found {gold} gp!'
             self.gold += gold
-        cprint(f'{monster.name.title()} killed!')
+        cprint(f'{monster.name.title()} is ** KILLED **!')
         cprint(f'{self.name} gained {monster.xp} XP{gold_msg}!')
 
     def treasure(self, weapons, armors):
