@@ -350,7 +350,7 @@ def get_roster(characters_dir: str) -> List[Character]:
     return roster
 
 
-def display_adventurers(roster: List[Character], location: str):
+def display_adventurers(roster: List[Character], party: List[Character], location: str):
     toc: str = '{:-^53}\n'.format(f' {location} ')
     if party:
         toc += '{:-^53}\n'.format(f' ** NOT AVAILABLE (in dungeon) ** ')
@@ -423,7 +423,7 @@ def display_character_sheet_pyQT(char: Character):
 
 def select_character(roster: List[Character]) -> Character:
     """ Select Character """
-    character_name: str = read_choice([c.name for c in roster if c not in party], f'Choose a character to {Color.GREEN}* Begin adventure *{Color.END}')
+    character_name: str = read_choice([c.name for c in roster], f'Choose a character to {Color.GREEN}* Begin adventure *{Color.END}')
     character = [c for c in roster if c.name == character_name][0]
     return character
 
@@ -530,16 +530,15 @@ def add_member_to_party(roster: List[Character], party: List[Character]):
         print(f'No more character in roster! Go to [Training Grounds] to create one.')
         sleep(2)
         return
-    char_names: List[str] = [c.name for c in roster if c.status == 'OK' and not c.in_dungeon]
+    char_names: List[str] = [c.name for c in roster if c.status == 'OK' and c not in party and not c.in_dungeon]
     if not char_names:
-        print(f'All characters are busy in an adventure! Go to [Training Grounds] to create one.')
+        print(f'No available character to join party!')
         sleep(2)
         return
     name: str = read_choice(char_names, 'Select character to add in party')
     char: Character = get_character(name, roster)
     if char:
         party.append(char)
-        roster.remove(char)
     else:
         print(f'Program error! {name} unknown in Castle - Please contact the administrator...')
         sleep(1)
@@ -555,11 +554,9 @@ def delete_member_from_party(roster: List[Character], party: List[Character]):
     char: Character = get_character(char_name, party)
     if char:
         party.remove(char)
-        roster.append(char)
     else:
         print(f'Program error! {char_name} not in the party - Please contact the administrator...')
         sleep(1)
-
 
 
 def gilgamesh_tavern(party: List[Character], roster: List[Character]):
@@ -712,6 +709,10 @@ def adventurer_inn(party):
             weeks: List[int] = [0, 1, 3, 7, 10]
             room: str = read_choice(rooms, f'Hello {char.name}.')
             room_number: int = rooms.index(room)
+            if fees[room_number] > char.gold:
+                print(f'You Don\'t Have Enough Gold.')
+                sleep(2)
+                continue
             # print(f'{char.name} selected {room} - Fee is {fees[fee_no]} GP / Week!')
             rest_character(char, fees[room_number], weeks[room_number])
             save_character(char)
@@ -723,12 +724,11 @@ def get_character(name: str, roster: List[Character]) -> Optional[Character]:
 
 
 def simulate_arena(roster: List[Character]):
-    available_chars: List[Character] = [c for c in roster]
-    if not available_chars:
+    if not roster:
         print(f'no available characters for arena!')
         sleep(2)
         return
-    char: Character = select_character(available_chars)
+    char: Character = select_character(roster)
     while char.status != 'OK':
         print(f'{char.name} is ** {char.status} ** - Please select another character!')
         char: Character = select_character(roster)
@@ -778,6 +778,7 @@ def training_grounds(roster: List[Character]):
         print('| ** TRAINING GROUNDS ** |')
         print('+------------------------+')
         option: str = read_choice(tg_options)
+        char_names: List[str] = [c.name for c in roster]
         match option:
             case 'Create a New Character':
                 character = create_new_character(roster)
@@ -785,23 +786,19 @@ def training_grounds(roster: List[Character]):
                 roster.append(character)
             case 'Character Status':
                 efface_ecran()
-                char_names: List[str] = [c.name for c in roster]
                 name: str = read_choice(char_names, 'Select a Character.')
                 char: Character = get_character(name, roster)
                 display_character_sheet(char)
                 exit_message()
             case 'Delete a Character':
-                char_names: List[str] = [c.name for c in roster]
                 name: str = read_choice(char_names, 'Select a Character to Delete.')
-                char: Character = get_character(name, roster + party)
+                char: Character = get_character(name, roster)
                 display_character_sheet(char)
                 if delete_character_prompt_ok(char):
-                    if char in roster:
-                        roster.remove(char)
-                    else:
+                    if char in party:
                         party.remove(char)
+                    roster.remove(char)
             case 'Rename a Character':
-                char_names: List[str] = [c.name for c in roster]
                 name: str = read_choice(char_names, 'Select a Character to Rename.')
                 char: Character = get_character(name, roster + party)
                 print(f'Current Name is {char.name}.')
@@ -865,6 +862,7 @@ if __name__ == '__main__':
             print('|     ** CASTLE **     |')
             print('+----------------------+')
             destination: str = read_choice(castle_destinations)
+            party = [c for c in party if c.status == 'OK']
             match destination:
                 case 'Gilgamesh\'s Tavern':
                     gilgamesh_tavern(party, roster)
@@ -902,7 +900,7 @@ if __name__ == '__main__':
                     game_modes: List[str] = ['ARENA (Simulation)', 'WIZARDRY (Enter Dungeon)']
                     game_mode: str = read_choice(game_modes, 'Choose game mode:')
                     if game_mode == 'ARENA (Simulation)':
-                        display_adventurers(roster=roster, location=location)
+                        display_adventurers(roster=roster, party=party, location=location)
                         simulate_arena(roster)
                     else:
                         if party:
