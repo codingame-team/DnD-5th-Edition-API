@@ -1,10 +1,10 @@
 """ Needs to separate presentation layer from data layer """
 import os
+import pickle
 import sys
 import termios
 import tty
 from enum import Enum
-import pexpect
 
 
 class Color:
@@ -33,6 +33,7 @@ def cprint(*args):
     # return
     # print(*args, file=sys.stderr, flush=True)
     print(*args, flush=True)
+
 
 def get_key():
     old_settings = termios.tcgetattr(sys.stdin)
