@@ -101,16 +101,25 @@ def display_char_sheet(dialog: QDialog, ui: Ui_character_Dialog, char: Character
 
     dialog.exec_()
 
+def get_roster(characters_dir: str) -> List[Character]:
+    roster: List[Character] = []
+    char_file_list = os.scandir(characters_dir)
+    for entry in char_file_list:
+        if entry.is_file():
+            with open(entry, 'rb') as f1:
+                roster.append(pickle.load(f1))
+    return roster
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
 
     path = os.path.dirname(__file__)
-    roster: List[str] = os.listdir(f'{path}/gameState/characters')
-    debug(f'{len(roster)} characters in roster: \n{roster}')
+    characters_dir = f'{path}/../gameState/characters'
+    roster: List[Character] = get_roster(characters_dir)
+    debug(f'{len(roster)} characters in roster! \n')
     character_file: str = random.choice(roster)
-    with open(f'{path}/gameState/characters/{character_file}', 'rb') as f1:
-        debug(f'f1: {f1.name}')
+    with open(f'{characters_dir}/{character_file.name}.dmp', 'rb') as f1:
+        # debug(f'f1: {f1.name}')
         char: Character = pickle.load(f1)
 
     dialog = QDialog()

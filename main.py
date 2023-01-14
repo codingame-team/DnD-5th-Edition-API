@@ -335,20 +335,14 @@ def save_character(char: Character):
     with open(f'{characters_dir}/{char.name}.dmp', 'wb') as f1:
         pickle.dump(char, f1)
 
-
 def get_roster(characters_dir: str) -> List[Character]:
     roster: List[Character] = []
-    # char_file_list: List[str] = os.listdir(characters_dir)
     char_file_list = os.scandir(characters_dir)
     for entry in char_file_list:
         if entry.is_file():
             with open(entry, 'rb') as f1:
                 roster.append(pickle.load(f1))
-    # for character_filename in char_file_list:
-    #     with open(f'{path}/gameState/characters/{character_filename}', 'rb') as f1:
-    #         roster.append(pickle.load(f1))
     return roster
-
 
 def display_adventurers(roster: List[Character], party: List[Character], location: str):
     toc: str = '{:-^53}\n'.format(f' {location} ')

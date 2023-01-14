@@ -33,19 +33,3 @@ def load_party() -> List[Character]:
         return []
     with open(party_file, 'rb') as f1:
         return pickle.load(f1)
-
-
-def get_roster() -> List[Character]:
-    path = os.path.dirname(__file__)
-    party: List[Character] = load_party()
-    party_names: List[str] = [char.name for char in party]
-
-    roster: List[str] = os.listdir(f'{path}/gameState/characters')
-    # debug(roster)
-    roster: List[str] = [filename for filename in roster if os.path.isfile(f'{path}/gameState/characters/{filename}') and filename.split('.')[:-1] not in party_names]
-    training_grounds: List[Character] = []
-    for character_file in roster:
-        with open(f'{path}/gameState/characters/{character_file}', 'rb') as f1:
-            char: Character = pickle.load(f1)
-            training_grounds.append(char)
-    return training_grounds

@@ -1,3 +1,4 @@
+import os
 import sys
 from functools import partial
 from typing import List
@@ -6,13 +7,15 @@ from PyQt5.QtCore import pyqtSlot, QItemSelection
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QApplication, QMainWindow, QFrame, QTableWidget, QTableWidgetItem, QDialog, QLabel
 
-from dao_classes import Character
 from pyQTApp.character_sheet import display_char_sheet
-from pyQTApp.common import load_party, get_roster, load_welcome
+from pyQTApp.common import load_party, load_welcome
+from pyQTApp.qt_designer_widgets import castleWindow
 from pyQTApp.qt_designer_widgets.Tavern_module import Tavern_UI
 from pyQTApp.qt_designer_widgets.castleWindow import Ui_castleWindow
 from pyQTApp.qt_designer_widgets.character_dialog import Ui_character_Dialog
 from pyQTApp.qt_designer_widgets.gilgamesh_Tavern_QFrame import Ui_tavernFrame
+
+from main import get_roster
 
 
 def debug(*args):
@@ -45,7 +48,7 @@ def gilgamesh_tavern(castle_ui: Ui_castleWindow, castle_window: QMainWindow, val
     # castle_ui.welcome_label.destroy()
 
     tavernFrame = QFrame()
-    ui = Tavern_UI(castle_window=castle_window, castle_ui=castle_ui)
+    ui = Tavern_UI(characters_dir=characters_dir, castle_window=castle_window, castle_ui=castle_ui)
     # ui = Ui_tavernFrame()
     # ui.setupUi(tavernFrame)
     #
@@ -77,6 +80,9 @@ def gilgamesh_tavern(castle_ui: Ui_castleWindow, castle_window: QMainWindow, val
 
 
 if __name__ == "__main__":
+    path = os.path.dirname(__file__)
+    characters_dir = f'{path}/../gameState/characters'
+
     app = QApplication(sys.argv)
     castle_window = QMainWindow()
     castle_ui = Ui_castleWindow()

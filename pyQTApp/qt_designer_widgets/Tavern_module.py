@@ -5,8 +5,9 @@ from PyQt5.QtCore import pyqtSlot, QItemSelection
 from PyQt5.QtWidgets import QFrame, QTableWidget, QMainWindow, QTableWidgetItem, QDialog, QWidget
 
 from dao_classes import Character
+from main import get_roster
 from pyQTApp.character_sheet import display_char_sheet
-from pyQTApp.common import get_roster, debug, load_party
+from pyQTApp.common import debug, load_party
 from pyQTApp.qt_designer_widgets.castleWindow import Ui_castleWindow
 from pyQTApp.qt_designer_widgets.character_dialog import Ui_character_Dialog
 from pyQTApp.qt_designer_widgets.gilgamesh_Tavern_QFrame import Ui_tavernFrame
@@ -15,7 +16,7 @@ from pyQTApp.qt_designer_widgets.qt_common import populate, addItem
 
 
 class Tavern_UI(QWidget):
-    def __init__(self, castle_window: QMainWindow, castle_ui: Ui_castleWindow):
+    def __init__(self, characters_dir: str, castle_window: QMainWindow, castle_ui: Ui_castleWindow):
         super().__init__()
         self.tavernFrame = QFrame()
         self.ui = Ui_tavernFrame()
@@ -26,10 +27,11 @@ class Tavern_UI(QWidget):
         self.tavernFrame.setGeometry(castle_ui.castleFrame.geometry())
 
         # Populate roster
-        training_grounds: List[Character] = get_roster()
-        debug(f'{len(training_grounds)} characters in roster: \n{training_grounds}')
+
+        roster: List[Character] = get_roster(characters_dir)
+        debug(f'{len(roster)} characters in roster: \n{roster}')
         table: QTableWidget = self.ui.gilgameshTavern_tableWidget
-        populate(table, training_grounds)
+        populate(table, roster)
         table.selectionModel().selectionChanged.connect(partial(self.disable_remove_button, self.ui))
         self.ui.addToPartyButton.clicked.connect(self.add_char_to_party)
 
@@ -40,8 +42,8 @@ class Tavern_UI(QWidget):
         party_table.selectionModel().selectionChanged.connect(self.disable_add_button)
         self.ui.removeFromPartyButton.clicked.connect(self.remove_char_from_party)
 
-        table.itemDoubleClicked.connect(self.add_character)
-        party_table.itemDoubleClicked.connect(self.remove_character)
+        # table.itemDoubleClicked.connect(self.add_character)
+        # party_table.itemDoubleClicked.connect(self.remove_character)
 
         # ui.inspectButton.clicked.connect(inspect_char)
         self.ui.inspectButton.clicked.connect(partial(self.inspect_char, castle_ui))
