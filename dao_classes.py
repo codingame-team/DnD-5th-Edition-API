@@ -72,7 +72,7 @@ class Monster:
                             elif '-' in damage_dice:
                                 damage_dice, bonus_damage = map(int, damage_dice.split('-'))
                                 damage_given = sum([randint(1, damage_dice) - bonus_damage for _ in range(int(dice_count))])
-                        cprint(f'{color.RED}{self.name}{color.END} {damage.type.index} {color.GREEN}{character.name}{color.END} for {damage_given} hit points!')
+                        cprint(f"{color.RED}{self.name}{color.END} {damage.type.index.replace('ing', 'es')} {color.GREEN}{character.name}{color.END} for {damage_given} hit points!")
                         total_damage += damage_given
             else:
                 cprint(f'{self.name} misses {character.name}!')
