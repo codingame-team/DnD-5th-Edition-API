@@ -1,11 +1,5 @@
 ### DnD-5th-Edition-API ressources and links
 
-Usage to run:
-  - GUI mode (used to display character sheet):
-    - python /pyQT5App/wizardry.py
-  - console mode (used to create character sheet and also basic simulation of a fight arena):
-    - python ./main.py
-
 Simple project to illustrate usage of D&D 5th Edition API!
 
     useful resources:
