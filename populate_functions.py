@@ -6,7 +6,7 @@ import os
 from typing import List, Tuple
 
 from dao_classes import Monster, Armor, Weapon, Race, SubRace, Proficiency, Class, Language, Equipment, WeaponProperty, WeaponRange, AbilityType, WeaponThrowRange, Trait, EquipmentCategory, Inventory, \
-    Abilities
+    Abilities, Action, Damage, ActionType, DamageType
 
 """ CSV loads """
 
@@ -112,6 +112,15 @@ def populate(collection_name: str, key_name: str, with_url=False, collection_pat
         data_list = [json_data['index'] for json_data in collection_json_list]
     return data_list
 
+def request_damage_type(index_name: str) -> DamageType:
+    """
+    Send a request to local database for a damage type's characteristic
+    :param index_name: name of the damage type
+    :return: DamageType object
+    """
+    with open(f"{path}/data/damage-types/{index_name}.json", "r") as f:
+        data = json.loads(f.read())
+    return DamageType(index=data['index'], name=data['name'], desc=data['desc'])
 
 def request_monster(index_name: str) -> Monster:
     """
@@ -121,13 +130,43 @@ def request_monster(index_name: str) -> Monster:
     """
     with open(f"{path}/data/monsters/{index_name}.json", "r") as f:
         data = json.loads(f.read())
+
+    actions: List[Action] = []
+    if "actions" in data:
+        for action in data['actions']:
+            # print(f"{data['name']} - action = {action}")
+            if action['name'] != 'Multiattack' and "damage" in action and "Melee" in action['desc']:
+                damages: List[Damage] = []
+                for damage in action['damage']:
+                    # print(f'damage = {damage}')
+                    if "damage_type" in damage:
+                        damage_type: DamageType = request_damage_type(index_name=damage['damage_type']['index'])
+                        damages.append(Damage(type=damage_type, dice=damage['damage_dice']))
+                actions.append(Action(name=action['name'], desc=action['desc'], type=ActionType.MELEE, attack_bonus=action.get('attack_bonus'),
+                                      multi_attack=None, damages=damages))
+        for action in data['actions']:
+            if action['name'] == 'Multiattack':
+                multi_actions: List[Action] = []
+                for option in action['options']['from'][0]:
+                    multi_action: Action = [a for a in actions if a.name == option['name']]
+                    count: int = option['count']
+                    if not isinstance(count, int):
+                        continue
+                    if multi_action and option['type'] == 'melee':
+                        for _ in range(int(count)):
+                            multi_actions.append(multi_action[0])
+                actions.append(Action(name=action['name'], desc=action['desc'], type=ActionType.MELEE, attack_bonus=None,
+                                      multi_attack=multi_actions, damages=None))
+
     return Monster(name=data['name'],
                    abilities=Abilities(str=data['strength'], dex=data['dexterity'], con=data['constitution'], int=data['intelligence'], wis=data['wisdom'], cha=data['charisma']),
                    armor_class=data['armor_class'],
                    hit_points=data['hit_points'],
                    hit_dice=data['hit_dice'],
                    xp=data['xp'],
-                   challenge_rating=data['challenge_rating'])
+                   challenge_rating=data['challenge_rating'],
+                   actions=actions
+                   )
 
 
 def request_armor(index_name: str) -> Armor:

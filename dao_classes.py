@@ -36,6 +36,7 @@ class Monster:
     hit_dice: str
     xp: int
     challenge_rating: int
+    actions: List[Action]
 
     def __repr__(self):
         return f"{self.name} (AC {self.armor_class} HD: {self.hit_dice})"
@@ -46,22 +47,36 @@ class Monster:
         return dice_count * roll_dice
 
     def __copy__(self):
-        return Monster(self.name, self.abilities, self.armor_class, self.hit_points, self.hit_dice, self.xp, self.challenge_rating)
+        return Monster(self.name, self.abilities, self.armor_class, self.hit_points, self.hit_dice, self.xp, self.challenge_rating, self.actions)
 
-    def attack(self, character):
+    def attack(self, character) -> int:
         """
         :return: damage generated
         """
-        attack_roll = randint(1, 20)
-        damage_roll = 0
-        if attack_roll >= character.armor_class:
-            dice_count, roll_dice = map(int, self.hit_dice.split('d'))
-            damage_roll = sum([randint(1, roll_dice) for _ in range(dice_count)])
-        if damage_roll:
-            cprint(f'{color.RED}{self.name}{color.END} hits {color.GREEN}{character.name}{color.END} for {damage_roll} hit points!')
-        else:
-            cprint(f'{self.name} misses {character.name}!')
-        return damage_roll
+        total_damage: int = 0
+        if self.actions:
+            melee_attack: Action = choice(self.actions)
+            attack_roll = randint(1, 20) + melee_attack.attack_bonus if melee_attack.attack_bonus else randint(1, 20)
+            if attack_roll >= character.armor_class:
+                if melee_attack.damages:
+                    for damage in melee_attack.damages:
+                        damage_given: int = 0
+                        if 'd' not in damage.dice:
+                            dice_count, damage_dice = damage.dice, 6
+                            damage_given = sum([randint(1, damage_dice) for _ in range(int(dice_count))])
+                        else:
+                            dice_count, damage_dice = damage.dice.split('d')
+                            if '+' in damage_dice:
+                                damage_dice, bonus_damage = map(int, damage_dice.split('+'))
+                                damage_given = sum([randint(1, damage_dice) + bonus_damage for _ in range(int(dice_count))])
+                            elif '-' in damage_dice:
+                                damage_dice, bonus_damage = map(int, damage_dice.split('-'))
+                                damage_given = sum([randint(1, damage_dice) - bonus_damage for _ in range(int(dice_count))])
+                        cprint(f'{color.RED}{self.name}{color.END} {damage.type.index} {color.GREEN}{character.name}{color.END} for {damage_given} hit points!')
+                        total_damage += damage_given
+            else:
+                cprint(f'{self.name} misses {character.name}!')
+        return total_damage
 
 
 """ Character classes """
@@ -354,6 +369,30 @@ class Abilities:
 
 
 @dataclass
+class Damage:
+    type: DamageType
+    dice: str
+
+
+class ActionType(Enum):
+    MELEE = 'melee'
+    RANGED = 'ranged'
+    ABILITY = 'ability'
+    MAGIC = 'magic'
+
+
+@dataclass
+class Action:
+    name: str
+    desc: str
+    type: ActionType
+    attack_bonus: Optional[int]
+    multi_attack: Optional[List[Action]]
+    damages: Optional[List[Damage]]
+
+
+
+@dataclass
 class Character:
     name: str
     race: Race
@@ -423,14 +462,14 @@ class Character:
     def __repr__(self):
         race = self.subrace if self.subrace else self.race
         ethnic = f'ethnic: {self.ethnic} - ' if self.ethnic else ''
-        return f"{self.name} - Age: {self.age // 52} - Abilities: {self.abilities} - Ability modifiers: {self.ability_modifiers} - ({ethnic}{self.gender} {race.name} - height: {self.height} weight: {self.weight}- class: {self.class_type} - AC {self.armor_class} HD: {self.hit_dice} - w: {self.weapon.name} a: {self.armor.name} - potions: {len(self.healing_potions)})"
+        return f"{self.name} - Age: {self.age // 52} - Abilities: {self.abilities} - Ability modifiers: {self.ability_modifiers} - ({ethnic}{self.gender} {race.name} - height: {self.height} weight: {self.weight}- class: {self.class_type} - AC {self.armor_class} Damage: {self.damage_dice} - w: {self.weapon.name} a: {self.armor.name} - potions: {len(self.healing_potions)})"
 
     @property
     def armor_class(self):
         return self.armor.armor_class['base']
 
     @property
-    def hit_dice(self):
+    def damage_dice(self):
         return self.weapon.damage_dice
 
     """Healing (??? check rules): A Healing potion repairs one six-sided die, plus one, (2-7) points of damage, just like a Cure Light Wounds spell."""
@@ -438,9 +477,9 @@ class Character:
     def drink_potion(self):
         hp_to_recover = self.max_hit_points - self.hit_points
         available_potions = [p for p in self.healing_potions if p.max_hp_restored >= hp_to_recover]
-        best_potion = min(available_potions, key=lambda p: p.max_hp_restored) if available_potions else max(self.healing_potions, key=lambda p: p.max_hp_restored)
+        best_potion: Potion = min(available_potions, key=lambda p: p.max_hp_restored) if available_potions else max(self.healing_potions, key=lambda p: p.max_hp_restored)
         self.healing_potions.remove(best_potion)
-        dice_count, roll_dice = map(int, self.hit_dice.split('d'))
+        dice_count, roll_dice = map(int, best_potion.hit_dice.split('d'))
         hp_restored = 2 + randint(1, roll_dice) + randint(1, roll_dice)
         self.hit_points = min(self.hit_points + hp_restored, self.max_hit_points)
         if hp_to_recover <= hp_restored:
@@ -476,7 +515,6 @@ class Character:
             if new_armor.armor_class['base'] > self.armor.armor_class['base']:
                 cprint(f"{self.name} found a better armor {new_armor}!")
                 self.armor = new_armor
-
 
     def gain_level_arena(self, pause: bool):
         self.level += 1
@@ -515,7 +553,6 @@ class Character:
                     print(f'You gained {attr_name}')
             self.abilities.set_value(name=attr_name, value=attr_value)
 
-
     def attack(self, monster: Monster):
         """
         :return: damage generated
@@ -523,7 +560,7 @@ class Character:
         attack_roll = randint(1, 20)
         damage_roll = 0
         if attack_roll >= monster.armor_class:
-            dice_count, roll_dice = map(int, self.hit_dice.split('d'))
+            dice_count, roll_dice = map(int, self.damage_dice.split('d'))
             damage_roll = sum([randint(1, roll_dice) for _ in range(dice_count)])
         if damage_roll:
             cprint(f'{color.GREEN}{self.name}{color.END} hits {color.RED}{monster.name}{color.END} for {damage_roll} hit points!')
