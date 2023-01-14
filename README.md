@@ -10,12 +10,13 @@ Usage to run:
 Prerequisites:
 - List of required modules for python v3.11:
     ./requirements.txt
-- Procedure to install modules:
-  - Using IntelliJ PyCharm
-  - Using command line:
-    - Get the latest version of pip module:
-      - pip install --upgrade pip
-      - If pip3.11 is you latest version:
-        - pip3.11 install -r requirements.txt
+- Procedure to install modules (inside your local or virtual Python environnement):
+  - Noob method (best): Let your favorite IDE handle missing modules (preferred IDE: IntelliJ PyCharm 2022.3 Community Edition)
+  - Geek method (stupid):
+    - Using command line:
+      - Get the latest version of pip module:
+        - pip install --upgrade pip
+        - If pip3.11 is you latest version:
+          - pip3.11 install -r requirements.txt
 
 
