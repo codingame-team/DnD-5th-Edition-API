@@ -510,16 +510,15 @@ def arena(character: Character):
 
 
 def display_party(party: List[Character]):
-    cols = 53
+    c_list = c_name, c_level, c_class, c_AC, c_hits, c_status, c_age = (15, 3, 10, 3, 5, 8, 3)
+    cols = sum(c_list) + 3 * len(c_list) - 1
     formatter: str = "+{:-^" + str(cols) + "}+\n"
     sheet = formatter.format(f' Party')
-    col1, col2, col3, col4, col5 = 10, 10, 3, 5, 6
-    col_level = 3
-    sheet += f'| {str("Name").ljust(col1)} | {str("LVL").rjust(col_level)} | {str("Class").ljust(col2)} | {str("AC").rjust(col3)} | {str("Hits").ljust(col4)}| {str("Status ").rjust(col5)}|\n'
+    sheet += f'| {str("Name").ljust(c_name)} | {str("LVL").center(c_level)} | {str("Class").center(c_class)} | {str("AC").center(c_AC)} | {str("Hits").center(c_hits)} | {str("Status").center(c_status)} | {str("Age").center(c_age)} |\n'
     if party:
         sheet += formatter.format('')
     for char in party:
-        sheet += f'| {str(char.name).ljust(col1)} | {str(char.level).rjust(col_level)} | {str(char.class_type).ljust(col2)} | {str(char.armor_class).rjust(col3)} | {str(char.hit_points).ljust(col4)}| {str(char.status).rjust(col5)} |\n'
+        sheet += f'| {str(char.name).ljust(c_name)} | {str(char.level).center(c_level)} | {str(char.class_type).title().center(c_class)} | {str(char.armor_class).center(c_AC)} | {str(char.hit_points).center(c_hits)} | {str(char.status).center(c_status)} | {str(char.age // 52).center(c_age)} |\n'
     sheet += formatter.format('')
     print(sheet)
 
