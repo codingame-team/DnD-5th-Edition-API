@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import pickle
 import sys
+from collections import namedtuple
 from copy import copy
 from os import listdir
 from os.path import isfile, join
@@ -153,8 +154,20 @@ def choose_equipment_from(starting_equipment_options: List[List[Inventory]]):
     return starting_equipment
 
 
-def create_character(races: List[Race], subraces: List[SubRace], classes: List[Class], proficiencies: List[Proficiency], equipments: List[Equipment], names: dict(), human_names: dict(),
-                     reserved_names: List[str]):
+def create_new_character_start(races: List[Race], subraces: List[SubRace], classes: List[ClassType], proficiencies: List[Proficiency], equipments: List[Equipment], names: dict(), human_names: dict(),
+                               reserved_names: List[str]) -> tuple:
+    """
+        Character selection on 1st set of attributes
+    :param races: list of available races
+    :param subraces: list of available subraces
+    :param classes: list of available classes
+    :param proficiencies: list of available proficiencies
+    :param equipments: list of available equipments
+    :param names: list of available names (except humans)
+    :param human_names: list of available human names
+    :param reserved_names: list of names assigned to existing characters
+    :return: tuple (race, subrace, class_type, abilities, ability_modifiers, name, gender, ethnic, height, weight, starting_equipment)
+    """
     print(f'{color.PURPLE}-------------------------------------------------------{color.END}')
     print(f'{color.PURPLE} Character creation based on DnD 5th edition API{color.END}')
     print(f'{color.PURPLE}-------------------------------------------------------{color.END}')
@@ -186,7 +199,7 @@ def create_character(races: List[Race], subraces: List[SubRace], classes: List[C
     """ 2. Choose a class """
     class_names = [c.index for c in classes]
     class_type: str = read_choice(class_names, 'Choose class:')
-    class_type: Class = [c for c in classes if c.index == class_type][0]
+    class_type: ClassType = [c for c in classes if c.index == class_type][0]
     # Choose proficiencies within the class
     chosen_proficiencies: List[str] = []
     for choose, proficiency_choices in class_type.proficiency_choices:
@@ -276,26 +289,34 @@ def load_character_collections() -> Tuple:
     equipments = [request_equipment(name) for name in equipment_names]
     proficiencies_names: List[str] = populate(collection_name='proficiencies', key_name='results')
     proficiencies = [request_proficiency(name) for name in proficiencies_names]
-    return races, subraces, classes, alignments, equipments, proficiencies, names, human_names
+    spell_names: List[str] = populate(collection_name='spells', key_name='results')
+    spells: List[Spell] = [request_spell(name) for name in spell_names]
+    spells = [s for s in spells if s is not None]
+    return races, subraces, classes, alignments, equipments, proficiencies, names, human_names, spells
 
 
 def load_dungeon_collections() -> Tuple:
     """ Monster, Armor and Weapon databases """
-    monsters_names: List[str] = populate(collection_name='monsters', key_name='results')
-    monsters: List[Monster] = [request_monster(name) for name in monsters_names]
-    armors_names: List[str] = populate(collection_name='armors', key_name='equipment')
-    armors: List[Armor] = [request_armor(name) for name in armors_names]
-    weapons_names: List[str] = populate(collection_name='weapons', key_name='equipment')
-    weapons: List[Weapon] = [request_weapon(name) for name in weapons_names]
+    monster_names: List[str] = populate(collection_name='monsters', key_name='results')
+    monsters: List[Monster] = [request_monster(name) for name in monster_names]
+    armor_names: List[str] = populate(collection_name='armors', key_name='equipment')
+    armors: List[Armor] = [request_armor(name) for name in armor_names]
+    weapon_names: List[str] = populate(collection_name='weapons', key_name='equipment')
+    weapons: List[Weapon] = [request_weapon(name) for name in weapon_names]
     return monsters, armors, weapons
 
 
-def create_new_character(roster) -> Character:
-    """ Character creation """
-    races, subraces, classes, alignments, equipments, proficiencies, names, human_names = load_character_collections()
+def create_new_character(roster: List[Character]) -> Character:
+    """
+        Character creation's procedure (split in 2 functions, calls create_character)
+    :param roster: list of existing characters (needed for name selection as name is the character file's identifier)
+    :return: Character object
+    """
+    # TODO: do not load spell data collections if class_type cannot perform spell casting
+    races, subraces, classes, alignments, equipments, proficiencies, names, human_names, spells = load_character_collections()
     reserved_names: List[str] = [c.name for c in roster]
     race, subrace, class_type, abilities, ability_modifiers, name, gender, ethnic, height, weight, starting_equipment \
-        = create_character(races=races, subraces=subraces, classes=classes, equipments=equipments, proficiencies=proficiencies, names=names, human_names=human_names, reserved_names=reserved_names)
+        = create_new_character_start(races=races, subraces=subraces, classes=classes, equipments=equipments, proficiencies=proficiencies, names=names, human_names=human_names, reserved_names=reserved_names)
     # Equip the character with a weapon and an armor from the starting equipment list of the class
     available_weapons = {e.index: e for e in starting_equipment if e.category.index == 'weapon'}
     available_armors = {e.index: e for e in starting_equipment if e.category.index == 'armor'}
@@ -306,6 +327,16 @@ def create_new_character(roster) -> Character:
     chosen_armor: str = read_choice(list(available_armors.keys()), f'Choose 1 armor to equip')
     chosen_armor: Armor = available_armors[chosen_armor]
     hit_points = class_type.hit_die
+
+    start_level: int = 1
+    learned_spells: List[Spell] = []
+    if class_type.can_cast:
+        spells: List[Spell] = [s for s in spells if class_type.index in s.allowed_classes and s.min_level <= start_level]
+        if spells:
+            n_spells: int = min(len(spells), class_type.spells_known[start_level - 1])
+            learned_spells = sample(spells, n_spells)
+
+    """ Load Spells characteristic """
     character: Character = Character(race=race,
                                      subrace=subrace,
                                      class_type=class_type,
@@ -326,7 +357,10 @@ def create_new_character(roster) -> Character:
                                      healing_potions=[Potion('2d4')] * POTION_INITIAL_PACK,
                                      monster_kills=0,
                                      age=18 * 52 + randint(0, 299),
-                                     gold=90 + randint(0, 99))
+                                     gold=90 + randint(0, 99),
+                                     spell_slots=class_type.spell_slots,
+                                     learned_spells=learned_spells)
+    exit_message()
     return character
 
 
@@ -334,6 +368,7 @@ def save_character(char: Character):
     # print(f'Sauvegarde personnage {char.name}')
     with open(f'{characters_dir}/{char.name}.dmp', 'wb') as f1:
         pickle.dump(char, f1)
+
 
 def get_roster(characters_dir: str) -> List[Character]:
     roster: List[Character] = []
@@ -343,6 +378,7 @@ def get_roster(characters_dir: str) -> List[Character]:
             with open(entry, 'rb') as f1:
                 roster.append(pickle.load(f1))
     return roster
+
 
 def display_adventurers(roster: List[Character], party: List[Character], location: str):
     toc: str = '{:-^53}\n'.format(f' {location} ')
@@ -390,6 +426,11 @@ def display_character_sheet(char: Character):
     sheet += '|{:^51}|\n'.format(f'armor = {char.armor.name.title()}')
     sheet += '|{:^51}|\n'.format(f'weapon = {char.weapon.name.title()} - Damage = {char.weapon.damage_dice}')
     sheet += '|{:^51}|\n'.format(f'gold = {char.gold} gp')
+    if char.class_type.can_cast:
+        known_spells: int = len(char.learned_spells)
+        sheet += '|{:^51}|\n'.format(f'{known_spells} known spells:')
+        for i, spell in enumerate(char.learned_spells):
+            sheet += '|{:^51}|\n'.format(f'{i + 1} - {spell}')
     sheet += '+{:-^51}+\n'.format('')
     print(sheet)
 
@@ -452,7 +493,7 @@ def arena(character: Character):
         #     character.gain_level(pause=PAUSE_ON_RAISE_LEVEL)
         monster: Monster = copy(choice(monsters_to_fight))
         cprint(f'{color.PURPLE}-------------------------------------------------------------------------------------------------------------------------------------------{color.END}')
-        cprint(f'{color.PURPLE} New explore_dungeon! {character} vs {monster}{color.END}')
+        cprint(f'{color.PURPLE} New encounter! {character} vs {monster}{color.END}')
         cprint(f'{color.PURPLE}-------------------------------------------------------------------------------------------------------------------------------------------{color.END}')
         round_num = 0
         monster_max_hp = monster.hit_points
@@ -504,15 +545,16 @@ def arena(character: Character):
 
 
 def display_party(party: List[Character]):
-    c_list = c_name, c_level, c_class, c_AC, c_hits, c_status, c_age = (15, 3, 10, 3, 5, 8, 3)
-    cols = sum(c_list) + 3 * len(c_list) - 1
-    formatter: str = "+{:-^" + str(cols) + "}+\n"
+    CharacterTable = namedtuple('CharacterTable', ['name', 'level', 'class_type', 'AC', 'hits', 'status', 'age'])
+    c: CharacterTable = CharacterTable(name=15, level=3, class_type=10, AC=3, hits=8, status=8, age=3)
+    n_cols: int = sum(c) + 3 * len(c) - 1
+    formatter: str = "+{:-^" + str(n_cols) + "}+\n"
     sheet = formatter.format(f' Party')
-    sheet += f'| {str("Name").ljust(c_name)} | {str("LVL").center(c_level)} | {str("Class").center(c_class)} | {str("AC").center(c_AC)} | {str("Hits").center(c_hits)} | {str("Status").center(c_status)} | {str("Age").center(c_age)} |\n'
+    sheet += f"| {str('Name').ljust(c.name)} | {str('LVL').center(c.level)} | {str('Class').center(c.class_type)} | {str('AC').center(c.AC)} | {str('Hits').center(c.hits)} | {str('Status').center(c.status)} | {str('Age').center(c.age)} |\n"
     if party:
         sheet += formatter.format('')
     for char in party:
-        sheet += f'| {str(char.name).ljust(c_name)} | {str(char.level).center(c_level)} | {str(char.class_type).title().center(c_class)} | {str(char.armor_class).center(c_AC)} | {str(char.hit_points).center(c_hits)} | {str(char.status).center(c_status)} | {str(char.age // 52).center(c_age)} |\n'
+        sheet += f"| {str(char.name).ljust(c.name)} | {str(char.level).center(c.level)} | {str(char.class_type).title().center(c.class_type)} | {str(char.armor_class).center(c.AC)} | {f'{char.hit_points}/{char.max_hit_points}'.center(c.hits)} | {str(char.status).center(c.status)} | {str(char.age // 52).center(c.age)} |\n"
     sheet += formatter.format('')
     print(sheet)
 
@@ -609,11 +651,14 @@ def display_rest_message(char: Character):
 def rest_character(char: Character, fee: int, weeks: int):
     display_rest_message(char)
     while fee and char.hit_points < char.max_hit_points and char.gold >= fee:
-        print(f'{char.name} gains {fee / 10} hp')
+        print(f'{char.name} gains {fee // 10} hp')
         char.hit_points = min(char.max_hit_points, char.hit_points + fee // 10)
         char.gold -= fee
         char.age += weeks
         display_rest_message(char)
+    print(f'{char.name} memorized all his spells')
+    for level in range(1, char.level):
+        char.spell_slots[level] = char.class_type.spell_slots[level]
     if char.level < len(xp_levels) and char.xp > xp_levels[char.level]:
         char.gain_level()
     exit_message()

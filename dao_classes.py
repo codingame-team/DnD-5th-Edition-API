@@ -226,6 +226,9 @@ class DamageType():
     name: str
     desc: str
 
+    def __repr__(self):
+        return f'{self.index}'
+
 
 @dataclass
 class Weapon(Equipment):
@@ -268,7 +271,7 @@ class AbilityType(Enum):
 
 
 @dataclass
-class Class:
+class ClassType:
     index: str
     name: str
     hit_die: int
@@ -281,6 +284,9 @@ class Class:
     multi_classing: List[str]  # Not yet implemented
     subclasses: List[str]  # Not yet implemented
     spellcasting: str  # Not yet implemented
+    can_cast: bool
+    spell_slots: dict()
+    spells_known: List[int]
 
     def __repr__(self):
         return f"{self.index}"
@@ -290,7 +296,7 @@ class Class:
 class Feature:
     index: str
     name: str
-    class_type: Class
+    class_type: ClassType
     class_level: int
     prerequisites: List[str]
     desc: List[str]
@@ -299,7 +305,7 @@ class Feature:
 @dataclass
 class Level:
     index: str
-    class_type: Class
+    class_type: ClassType
     ability_score_bonuses: int
     prof_bonus: int
     features: List[Feature]
@@ -317,13 +323,7 @@ class BackGround:
     starting_equipment_options: List[Equipment]
 
 
-# @dataclass
-# class Class:
-#     name: str
-#     ability_bonuses: dict()
-#     starting_proficiencies: List[Proficiency]
-#     speed: int
-#     size: str
+
 
 @dataclass
 class Abilities:
@@ -373,6 +373,25 @@ class Damage:
     type: DamageType
     dice: str
 
+@dataclass
+class Spell:
+    index: str
+    name: str
+    desc: str
+    min_level: int
+    allowed_classes: List[str]
+    damage_type: DamageType  # For saving throw
+    damage_at_slot_level: dict()
+    damage_at_character_level: dict()
+
+    def __repr__(self):
+        return f'{self.name}'
+
+    def get_damage(self, char_level: int, slot_level: int) -> Tuple[str, str]:
+        # TODO modify request_class() in populate_functions to put int instead of str
+        damage_dice: str = self.damage_at_slot_level[str(slot_level)] if self.damage_at_slot_level else self.damage_at_character_level[str(char_level)]
+        return self.damage_type, damage_dice
+
 
 class ActionType(Enum):
     MELEE = 'melee'
@@ -389,7 +408,6 @@ class Action:
     attack_bonus: Optional[int]
     multi_attack: Optional[List[Action]]
     damages: Optional[List[Damage]]
-
 
 
 @dataclass
@@ -416,6 +434,8 @@ class Character:
     armor: Armor
     weapon: Weapon
     gold: int
+    spell_slots: dict()
+    learned_spells: List[Spell]
     status: str = 'OK'
     id_party: int = -1
     OUT: bool = False
@@ -557,13 +577,26 @@ class Character:
         """
         :return: damage generated
         """
-        attack_roll = randint(1, 20)
         damage_roll = 0
-        if attack_roll >= monster.armor_class:
-            dice_count, roll_dice = map(int, self.damage_dice.split('d'))
+        can_cast: bool = False
+        available_levels: List[int] = [sp_level for sp_level, slots in enumerate(self.spell_slots[self.level]) if slots > 0]
+        if available_levels:
+            max_sp_level: int = max(available_levels)
+            attack_spell: Spell = choice([s for s in self.learned_spells if s.min_level < max_sp_level + 1])
+            # TODO implement cantric spells costs
+            slot_level: int = max(1, attack_spell.min_level)
+            self.spell_slots[self.level][slot_level - 1] -= 1
+            damage_type, damage_dice = attack_spell.get_damage(char_level=self.level, slot_level=slot_level - 1)
+            dice_count, roll_dice = map(int, damage_dice.split('d'))
             damage_roll = sum([randint(1, roll_dice) for _ in range(dice_count)])
-        if damage_roll:
-            cprint(f'{color.GREEN}{self.name}{color.END} hits {color.RED}{monster.name}{color.END} for {damage_roll} hit points!')
+            cprint(f'{color.GREEN}{self.name}{color.END} ** CAST SPELL {attack_spell.name.upper()} ** {color.RED}{monster.name}{color.END} is hit for {damage_roll} hit points!')
         else:
-            cprint(f'{self.name} misses {monster.name}!')
+            attack_roll = randint(1, 20)
+            if attack_roll >= monster.armor_class:
+                dice_count, roll_dice = map(int, self.damage_dice.split('d'))
+                damage_roll = sum([randint(1, roll_dice) for _ in range(dice_count)])
+            if damage_roll:
+                cprint(f'{color.GREEN}{self.name}{color.END} hits {color.RED}{monster.name}{color.END} for {damage_roll} hit points!')
+            else:
+                cprint(f'{self.name} misses {monster.name}!')
         return damage_roll

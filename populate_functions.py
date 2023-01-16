@@ -5,8 +5,8 @@ import json
 import os
 from typing import List, Tuple
 
-from dao_classes import Monster, Armor, Weapon, Race, SubRace, Proficiency, Class, Language, Equipment, WeaponProperty, WeaponRange, AbilityType, WeaponThrowRange, Trait, EquipmentCategory, Inventory, \
-    Abilities, Action, Damage, ActionType, DamageType
+from dao_classes import Monster, Armor, Weapon, Race, SubRace, Proficiency, ClassType, Language, Equipment, WeaponProperty, WeaponRange, AbilityType, WeaponThrowRange, Trait, EquipmentCategory, Inventory, \
+    Abilities, Action, Damage, ActionType, DamageType, Spell
 
 """ CSV loads """
 
@@ -66,7 +66,6 @@ def read_csvfile(filename: str):
     :param filename: csv file in Tables directory
     :return: list of dictionaries
     """
-    result = []
     with open(f'{path}/Tables/{filename}', newline='') as csv_file:
         reader = csv.reader(csv_file, delimiter=';')
         next(reader, None)
@@ -168,6 +167,27 @@ def request_monster(index_name: str) -> Monster:
                    actions=actions
                    )
 
+def request_spell(index_name: str) -> Spell:
+    """
+    Send a request to local database for a spell's characteristic
+    :param index_name: name of the monster
+    :return: Spell object
+    """
+    with open(f"{path}/data/spells/{index_name}.json", "r") as f:
+        data = json.loads(f.read())
+    allowed_classes: List[str] = [c['index'] for c in data['classes']]
+    if "damage" in data:
+        # print(data['index'], data['damage'])
+        damage_type = data['damage']['damage_type']['index'] if "damage_type" in data['damage'] else None
+        return Spell(index=data['index'],
+                     name=data['name'],
+                     desc=data['desc'],
+                     min_level=data['level'],
+                     allowed_classes=allowed_classes,
+                     damage_type=damage_type,
+                     damage_at_slot_level=data['damage'].get('damage_at_slot_level'),
+                     damage_at_character_level=data['damage'].get('damage_at_character_level')
+                     )
 
 def request_armor(index_name: str) -> Armor:
     """
@@ -403,11 +423,60 @@ def request_equipment(index_name: str) -> Equipment:
                              desc=data.get('desc'))
 
 
-def request_class(index_name: str, known_proficiencies: List[Proficiency] = None, abilities: List[AbilityType] = None) -> Class:
+def get_spell_slots(class_name: str) -> Tuple[dict(), dict()]:
+    """
+        Determine the spell slots and known spells by level
+    :param class_name: class_type name
+    :return: known spells and spell slots by level
+    """
+    csv_filename: str = f'{class_name}-{class_name}.csv'
+    slots: List[str] = []
+    spell_slots: dict() = dict()
+    spells_known: List[int] = []
+    str2int = lambda x: 0 if not x else int(x)
+    #print(class_name)
+    match class_name:
+        case 'Wizard' | 'Druid' | 'Cleric' | 'Ranger':
+            # Lvl;Proficiency Bonus;Features;Cantrips Known;1;2;3;4;5;6;7;8;9
+            data = read_csvfile(csv_filename)
+            # print(data)
+            for line in data:
+                level, prof_bonus, features, sp_known, *slots = line
+                spell_slots[int(level)] = list(map(str2int, slots))
+                spells_known.append(str2int(sp_known))
+            # print(f'{class_name} - spell slots : {spell_slots} - - spell known : {spells_known}')
+        case 'Paladin':
+            data = read_csvfile(csv_filename)
+            for line in data:
+                level, prof_bonus, features, *slots = line
+                spell_slots[int(level)] = list(map(str2int, slots))
+                spells_known.append(str2int(level) + 2)
+        case 'Sorcerer':
+            data = read_csvfile(csv_filename)
+            for line in data:
+                level, prof_bonus, sorcery_points, features, cantrips_known, sp_known, *slots = line
+                spell_slots[int(level)] = list(map(str2int, slots))
+                spells_known.append(str2int(sp_known))
+        case 'Bard':
+            data = read_csvfile(csv_filename)
+            for line in data:
+                level, prof_bonus, features, cantrips_known, sp_known, *slots = line
+                spell_slots[int(level)] = list(map(str2int, slots))
+                spells_known.append(str2int(sp_known))
+        case 'Warlock':
+            data = read_csvfile(csv_filename)
+            for line in data:
+                # Lvl;Proficiency Bonus;Features;Cantrips Known;Spells Known;Spell Slots;Slot Level;Invocations Known
+                level, prof_bonus, features, cantrips_known, sp_known, spell_slot, spell_level, inv_known = line
+                spell_slots[int(level)] = [int(spell_slot)] * int(spell_level) + [0] * (5 - int(spell_level))
+                spells_known.append(str2int(sp_known))
+    return spell_slots, spells_known
+
+def request_class(index_name: str, known_proficiencies: List[Proficiency] = None, abilities: List[AbilityType] = None) -> ClassType:
     """
     Send a request to local database for a class's characteristic
     :param index_name: name of the class
-    :return: Class object
+    :return: ClassType object
     """
     with open(f"{path}/data/classes/{index_name}.json", "r") as f:
         data = json.loads(f.read())
@@ -460,16 +529,26 @@ def request_class(index_name: str, known_proficiencies: List[Proficiency] = None
             if equipments_choose:
                 # starting_equipment_options.append((choose, equipments_choose))
                 starting_equipment_options.append(equipments_choose)
+
         saving_throws: List[AbilityType] = [AbilityType(d['index']) for d in data['saving_throws']]
-        return Class(index=data['index'],
-                     name=data['name'],
-                     hit_die=data['hit_die'],
-                     proficiency_choices=proficiency_choices,
-                     proficiencies=proficiencies,
-                     saving_throws=saving_throws,
-                     starting_equipment=starting_equipment,
-                     starting_equipment_options=starting_equipment_options,
-                     class_levels=data['class_levels'],
-                     multi_classing=data['multi_classing'],
-                     subclasses=data['subclasses'],
-                     spellcasting=data.get('spellcasting'))
+
+        can_cast: bool = 'spells' in data
+        spell_slots, spells_known = {}, []
+        if can_cast:
+            spell_slots, spells_known = get_spell_slots(class_name=data['name'])
+
+        return ClassType(index=data['index'],
+                         name=data['name'],
+                         hit_die=data['hit_die'],
+                         proficiency_choices=proficiency_choices,
+                         proficiencies=proficiencies,
+                         saving_throws=saving_throws,
+                         starting_equipment=starting_equipment,
+                         starting_equipment_options=starting_equipment_options,
+                         class_levels=data['class_levels'],
+                         multi_classing=data['multi_classing'],
+                         subclasses=data['subclasses'],
+                         spellcasting=data.get('spellcasting'),
+                         can_cast='spells' in data,
+                         spell_slots=spell_slots,
+                         spells_known=spells_known)
