@@ -211,9 +211,9 @@ def create_new_character_start(races: List[Race], subraces: List[SubRace], class
     # should be deleted (duplicate with character.class_type.proficiencies)
     proficiencies += race.starting_proficiencies
     """ 2. Choose a class """
-    class_names = [c.index for c in classes]
-    class_type: str = read_choice(class_names, 'Choose class:')
-    class_type: ClassType = [c for c in classes if c.index == class_type][0]
+    class_indexes = [c.index for c in classes]
+    class_index: str = read_choice(class_indexes, 'Choose class:')
+    class_type: ClassType = [c for c in classes if c.index == class_index][0]
     # Choose proficiencies within the class
     chosen_proficiencies: List[str] = []
     for choose, proficiency_choices in class_type.proficiency_choices:
@@ -697,7 +697,8 @@ def rest_character(char: Character, fee: int, weeks: int):
         display_rest_message(char)
     if char.class_type.can_cast:
         char.spell_slots = deepcopy(char.class_type.spell_slots[char.level])
-        print(f'{char.name} has memorized all his spells')
+        if sum(char.spell_slots) < sum(char.class_type.spell_slots[char.level]):
+            print(f'{char.name} has memorized all his spells')
     if char.level < len(xp_levels) and char.xp > xp_levels[char.level]:
         if char.class_type.can_cast:
             spell_names: List[str] = populate(collection_name='spells', key_name='results')
@@ -997,12 +998,8 @@ def explore_dungeon(party: List[Character], monsters: List[Monster]):
                             # Character attacks the weakest alive monster
                             active_party: List[Character] = [c for c in party if c.status != 'DEAD']
                             order: int = active_party.index(attacker)
-                            if order < 3 and not attacker.class_type.can_cast:
-                                attack_type: ActionType = ActionType.MELEE
-                            else:
-                                attack_type = ActionType.MAGIC
                             monster: Monster = min(monsters, key=lambda m: m.hit_points)
-                            monster.hit_points -= attacker.attack(monster, attack_type)
+                            monster.hit_points -= attacker.attack(monster, order)
                             if monster.hit_points <= 0:
                                 # attackers.remove(monster)
                                 attacker.victory(monster)
@@ -1025,12 +1022,15 @@ def restore_all_roster(roster: List[Character]):
         char.hit_points = char.max_hit_points
         char.spell_slots = char.class_type.spell_slots.get(char.level)
 
-def update_mages_to_level(roster: List[Character]):
+def cheat_function(roster: List[Character]):
     for char in roster:
-        if char.class_type.can_cast and char.level > 1:
-            char.level = 1
+        if char.name == 'Conan':
+            char.xp += 10000
+            exit_message(f'{char.name} has been offered 10000 XP!')
             save_character(char)
-            exit_message(f'{char.name} is back to Level 1!')
+
+
+
 
 if __name__ == '__main__':
     seed(time())
@@ -1064,7 +1064,8 @@ if __name__ == '__main__':
         restore_all_roster(roster)
         exit_message('All characters died in last game... restoring all characters :-)')
 
-    update_mages_to_level(roster)
+    cheat_function(roster)
+
 
     while True:
         efface_ecran()

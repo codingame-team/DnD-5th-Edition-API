@@ -3,10 +3,12 @@ from __future__ import annotations
 import csv
 import json
 import os
+from copy import deepcopy
 from typing import List, Tuple
 
 from dao_classes import Monster, Armor, Weapon, Race, SubRace, Proficiency, ClassType, Language, Equipment, WeaponProperty, WeaponRange, AbilityType, WeaponThrowRange, Trait, EquipmentCategory, Inventory, \
     Abilities, Action, Damage, ActionType, DamageType, Spell
+from main import exit_message
 
 """ CSV loads """
 
@@ -452,11 +454,18 @@ def get_spell_slots(class_name: str) -> Tuple[dict(), dict()]:
                 spell_slots[int(char_level)] = list(map(str2int, slots))
                 spells_known.append(str2int(char_level) + 2)
         case 'Sorcerer':
+            """
+                Lvl;Proficiency Bonus;Sorcery Points;Features;Cantrips Known;Spells Known;1;2;3;4;5;6;7;8;9
+                1;2;;Spellcasting, Sorcerous Origin;4;2;2;;;;;;;;
+                2;2;2;Font of Magic;4;3;3;;;;;;;;
+            """
             data = read_csvfile(csv_filename)
             for line in data:
                 char_level, prof_bonus, sorcery_points, features, cantrips_known, sp_known, *slots = line
+                print(f'{class_name} - level #{char_level} slots: {slots}')
                 spell_slots[int(char_level)] = list(map(str2int, slots))
                 spells_known.append(str2int(sp_known))
+            exit_message(spell_slots)
         case 'Bard':
             data = read_csvfile(csv_filename)
             for line in data:
@@ -550,5 +559,5 @@ def request_class(index_name: str, known_proficiencies: List[Proficiency] = None
                          subclasses=data['subclasses'],
                          spellcasting=data.get('spellcasting'),
                          can_cast='spells' in data,
-                         spell_slots=spell_slots,
+                         spell_slots=deepcopy(spell_slots),
                          spells_known=spells_known)

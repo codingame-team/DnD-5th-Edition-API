@@ -390,7 +390,7 @@ class Spell:
     def get_damage(self, char_level: int, slot_level: int) -> Tuple[DamageType, str, int]:
         # TODO modify request_class() in populate_functions to put int instead of str
         damage_dice: str = self.damage_at_slot_level[str(slot_level)] if self.damage_at_slot_level else self.damage_at_character_level[str(char_level)]
-        print(f'{self.index} -> damage_dice = {damage_dice}')
+        # print(f'{self.index} -> damage_dice = {damage_dice}')
         if '+' in damage_dice:
             damage_dice, damage_bonus = damage_dice.split('+')
         else:
@@ -578,15 +578,17 @@ class Character:
                     print(f'You gained {attr_name}')
             self.abilities.set_value(name=attr_name, value=attr_value)
         if self.class_type.can_cast:
-            available_spell_levels: List[int] = [i + 1 for i, slots in enumerate(self.class_type.spell_slots[self.level]) if slots > 0]
-            new_spells_count: int = self.class_type.spells_known[self.level - 1] - self.class_type.spells_known[self.level - 2]
+            available_spell_levels: List[int] = [i + 1 for i, slot in enumerate(self.class_type.spell_slots[self.level]) if slot > 0]
+            new_spells_known_count: int = self.class_type.spells_known[self.level - 1] - len(self.learned_spells)
             learnable_spells: List[Spell] = [s for s in tome_spells if s.level <= max(available_spell_levels) and s not in self.learned_spells]
             self.spell_slots = deepcopy(self.class_type.spell_slots[self.level])
-            learnable_spells.sort(key=lambda s: s.level, reverse=True)
-            while new_spells_count:
+            learnable_spells.sort(key=lambda s: s.level)
+            new_spells_count: int = 0
+            while learnable_spells and new_spells_known_count:
                 learned_spell: Spell = learnable_spells.pop()
                 self.learned_spells.append(learned_spell)
-                new_spells_count -= 1
+                new_spells_known_count -= 1
+                new_spells_count += 1
             if new_spells_count:
                 print(f'You learned new Spells!!!')
 
@@ -600,27 +602,23 @@ class Character:
             case _:
                 self.spell_slots[casted_spell.level - 1] -= 1
 
-    def attack(self, monster: Monster, action_type: ActionType):
+    def attack(self, monster: Monster, order: int):
         """
         :return: damage generated
         """
         damage_roll = 0
-        can_cast_spell: bool = False
-        if self.class_type.can_cast:
-            available_slots: List[int] = [slot for slot in self.spell_slots if slot]
-            if available_slots:
-                can_cast_spell = True
-                castable_spells: List[Spell] = [s for s in self.learned_spells if self.spell_slots[s.level - 1] > 0]
-                if castable_spells:
-                    can_cast_spell = True
-                    attack_spell: Spell = choice(castable_spells)
-                    # TODO implement cantric spells costs
-                    self.update_spell_slots(casted_spell=attack_spell)
-                    damage_type, damage_dice, damage_bonus = attack_spell.get_damage(char_level=self.level, slot_level=attack_spell.level)
-                    dice_count, roll_dice = map(int, damage_dice.split('d'))
-                    damage_roll = sum([randint(1, roll_dice) for _ in range(dice_count)]) + damage_bonus
-                    cprint(f'{color.GREEN}{self.name}{color.END} ** CAST SPELL {attack_spell.name.upper()} ** {color.RED}{monster.name}{color.END} is hit for {damage_roll} hit points!')
-        if not can_cast_spell or action_type == ActionType.MELEE:
+        if self.spell_slots and any(self.spell_slots):
+            # TODO modify spell_slots to [] for non casters
+            castable_spells: List[Spell] = [s for s in self.learned_spells if self.spell_slots[s.level - 1] > 0]
+            if castable_spells:
+                attack_spell: Spell = max(castable_spells, key=lambda s: s.level)
+                # TODO implement cantric spells costs
+                self.update_spell_slots(casted_spell=attack_spell)
+                damage_type, damage_dice, damage_bonus = attack_spell.get_damage(char_level=self.level, slot_level=attack_spell.level)
+                dice_count, roll_dice = map(int, damage_dice.split('d'))
+                damage_roll = sum([randint(1, roll_dice) for _ in range(dice_count)]) + damage_bonus
+                cprint(f'{color.GREEN}{self.name}{color.END} ** CAST SPELL {attack_spell.name.upper()} ** {color.RED}{monster.name}{color.END} is hit for {damage_roll} hit points!')
+        else:
             attack_roll = randint(1, 20)
             if attack_roll >= monster.armor_class:
                 dice_count, roll_dice = map(int, self.damage_dice.split('d'))
