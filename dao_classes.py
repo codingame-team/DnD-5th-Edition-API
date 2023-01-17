@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from copy import deepcopy
 from dataclasses import dataclass, field
 from enum import Enum
 from math import floor
@@ -323,8 +324,6 @@ class BackGround:
     starting_equipment_options: List[Equipment]
 
 
-
-
 @dataclass
 class Abilities:
     str: int
@@ -373,12 +372,13 @@ class Damage:
     type: DamageType
     dice: str
 
+
 @dataclass
 class Spell:
     index: str
     name: str
     desc: str
-    min_level: int
+    level: int
     allowed_classes: List[str]
     damage_type: DamageType  # For saving throw
     damage_at_slot_level: dict()
@@ -387,10 +387,15 @@ class Spell:
     def __repr__(self):
         return f'{self.name}'
 
-    def get_damage(self, char_level: int, slot_level: int) -> Tuple[str, str]:
+    def get_damage(self, char_level: int, slot_level: int) -> Tuple[DamageType, str, int]:
         # TODO modify request_class() in populate_functions to put int instead of str
         damage_dice: str = self.damage_at_slot_level[str(slot_level)] if self.damage_at_slot_level else self.damage_at_character_level[str(char_level)]
-        return self.damage_type, damage_dice
+        print(f'{self.index} -> damage_dice = {damage_dice}')
+        if '+' in damage_dice:
+            damage_dice, damage_bonus = damage_dice.split('+')
+        else:
+            damage_dice, damage_bonus = damage_dice, 0
+        return self.damage_type, damage_dice.rstrip(), int(damage_bonus)
 
 
 class ActionType(Enum):
@@ -420,7 +425,7 @@ class Character:
     height: str
     weight: str
     age: int
-    class_type: str
+    class_type: ClassType
     proficiencies: List[Proficiency]
     abilities: Abilities
     ability_modifiers: Abilities
@@ -434,7 +439,7 @@ class Character:
     armor: Armor
     weapon: Weapon
     gold: int
-    spell_slots: dict()
+    spell_slots: List[int]
     learned_spells: List[Spell]
     status: str = 'OK'
     id_party: int = -1
@@ -546,7 +551,7 @@ class Character:
         if pause:
             input(f'{color.UNDERLINE}{color.DARKCYAN}hit Enter to continue adventure :-) (potions remaining: {len(self.healing_potions)}){color.END}')
 
-    def gain_level(self):
+    def gain_level(self, tome_spells: List[Spell] = None):
         self.level += 1
         hp_gained = randint(1, 10)
         self.max_hit_points += hp_gained
@@ -572,25 +577,50 @@ class Character:
                     attr_value += 1
                     print(f'You gained {attr_name}')
             self.abilities.set_value(name=attr_name, value=attr_value)
+        if self.class_type.can_cast:
+            available_spell_levels: List[int] = [i + 1 for i, slots in enumerate(self.class_type.spell_slots[self.level]) if slots > 0]
+            new_spells_count: int = self.class_type.spells_known[self.level - 1] - self.class_type.spells_known[self.level - 2]
+            learnable_spells: List[Spell] = [s for s in tome_spells if s.level <= max(available_spell_levels) and s not in self.learned_spells]
+            self.spell_slots = deepcopy(self.class_type.spell_slots[self.level])
+            learnable_spells.sort(key=lambda s: s.level, reverse=True)
+            while new_spells_count:
+                learned_spell: Spell = learnable_spells.pop()
+                self.learned_spells.append(learned_spell)
+                new_spells_count -= 1
+            if new_spells_count:
+                print(f'You learned new Spells!!!')
 
-    def attack(self, monster: Monster):
+    def update_spell_slots(self, casted_spell: Spell):
+        match self.class_type.name:
+            case 'Warlock':
+                # all of your spell slots are the same level
+                for level, slot in enumerate(self.spell_slots):
+                    if slot:
+                        self.spell_slots[level] -= 1
+            case _:
+                self.spell_slots[casted_spell.level - 1] -= 1
+
+    def attack(self, monster: Monster, action_type: ActionType):
         """
         :return: damage generated
         """
         damage_roll = 0
-        can_cast: bool = False
-        available_levels: List[int] = [sp_level for sp_level, slots in enumerate(self.spell_slots[self.level]) if slots > 0]
-        if available_levels:
-            max_sp_level: int = max(available_levels)
-            attack_spell: Spell = choice([s for s in self.learned_spells if s.min_level < max_sp_level + 1])
-            # TODO implement cantric spells costs
-            slot_level: int = max(1, attack_spell.min_level)
-            self.spell_slots[self.level][slot_level - 1] -= 1
-            damage_type, damage_dice = attack_spell.get_damage(char_level=self.level, slot_level=slot_level - 1)
-            dice_count, roll_dice = map(int, damage_dice.split('d'))
-            damage_roll = sum([randint(1, roll_dice) for _ in range(dice_count)])
-            cprint(f'{color.GREEN}{self.name}{color.END} ** CAST SPELL {attack_spell.name.upper()} ** {color.RED}{monster.name}{color.END} is hit for {damage_roll} hit points!')
-        else:
+        can_cast_spell: bool = False
+        if self.class_type.can_cast:
+            available_slots: List[int] = [slot for slot in self.spell_slots if slot]
+            if available_slots:
+                can_cast_spell = True
+                castable_spells: List[Spell] = [s for s in self.learned_spells if self.spell_slots[s.level - 1] > 0]
+                if castable_spells:
+                    can_cast_spell = True
+                    attack_spell: Spell = choice(castable_spells)
+                    # TODO implement cantric spells costs
+                    self.update_spell_slots(casted_spell=attack_spell)
+                    damage_type, damage_dice, damage_bonus = attack_spell.get_damage(char_level=self.level, slot_level=attack_spell.level)
+                    dice_count, roll_dice = map(int, damage_dice.split('d'))
+                    damage_roll = sum([randint(1, roll_dice) for _ in range(dice_count)]) + damage_bonus
+                    cprint(f'{color.GREEN}{self.name}{color.END} ** CAST SPELL {attack_spell.name.upper()} ** {color.RED}{monster.name}{color.END} is hit for {damage_roll} hit points!')
+        if not can_cast_spell or action_type == ActionType.MELEE:
             attack_roll = randint(1, 20)
             if attack_roll >= monster.armor_class:
                 dice_count, roll_dice = map(int, self.damage_dice.split('d'))

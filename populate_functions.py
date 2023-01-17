@@ -182,7 +182,7 @@ def request_spell(index_name: str) -> Spell:
         return Spell(index=data['index'],
                      name=data['name'],
                      desc=data['desc'],
-                     min_level=data['level'],
+                     level=data['level'],
                      allowed_classes=allowed_classes,
                      damage_type=damage_type,
                      damage_at_slot_level=data['damage'].get('damage_at_slot_level'),
@@ -441,34 +441,34 @@ def get_spell_slots(class_name: str) -> Tuple[dict(), dict()]:
             data = read_csvfile(csv_filename)
             # print(data)
             for line in data:
-                level, prof_bonus, features, sp_known, *slots = line
-                spell_slots[int(level)] = list(map(str2int, slots))
+                char_level, prof_bonus, features, sp_known, *slots = line
+                spell_slots[int(char_level)] = list(map(str2int, slots))
                 spells_known.append(str2int(sp_known))
             # print(f'{class_name} - spell slots : {spell_slots} - - spell known : {spells_known}')
         case 'Paladin':
             data = read_csvfile(csv_filename)
             for line in data:
-                level, prof_bonus, features, *slots = line
-                spell_slots[int(level)] = list(map(str2int, slots))
-                spells_known.append(str2int(level) + 2)
+                char_level, prof_bonus, features, *slots = line
+                spell_slots[int(char_level)] = list(map(str2int, slots))
+                spells_known.append(str2int(char_level) + 2)
         case 'Sorcerer':
             data = read_csvfile(csv_filename)
             for line in data:
-                level, prof_bonus, sorcery_points, features, cantrips_known, sp_known, *slots = line
-                spell_slots[int(level)] = list(map(str2int, slots))
+                char_level, prof_bonus, sorcery_points, features, cantrips_known, sp_known, *slots = line
+                spell_slots[int(char_level)] = list(map(str2int, slots))
                 spells_known.append(str2int(sp_known))
         case 'Bard':
             data = read_csvfile(csv_filename)
             for line in data:
-                level, prof_bonus, features, cantrips_known, sp_known, *slots = line
-                spell_slots[int(level)] = list(map(str2int, slots))
+                char_level, prof_bonus, features, cantrips_known, sp_known, *slots = line
+                spell_slots[int(char_level)] = list(map(str2int, slots))
                 spells_known.append(str2int(sp_known))
         case 'Warlock':
             data = read_csvfile(csv_filename)
             for line in data:
                 # Lvl;Proficiency Bonus;Features;Cantrips Known;Spells Known;Spell Slots;Slot Level;Invocations Known
-                level, prof_bonus, features, cantrips_known, sp_known, spell_slot, spell_level, inv_known = line
-                spell_slots[int(level)] = [int(spell_slot)] * int(spell_level) + [0] * (5 - int(spell_level))
+                char_level, prof_bonus, features, cantrips_known, sp_known, spell_slots_count, slot_level, inv_known = line
+                spell_slots[int(char_level)] = [int(spell_slots_count)] * int(slot_level) + [0] * (5 - int(slot_level))
                 spells_known.append(str2int(sp_known))
     return spell_slots, spells_known
 

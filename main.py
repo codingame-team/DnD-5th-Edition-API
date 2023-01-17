@@ -4,7 +4,7 @@ import os
 import pickle
 import sys
 from collections import namedtuple
-from copy import copy
+from copy import copy, deepcopy
 from os import listdir
 from os.path import isfile, join
 from random import randint, seed, sample
@@ -101,6 +101,20 @@ def read_choice(choice_list: List[str], message: str = None) -> str:
             continue
     return choice_list[choice - 1]
 
+def read_value(choice_list: List[int], message: str = None) -> int:
+    choice = None
+    while choice not in choice_list:
+        if message:
+            print(message)
+        err_msg = f'Bad value! Please enter a number in {choice_list}'
+        try:
+            choice = int(input())
+            if choice not in choice_list:
+                raise ValueError
+        except ValueError:
+            print(err_msg)
+            continue
+    return choice
 
 def read_char_choice(message: str, party: List[Character]) -> Character:
     choice = None
@@ -312,6 +326,7 @@ def create_new_character(roster: List[Character]) -> Character:
     :param roster: list of existing characters (needed for name selection as name is the character file's identifier)
     :return: Character object
     """
+    # Phase 1: character selection
     # TODO: do not load spell data collections if class_type cannot perform spell casting
     races, subraces, classes, alignments, equipments, proficiencies, names, human_names, spells = load_character_collections()
     reserved_names: List[str] = [c.name for c in roster]
@@ -328,13 +343,14 @@ def create_new_character(roster: List[Character]) -> Character:
     chosen_armor: Armor = available_armors[chosen_armor]
     hit_points = class_type.hit_die
 
+    # Phase 2: Spell selection
     start_level: int = 1
     learned_spells: List[Spell] = []
     if class_type.can_cast:
-        spells: List[Spell] = [s for s in spells if class_type.index in s.allowed_classes and s.min_level <= start_level]
+        learnable_spells: List[Spell] = [s for s in spells if class_type.index in s.allowed_classes and s.level <= start_level]
         if spells:
-            n_spells: int = min(len(spells), class_type.spells_known[start_level - 1])
-            learned_spells = sample(spells, n_spells)
+            n_spells: int = min(len(learnable_spells), class_type.spells_known[start_level - 1])
+            learned_spells = sample(learnable_spells, n_spells)
 
     """ Load Spells characteristic """
     character: Character = Character(race=race,
@@ -358,7 +374,7 @@ def create_new_character(roster: List[Character]) -> Character:
                                      monster_kills=0,
                                      age=18 * 52 + randint(0, 299),
                                      gold=90 + randint(0, 99),
-                                     spell_slots=class_type.spell_slots,
+                                     spell_slots=deepcopy(class_type.spell_slots.get(start_level)),
                                      learned_spells=learned_spells)
     exit_message()
     return character
@@ -426,11 +442,16 @@ def display_character_sheet(char: Character):
     sheet += '|{:^51}|\n'.format(f'armor = {char.armor.name.title()}')
     sheet += '|{:^51}|\n'.format(f'weapon = {char.weapon.name.title()} - Damage = {char.weapon.damage_dice}')
     sheet += '|{:^51}|\n'.format(f'gold = {char.gold} gp')
+    sheet += '+{:-^51}+\n'.format('')
     if char.class_type.can_cast:
+        slots: str = '/'.join(map(str, char.spell_slots))
+        sheet += '|{:^51}|\n'.format(f'spell slots: {slots}')
         known_spells: int = len(char.learned_spells)
         sheet += '|{:^51}|\n'.format(f'{known_spells} known spells:')
-        for i, spell in enumerate(char.learned_spells):
-            sheet += '|{:^51}|\n'.format(f'{i + 1} - {spell}')
+        learned_spells: List[Spell] = [s for s in char.learned_spells]
+        learned_spells.sort(key=lambda s: s.level)
+        for spell in learned_spells:
+            sheet += '|{:^51}|\n'.format(f'Level {spell.level} : {spell}')
     sheet += '+{:-^51}+\n'.format('')
     print(sheet)
 
@@ -507,7 +528,7 @@ def arena(character: Character):
                 character.drink_potion()
             attack_count += 1
             monster_hp_damage = monster.attack(character)
-            character_hp_damage = character.attack(monster)
+            character_hp_damage = character.attack(monster, ActionType.MELEE)
             priority_dice = randint(0, 1)
             if priority_dice == 0:  # monster attacks first
                 character.hit_points -= monster_hp_damage
@@ -553,7 +574,11 @@ def display_party(party: List[Character]):
     sheet += f"| {str('Name').ljust(c.name)} | {str('LVL').center(c.level)} | {str('Class').center(c.class_type)} | {str('AC').center(c.AC)} | {str('Hits').center(c.hits)} | {str('Status').center(c.status)} | {str('Age').center(c.age)} |\n"
     if party:
         sheet += formatter.format('')
-    for char in party:
+    dead_chars: List[Character] = [c for c in party if c.status == 'DEAD']
+    alive_chars: List[Character] = [c for c in party if c.status != 'DEAD']
+    for char in alive_chars:
+        sheet += f"| {str(char.name).ljust(c.name)} | {str(char.level).center(c.level)} | {str(char.class_type).title().center(c.class_type)} | {str(char.armor_class).center(c.AC)} | {f'{char.hit_points}/{char.max_hit_points}'.center(c.hits)} | {str(char.status).center(c.status)} | {str(char.age // 52).center(c.age)} |\n"
+    for char in dead_chars:
         sheet += f"| {str(char.name).ljust(c.name)} | {str(char.level).center(c.level)} | {str(char.class_type).title().center(c.class_type)} | {str(char.armor_class).center(c.AC)} | {f'{char.hit_points}/{char.max_hit_points}'.center(c.hits)} | {str(char.status).center(c.status)} | {str(char.age // 52).center(c.age)} |\n"
     sheet += formatter.format('')
     print(sheet)
@@ -605,7 +630,7 @@ def gilgamesh_tavern(party: List[Character], roster: List[Character]):
         print('|  ** GILGAMESH\'S TAVERN **  |')
         print('+-----------------------------+')
         display_party(party)
-        gt_options: List[str] = ['Add Member', 'Remove Member', 'Character Status', 'Divvy Gold', 'Exit Tavern']
+        gt_options: List[str] = ['Add Member', 'Remove Member', 'Character Status', 'Reorder', 'Divvy Gold', 'Exit Tavern']
         option: str = read_choice(gt_options)
         match option:
             case 'Add Member':
@@ -622,6 +647,20 @@ def gilgamesh_tavern(party: List[Character], roster: List[Character]):
                 char: Character = get_character(name, party)
                 display_character_sheet(char)
                 exit_message()
+            case 'Reorder':
+                if not party:
+                    print('No characters remains in the party!')
+                    sleep(2)
+                    continue
+                available_pos: List[int] = list(range(1, len(party) + 1))
+                new_pos: dict() = {}
+                for i, char in enumerate(party):
+                    order: int = read_value(available_pos, f'new pos for {char.name} {available_pos}:')
+                    available_pos.remove(order)
+                    new_pos[char.name] = order
+                new_pos = dict(sorted(new_pos.items(), key=lambda x: x[1]))
+                for i, char_name in enumerate(list(new_pos.keys())):
+                    party[i] = get_character(char_name, roster)
             case 'Divvy Gold':
                 if not party:
                     print('No characters remains in the party!')
@@ -656,11 +695,17 @@ def rest_character(char: Character, fee: int, weeks: int):
         char.gold -= fee
         char.age += weeks
         display_rest_message(char)
-    print(f'{char.name} memorized all his spells')
-    for level in range(1, char.level):
-        char.spell_slots[level] = char.class_type.spell_slots[level]
+    if char.class_type.can_cast:
+        char.spell_slots = deepcopy(char.class_type.spell_slots[char.level])
+        print(f'{char.name} has memorized all his spells')
     if char.level < len(xp_levels) and char.xp > xp_levels[char.level]:
-        char.gain_level()
+        if char.class_type.can_cast:
+            spell_names: List[str] = populate(collection_name='spells', key_name='results')
+            all_spells: List[Spell] = [request_spell(name) for name in spell_names]
+            class_tome_spells = [s for s in all_spells if s is not None and char.class_type.index in s.allowed_classes]
+            char.gain_level(tome_spells=class_tome_spells)
+        else:
+            char.gain_level()
     exit_message()
 
 
@@ -766,11 +811,12 @@ def get_character(name: str, roster: List[Character]) -> Optional[Character]:
 
 
 def simulate_arena(roster: List[Character]):
-    if not roster:
+    ok_roster: List[Character] = [c for c in roster if c.status != 'DEAD']
+    if not ok_roster:
         print(f'no available characters for arena!')
-        sleep(2)
+        exit_message()
         return
-    char: Character = select_character(roster)
+    char: Character = select_character(ok_roster)
     while char.status != 'OK':
         print(f'{char.name} is ** {char.status} ** - Please select another character!')
         char: Character = select_character(roster)
@@ -778,9 +824,14 @@ def simulate_arena(roster: List[Character]):
     while continue_message(message='Do you want to start a new combat simulation? (Y/N)'):
         # efface_ecran()
         # display_character_sheet_pyQT(character)
+        ok_roster: List[Character] = [c for c in roster if c.status != 'DEAD']
+        if not ok_roster:
+            print(f'no available characters for arena!')
+            exit_message()
+            return
         while char.status != 'OK':
             print(f'{char.name} is ** {char.status} ** - Please select another character!')
-            char: Character = select_character(roster)
+            char: Character = select_character(ok_roster)
             continue
         arena(char)
 
@@ -906,7 +957,7 @@ def explore_dungeon(party: List[Character], monsters: List[Monster]):
         alive_monsters: List[Monster] = [c for c in monsters if c.hit_points > 0]
         round_num = 0
         flee_combat: bool = False
-        while alive_monsters:
+        while alive_monsters and alive_chars:
             message: str = 'engage' if not round_num else 'continue'
             if not continue_message(f'Do you want to {message} combat? (Y/N)'):
                 flee_combat = True
@@ -925,14 +976,16 @@ def explore_dungeon(party: List[Character], monsters: List[Monster]):
                 if attacker.hit_points > 0:
                     if isinstance(attacker, Monster):
                         # Monster attacks the weakest alive character
-                        chars: List[Character] = [c for c in attackers if isinstance(c, Character) if c.hit_points > 0]
+                        chars: List[Character] = [c for i, c in enumerate(party) if c.hit_points > 0 and i < 3]
                         if not chars:
                             break
                         char: Character = min(chars, key=lambda c: c.hit_points)
-                        char.hit_points -= monster.attack(char)
+                        char.hit_points -= attacker.attack(char)
                         if char.hit_points <= 0:
+                            # attackers.remove(char)
                             char.status = 'DEAD'
                             cprint(f'{char.name} is ** KILLED **!')
+                            melee_attack: List[Character] = [c for i, c in enumerate(party) if c.status != 'DEAD' and i < 3]
                     else:
                         monsters: List[Monster] = [c for c in attackers if isinstance(c, Monster) if c.hit_points > 0]
                         if not monsters:
@@ -942,9 +995,16 @@ def explore_dungeon(party: List[Character], monsters: List[Monster]):
                             cprint(f'{attacker.name} has {len(attacker.healing_potions)} remaining potions')
                         else:
                             # Character attacks the weakest alive monster
+                            active_party: List[Character] = [c for c in party if c.status != 'DEAD']
+                            order: int = active_party.index(attacker)
+                            if order < 3 and not attacker.class_type.can_cast:
+                                attack_type: ActionType = ActionType.MELEE
+                            else:
+                                attack_type = ActionType.MAGIC
                             monster: Monster = min(monsters, key=lambda m: m.hit_points)
-                            monster.hit_points -= attacker.attack(monster)
+                            monster.hit_points -= attacker.attack(monster, attack_type)
                             if monster.hit_points <= 0:
+                                # attackers.remove(monster)
                                 attacker.victory(monster)
                                 attacker.treasure(weapons, armors)
             # End of Round
@@ -958,6 +1018,19 @@ def explore_dungeon(party: List[Character], monsters: List[Monster]):
         elif flee_combat:
             exit_message(f'** Party successfully escaped! **')
 
+def restore_all_roster(roster: List[Character]):
+    """ Cheat function used for debugging """
+    for char in roster:
+        char.status = 'OK'
+        char.hit_points = char.max_hit_points
+        char.spell_slots = char.class_type.spell_slots.get(char.level)
+
+def update_mages_to_level(roster: List[Character]):
+    for char in roster:
+        if char.class_type.can_cast and char.level > 1:
+            char.level = 1
+            save_character(char)
+            exit_message(f'{char.name} is back to Level 1!')
 
 if __name__ == '__main__':
     seed(time())
@@ -986,6 +1059,13 @@ if __name__ == '__main__':
 
     location = 'Castle'
     party: List[Character] = []
+    alive_characters: List[Character] = [c for c in roster if c.status == 'OK']
+    if not alive_characters:
+        restore_all_roster(roster)
+        exit_message('All characters died in last game... restoring all characters :-)')
+
+    update_mages_to_level(roster)
+
     while True:
         efface_ecran()
         if location == 'Castle':
