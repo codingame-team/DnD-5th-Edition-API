@@ -101,6 +101,7 @@ def read_choice(choice_list: List[str], message: str = None) -> str:
             continue
     return choice_list[choice - 1]
 
+
 def read_value(choice_list: List[int], message: str = None) -> int:
     choice = None
     while choice not in choice_list:
@@ -115,6 +116,7 @@ def read_value(choice_list: List[int], message: str = None) -> int:
             print(err_msg)
             continue
     return choice
+
 
 def read_char_choice(message: str, party: List[Character]) -> Character:
     choice = None
@@ -331,7 +333,8 @@ def create_new_character(roster: List[Character]) -> Character:
     races, subraces, classes, alignments, equipments, proficiencies, names, human_names, spells = load_character_collections()
     reserved_names: List[str] = [c.name for c in roster]
     race, subrace, class_type, abilities, ability_modifiers, name, gender, ethnic, height, weight, starting_equipment \
-        = create_new_character_start(races=races, subraces=subraces, classes=classes, equipments=equipments, proficiencies=proficiencies, names=names, human_names=human_names, reserved_names=reserved_names)
+        = create_new_character_start(races=races, subraces=subraces, classes=classes, equipments=equipments, proficiencies=proficiencies, names=names, human_names=human_names,
+                                     reserved_names=reserved_names)
     # Equip the character with a weapon and an armor from the starting equipment list of the class
     available_weapons = {e.index: e for e in starting_equipment if e.category.index == 'weapon'}
     available_armors = {e.index: e for e in starting_equipment if e.category.index == 'armor'}
@@ -696,9 +699,9 @@ def rest_character(char: Character, fee: int, weeks: int):
         char.age += weeks
         display_rest_message(char)
     if char.class_type.can_cast:
-        char.spell_slots = deepcopy(char.class_type.spell_slots[char.level])
         if sum(char.spell_slots) < sum(char.class_type.spell_slots[char.level]):
             print(f'{char.name} has memorized all his spells')
+        char.spell_slots = deepcopy(char.class_type.spell_slots[char.level])
     if char.level < len(xp_levels) and char.xp > xp_levels[char.level]:
         if char.class_type.can_cast:
             spell_names: List[str] = populate(collection_name='spells', key_name='results')
@@ -1015,6 +1018,7 @@ def explore_dungeon(party: List[Character], monsters: List[Monster]):
         elif flee_combat:
             exit_message(f'** Party successfully escaped! **')
 
+
 def restore_all_roster(roster: List[Character]):
     """ Cheat function used for debugging """
     for char in roster:
@@ -1022,14 +1026,13 @@ def restore_all_roster(roster: List[Character]):
         char.hit_points = char.max_hit_points
         char.spell_slots = char.class_type.spell_slots.get(char.level)
 
+
 def cheat_function(roster: List[Character]):
     for char in roster:
         if char.name == 'Conan':
-            char.xp += 10000
-            exit_message(f'{char.name} has been offered 10000 XP!')
+            char.gold += 10000
+            exit_message(f'{char.name} has been offered 10000 Gold!')
             save_character(char)
-
-
 
 
 if __name__ == '__main__':
@@ -1065,7 +1068,6 @@ if __name__ == '__main__':
         exit_message('All characters died in last game... restoring all characters :-)')
 
     cheat_function(roster)
-
 
     while True:
         efface_ecran()
