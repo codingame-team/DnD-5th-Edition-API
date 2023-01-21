@@ -41,7 +41,7 @@ class Monster:
     actions: List[Action]
 
     def __repr__(self):
-        return f"{self.name} (AC {self.armor_class} HD: {self.hit_dice})"
+        return f"{self.name} (AC {self.armor_class} HD: {self.hit_dice} CR: {self.challenge_rating})"
 
     @property
     def level(self):
@@ -446,23 +446,25 @@ class Spell:
     def __repr__(self):
         return f'{self.name} dc: {self.dc_type} lvl: {self.level}'# {self.allowed_classes}'
 
-    def get_spell_damage(self, char_level: int, slot_level: int) -> Tuple[DamageType, str, int]:
+    def get_spell_damage(self, char: Character) -> Tuple[DamageType, str, int]:
         # TODO modify request_class() in populate_functions to put int instead of str
         # print(self)
         damage_dice: str = None
         if self.damage_at_slot_level:
-            damage_dice = self.damage_at_slot_level.get(str(slot_level))
+            damage_dice = self.damage_at_slot_level.get(str(self.level))
         else:
-            if str(char_level) in self.damage_at_character_level:
-                damage_dice = self.damage_at_character_level.get(str(char_level))
+            if str(char.level) in self.damage_at_character_level:
+                damage_dice = self.damage_at_character_level.get(str(char.level))
             else:
-                for level in range(char_level, -1, -1):
+                for level in range(char.level, -1, -1):
                     if str(level) in self.damage_at_character_level:
                         damage_dice = self.damage_at_character_level.get(str(level))
                         break
         # print(f'{self.index} -> damage_dice = {damage_dice}')
         if damage_dice and '+' in damage_dice:
             damage_dice, damage_bonus = damage_dice.split('+')
+            if 'MOD' in damage_bonus:
+                damage_bonus = int(char.ability_modifiers.get_value_by_index(name=char.class_type.spellcasting_ability))
         else:
             damage_dice, damage_bonus = damage_dice, 0
         return self.damage_type, damage_dice.rstrip() if damage_dice else None, int(damage_bonus)
@@ -690,7 +692,7 @@ class Character:
             attack_spell: Spell = max(castable_spells, key=lambda s: s.level)
             # print(attack_spell)
             self.update_spell_slots(casted_spell=attack_spell)
-            damage_type, damage_dice, damage_bonus = attack_spell.get_spell_damage(char_level=self.level, slot_level=attack_spell.level)
+            damage_type, damage_dice, damage_bonus = attack_spell.get_spell_damage(char=self)
             dice_count, roll_dice = map(int, damage_dice.split('d'))
             damage_roll = sum([randint(1, roll_dice) for _ in range(dice_count)]) + damage_bonus
             cprint(f'{color.GREEN}{self.name}{color.END} ** CAST SPELL {attack_spell.name.upper()} **')

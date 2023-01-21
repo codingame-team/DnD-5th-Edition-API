@@ -3,6 +3,8 @@ from __future__ import annotations
 import os
 import pickle
 import sys
+from fractions import Fraction
+
 from collections import namedtuple
 from copy import copy, deepcopy
 from os import listdir
@@ -928,7 +930,71 @@ def training_grounds(roster: List[Character]):
                 exit_training_grounds = True
 
 
-def explore_dungeon(party: List[Character], monsters: List[Monster]):
+def load_encounter_table() -> dict():
+    csv_filename: str = f'Encounter_Levels.csv'
+    data = read_csvfile(csv_filename)
+    enc_keys: List[str] = ['1', '2', '3', '4', '5-6-7', '7-8-9', '10-11-12']
+    enc_table: dict() = {}
+    for line in data:
+        party_level, cr_pair, *cr_list = line
+        cr_dict: dict() = {}
+        for i, enc_key in enumerate(enc_keys):
+            if party_level == '20' and i == 0:
+                # tmp_cr_list: List[str] =
+                cr_dict[enc_key] = [cr_list[0].replace('+', '')]
+            else:
+                cr_dict[enc_key] = [Fraction(cr) for cr in cr_list[i].split(',')]
+        enc_table[int(party_level)] = [tuple(map(Fraction, cr_pair.split('+'))), cr_dict]
+    return enc_table
+
+
+def generate_encounter(party_level: int, monsters: List[Monster], monster_groups_count: int) -> List[Monster]:
+    if monster_groups_count > 2:
+        exit_message('System Error!... only 2 groups of monsters allowed here. Please contact the Dungeon Master :-)')
+        return
+    if monster_groups_count == 2:
+        cr1, cr2 = encounter_table[party_level][0]
+        # print(f'(cr_1, cr2) = {(cr1, cr2)}')
+        if cr1 not in available_crs:
+            cr1 = min(available_crs, key=lambda cr: cr - cr1)
+        cr1_monsters: List[Monster] = [m for m in monsters if Fraction(str(m.challenge_rating)) == cr1]
+        # print(f'{len(cr1_monsters)} cr_1_monsters = {cr1_monsters}')
+        if cr2 not in available_crs:
+            cr2 = min(available_crs, key=lambda cr: cr - cr2)
+        cr2_monsters: List[Monster] = [m for m in monsters if Fraction(str(m.challenge_rating)) == cr2]
+        # print(f'{len(cr2_monsters)} cr2_monsters = {cr2_monsters}')
+        monster_1: Monster = choice(cr1_monsters)
+        monster_2: Monster = choice(cr2_monsters)
+        return [copy(monster_1), copy(monster_2)]
+    else:
+        matching_monsters: List[Tuple[Monster, int]] = []
+        cr_dict: dict() = encounter_table[int(party_level)][1]
+        for enc_key, cr_list in cr_dict.items():
+            monsters_count: int = choice(list(map(int, enc_key.split('-'))))
+            if party_level == 20:
+                cr: int = cr_list[0]
+                matching_monsters += [(m, monsters_count) for m in monsters if Fraction(str(m.challenge_rating)) >= cr]
+            else:
+                matching_monsters += [(m, monsters_count) for m in monsters if Fraction(str(m.challenge_rating)) in cr_list]
+        monster, monster_count = choice(matching_monsters)
+        group_of_monsters: List[Monster] = [copy(monster)]
+        for _ in range(monster_count - 1):
+            m: Monster = copy(monster)
+            dice_count, roll_dice = map(int, m.hit_dice.split('d'))
+            m.hit_points = sum([randint(1, roll_dice) for _ in range(dice_count)])
+            group_of_monsters.append(m)
+        return group_of_monsters
+
+def display_group_of_monsters(monsters: List[Monster]):
+    if len(monsters) > 2:
+        monsters.sort(key=lambda m: m.hit_points, reverse=True)
+        hp_display: str = ' - '.join([f'HP {m.hit_points}' for m in monsters if m.hit_points > 0])
+        cprint(f'{color.PURPLE}Group of {len(monsters)} {monsters[0].name} ({hp_display}){color.END}')
+    else:
+        for i, monster in enumerate(monsters):
+            cprint(f'{color.PURPLE} Monster #{i} : {monster.name} ({monster.hit_points} HP){color.END}')
+
+def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
     """ Combat simulation """
     print(f'{color.PURPLE}-----------------------------------------------------------{color.END}')
     print(f'{color.PURPLE} Combat simulation engine based on DnD 5th edition API{color.END}')
@@ -936,29 +1002,30 @@ def explore_dungeon(party: List[Character], monsters: List[Monster]):
     # encounters_count: int = 0
     # killed_monsters: int = 0
 
-    difficulty: List[str] = ['HARD', 'MEDIUM', 'EASY']
-    arena_level: str = read_choice(difficulty, 'Select difficulty:')
+    # difficulty: List[str] = ['HARD', 'MEDIUM', 'EASY']
+    # arena_level: str = read_choice(difficulty, 'Select difficulty:')
 
     max_level_char: int = max([c.level for c in party])
 
-    match arena_level:
-        case 'HARD':
-            monsters_to_fight = [m for m in monsters if m.challenge_rating > max_level_char]
-        case 'MEDIUM':
-            monsters_to_fight = [m for m in monsters if m.challenge_rating == max_level_char]
-        case 'EASY':
-            monsters_to_fight = [m for m in monsters if m.challenge_rating < max_level_char]
+    party_level: int = round(sum([c.level for c in party]) / len(party))
+
+    # match arena_level:
+    #     case 'HARD':
+    #         monsters_to_fight = [m for m in monsters if m.challenge_rating > max_level_char]
+    #     case 'MEDIUM':
+    #         monsters_to_fight = [m for m in monsters if m.challenge_rating == max_level_char]
+    #     case 'EASY':
+    #         monsters_to_fight = [m for m in monsters if m.challenge_rating < max_level_char]
 
     alive_chars: List[Character] = [c for c in party if c.hit_points > 0]
     while alive_chars:
         if continue_message(f'Do you want to go back to [Castle]? (Y/N)'):
             return
-        monsters_selection: List[Monster] = sample(monsters_to_fight, randint(1, 2))
-        monsters: List[Monster] = [copy(m) for m in monsters_selection]
+        monster_groups_count: int = randint(1, 2)
+        monsters: List[Monster] = generate_encounter(party_level=party_level, monsters=monsters_db, monster_groups_count=monster_groups_count)
         cprint(f'{color.PURPLE}-------------------------------------------------------------------------------------------------------------------------------------------{color.END}')
         cprint(f'{color.PURPLE} New encounter!{color.END}')
-        for i, monster in enumerate(monsters):
-            cprint(f'{color.PURPLE} Monster #{i} : {monster.name} ({monster.hit_points} HP){color.END}')
+        display_group_of_monsters((monsters))
         cprint(f'{color.PURPLE}-------------------------------------------------------------------------------------------------------------------------------------------{color.END}')
         attack_queue = [(c, randint(1, c.abilities.dex)) for c in party] + [(m, randint(1, m.abilities.dex)) for m in monsters]
         attack_queue.sort(key=lambda x: x[1], reverse=True)
@@ -974,8 +1041,7 @@ def explore_dungeon(party: List[Character], monsters: List[Monster]):
             round_num += 1
             cprint('-------------------------------------------------------')
             cprint(f'{color.DARKCYAN} Round {round_num} :{color.END}')
-            for i, monster in enumerate(alive_monsters):
-                cprint(f'{color.PURPLE} Monster #{i} : {monster.name} ({monster.hit_points} HP){color.END}')
+            display_group_of_monsters((monsters))
             cprint('-------------------------------------------------------')
             display_party(party)
             # Start of Round
@@ -1069,6 +1135,9 @@ if __name__ == '__main__':
     party_ids: List[int] = set([c.id_party for c in roster if c.in_dungeon])
     adventurer_groups: dict() = {p_id: [c for c in roster if c.id_party == p_id] for p_id in party_ids}
 
+    encounter_table: dict() = load_encounter_table()
+    available_crs: List[Fraction] = [Fraction(str(m.challenge_rating)) for m in monsters]
+
     location = 'Castle'
     party: List[Character] = []
     # alive_characters: List[Character] = [c for c in roster if c.status == 'OK']
@@ -1077,6 +1146,7 @@ if __name__ == '__main__':
     #     exit_message('All characters died in last game... restoring all characters :-)')
 
     cheat_function(roster)
+    restore_all_roster(roster)
 
     while True:
         efface_ecran()
