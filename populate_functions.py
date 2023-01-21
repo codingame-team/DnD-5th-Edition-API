@@ -159,8 +159,14 @@ def request_monster(index_name: str) -> Monster:
                 actions.append(Action(name=action['name'], desc=action['desc'], type=ActionType.MELEE, attack_bonus=None,
                                       multi_attack=multi_actions, damages=None))
 
+    proficiencies: List[Proficiency] = []
+    if 'proficiencies' in data:
+        for prof in data['proficiencies']:
+            proficiencies.append(Proficiency(index=prof['proficiency']['index'], name=prof['proficiency']['name'], value=prof.get('value')))
+
     return Monster(name=data['name'],
                    abilities=Abilities(str=data['strength'], dex=data['dexterity'], con=data['constitution'], int=data['intelligence'], wis=data['wisdom'], cha=data['charisma']),
+                   proficiencies=proficiencies,
                    armor_class=data['armor_class'],
                    hit_points=data['hit_points'],
                    hit_dice=data['hit_dice'],
@@ -177,18 +183,38 @@ def request_spell(index_name: str) -> Spell:
     """
     with open(f"{path}/data/spells/{index_name}.json", "r") as f:
         data = json.loads(f.read())
+
     allowed_classes: List[str] = [c['index'] for c in data['classes']]
+
+    damage_type: DamageType = None
+    damage_at_slot_level: dict() = None
+    damage_at_character_level: dict() = None
     if "damage" in data:
         # print(data['index'], data['damage'])
         damage_type = data['damage']['damage_type']['index'] if "damage_type" in data['damage'] else None
+        damage_at_slot_level = data['damage'].get('damage_at_slot_level')
+        damage_at_character_level = data['damage'].get('damage_at_character_level')
+        # print(f"{data['index']} - damage_at_character_level={damage_at_character_level}")
+        # print(f"{data['index']} - damage_at_slot_level={damage_at_slot_level}")
+
+        dc_type: str = None
+        dc_success: str = None
+        # print(data)
+        if "dc" in data:
+            dc_type = data['dc']['dc_type']['index']
+            dc_success = data['dc']['dc_success']
+            # print(f"{data['index']} - dc_type = {dc_type}")
+
         return Spell(index=data['index'],
                      name=data['name'],
                      desc=data['desc'],
                      level=data['level'],
                      allowed_classes=allowed_classes,
                      damage_type=damage_type,
-                     damage_at_slot_level=data['damage'].get('damage_at_slot_level'),
-                     damage_at_character_level=data['damage'].get('damage_at_character_level')
+                     damage_at_slot_level=damage_at_slot_level,
+                     damage_at_character_level=damage_at_character_level,
+                     dc_type=dc_type,
+                     dc_success=dc_success
                      )
 
 def request_armor(index_name: str) -> Armor:
@@ -356,9 +382,9 @@ def request_proficiency(index_name: str) -> Proficiency:
     """
     with open(f"{path}/data/proficiencies/{index_name}.json", "r") as f:
         data = json.loads(f.read())
-        return Proficiency(index=data['index'],
-                           name=data['index'],
-                           prof_type=data['type'])
+
+    return Proficiency(index=data['index'],
+                       name=data['name'])
 
 
 def request_language(index_name: str) -> Language:
@@ -425,7 +451,7 @@ def request_equipment(index_name: str) -> Equipment:
                              desc=data.get('desc'))
 
 
-def get_spell_slots(class_name: str) -> Tuple[dict(), dict()]:
+def get_spell_slots(class_name: str) -> Tuple[dict(), List[int], List[int]]:
     """
         Determine the spell slots and known spells by level
     :param class_name: class_type name
@@ -435,6 +461,7 @@ def get_spell_slots(class_name: str) -> Tuple[dict(), dict()]:
     slots: List[str] = []
     spell_slots: dict() = dict()
     spells_known: List[int] = []
+    cantrips_known: List[int] = []
     str2int = lambda x: 0 if not x else int(x)
     #print(class_name)
     match class_name:
@@ -443,16 +470,18 @@ def get_spell_slots(class_name: str) -> Tuple[dict(), dict()]:
             data = read_csvfile(csv_filename)
             # print(data)
             for line in data:
-                char_level, prof_bonus, features, sp_known, *slots = line
+                char_level, prof_bonus, features, ct_known, *slots = line
                 spell_slots[int(char_level)] = list(map(str2int, slots))
-                spells_known.append(str2int(sp_known))
+                cantrips_known.append(str2int(ct_known))
+                spells_known.append(100)
+                # TODO
             # print(f'{class_name} - spell slots : {spell_slots} - - spell known : {spells_known}')
         case 'Paladin':
             data = read_csvfile(csv_filename)
             for line in data:
                 char_level, prof_bonus, features, *slots = line
                 spell_slots[int(char_level)] = list(map(str2int, slots))
-                spells_known.append(str2int(char_level) + 2)
+                # TODO
         case 'Sorcerer':
             """
                 Lvl;Proficiency Bonus;Sorcery Points;Features;Cantrips Known;Spells Known;1;2;3;4;5;6;7;8;9
@@ -461,25 +490,28 @@ def get_spell_slots(class_name: str) -> Tuple[dict(), dict()]:
             """
             data = read_csvfile(csv_filename)
             for line in data:
-                char_level, prof_bonus, sorcery_points, features, cantrips_known, sp_known, *slots = line
-                print(f'{class_name} - level #{char_level} slots: {slots}')
+                char_level, prof_bonus, sorcery_points, features, ct_known, sp_known, *slots = line
+                # print(f'{class_name} - level #{char_level} slots: {slots}')
                 spell_slots[int(char_level)] = list(map(str2int, slots))
+                cantrips_known.append(str2int(ct_known))
                 spells_known.append(str2int(sp_known))
-            exit_message(spell_slots)
+            # exit_message(spell_slots)
         case 'Bard':
             data = read_csvfile(csv_filename)
             for line in data:
-                char_level, prof_bonus, features, cantrips_known, sp_known, *slots = line
+                char_level, prof_bonus, features, ct_known, sp_known, *slots = line
                 spell_slots[int(char_level)] = list(map(str2int, slots))
+                cantrips_known.append(str2int(ct_known))
                 spells_known.append(str2int(sp_known))
         case 'Warlock':
             data = read_csvfile(csv_filename)
             for line in data:
                 # Lvl;Proficiency Bonus;Features;Cantrips Known;Spells Known;Spell Slots;Slot Level;Invocations Known
-                char_level, prof_bonus, features, cantrips_known, sp_known, spell_slots_count, slot_level, inv_known = line
+                char_level, prof_bonus, features, ct_known, sp_known, spell_slots_count, slot_level, inv_known = line
                 spell_slots[int(char_level)] = [int(spell_slots_count)] * int(slot_level) + [0] * (5 - int(slot_level))
+                cantrips_known.append(str2int(ct_known))
                 spells_known.append(str2int(sp_known))
-    return spell_slots, spells_known
+    return spell_slots, spells_known, cantrips_known
 
 def request_class(index_name: str, known_proficiencies: List[Proficiency] = None, abilities: List[AbilityType] = None) -> ClassType:
     """
@@ -542,9 +574,15 @@ def request_class(index_name: str, known_proficiencies: List[Proficiency] = None
         saving_throws: List[AbilityType] = [AbilityType(d['index']) for d in data['saving_throws']]
 
         can_cast: bool = 'spells' in data
-        spell_slots, spells_known = {}, []
+        spell_slots, spells_known, cantrips_known = {}, [], []
         if can_cast:
-            spell_slots, spells_known = get_spell_slots(class_name=data['name'])
+            spell_slots, spells_known, cantrips_known = get_spell_slots(class_name=data['name'])
+
+        spellcasting_level: int = None
+        spellcasting_ability: str = None
+        if 'spellcasting' in data:
+            spellcasting_level: int = int(data['spellcasting']['level'])
+            spellcasting_ability: str = data['spellcasting']['spellcasting_ability']['index']
 
         return ClassType(index=data['index'],
                          name=data['name'],
@@ -557,7 +595,9 @@ def request_class(index_name: str, known_proficiencies: List[Proficiency] = None
                          class_levels=data['class_levels'],
                          multi_classing=data['multi_classing'],
                          subclasses=data['subclasses'],
-                         spellcasting=data.get('spellcasting'),
+                         spellcasting_level=spellcasting_level,
+                         spellcasting_ability=spellcasting_ability,
                          can_cast='spells' in data,
                          spell_slots=deepcopy(spell_slots),
-                         spells_known=spells_known)
+                         spells_known=spells_known,
+                         cantrips_known=cantrips_known)

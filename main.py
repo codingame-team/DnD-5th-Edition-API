@@ -199,16 +199,16 @@ def create_new_character_start(races: List[Race], subraces: List[SubRace], class
     # Choose proficiencies within the race
     chosen_proficiencies: List[str] = []
     for choose, proficiency_options in race.starting_proficiency_options:
-        proficiency_names: List[str] = [prof.index for prof in proficiency_options]
+        prof_indexes: List[str] = [prof.index for prof in proficiency_options]
         prof_count = choose
         while prof_count:
             prof_label = 'proficiency' if prof_count == 1 else 'proficiencies'
-            prof_name: str = read_choice(proficiency_names, f'Choose {prof_count} race\'s {prof_label}:')
-            chosen_proficiencies.append(prof_name)
-            proficiency_names.remove(prof_name)
+            prof_index: str = read_choice(prof_indexes, f'Choose {prof_count} race\'s {prof_label}:')
+            chosen_proficiencies.append(prof_index)
+            prof_indexes.remove(prof_index)
             prof_count -= 1
-    for chosen_prof_name in chosen_proficiencies:
-        chosen_prof: Proficiency = [prof for prof in proficiencies if prof.name == chosen_prof_name][0]
+    for chosen_prof_index in chosen_proficiencies:
+        chosen_prof: Proficiency = [prof for prof in proficiencies if prof.index == chosen_prof_index][0]
         proficiencies.append(chosen_prof)
     # should be deleted (duplicate with character.class_type.proficiencies)
     proficiencies += race.starting_proficiencies
@@ -219,16 +219,16 @@ def create_new_character_start(races: List[Race], subraces: List[SubRace], class
     # Choose proficiencies within the class
     chosen_proficiencies: List[str] = []
     for choose, proficiency_choices in class_type.proficiency_choices:
-        proficiency_names: List[str] = [prof.index for prof in proficiency_choices]
+        prof_indexes: List[str] = [prof.index for prof in proficiency_choices]
         prof_count = choose
         while prof_count:
             prof_label = 'proficiency' if prof_count == 1 else 'proficiencies'
-            prof_name: str = read_choice(proficiency_names, f'Choose {prof_count} class\' {prof_label}:')
+            prof_name: str = read_choice(prof_indexes, f'Choose {prof_count} class\' {prof_label}:')
             chosen_proficiencies.append(prof_name)
-            proficiency_names.remove(prof_name)
+            prof_indexes.remove(prof_name)
             prof_count -= 1
-    for chosen_prof_name in chosen_proficiencies:
-        chosen_prof: Proficiency = [prof for prof in proficiencies if prof.name == chosen_prof_name][0]
+    for chosen_prof_index in chosen_proficiencies:
+        chosen_prof: Proficiency = [prof for prof in proficiencies if prof.index == chosen_prof_index][0]
         proficiencies.append(chosen_prof)
     # should be deleted (duplicate with character.class_type.proficiencies)
     proficiencies += class_type.proficiencies
@@ -347,13 +347,18 @@ def create_new_character(roster: List[Character]) -> Character:
     hit_points = class_type.hit_die
 
     # Phase 2: Spell selection
-    start_level: int = 1
+    char_level: int = 1
     learned_spells: List[Spell] = []
     if class_type.can_cast:
-        learnable_spells: List[Spell] = [s for s in spells if class_type.index in s.allowed_classes and s.level <= start_level]
-        if spells:
-            n_spells: int = min(len(learnable_spells), class_type.spells_known[start_level - 1])
-            learned_spells = sample(learnable_spells, n_spells)
+        learnable_spells: List[Spell] = [s for s in spells if class_type.index in s.allowed_classes and s.level <= char_level and s.damage_type]
+        if learnable_spells:
+            cantrips_spells: List[Spell] = [s for s in learnable_spells if not s.level]
+            n_cantric_spells: int = min(len(cantrips_spells), class_type.cantrips_known[char_level - 1])
+            cantrips_spells = sample(cantrips_spells, n_cantric_spells)
+            slot_spells: List[Spell] = [s for s in learnable_spells if s.level]
+            n_slot_spells: int = min(len(slot_spells), class_type.spells_known[char_level - 1])
+            slot_spells = sample(slot_spells, n_slot_spells)
+            learned_spells = cantrips_spells + slot_spells
 
     """ Load Spells characteristic """
     character: Character = Character(race=race,
@@ -377,7 +382,7 @@ def create_new_character(roster: List[Character]) -> Character:
                                      monster_kills=0,
                                      age=18 * 52 + randint(0, 299),
                                      gold=90 + randint(0, 99),
-                                     spell_slots=deepcopy(class_type.spell_slots.get(start_level)),
+                                     spell_slots=deepcopy(class_type.spell_slots.get(char_level)),
                                      learned_spells=learned_spells)
     exit_message()
     return character
@@ -454,7 +459,7 @@ def display_character_sheet(char: Character):
         learned_spells: List[Spell] = [s for s in char.learned_spells]
         learned_spells.sort(key=lambda s: s.level)
         for spell in learned_spells:
-            sheet += '|{:^51}|\n'.format(f'Level {spell.level} : {spell}')
+            sheet += '|{:^51}|\n'.format(str(spell))
     sheet += '+{:-^51}+\n'.format('')
     print(sheet)
 
@@ -841,7 +846,7 @@ def simulate_arena(roster: List[Character]):
 
 
 def rename_character_prompt_ok(char: Character, new_name: str) -> bool:
-    print(f'Are you sure you want to rename {char.name} to {new_name}(Y/N)?')
+    print(f'Are you sure you want to rename {char.name} to {new_name} (Y/N)?')
     while True:
         key = get_key()
         if key in ['y', 'Y']:
@@ -980,31 +985,29 @@ def explore_dungeon(party: List[Character], monsters: List[Monster]):
                 if attacker.hit_points > 0:
                     if isinstance(attacker, Monster):
                         # Monster attacks the weakest alive character
-                        chars: List[Character] = [c for i, c in enumerate(party) if c.hit_points > 0 and i < 3]
+                        chars: List[Character] = [c for i, c in enumerate(alive_chars) if i < 3]
                         if not chars:
                             break
                         char: Character = min(chars, key=lambda c: c.hit_points)
                         char.hit_points -= attacker.attack(char)
                         if char.hit_points <= 0:
-                            # attackers.remove(char)
+                            alive_chars.remove(char)
                             char.status = 'DEAD'
                             cprint(f'{char.name} is ** KILLED **!')
-                            melee_attack: List[Character] = [c for i, c in enumerate(party) if c.status != 'DEAD' and i < 3]
+                            # melee_attack: List[Character] = [c for i, c in enumerate(active_party) if i < 3]
                     else:
-                        monsters: List[Monster] = [c for c in attackers if isinstance(c, Monster) if c.hit_points > 0]
-                        if not monsters:
+                        if not alive_monsters:
                             break
-                        if attacker.hit_points < 0.5 * attacker.max_hit_points and attacker.healing_potions:
+                        if attacker.hit_points < 0.3 * attacker.max_hit_points and attacker.healing_potions:
                             attacker.drink_potion()
                             cprint(f'{attacker.name} has {len(attacker.healing_potions)} remaining potions')
                         else:
                             # Character attacks the weakest alive monster
-                            active_party: List[Character] = [c for c in party if c.status != 'DEAD']
-                            order: int = active_party.index(attacker)
-                            monster: Monster = min(monsters, key=lambda m: m.hit_points)
+                            order: int = alive_chars.index(attacker)
+                            monster: Monster = min(alive_monsters, key=lambda m: m.hit_points)
                             monster.hit_points -= attacker.attack(monster, order)
                             if monster.hit_points <= 0:
-                                # attackers.remove(monster)
+                                alive_monsters.remove(monster)
                                 attacker.victory(monster)
                                 attacker.treasure(weapons, armors)
             # End of Round
@@ -1029,9 +1032,12 @@ def restore_all_roster(roster: List[Character]):
 
 def cheat_function(roster: List[Character]):
     for char in roster:
-        if char.name == 'Conan':
-            char.gold += 10000
-            exit_message(f'{char.name} has been offered 10000 Gold!')
+        if char.name == 'Kerri':
+            char.xp += 100000
+            char.gold = 10000
+            char.hit_points = char.max_hit_points
+            char.status = 'OK'
+            exit_message(f'{char.name} has been offered 10000 XP!')
             save_character(char)
 
 
@@ -1040,7 +1046,10 @@ if __name__ == '__main__':
     PAUSE_ON_RAISE_LEVEL = True
     POTION_INITIAL_PACK = 5
     path = os.path.dirname(__file__)
-    characters_dir = f'{path}/gameState/characters'
+    abspath = os.path.abspath(path)
+    print(f'path = {path}')
+    print(f'abspath = {abspath}')
+    characters_dir = f'{abspath}/gameState/characters'
 
     """ Load XP Levels """
     xp_levels = []
@@ -1062,10 +1071,10 @@ if __name__ == '__main__':
 
     location = 'Castle'
     party: List[Character] = []
-    alive_characters: List[Character] = [c for c in roster if c.status == 'OK']
-    if not alive_characters:
-        restore_all_roster(roster)
-        exit_message('All characters died in last game... restoring all characters :-)')
+    # alive_characters: List[Character] = [c for c in roster if c.status == 'OK']
+    # if not alive_characters:
+    #     restore_all_roster(roster)
+    #     exit_message('All characters died in last game... restoring all characters :-)')
 
     cheat_function(roster)
 
