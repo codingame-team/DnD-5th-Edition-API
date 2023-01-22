@@ -652,7 +652,9 @@ class Character:
         if self.class_type.can_cast:
             available_spell_levels: List[int] = [i + 1 for i, slot in enumerate(self.class_type.spell_slots[self.level]) if slot > 0]
             new_spells_known_count: int = self.class_type.spells_known[self.level - 1] - self.class_type.spells_known[self.level - 2]
-            new_cantric_spells_count: int = self.class_type.cantrips_known[self.level - 1] - self.class_type.cantrips_known[self.level - 2]
+            new_cantric_spells_count: int = 0
+            if self.class_type.cantrips_known:
+                new_cantric_spells_count = self.class_type.cantrips_known[self.level - 1] - self.class_type.cantrips_known[self.level - 2]
             learnable_spells: List[Spell] = [s for s in tome_spells if s.level <= max(available_spell_levels) and s not in self.learned_spells and s.damage_type]
             self.spell_slots = deepcopy(self.class_type.spell_slots[self.level])
             learnable_spells.sort(key=lambda s: s.level)

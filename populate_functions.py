@@ -481,6 +481,7 @@ def get_spell_slots(class_name: str) -> Tuple[dict(), List[int], List[int]]:
             for line in data:
                 char_level, prof_bonus, features, *slots = line
                 spell_slots[int(char_level)] = list(map(str2int, slots))
+                spells_known.append(10 * int(char_level))
                 # TODO
         case 'Sorcerer':
             """

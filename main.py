@@ -354,9 +354,11 @@ def create_new_character(roster: List[Character]) -> Character:
     if class_type.can_cast:
         learnable_spells: List[Spell] = [s for s in spells if class_type.index in s.allowed_classes and s.level <= char_level and s.damage_type]
         if learnable_spells:
-            cantrips_spells: List[Spell] = [s for s in learnable_spells if not s.level]
-            n_cantric_spells: int = min(len(cantrips_spells), class_type.cantrips_known[char_level - 1])
-            cantrips_spells = sample(cantrips_spells, n_cantric_spells)
+            cantrips_spells: List[Spell] = []
+            if class_type.cantrips_known:
+                cantrips_spells = [s for s in learnable_spells if not s.level]
+                n_cantric_spells: int = min(len(cantrips_spells), class_type.cantrips_known[char_level - 1])
+                cantrips_spells = sample(cantrips_spells, n_cantric_spells)
             slot_spells: List[Spell] = [s for s in learnable_spells if s.level]
             n_slot_spells: int = min(len(slot_spells), class_type.spells_known[char_level - 1])
             slot_spells = sample(slot_spells, n_slot_spells)
@@ -952,6 +954,7 @@ def generate_encounter(party_level: int, monsters: List[Monster], monster_groups
     if monster_groups_count > 2:
         exit_message('System Error!... only 2 groups of monsters allowed here. Please contact the Dungeon Master :-)')
         return
+    party_level = min(19, party_level)
     if monster_groups_count == 2:
         cr1, cr2 = encounter_table[party_level][0]
         # print(f'(cr_1, cr2) = {(cr1, cr2)}')
@@ -992,7 +995,8 @@ def display_group_of_monsters(monsters: List[Monster]):
         cprint(f'{color.PURPLE}Group of {len(monsters)} {monsters[0].name} ({hp_display}){color.END}')
     else:
         for i, monster in enumerate(monsters):
-            cprint(f'{color.PURPLE} Monster #{i} : {monster.name} ({monster.hit_points} HP){color.END}')
+            if monster.hit_points > 0:
+                cprint(f'{color.PURPLE} Monster #{i} : {monster.name} ({monster.hit_points} HP){color.END}')
 
 def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
     """ Combat simulation """
@@ -1098,7 +1102,7 @@ def restore_all_roster(roster: List[Character]):
 
 def cheat_function(roster: List[Character]):
     for char in roster:
-        if char.name == 'Kerri':
+        if char.name == 'Evendur':
             char.xp += 100000
             char.gold = 10000
             char.hit_points = char.max_hit_points
