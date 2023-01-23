@@ -4,12 +4,13 @@ import os
 import pickle
 import sys
 from fractions import Fraction
+from numpy import array
 
 from collections import namedtuple
 from copy import copy, deepcopy
 from os import listdir
 from os.path import isfile, join
-from random import randint, seed, sample
+from random import randint, seed, sample, shuffle
 from time import sleep, time
 
 from PyQt5.QtWidgets import QApplication, QDialog
@@ -386,7 +387,7 @@ def create_new_character(roster: List[Character]) -> Character:
                                      monster_kills=0,
                                      age=18 * 52 + randint(0, 299),
                                      gold=90 + randint(0, 99),
-                                     spell_slots=deepcopy(class_type.spell_slots.get(char_level)),
+                                     spell_slots=copy(class_type.spell_slots.get(char_level)),
                                      learned_spells=learned_spells)
     exit_message()
     return character
@@ -549,14 +550,14 @@ def arena(character: Character):
                     break
                 monster.hit_points -= character_hp_damage
                 if monster.hit_points <= 0:
-                    character.victory(monster)
+                    character.victory(monster, solo_mode=True)
                     killed_monsters += 1
                     character.treasure(weapons, armors)
                     break
             else:  # character attacks first
                 monster.hit_points -= character_hp_damage
                 if monster.hit_points <= 0:
-                    character.victory(monster)
+                    character.victory(monster, solo_mode=True)
                     killed_monsters += 1
                     character.treasure(weapons, armors)
                     break
@@ -708,9 +709,9 @@ def rest_character(char: Character, fee: int, weeks: int):
         char.age += weeks
         display_rest_message(char)
     if char.class_type.can_cast:
-        if sum(char.spell_slots) < sum(char.class_type.spell_slots[char.level]):
+        if char.spell_slots != char.class_type.spell_slots[char.level]:
             print(f'{char.name} has memorized all his spells')
-        char.spell_slots = deepcopy(char.class_type.spell_slots[char.level])
+            char.spell_slots = copy(char.class_type.spell_slots[char.level])
     if char.level < len(xp_levels) and char.xp > xp_levels[char.level]:
         if char.class_type.can_cast:
             spell_names: List[str] = populate(collection_name='spells', key_name='results')
@@ -938,25 +939,31 @@ def load_encounter_table() -> dict():
     enc_keys: List[str] = ['1', '2', '3', '4', '5-6-7', '7-8-9', '10-11-12']
     enc_table: dict() = {}
     for line in data:
-        party_level, cr_pair, *cr_list = line
+        enc_level, cr_pair, *cr_list = line
         cr_dict: dict() = {}
         for i, enc_key in enumerate(enc_keys):
-            if party_level == '20' and i == 0:
+            if enc_level == '20' and i == 0:
                 # tmp_cr_list: List[str] =
                 cr_dict[enc_key] = [cr_list[0].replace('+', '')]
             else:
                 cr_dict[enc_key] = [Fraction(cr) for cr in cr_list[i].split(',')]
-        enc_table[int(party_level)] = [tuple(map(Fraction, cr_pair.split('+'))), cr_dict]
+        enc_table[int(enc_level)] = [tuple(map(Fraction, cr_pair.split('+'))), cr_dict]
     return enc_table
 
 
-def generate_encounter(party_level: int, monsters: List[Monster], monster_groups_count: int) -> List[Monster]:
+def load_encounter_gold_table() -> List[int]:
+    csv_filename: str = f'Encounter_Gold.csv'
+    data = read_csvfile(csv_filename)
+    return [int(gold) for enc_level, gold in data]
+
+
+def generate_encounter(encounter_level: int, monsters: List[Monster], monster_groups_count: int) -> List[Monster]:
     if monster_groups_count > 2:
         exit_message('System Error!... only 2 groups of monsters allowed here. Please contact the Dungeon Master :-)')
         return
-    party_level = min(19, party_level)
+    encounter_level = min(19, encounter_level)
     if monster_groups_count == 2:
-        cr1, cr2 = encounter_table[party_level][0]
+        cr1, cr2 = encounter_table[encounter_level][0]
         # print(f'(cr_1, cr2) = {(cr1, cr2)}')
         if cr1 not in available_crs:
             cr1 = min(available_crs, key=lambda cr: cr - cr1)
@@ -971,10 +978,10 @@ def generate_encounter(party_level: int, monsters: List[Monster], monster_groups
         return [copy(monster_1), copy(monster_2)]
     else:
         matching_monsters: List[Tuple[Monster, int]] = []
-        cr_dict: dict() = encounter_table[int(party_level)][1]
+        cr_dict: dict() = encounter_table[encounter_level][1]
         for enc_key, cr_list in cr_dict.items():
             monsters_count: int = choice(list(map(int, enc_key.split('-'))))
-            if party_level == 20:
+            if encounter_level == 20:
                 cr: int = cr_list[0]
                 matching_monsters += [(m, monsters_count) for m in monsters if Fraction(str(m.challenge_rating)) >= cr]
             else:
@@ -988,6 +995,7 @@ def generate_encounter(party_level: int, monsters: List[Monster], monster_groups
             group_of_monsters.append(m)
         return group_of_monsters
 
+
 def display_group_of_monsters(monsters: List[Monster]):
     if len(monsters) > 2:
         monsters.sort(key=lambda m: m.hit_points, reverse=True)
@@ -997,6 +1005,29 @@ def display_group_of_monsters(monsters: List[Monster]):
         for i, monster in enumerate(monsters):
             if monster.hit_points > 0:
                 cprint(f'{color.PURPLE} Monster #{i} : {monster.name} ({monster.hit_points} HP){color.END}')
+
+
+def generate_encounter_levels(party_level: int) -> List[int]:
+    """
+        Adjust encounter's level based on table Encounter_Difficulty.csv (not parsed here)
+    :param party_level:
+    :return: list of 20 encounter levels
+    """
+    diff_stats: array = array([30, 50, 15, 5]) // 5
+    encounter_levels: List[int] = []
+    for i, stat_number in enumerate(diff_stats):
+        match i:
+            case 0:
+                encounter_levels += [(randint(1, party_level - 1) if party_level > 1 else 1) for _ in range(stat_number)]
+            case 1:
+                encounter_levels += [party_level] * stat_number
+            case 2:
+                encounter_levels += [(party_level + randint(1, 4)) for _ in range(stat_number)]
+            case 3:
+                encounter_levels += [(party_level + randint(5, 20)) for _ in range(stat_number)]
+    shuffle(encounter_levels)
+    return encounter_levels
+
 
 def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
     """ Combat simulation """
@@ -1021,12 +1052,17 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
     #     case 'EASY':
     #         monsters_to_fight = [m for m in monsters if m.challenge_rating < max_level_char]
 
+    encounter_levels: List[int] = generate_encounter_levels(party_level=party_level)
+
     alive_chars: List[Character] = [c for c in party if c.hit_points > 0]
     while alive_chars:
         if continue_message(f'Do you want to go back to [Castle]? (Y/N)'):
             return
         monster_groups_count: int = randint(1, 2)
-        monsters: List[Monster] = generate_encounter(party_level=party_level, monsters=monsters_db, monster_groups_count=monster_groups_count)
+        if not encounter_levels:
+            encounter_levels: List[int] = generate_encounter_levels(party_level=party_level)
+        encounter_level: int = encounter_levels.pop()
+        monsters: List[Monster] = generate_encounter(encounter_level=encounter_level, monsters=monsters_db, monster_groups_count=monster_groups_count)
         cprint(f'{color.PURPLE}-------------------------------------------------------------------------------------------------------------------------------------------{color.END}')
         cprint(f'{color.PURPLE} New encounter!{color.END}')
         display_group_of_monsters((monsters))
@@ -1078,7 +1114,7 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
                             monster.hit_points -= attacker.attack(monster, order)
                             if monster.hit_points <= 0:
                                 alive_monsters.remove(monster)
-                                attacker.victory(monster)
+                                # attacker.victory(monster)
                                 attacker.treasure(weapons, armors)
             # End of Round
             alive_chars: List[Character] = [c for c in party if c.hit_points > 0]
@@ -1088,6 +1124,12 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
             break
         elif not alive_monsters:
             exit_message(f'** VICTORY! **')
+            earned_gold: int = encounter_gold_table[party_level - 1]
+            xp_gained: int = sum([m.xp for m in monsters])
+            for char in alive_chars:
+                char.gold += earned_gold // len(party)
+                char.xp += xp_gained // len(alive_chars)
+            exit_message(f'Party has earned {earned_gold} GP and gained {xp_gained} XP!')
         elif flee_combat:
             exit_message(f'** Party successfully escaped! **')
 
@@ -1097,7 +1139,7 @@ def restore_all_roster(roster: List[Character]):
     for char in roster:
         char.status = 'OK'
         char.hit_points = char.max_hit_points
-        char.spell_slots = char.class_type.spell_slots.get(char.level)
+        char.spell_slots = copy(char.class_type.spell_slots.get(char.level))
 
 
 def cheat_function(roster: List[Character]):
@@ -1140,16 +1182,13 @@ if __name__ == '__main__':
     adventurer_groups: dict() = {p_id: [c for c in roster if c.id_party == p_id] for p_id in party_ids}
 
     encounter_table: dict() = load_encounter_table()
+    encounter_gold_table: List[int] = load_encounter_gold_table()
     available_crs: List[Fraction] = [Fraction(str(m.challenge_rating)) for m in monsters]
 
     location = 'Castle'
     party: List[Character] = []
-    # alive_characters: List[Character] = [c for c in roster if c.status == 'OK']
-    # if not alive_characters:
-    #     restore_all_roster(roster)
-    #     exit_message('All characters died in last game... restoring all characters :-)')
 
-    cheat_function(roster)
+    # cheat_function(roster)
     restore_all_roster(roster)
 
     while True:

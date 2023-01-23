@@ -584,16 +584,17 @@ class Character:
         else:
             cprint(f'{self.name} drinks healing potion and has {min(hp_to_recover, hp_restored)} hit points restored!')
 
-    def victory(self, monster: Monster):
+    def victory(self, monster: Monster, solo_mode=False):
         self.xp += monster.xp
         self.monster_kills += 1
-        gold_dice = randint(1, 3)
         gold_msg: str = ''
-        if gold_dice == 1:
-            max_gold: int = max(1, floor(10 * monster.xp / monster.level))
-            gold: int = randint(1, max_gold + 1)
-            gold_msg = f' and found {gold} gp!'
-            self.gold += gold
+        if solo_mode:
+            gold_dice = randint(1, 3)
+            if gold_dice == 1:
+                max_gold: int = max(1, floor(10 * monster.xp / monster.level))
+                gold: int = randint(1, max_gold + 1)
+                gold_msg = f' and found {gold} gp!'
+                self.gold += gold
         cprint(f'{monster.name.title()} is ** KILLED **!')
         cprint(f'{self.name} gained {monster.xp} XP{gold_msg}!')
 
@@ -693,7 +694,8 @@ class Character:
             # TODO modify spell_slots to [] for non casters
             attack_spell: Spell = max(castable_spells, key=lambda s: s.level)
             # print(attack_spell)
-            self.update_spell_slots(casted_spell=attack_spell)
+            if attack_spell.level > 0:
+                self.update_spell_slots(casted_spell=attack_spell)
             damage_type, damage_dice, damage_bonus = attack_spell.get_spell_damage(char=self)
             dice_count, roll_dice = map(int, damage_dice.split('d'))
             damage_roll = sum([randint(1, roll_dice) for _ in range(dice_count)]) + damage_bonus
