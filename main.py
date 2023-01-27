@@ -190,6 +190,7 @@ def create_new_character_start(races: List[Race], subraces: List[SubRace], class
     print(f'{color.PURPLE}-------------------------------------------------------{color.END}')
     print(f'{color.PURPLE} Character creation based on DnD 5th edition API{color.END}')
     print(f'{color.PURPLE}-------------------------------------------------------{color.END}')
+    char_proficiencies: List[Proficiency] = []
     """ 1. Choose a race """
     races_names: List[str] = [r.index for r in races]
     race: str = read_choice(races_names, 'Choose race:')
@@ -212,9 +213,9 @@ def create_new_character_start(races: List[Race], subraces: List[SubRace], class
             prof_count -= 1
     for chosen_prof_index in chosen_proficiencies:
         chosen_prof: Proficiency = [prof for prof in proficiencies if prof.index == chosen_prof_index][0]
-        proficiencies.append(chosen_prof)
+        char_proficiencies.append(chosen_prof)
     # should be deleted (duplicate with character.class_type.proficiencies)
-    proficiencies += race.starting_proficiencies
+    char_proficiencies += race.starting_proficiencies
     """ 2. Choose a class """
     class_indexes = [c.index for c in classes]
     class_index: str = read_choice(class_indexes, 'Choose class:')
@@ -232,9 +233,9 @@ def create_new_character_start(races: List[Race], subraces: List[SubRace], class
             prof_count -= 1
     for chosen_prof_index in chosen_proficiencies:
         chosen_prof: Proficiency = [prof for prof in proficiencies if prof.index == chosen_prof_index][0]
-        proficiencies.append(chosen_prof)
+        char_proficiencies.append(chosen_prof)
     # should be deleted (duplicate with character.class_type.proficiencies)
-    proficiencies += class_type.proficiencies
+    char_proficiencies += class_type.proficiencies
 
     """ 3. Determine ability scores (Strength, Dexterity, Constitution, Intelligence, Wisdom, and Charisma.)"""
     ability_scores: List[int] = ability_rolls()
@@ -287,7 +288,7 @@ def create_new_character_start(races: List[Race], subraces: List[SubRace], class
     # Choose starting equipment within the class
     starting_equipment: List[Equipment] = choose_equipment_from(class_type.starting_equipment_options)
     starting_equipment += [inv.equipment for inv in class_type.starting_equipment for _ in range(inv.quantity)]
-    return race, subrace, class_type, abilities, ability_modifiers, name, gender, ethnic, inch2feet(height), f'{weight} {unit}', starting_equipment
+    return race, subrace, class_type, char_proficiencies, abilities, ability_modifiers, name, gender, ethnic, inch2feet(height), f'{weight} {unit}', starting_equipment
 
 
 def load_character_collections() -> Tuple:
@@ -322,7 +323,11 @@ def load_dungeon_collections() -> Tuple:
     armors: List[Armor] = [request_armor(name) for name in armor_names]
     weapon_names: List[str] = populate(collection_name='weapons', key_name='equipment')
     weapons: List[Weapon] = [request_weapon(name) for name in weapon_names]
-    return monsters, armors, weapons
+    equipment_names: List[str] = populate(collection_name='equipment', key_name='results')
+    equipments: List[Equipment] = [request_equipment(name) for name in equipment_names]
+    equipment_category_names: List[str] = populate(collection_name='equipment-categories', key_name='results')
+    equipment_categories: List[Equipment] = [request_equipment_cat(name) for name in equipment_category_names]
+    return monsters, armors, weapons, equipments, equipment_categories
 
 
 def create_new_character(roster: List[Character]) -> Character:
@@ -334,8 +339,9 @@ def create_new_character(roster: List[Character]) -> Character:
     # Phase 1: character selection
     # TODO: do not load spell data collections if class_type cannot perform spell casting
     races, subraces, classes, alignments, equipments, proficiencies, names, human_names, spells = load_character_collections()
+    prof_types: set() = set([p.type for p in proficiencies])
     reserved_names: List[str] = [c.name for c in roster]
-    race, subrace, class_type, abilities, ability_modifiers, name, gender, ethnic, height, weight, starting_equipment \
+    race, subrace, class_type, char_proficiencies, abilities, ability_modifiers, name, gender, ethnic, height, weight, starting_equipment \
         = create_new_character_start(races=races, subraces=subraces, classes=classes, equipments=equipments, proficiencies=proficiencies, names=names, human_names=human_names,
                                      reserved_names=reserved_names)
     # Equip the character with a weapon and an armor from the starting equipment list of the class
@@ -369,7 +375,8 @@ def create_new_character(roster: List[Character]) -> Character:
     character: Character = Character(race=race,
                                      subrace=subrace,
                                      class_type=class_type,
-                                     proficiencies=class_type.proficiencies + race.starting_proficiencies,
+                                     proficiencies=char_proficiencies,
+                                     # proficiencies=class_type.proficiencies + race.starting_proficiencies,
                                      abilities=abilities,
                                      ability_modifiers=ability_modifiers,
                                      gender=gender,
@@ -552,14 +559,14 @@ def arena(character: Character):
                 if monster.hit_points <= 0:
                     character.victory(monster, solo_mode=True)
                     killed_monsters += 1
-                    character.treasure(weapons, armors)
+                    character.treasure(weapons, armors, equipments, equipment_categories)
                     break
             else:  # character attacks first
                 monster.hit_points -= character_hp_damage
                 if monster.hit_points <= 0:
                     character.victory(monster, solo_mode=True)
                     killed_monsters += 1
-                    character.treasure(weapons, armors)
+                    character.treasure(weapons, armors, equipments, equipment_categories)
                     break
                 character.hit_points -= monster_hp_damage
                 if character.hit_points <= 0:
@@ -997,7 +1004,8 @@ def generate_encounter(encounter_level: int, monsters: List[Monster], monster_gr
 
 
 def display_group_of_monsters(monsters: List[Monster]):
-    if len(monsters) > 2:
+    mixed_pair: bool = len(set([m.name for m in monsters])) == 2
+    if not mixed_pair:
         monsters.sort(key=lambda m: m.hit_points, reverse=True)
         hp_display: str = ' - '.join([f'HP {m.hit_points}' for m in monsters if m.hit_points > 0])
         cprint(f'{color.PURPLE}Group of {len(monsters)} {monsters[0].name} ({hp_display}){color.END}')
@@ -1115,7 +1123,7 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
                             if monster.hit_points <= 0:
                                 alive_monsters.remove(monster)
                                 # attacker.victory(monster)
-                                attacker.treasure(weapons, armors)
+                                attacker.treasure(weapons, armors, equipments, equipment_categories)
             # End of Round
             alive_chars: List[Character] = [c for c in party if c.hit_points > 0]
             alive_monsters: List[Monster] = [c for c in monsters if c.hit_points > 0]
@@ -1170,7 +1178,7 @@ if __name__ == '__main__':
         xp_levels.append(int(xp_needed))
 
     """ Load Monster, Armor and Weapon databases """
-    monsters, armors, weapons = load_dungeon_collections()
+    monsters, armors, weapons, equipments, equipment_categories = load_dungeon_collections()
     armors = list(filter(lambda a: a, armors))
     weapons = list(filter(lambda w: w, weapons))
 

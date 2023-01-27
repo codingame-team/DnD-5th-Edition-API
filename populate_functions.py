@@ -6,8 +6,9 @@ import os
 from copy import deepcopy
 from typing import List, Tuple
 
-from dao_classes import Monster, Armor, Weapon, Race, SubRace, Proficiency, ClassType, Language, Equipment, WeaponProperty, WeaponRange, AbilityType, WeaponThrowRange, Trait, EquipmentCategory, Inventory, \
-    Abilities, Action, Damage, ActionType, DamageType, Spell
+from dao_classes import Monster, Armor, Weapon, Race, SubRace, Proficiency, ClassType, Language, Equipment, WeaponProperty, WeaponRange, AbilityType, WeaponThrowRange, Trait, EquipmentCategory, \
+    Inventory, \
+    Abilities, Action, Damage, ActionType, DamageType, Spell, ProfType
 from main import exit_message
 
 """ CSV loads """
@@ -162,7 +163,9 @@ def request_monster(index_name: str) -> Monster:
     proficiencies: List[Proficiency] = []
     if 'proficiencies' in data:
         for prof in data['proficiencies']:
-            proficiencies.append(Proficiency(index=prof['proficiency']['index'], name=prof['proficiency']['name'], value=prof.get('value')))
+            proficiency: Proficiency = request_proficiency(index_name=prof['proficiency']['index'])
+            proficiency.value = prof.get('value')
+            proficiencies.append(proficiency)
 
     return Monster(name=data['name'],
                    abilities=Abilities(str=data['strength'], dex=data['dexterity'], con=data['constitution'], int=data['intelligence'], wis=data['wisdom'], cha=data['charisma']),
@@ -232,7 +235,6 @@ def request_armor(index_name: str) -> Armor:
                      armor_class=data['armor_class'],
                      str_minimum=data['str_minimum'],
                      stealth_disadvantage=data['stealth_disadvantage'],
-                     category=EquipmentCategory('armor', 'Armor', '/api/equipment-categories/armor'),
                      gear_category=None,
                      tool_category=None,
                      vehicle_category=None,
@@ -279,7 +281,6 @@ def request_weapon(index_name: str) -> Weapon:
                       range=WeaponRange(data['range']['normal'], data['range']['long']),
                       throw_range=throw_range,
                       is_magic=False,
-                      category=EquipmentCategory('weapon', 'Weapon', '/api/equipment-categories/weapon'),
                       gear_category=None,
                       tool_category=None,
                       vehicle_category=None,
@@ -383,8 +384,17 @@ def request_proficiency(index_name: str) -> Proficiency:
     with open(f"{path}/data/proficiencies/{index_name}.json", "r") as f:
         data = json.loads(f.read())
 
+    classes: List[str] = []
+    races: List[str] = []
+    for _class in data['classes']:
+        classes.append(_class['index'])
+    for race in data['races']:
+        races.append(race['index'])
     return Proficiency(index=data['index'],
-                       name=data['name'])
+                       name=data['name'],
+                       type=ProfType(data['type']),
+                       classes=classes,
+                       races=races)
 
 
 def request_language(index_name: str) -> Language:
@@ -406,7 +416,7 @@ def request_language(index_name: str) -> Language:
 def request_equipment_category(index_name: str) -> EquipmentCategory:
     """
     Send a request to local database for an equipment category's characteristic
-    :param index_name: name of the quipment category
+    :param index_name: name of the equipment category
     :return: EquipmentCategory object
     """
     with open(f"{path}/data/equipment-categories/{index_name}.json", "r") as f:
@@ -414,6 +424,21 @@ def request_equipment_category(index_name: str) -> EquipmentCategory:
         return EquipmentCategory(index=data['index'],
                                  name=data['name'],
                                  url=data['url'])
+
+def request_equipment_cat(index_name) -> List[Equipment]:
+    """
+    Send a request to local database to list equipments inside an equipment category
+    :param index_name: name of the equipment category
+    :return: EquipmentCategory object
+    """
+    with open(f"{path}/data/equipment-categories/{index_name}.json", "r") as f:
+        data = json.loads(f.read())
+    equipments: List[Equipment] = []
+    for equip in data.get('equipment'):
+        equipment: Equipment = request_equipment(equip['index'])
+        equipments.append(equipment)
+    return equipments
+
 
 
 def request_equipment(index_name: str) -> Equipment:
@@ -437,12 +462,8 @@ def request_equipment(index_name: str) -> Equipment:
                 tool_category = data['tool_category']
             if data['equipment_category']['index'] == 'mounts-and-vehicles':
                 vehicle_category = data['vehicle_category']
-            d = data['equipment_category']
-            equipment_category: EquipmentCategory = \
-                EquipmentCategory(d['index'], d['name'], d['url'])
             return Equipment(index=data['index'],
                              name=data['name'],
-                             category=equipment_category,
                              gear_category=gear_category,
                              tool_category=tool_category,
                              vehicle_category=vehicle_category,

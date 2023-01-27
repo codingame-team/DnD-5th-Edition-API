@@ -107,13 +107,28 @@ class Monster:
 
 """ Character classes """
 
+class ProfType(Enum):
+    SKILL = 'Skills'
+    ARMOR = 'Armor'
+    VEHICLE = 'Vehicles'
+    OTHER = 'Other'
+    TOOLS = 'Artisan\'s Tools'
+    ST = 'Saving Throws'
+    WEAPON = 'Weapons'
+    MUSIC = 'Musical Instruments'
+    GAMING = 'Gaming Sets'
 
 @dataclass
 class Proficiency:
     index: str
     name: str
+    type: ProfType
+    classes: Optional[List[str]] = None
+    races: Optional[List[str]] = None
     value: Optional[int] = None
 
+    def __repr__(self):
+        return f'{self.name} - {self.type}'
 
 # @dataclass
 # class Inventory:
@@ -196,6 +211,7 @@ class EquipmentCategory:
     index: str
     name: str
     url: str
+    equipments: List[Equipment]
 
     def __repr__(self):
         return f"{self.index}"
@@ -208,7 +224,6 @@ class Equipment:
     cost: Cost
     weight: int
     desc: Optional[List[str]]
-    category: EquipmentCategory
     gear_category: str
     tool_category: str
     vehicle_category: str
@@ -598,22 +613,42 @@ class Character:
         cprint(f'{monster.name.title()} is ** KILLED **!')
         cprint(f'{self.name} gained {monster.xp} XP{gold_msg}!')
 
-    def treasure(self, weapons, armors):
-        treasure_dice = randint(1, 3)
-        if treasure_dice == 1:
+    def treasure(self, weapons, armors, equipments: List[Equipment], equipment_categories: List[EquipmentCategory], solo_mode=False):
+        treasure_dice = randint(2, 3)
+        if solo_mode and treasure_dice == 1:
             cprint(f"{self.name} found a healing potion!")
             self.healing_potions.append(Potion('2d4'))
-        elif treasure_dice == 2:
-            new_weapon: Weapon = choice(weapons)
-            if new_weapon.damage_dice > self.weapon.damage_dice:
-                cprint(f"{self.name} found a better weapon {new_weapon}!")
-                self.weapon = new_weapon
+        elif True or treasure_dice == 2:
+            # w: Weapon
+            # e: Equipment
+            p: Proficiency
+            # allowed_weapons = [w for w in weapons for p in self.proficiencies for e in equipments if p.type == ProfType.WEAPON and e.category.index == p.index and w.index == e.index]
+            allowed_weapons = [w for w in weapons for p in self.proficiencies for ec in equipment_categories if w.index in [eq.index for eq in ec.equipments] and p.type == ProfType.WEAPON]
+            # allowed_weapons: List[Weapon] = [w for w in weapons for category in equipment_categories for p in self.proficiencies
+            #                                  if p.type == ProfType.WEAPON.value and f'{w.weapon_category.lower()}-{w.weapon_range.lower()}-weapons' == category.index]
+            # allowed_weapons: List[Weapon] = [w for w in weapons for category in equipment_categories for p in self.proficiencies
+            #                                  if p.type == ProfType.WEAPON.value and w.category.index == category.index]
+            if allowed_weapons:
+                new_weapon: Weapon = choice(allowed_weapons)
+                if new_weapon.damage_dice > self.weapon.damage_dice:
+                    cprint(f"{self.name} found a better weapon {new_weapon}!")
+                    self.weapon = new_weapon
+                else:
+                    cprint(f"{self.name} found a lesser weapon {new_weapon}! ** SKIPPING IT **")
+            else:
+                cprint(f"** SYSTEM ERROR ** {self.name} cannot find weapons ! ** SKIPPING IT **")
         else:
-            new_armor: Armor = choice(armors)
-            if new_armor.armor_class['base'] > self.armor.armor_class['base']:
-                cprint(f"{self.name} found a better armor {new_armor}!")
-                self.armor = new_armor
-
+            allowed_armors: List[Weapon] = [a for a in armors for category in equipment_categories for p in self.proficiencies
+                                             if p.type == ProfType.ARMOR.value and f'{a.armor_category.lower()}-armor' == category.index]
+            if allowed_armors:
+                new_armor: Armor = choice(allowed_armors)
+                if new_armor.armor_class['base'] > self.armor.armor_class['base']:
+                    cprint(f"{self.name} found a better armor {new_armor}!")
+                    self.armor = new_armor
+                else:
+                    cprint(f"{self.name} found a lesser armor {new_armor}! ** SKIPPING IT **")
+            else:
+                cprint(f"** SYSTEM ERROR ** {self.name} cannot find armor ! ** SKIPPING IT **")
     def gain_level_arena(self, pause: bool):
         self.level += 1
         hp_gained = randint(1, 10)
