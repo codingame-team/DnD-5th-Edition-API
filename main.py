@@ -326,7 +326,7 @@ def load_dungeon_collections() -> Tuple:
     equipment_names: List[str] = populate(collection_name='equipment', key_name='results')
     equipments: List[Equipment] = [request_equipment(name) for name in equipment_names]
     equipment_category_names: List[str] = populate(collection_name='equipment-categories', key_name='results')
-    equipment_categories: List[Equipment] = [request_equipment_cat(name) for name in equipment_category_names]
+    equipment_categories: List[EquipmentCategory] = [request_equipment_category(name) for name in equipment_category_names]
     return monsters, armors, weapons, equipments, equipment_categories
 
 
@@ -559,14 +559,14 @@ def arena(character: Character):
                 if monster.hit_points <= 0:
                     character.victory(monster, solo_mode=True)
                     killed_monsters += 1
-                    character.treasure(weapons, armors, equipments, equipment_categories)
+                    character.treasure(weapons, armors, equipment_categories)
                     break
             else:  # character attacks first
                 monster.hit_points -= character_hp_damage
                 if monster.hit_points <= 0:
                     character.victory(monster, solo_mode=True)
                     killed_monsters += 1
-                    character.treasure(weapons, armors, equipments, equipment_categories)
+                    character.treasure(weapons, armors, equipment_categories)
                     break
                 character.hit_points -= monster_hp_damage
                 if character.hit_points <= 0:
@@ -1123,7 +1123,7 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
                             if monster.hit_points <= 0:
                                 alive_monsters.remove(monster)
                                 # attacker.victory(monster)
-                                attacker.treasure(weapons, armors, equipments, equipment_categories)
+                                attacker.treasure(weapons, armors, equipment_categories)
             # End of Round
             alive_chars: List[Character] = [c for c in party if c.hit_points > 0]
             alive_monsters: List[Monster] = [c for c in monsters if c.hit_points > 0]

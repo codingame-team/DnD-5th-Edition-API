@@ -4,7 +4,7 @@ import csv
 import json
 import os
 from copy import deepcopy
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 
 from dao_classes import Monster, Armor, Weapon, Race, SubRace, Proficiency, ClassType, Language, Equipment, WeaponProperty, WeaponRange, AbilityType, WeaponThrowRange, Trait, EquipmentCategory, \
     Inventory, \
@@ -114,6 +114,7 @@ def populate(collection_name: str, key_name: str, with_url=False, collection_pat
         data_list = [json_data['index'] for json_data in collection_json_list]
     return data_list
 
+
 def request_damage_type(index_name: str) -> DamageType:
     """
     Send a request to local database for a damage type's characteristic
@@ -123,6 +124,7 @@ def request_damage_type(index_name: str) -> DamageType:
     with open(f"{path}/data/damage-types/{index_name}.json", "r") as f:
         data = json.loads(f.read())
     return DamageType(index=data['index'], name=data['name'], desc=data['desc'])
+
 
 def request_monster(index_name: str) -> Monster:
     """
@@ -178,6 +180,7 @@ def request_monster(index_name: str) -> Monster:
                    actions=actions
                    )
 
+
 def request_spell(index_name: str) -> Spell:
     """
     Send a request to local database for a spell's characteristic
@@ -220,6 +223,7 @@ def request_spell(index_name: str) -> Spell:
                      dc_success=dc_success
                      )
 
+
 def request_armor(index_name: str) -> Armor:
     """
     Send a request to local database for a armor's characteristic
@@ -231,13 +235,10 @@ def request_armor(index_name: str) -> Armor:
     if "armor_class" in data:
         return Armor(index=data['index'],
                      name=data['name'],
-                     armor_category=data['armor_category'],
                      armor_class=data['armor_class'],
                      str_minimum=data['str_minimum'],
+                     category=request_equipment_category(data['equipment_category']['index']),
                      stealth_disadvantage=data['stealth_disadvantage'],
-                     gear_category=None,
-                     tool_category=None,
-                     vehicle_category=None,
                      cost=data['cost'],
                      weight=data['weight'],
                      desc=None)
@@ -274,16 +275,13 @@ def request_weapon(index_name: str) -> Weapon:
     if "damage" in data:
         return Weapon(index=data['index'],
                       name=data['name'],
-                      weapon_category=data['weapon_category'],
-                      weapon_range=data['weapon_range'],
+                      category=request_equipment_category(data['equipment_category']['index']),
+                      _range=data['weapon_range'],
                       damage_dice=data['damage']['damage_dice'],
                       damage_type=data['damage']['damage_type']['index'],
                       range=WeaponRange(data['range']['normal'], data['range']['long']),
                       throw_range=throw_range,
                       is_magic=False,
-                      gear_category=None,
-                      tool_category=None,
-                      vehicle_category=None,
                       cost=data['cost'],
                       weight=data['weight'],
                       properties=weapon_properties,
@@ -390,9 +388,22 @@ def request_proficiency(index_name: str) -> Proficiency:
         classes.append(_class['index'])
     for race in data['races']:
         races.append(race['index'])
+    ref_url: str = data['reference']['url']
+    category: str = ref_url.split('/')[2]
+    index_name: str = ref_url.split('/')[3]
+    ref: object = None
+    match category:
+        case 'equipment':
+            ref: Equipment = request_equipment(index_name=index_name)
+        case 'equipment-categories':
+            ref: List[Equipment] = list_equipment_category(index_name=index_name)
+        case 'ability-scores':
+            ref: AbilityType = AbilityType(index_name)
+
     return Proficiency(index=data['index'],
                        name=data['name'],
                        type=ProfType(data['type']),
+                       ref=ref,
                        classes=classes,
                        races=races)
 
@@ -425,11 +436,12 @@ def request_equipment_category(index_name: str) -> EquipmentCategory:
                                  name=data['name'],
                                  url=data['url'])
 
-def request_equipment_cat(index_name) -> List[Equipment]:
+
+def list_equipment_category(index_name: str) -> List[Equipment]:
     """
     Send a request to local database to list equipments inside an equipment category
     :param index_name: name of the equipment category
-    :return: EquipmentCategory object
+    :return: list of equipment's objects
     """
     with open(f"{path}/data/equipment-categories/{index_name}.json", "r") as f:
         data = json.loads(f.read())
@@ -440,36 +452,30 @@ def request_equipment_cat(index_name) -> List[Equipment]:
     return equipments
 
 
-
-def request_equipment(index_name: str) -> Equipment:
+def request_equipment(index_name: str) -> Optional[Equipment]:
     """
     Send a request to local database for an equipment's characteristic
     :param index_name: name of the equipment
     :return: Equipment object
     """
-    with open(f"{path}/data/equipment/{index_name}.json", "r") as f:
-        data = json.loads(f.read())
-        equipment_category = data['equipment_category']['index']
-        if equipment_category == 'weapon':
-            return request_weapon(index_name)
-        elif equipment_category == 'armor':
-            return request_armor(index_name)
-        else:
-            gear_category = tool_category = vehicle_category = None
-            if data['equipment_category']['index'] == 'adventuring-gear':
-                gear_category = data['gear_category']
-            if data['equipment_category']['index'] == 'tools':
-                tool_category = data['tool_category']
-            if data['equipment_category']['index'] == 'mounts-and-vehicles':
-                vehicle_category = data['vehicle_category']
-            return Equipment(index=data['index'],
-                             name=data['name'],
-                             gear_category=gear_category,
-                             tool_category=tool_category,
-                             vehicle_category=vehicle_category,
-                             cost=data['cost'],
-                             weight=data.get('weight'),
-                             desc=data.get('desc'))
+    try:
+        with open(f"{path}/data/equipment/{index_name}.json", "r") as f:
+            data = json.loads(f.read())
+            equipment_category = data['equipment_category']['index']
+            if equipment_category == 'weapon':
+                return request_weapon(index_name)
+            elif equipment_category == 'armor':
+                return request_armor(index_name)
+            else:
+                return Equipment(index=data['index'],
+                                 name=data['name'],
+                                 category=request_equipment_category(equipment_category),
+                                 cost=data['cost'],
+                                 weight=data.get('weight'),
+                                 desc=data.get('desc'))
+    except FileNotFoundError:
+        print(f'equipment {index_name} not existing in database!')
+        return None
 
 
 def get_spell_slots(class_name: str) -> Tuple[dict(), List[int], List[int]]:
@@ -484,7 +490,7 @@ def get_spell_slots(class_name: str) -> Tuple[dict(), List[int], List[int]]:
     spells_known: List[int] = []
     cantrips_known: List[int] = []
     str2int = lambda x: 0 if not x else int(x)
-    #print(class_name)
+    # print(class_name)
     match class_name:
         case 'Wizard' | 'Druid' | 'Cleric' | 'Ranger':
             # Lvl;Proficiency Bonus;Features;Cantrips Known;1;2;3;4;5;6;7;8;9
@@ -534,6 +540,7 @@ def get_spell_slots(class_name: str) -> Tuple[dict(), List[int], List[int]]:
                 cantrips_known.append(str2int(ct_known))
                 spells_known.append(str2int(sp_known))
     return spell_slots, spells_known, cantrips_known
+
 
 def request_class(index_name: str, known_proficiencies: List[Proficiency] = None, abilities: List[AbilityType] = None) -> ClassType:
     """

@@ -123,6 +123,7 @@ class Proficiency:
     index: str
     name: str
     type: ProfType
+    ref: object  # Equipment | List[Equipment] | AbilityType
     classes: Optional[List[str]] = None
     races: Optional[List[str]] = None
     value: Optional[int] = None
@@ -211,10 +212,11 @@ class EquipmentCategory:
     index: str
     name: str
     url: str
-    equipments: List[Equipment]
+    #equipments: List[Equipment]
 
     def __repr__(self):
-        return f"{self.index}"
+        # e_list: List[str] = [e.index for e in self.equipments]
+        return f"{self.index}"# {e_list}"
 
 
 @dataclass
@@ -224,13 +226,11 @@ class Equipment:
     cost: Cost
     weight: int
     desc: Optional[List[str]]
-    gear_category: str
-    tool_category: str
-    vehicle_category: str
+    category: EquipmentCategory
     equipped: bool = field(init=False)
 
     def __repr__(self):
-        return f"{self.index} ({self.category})"
+        return f"{self.index} {self.category}"
 
 
 @dataclass
@@ -275,8 +275,7 @@ class DamageType():
 class Weapon(Equipment):
     properties: List[WeaponProperty]
     damage_type: DamageType
-    weapon_category: str
-    weapon_range: str
+    _range: str
     damage_dice: str
     damage_type: str
     range: WeaponRange
@@ -285,7 +284,7 @@ class Weapon(Equipment):
     category_range: str = field(init=False)
 
     def __post_init__(self):
-        self.category_range = f'{self.weapon_category} {self.weapon_range}'
+        self.category_range = f'{self.category} {self._range}'
 
     def __repr__(self):
         return f"{self.index} ({self.category})"
@@ -293,8 +292,7 @@ class Weapon(Equipment):
 
 @dataclass
 class Armor(Equipment):
-    armor_category: str
-    armor_class: int
+    armor_class: dict()
     str_minimum: int
     stealth_disadvantage: bool
 
@@ -613,42 +611,47 @@ class Character:
         cprint(f'{monster.name.title()} is ** KILLED **!')
         cprint(f'{self.name} gained {monster.xp} XP{gold_msg}!')
 
-    def treasure(self, weapons, armors, equipments: List[Equipment], equipment_categories: List[EquipmentCategory], solo_mode=False):
+    def treasure(self, weapons, armors, equipments: List[Equipment], solo_mode=False):
         treasure_dice = randint(2, 3)
         if solo_mode and treasure_dice == 1:
             cprint(f"{self.name} found a healing potion!")
             self.healing_potions.append(Potion('2d4'))
-        elif True or treasure_dice == 2:
-            # w: Weapon
-            # e: Equipment
-            p: Proficiency
-            # allowed_weapons = [w for w in weapons for p in self.proficiencies for e in equipments if p.type == ProfType.WEAPON and e.category.index == p.index and w.index == e.index]
-            allowed_weapons = [w for w in weapons for p in self.proficiencies for ec in equipment_categories if w.index in [eq.index for eq in ec.equipments] and p.type == ProfType.WEAPON]
-            # allowed_weapons: List[Weapon] = [w for w in weapons for category in equipment_categories for p in self.proficiencies
-            #                                  if p.type == ProfType.WEAPON.value and f'{w.weapon_category.lower()}-{w.weapon_range.lower()}-weapons' == category.index]
-            # allowed_weapons: List[Weapon] = [w for w in weapons for category in equipment_categories for p in self.proficiencies
-            #                                  if p.type == ProfType.WEAPON.value and w.category.index == category.index]
-            if allowed_weapons:
-                new_weapon: Weapon = choice(allowed_weapons)
+        elif treasure_dice == 2:
+            allowed_weapons: List[Weapon] = []
+            for p in self.proficiencies:
+                if p.type == ProfType.WEAPON:
+                    allowed_weapons += p.ref if isinstance(p.ref, List) else [p.ref]
+            allowed_weapons = list(filter(None, allowed_weapons))
+            better_weapons: List[Weapon] = [w for w in allowed_weapons if w.damage_dice > self.weapon.damage_dice]
+            if better_weapons:
+                new_weapon: Weapon = choice(better_weapons)
                 if new_weapon.damage_dice > self.weapon.damage_dice:
                     cprint(f"{self.name} found a better weapon {new_weapon}!")
                     self.weapon = new_weapon
                 else:
                     cprint(f"{self.name} found a lesser weapon {new_weapon}! ** SKIPPING IT **")
-            else:
-                cprint(f"** SYSTEM ERROR ** {self.name} cannot find weapons ! ** SKIPPING IT **")
+            # else:
+            #     cprint(f"** SYSTEM ERROR ** {self.name} cannot find weapons ! ** SKIPPING IT **")
         else:
-            allowed_armors: List[Weapon] = [a for a in armors for category in equipment_categories for p in self.proficiencies
-                                             if p.type == ProfType.ARMOR.value and f'{a.armor_category.lower()}-armor' == category.index]
-            if allowed_armors:
-                new_armor: Armor = choice(allowed_armors)
-                if new_armor.armor_class['base'] > self.armor.armor_class['base']:
-                    cprint(f"{self.name} found a better armor {new_armor}!")
-                    self.armor = new_armor
-                else:
-                    cprint(f"{self.name} found a lesser armor {new_armor}! ** SKIPPING IT **")
-            else:
-                cprint(f"** SYSTEM ERROR ** {self.name} cannot find armor ! ** SKIPPING IT **")
+            allowed_armors: List[Armor] = []
+            for p in self.proficiencies:
+                if p.type == ProfType.ARMOR:
+                    allowed_armors += p.ref if isinstance(p.ref, List) else [p.ref]
+            allowed_armors = list(filter(None, allowed_armors))
+            better_armors: List[Weapon] = [a for a in allowed_armors if a.armor_class['base'] > self.armor.armor_class['base']]
+            if better_armors:
+                new_armor: Armor = choice(better_armors)
+                try:
+                    if new_armor.armor_class['base'] > self.armor.armor_class['base']:
+                        cprint(f"{self.name} found a better armor {new_armor}!")
+                        self.armor = new_armor
+                    else:
+                        cprint(f"{self.name} found a lesser armor {new_armor}! ** SKIPPING IT **")
+                except AttributeError:
+                    cprint(f"** SYSTEM ERROR ** {new_armor} has no attribute1 ! ** SKIPPING IT **")
+            # else:
+            #     cprint(f"** SYSTEM ERROR ** {self.name} cannot find armor ! ** SKIPPING IT **")
+
     def gain_level_arena(self, pause: bool):
         self.level += 1
         hp_gained = randint(1, 10)
