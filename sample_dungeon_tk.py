@@ -1,3 +1,4 @@
+import os
 from dataclasses import dataclass, field
 from time import sleep
 from tkinter import Tk, Canvas, PhotoImage
@@ -28,9 +29,8 @@ def load_maze(level: str) -> List:
     - une liste avec les données du labyrinthe
     """
     try:
-        fic = open(level + ".txt", "r")
-        data = fic.readlines()
-        fic.close()
+        with open(f"{path}/maze//{level}.txt", newline='') as fic:
+            data = fic.readlines()
     except IOError:
         print("Impossible de lire le fichier {}.txt".format(level))
         exit(1)
@@ -106,10 +106,10 @@ def init_touches(app: Tk, can: Canvas, maze: List, hero: Character):
 
 def display(maze: List, app: Tk, size_sprite: int, hero: Character) -> Canvas:
     can: Canvas = Canvas(app, width=620, height=620, bg="ivory")
-    photo_wall: PhotoImage = PhotoImage(file="sprites/WallTile1.png")
-    photo_treasure: PhotoImage = PhotoImage(file="sprites/treasure.png")
-    photo_enemy: PhotoImage = PhotoImage(file="sprites/enemy.png")
-    photo_exit: PhotoImage = PhotoImage(file="sprites/exit.png")
+    photo_wall: PhotoImage = PhotoImage(file=f"{path}/sprites/WallTile1.png")
+    photo_treasure: PhotoImage = PhotoImage(file=f"{path}/sprites/treasure.png")
+    photo_enemy: PhotoImage = PhotoImage(file=f"{path}/sprites/enemy.png")
+    photo_exit: PhotoImage = PhotoImage(file=f"{path}/sprites/exit.png")
 
     enemies: List[Character] = []
     for y in range(height):
@@ -143,6 +143,8 @@ def display(maze: List, app: Tk, size_sprite: int, hero: Character) -> Canvas:
 
 
 if __name__ == "__main__":
+    path = os.path.dirname(__file__)
+
     # Initialisation environnement graphique
     app = Tk()
     app.title("Tryout Tk")
@@ -154,7 +156,7 @@ if __name__ == "__main__":
     walls = [(x, y) for y in range(height) for x in range(width) if maze[y][x] in ('+', '-', '|', '-')]
 
     # Initialisation du personnage
-    photo_hero: PhotoImage = PhotoImage(file="sprites/hero.png")
+    photo_hero: PhotoImage = PhotoImage(file=f"{path}/sprites/hero.png")
     hero: Character = Character(x=1, y=1, image=photo_hero)
 
     canvas, enemies = display(maze=maze, app=app, size_sprite=size_sprite, hero=hero)
