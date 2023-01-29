@@ -34,45 +34,40 @@ def affiche_labyrinthe(lab, fenetre, size_sprite, pos_perso):
     Tuple contenant le canevas, le sprite du personnage et un
     dictionnaire des images utilisées pour les sprites
     """
-    can = Canvas(fenetre, width=600, height=600)
-    photo_wall = PhotoImage(file="sprites/WallTile1.png")
-    photo_treasure = PhotoImage(file="sprites/treasure.png")
+    can: Canvas = Canvas(fenetre, width=600, height=600)
+    photo_wall: PhotoImage = PhotoImage(file="../sprites/WallTile1.png")
+    photo_treasure: PhotoImage = PhotoImage(file="../sprites/treasure.png")
 
-    photo_enemy = PhotoImage(file="sprites/enemy.png")
-    photo_exit = PhotoImage(file="sprites/exit.png")
-    photo_hero = PhotoImage(file="sprites/hero.png")
+    photo_enemy: PhotoImage = PhotoImage(file="../sprites/enemy.png")
+    photo_exit: PhotoImage = PhotoImage(file="../sprites/exit.png")
+    photo_hero: PhotoImage = PhotoImage(file="../sprites/hero.png")
 
-    n_ligne = 0
-    for ligne in lab:
-        n_col = 0
-        for car in ligne:
-            # Murs
-            if car == "+" or car == "-" or car == "|":
-                can.create_image(n_col + n_col * size_sprite,
-                                 n_ligne + n_ligne * size_sprite, anchor=NW,
-                                 image=photo_wall)
-            # Trésors
-            if car == "1" or car == "2" or car == "3":
-                can.create_image(n_col + n_col * size_sprite,
-                                 n_ligne + n_ligne * size_sprite, anchor=NW,
-                                 image=photo_treasure)
-            # Ennemis
-            if car == "$":
-                can.create_image(n_col + n_col * size_sprite,
-                                 n_ligne + n_ligne * size_sprite, anchor=NW,
-                                 image=photo_enemy)
-            # Sortie
-            if car == "O":
-                can.create_image(n_col + n_col * size_sprite,
-                                 n_ligne + n_ligne * size_sprite, anchor=NW,
-                                 image=photo_exit)
-            n_col += 1
-        n_ligne += 1
+    convert_pos = lambda x, y, size: (x * (size + 1), y * (size + 1))
+
+    lab_height, lab_width = len(lab), len(lab[0])
+    for y in range(lab_height):
+        for x in range(lab_width):
+            image: PhotoImage = None
+            match lab[y][x]:
+                # Murs
+                case ['+', '-']:
+                    image: str = photo_wall
+                # Trésors
+                case ['1', '2', '3']:
+                    image: str = photo_treasure
+                # Ennemis
+                case '$':
+                    image: str = photo_enemy
+                # Sortie
+                case 'O':
+                    image: str = photo_exit
+            if image is not None:
+                img_pos: tuple = convert_pos(x, y, size_sprite)
+                can.create_image(*img_pos, anchor=NW, image=image)
 
     # Affichage du personnage
-    sprite_hero = can.create_image(pos_perso[0] + pos_perso[0] * size_sprite,
-                                   pos_perso[1] + pos_perso[1] * size_sprite,
-                                   anchor=NW, image=photo_hero)
+    sprite_hero = can.create_image(*convert_pos(*pos_perso, size_sprite), anchor=NW, image=photo_hero)
+
     can.pack()
 
     return (can, sprite_hero, {
