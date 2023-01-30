@@ -10,7 +10,7 @@ def init_curses(lignes, cols, pos):
     pos : tuple contenant la position du coin supérieur gauche
     de la fenêtre graphique
     Valeur de retour :
-    La fenêtre curses ayant été créée
+    La fenêtre training ayant été créée
     """
     curses.initscr()
     curses.noecho()
@@ -52,7 +52,7 @@ def color(code, l_color):
     code : nom de la couleur
     l_color : liste des couleurs
     Valeur de retour :
-    code de couleur curses
+    code de couleur training
     """
     return curses.color_pair(l_color.index(code) + 1)
 

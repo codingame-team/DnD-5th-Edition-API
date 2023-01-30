@@ -675,7 +675,7 @@ def gilgamesh_tavern(party: List[Character], roster: List[Character]):
                 available_pos: List[int] = list(range(1, len(party) + 1))
                 new_pos: dict() = {}
                 for i, char in enumerate(party):
-                    order: int = read_value(available_pos, f'new pos for {char.name} {available_pos}:')
+                    order: int = read_value(available_pos, f'new img_pos for {char.name} {available_pos}:')
                     available_pos.remove(order)
                     new_pos[char.name] = order
                 new_pos = dict(sorted(new_pos.items(), key=lambda x: x[1]))

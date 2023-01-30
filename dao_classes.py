@@ -664,7 +664,7 @@ class Character:
 
     def gain_level(self, tome_spells: List[Spell] = None):
         self.level += 1
-        hp_gained = randint(1, 10)
+        hp_gained = randint(1, 10) + self.ability_modifiers.get_value_by_index('con')
         self.max_hit_points += hp_gained
         self.hit_points += hp_gained
         print(f'{color.BLUE}New level #{self.level} gained!!!{color.END}')
@@ -761,7 +761,7 @@ class Character:
                 else:
                     cprint(f'{color.RED}{monster.name}{color.END} is hit for {damage_roll} hit points!')
         else:
-            attack_roll = randint(1, 20)
+            attack_roll = randint(1, 20) + self.ability_modifiers.get_value_by_index('str')
             if attack_roll >= monster.armor_class:
                 dice_count, roll_dice = map(int, self.damage_dice.split('d'))
                 damage_roll = sum([randint(1, roll_dice) for _ in range(dice_count)])

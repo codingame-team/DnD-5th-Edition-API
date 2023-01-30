@@ -38,6 +38,9 @@ Simple project to illustrate usage of D&D 5th Edition API!
         - character creation
         - combat v1
 
+#### Extract image's captures to Excel tables (also available as Google Sheet plug-in)
+https://github.com/ExtractTable/ExtractTable-py
+
 #### Convert QT Designer project to PyQT
  ```python3.10 -m PyQt5.uic.pyuic -x sample_dialog.ui -o sample_dialog.py```
 

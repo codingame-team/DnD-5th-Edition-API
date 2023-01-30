@@ -7,6 +7,12 @@ Usage to run:
   - (under construction...) GUI mode:
     - python /pyQT5App/wizardry.py
 
+** New Feature (Staging) ** graphic maze exploration using Tk:
+
+    - explore levels of dungeons
+    - collect treasures
+    
+
 Prerequisites:
 - List of required modules for python v3.11:
     ./requirements.txt
