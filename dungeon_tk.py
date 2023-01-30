@@ -2,7 +2,7 @@ import os
 from dataclasses import dataclass
 from random import choice, randint
 from tkinter import Tk, PhotoImage, Canvas, NW
-from typing import List
+from typing import List, Tuple
 
 
 @dataclass
@@ -27,6 +27,9 @@ class Treasure:
     image: PhotoImage
     id: int = None
 
+    def __eq__(self, other):
+        return (self.x, self.y) == (other.x, other.y)
+
     def __repr__(self):
         return f'{self.id} {self.gold}'
 
@@ -39,6 +42,7 @@ class App(Tk):
     walls: List = None
     hero: Character = None
     enemies: List[Character] = None
+    treasures: List[Treasure] = None
     level: int = 1
 
     def __init__(self, level: str):
@@ -100,7 +104,7 @@ class App(Tk):
             data[i] = data[i].strip()
         return data
 
-    def display(self) -> Canvas:
+    def display(self) -> Tuple[Canvas, List[Character], List[Treasure]]:
         can: Canvas = Canvas(self, width=size_sprite * self.width, height=size_sprite * self.height, bg="ivory")
         photo_wall: PhotoImage = PhotoImage(file=f"{path}/sprites/WallTile1.png")
         photo_treasure: PhotoImage = PhotoImage(file=f"{path}/sprites/treasure.png")
@@ -209,18 +213,27 @@ class App(Tk):
                 print(f'Hero blocked by a monster!')
                 return
             case '1' | '2' | '3':
-                print(f'Hero gained a treasure!')
-                treasure: Treasure = self.treasures[(x, y)]
-                del self.treasures[(x, y)]
-                self.canvas.delete(treasure.id)
-                self.hero.gold += treasure.gold
-                self.title(f'Level {self.level} - Gold earned: {self.hero.gold}')
+                if (x, y) in self.treasures:
+                    print(f'Hero gained a treasure!')
+                    treasure: Treasure = self.treasures[(x, y)]
+                    del self.treasures[(x, y)]
+                    self.canvas.delete(treasure.id)
+                    self.hero.gold += treasure.gold
+                    self.title(f'Level {self.level} - Gold earned: {self.hero.gold}')
 
         can.move(char.id, dx, dy)
         # print(f'hero pos: {(char.x, char.y)}')
         char.x, char.y = x, y
 
-
+"""
+    initialize all map cells to walls.
+    pick a map cell as the starting point.
+    turn the selected map cell into floor.
+    while insufficient cells have been turned into floor,
+    take one step in a random direction.
+    if the new map cell is wall,
+    turn the new map cell into floor and increment the count of floor tiles.
+"""
 if __name__ == "__main__":
     levels: List[str] = ['level_1', 'level_2']
     size_sprite = 31
