@@ -225,6 +225,7 @@ class App(Tk):
         # print(f'hero pos: {(char.x, char.y)}')
         char.x, char.y = x, y
 
+
 """
     initialize all map cells to walls.
     pick a map cell as the starting point.
@@ -234,10 +235,33 @@ class App(Tk):
     if the new map cell is wall,
     turn the new map cell into floor and increment the count of floor tiles.
 """
+
+
+def generate_maze(width: int, height: int, n_cells: int) -> List[str]:
+    maze: List[str] = [['#'] * width for _ in range(height)]
+    x, y = randint(1, width - 2), randint(1, height - 2)
+    maze[y][x] = '.'
+    dirs = [(-1, 0), (1, 0), (0, 1), (0, -1)]
+    while n_cells:
+        candidates = [(x + dx, y + dy) for dx, dy in dirs if 0 < x + dx < width - 1 and 0 < y + dy < height - 1]
+        x, y = choice(candidates)
+        if maze[y][x] == '#':
+            maze[y][x] = '.'
+            n_cells -= 1
+    return maze
+
+
 if __name__ == "__main__":
     levels: List[str] = ['level_1', 'level_2']
     size_sprite = 31
     path = os.path.dirname(__file__)
+
+    # random_level: List[str] = generate_maze(40, 20, 400)
+    #
+    # for line in random_level:
+    #     print(''.join(line))
+    #
+    # exit(0)
 
     app = App('level_1')
     app.mainloop()
