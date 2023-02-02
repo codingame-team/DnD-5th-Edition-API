@@ -1,17 +1,25 @@
+import json
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from enum import Enum
 from random import choice, randint
 from tkinter import Tk, PhotoImage, Canvas, NW
-from typing import List, Tuple
+from typing import List, Tuple, Optional
+
 
 
 @dataclass
 class Character:
     x: int
     y: int
+    hp: int
+    max_hp: int
     image: PhotoImage
-    id: int = None
     gold: int = 0
+    xp: int = 0
+    potions: int = 0
+    level: int = 1
+    id: int = None
 
     def __eq__(self, other):
         return (self.x, self.y) == (other.x, other.y)
@@ -20,19 +28,23 @@ class Character:
     def img_pos(self):
         return self.x * (size_sprite + 1), self.y * (size_sprite + 1)
 
+    def drink_potion(self, event, app):
+        if self.potions:
+            hp_recovered = randint(1, 8)
+            self.hp = min(self.hp + hp_recovered, self.max_hp)
+            status: str = 'fully' if self.hp == self.max_hp else 'partially'
+            print(f'Hero drinks potion and is ** {status} ** healed!')
+            self.potions -= 1
+            app.refresh_title()
+        else:
+            print(f'Hero has ** no potion ** left!')
 
 @dataclass
 class Treasure:
     gold: int
+    potion: bool
     image: PhotoImage
     id: int = None
-
-    def __eq__(self, other):
-        return (self.x, self.y) == (other.x, other.y)
-
-    def __repr__(self):
-        return f'{self.id} {self.gold}'
-
 
 class App(Tk):
     maze: List
@@ -42,7 +54,6 @@ class App(Tk):
     walls: List = None
     hero: Character = None
     enemies: List[Character] = None
-    treasures: List[Treasure] = None
     level: int = 1
 
     def __init__(self, level: str):
@@ -57,15 +68,11 @@ class App(Tk):
         self.maze = self.load_maze(level)
         self.height, self.width = len(self.maze), len(self.maze[0])
         self.walls = [(x, y) for y in range(self.height) for x in range(self.width) if self.maze[y][x] in ('+', '-', '|', '-', '#')]
-        # Initialisation du personnage
-        photo_hero: PhotoImage = PhotoImage(file=f"{path}/sprites/hero.png")
-        starting_positions: List[tuple] = [(x, y) for x in range(self.width) for y in range(self.height) if (x, y) not in self.walls]
-        hero_x, hero_y = choice(starting_positions)
-        hero_x, hero_y = 17, 18
-        self.hero: Character = Character(x=hero_x, y=hero_y, image=photo_hero)
 
         # Initialisation du Canvas, entités de jeu et touches d'actions
-        self.canvas, self.enemies, self.treasures = self.display()
+        self.canvas, self.hero, self.enemies, self.treasures = self.display(stair_pos=(1, 1))
+
+        # Initialisation des fonctions événementielles
         self.init_touches()
 
     def update_level(self, level: int):
@@ -75,7 +82,7 @@ class App(Tk):
         :return: None
         """
         self.level += level
-        self.title(f'Level {self.level} - Gold earned: {self.hero.gold}')
+        self.refresh_title()
         self.maze = self.load_maze(f'level_{self.level}')
         self.height, self.width = len(self.maze), len(self.maze[0])
         self.walls = [(x, y) for y in range(self.height) for x in range(self.width) if self.maze[y][x] in ('+', '-', '|', '-', '#')]
@@ -83,8 +90,8 @@ class App(Tk):
         self.canvas.destroy()
         self.geometry(f'{self.width * size_sprite}x{self.height * size_sprite}')
         stair: str = '<' if level == 1 else '>'
-        self.hero.x, self.hero.y = [(x, y) for y in range(self.height) for x in range(self.width) if self.maze[y][x] == stair][0]
-        self.canvas, self.enemies, self.treasures = self.display()
+        stair_pos = [(x, y) for y in range(self.height) for x in range(self.width) if self.maze[y][x] == stair][0]
+        self.canvas, self.hero, self.enemies, self.treasures = self.display(stair_pos)
         self.init_touches()
 
     def load_maze(self, level: str) -> List:
@@ -104,7 +111,7 @@ class App(Tk):
             data[i] = data[i].strip()
         return data
 
-    def display(self) -> Tuple[Canvas, List[Character], List[Treasure]]:
+    def display(self, stair_pos) -> Tuple[Canvas, Character, List[Character], List[Treasure]]:
         can: Canvas = Canvas(self, width=size_sprite * self.width, height=size_sprite * self.height, bg="ivory")
         photo_wall: PhotoImage = PhotoImage(file=f"{path}/sprites/WallTile1.png")
         photo_treasure: PhotoImage = PhotoImage(file=f"{path}/sprites/treasure.png")
@@ -127,14 +134,17 @@ class App(Tk):
                     # Trésors
                     case '1' | '2' | '3':
                         gold = randint(50, 300) * self.level
-                        treasure: Treasure = Treasure(gold, photo_treasure)
+                        potion = randint(1, 4) == 3
+                        treasure: Treasure = Treasure(gold, potion, photo_treasure)
                         treasure.id = can.create_image(*img_pos, anchor=NW, image=photo_treasure)
                         treasures[(x, y)] = treasure
                         # can.photo_treasure = photo_treasure
                     # Ennemis
                     case '$':
-                        enemy: Character = Character(x, y, photo_enemy)
+                        hp = randint(1, 4)
+                        enemy: Character = Character(x, y, hp, hp, photo_enemy)
                         enemy.id = can.create_image(*img_pos, anchor=NW, image=photo_enemy)
+                        can.enemy_id = enemy.id
                         enemies.append(enemy)
                     # Escaliers
                     case '>':
@@ -143,9 +153,33 @@ class App(Tk):
                     case '<':
                         can.create_image(*img_pos, anchor=NW, image=photo_upstairs)
                         can.photo_upstairs = photo_upstairs
-        self.hero.id = can.create_image(*self.hero.img_pos, anchor=NW, image=self.hero.image)
+
+        photo_hero: PhotoImage = PhotoImage(file=f"{path}/sprites/hero.png")
+
+        if not self.hero:
+            # Initialisation du personnage
+            enemy_pos = [(e.x, e.y) for e in enemies]
+            starting_positions: List[tuple] = [(x, y) for x in range(self.width) for y in range(self.height) if (x, y) not in self.walls + enemy_pos]
+            hero_x, hero_y = choice(starting_positions)
+            # hero_x, hero_y = 17, 18
+            hero: Character = Character(x=hero_x, y=hero_y, hp=10, max_hp=10, image=photo_hero)
+            hero.id = can.create_image(*hero.img_pos, anchor=NW, image=hero.image)
+            can.photo_hero = photo_hero
+        else:
+            hero = self.hero
+            hero.x, hero.y = stair_pos
+            hero.id = can.create_image(*hero.img_pos, anchor=NW, image=hero.image)
+            can.hero_id = hero.id
+            can.photo_hero = photo_hero
         can.pack()
-        return can, enemies, treasures
+        return can, hero, enemies, treasures
+
+    def disable_touches(self):
+        self.unbind('p')
+        self.unbind("<Right>")
+        self.unbind("<Left>")
+        self.unbind("<Up>")
+        self.unbind("<Down>")
 
     def init_touches(self):
         """
@@ -155,14 +189,12 @@ class App(Tk):
         hero : personnage à contrôler par le joueur
         Pas de valeur de retour
         """
-        self.unbind("<Right>")
-        self.unbind("<Left>")
-        self.unbind("<Up>")
-        self.unbind("<Down>")
-        self.bind("<Right>", lambda event, can=self.canvas, m=self.maze, c=self.hero: self.move(event, can, "right", m, c))
-        self.bind("<Left>", lambda event, can=self.canvas, m=self.maze, c=self.hero: self.move(event, can, "left", m, c))
-        self.bind("<Up>", lambda event, can=self.canvas, m=self.maze, c=self.hero: self.move(event, can, "up", m, c))
-        self.bind("<Down>", lambda event, can=self.canvas, m=self.maze, c=self.hero: self.move(event, can, "down", m, c))
+        self.disable_touches()
+        self.bind('p', lambda event, c=self.hero, app=self: c.drink_potion(event, app))
+        self.bind("<Right>", lambda event, can=self.canvas, m=self.maze, h=self.hero, M=self.enemies: self.move(event, can, "right", m, h, M))
+        self.bind("<Left>", lambda event, can=self.canvas, m=self.maze, h=self.hero, M=self.enemies: self.move(event, can, "left", m, h, M))
+        self.bind("<Up>", lambda event, can=self.canvas, m=self.maze, h=self.hero, M=self.enemies: self.move(event, can, "up", m, h, M))
+        self.bind("<Down>", lambda event, can=self.canvas, m=self.maze, h=self.hero, M=self.enemies: self.move(event, can, "down", m, h, M))
         self.bind("<Escape>", lambda event, fen=self: self._destroy(event))
 
     def _destroy(self, event):
@@ -174,9 +206,16 @@ class App(Tk):
         """
         self.destroy()
 
-    def move(self, event, can: Canvas, direction: str, maze: List, char: Character):
+    def refresh_title(self):
+        if self.hero.hp > 0:
+            self.title(
+                f'Dungeon Level {self.level} | LVL {self.hero.level} HERO (XP = {self.hero.xp}) -> HP: {self.hero.hp}/{self.hero.max_hp} - Gold earned: {self.hero.gold} - Nb potions: {self.hero.potions}')
+        else:
+            self.title('** GAME OVER **')
+
+    def move(self, event, can: Canvas, direction: str, maze: List, hero: Character, enemies: List[Character]):
         dx = dy = 0
-        x, y = char.x, char.y
+        x, y = hero.x, hero.y
         match direction:
             case 'R' | 'r' | 'right':
                 if x == self.width - 1:
@@ -210,20 +249,67 @@ class App(Tk):
                 print(f'Hero found upstairs!')
                 self.update_level(level=-1)
             case '$':
-                print(f'Hero blocked by a monster!')
-                return
+                enemy_pos = [(e.x, e.y) for e in enemies]
+                if (x, y) in enemy_pos:
+                    monster: Character = [m for m in enemies if (m.x, m.y) == (x, y)][0]
+                    # Hero has initiative!
+                    if randint(1, 3) in (1, 2):
+                        damage: int = randint(1, 6)
+                        print(f'Hero hits monster for {damage} hp')
+                        monster.hp -= damage
+                        if monster.hp < 0:
+                            print(f'Monster is killed!')
+                            hero.xp += 100
+                            if hero.xp > 500 * hero.level:
+                                hero.level += 1
+                                print(f'Hero ** gained a level! **')
+                                new_hp = randint(1, 10)
+                                print(f'Hero ** gained {new_hp} HP! **')
+                                hero.hp += new_hp
+                                hero.max_hp += new_hp
+                                self.refresh_title()
+                            enemies.remove(monster)
+                            enemy_pos.remove((x, y))
+                            # self.maze[y][x] = '.'
+                            can.delete(monster.id)
+                        else:
+                            return
+                    else:
+                        print(f'Hero misses monster')
+                    if monster.hp > 0 and randint(1, 3) == 1:
+                        damage: int = randint(1, 4)
+                        print(f'Monster hits hero for {damage} hp')
+                        hero.hp -= damage
+                        if hero.hp < 0:
+                            print(f'Hero is killed!')
+                            print(f'GAME OVER!!!')
+                            photo_rip: PhotoImage = PhotoImage(file=f"{path}/sprites/rip.png")
+                            can.itemconfigure(hero.id, image=photo_rip)
+                            # can.photo_hero = photo_rip
+                            can.dead = photo_rip
+                            can.update()
+                            self.disable_touches()
+                        self.refresh_title()
+                    else:
+                        print(f'monster misses hero')
+                    if (x, y) in enemy_pos:
+                        return
+                    # print(f'Hero blocked by a monster!')
             case '1' | '2' | '3':
                 if (x, y) in self.treasures:
                     print(f'Hero gained a treasure!')
                     treasure: Treasure = self.treasures[(x, y)]
                     del self.treasures[(x, y)]
                     self.canvas.delete(treasure.id)
-                    self.hero.gold += treasure.gold
-                    self.title(f'Level {self.level} - Gold earned: {self.hero.gold}')
+                    hero.gold += treasure.gold
+                    if treasure.potion:
+                        hero.potions += 1
+                        print(f'Hero found a potion!')
+                    self.refresh_title()
 
-        can.move(char.id, dx, dy)
+        can.move(hero.id, dx, dy)
         # print(f'hero pos: {(char.x, char.y)}')
-        char.x, char.y = x, y
+        hero.x, hero.y = x, y
 
 
 """
@@ -238,6 +324,13 @@ class App(Tk):
 
 
 def generate_maze(width: int, height: int, n_cells: int) -> List[str]:
+    """
+        Method used to generate levels with shapes of caves (walls only)
+    :param width: parameter to adjust to get nice looking caves
+    :param height: parameter to adjust to get nice looking caves
+    :param n_cells: parameter to adjust to get nice looking caves
+    :return:
+    """
     maze: List[str] = [['#'] * width for _ in range(height)]
     x, y = randint(1, width - 2), randint(1, height - 2)
     maze[y][x] = '.'
@@ -256,7 +349,10 @@ if __name__ == "__main__":
     size_sprite = 31
     path = os.path.dirname(__file__)
 
-    # random_level: List[str] = generate_maze(40, 20, 400)
+    # Uncomment these lines to generate levels on output console
+    # w, h = 40, 20
+    # n = w * h // 2  # could be modified but 50% of walkable cells seems a good ratio - Do not keep maps with too big open fields, it is ugly :-)
+    # random_level: List[str] = generate_maze(width=w, height=h, n_cells=n)
     #
     # for line in random_level:
     #     print(''.join(line))
