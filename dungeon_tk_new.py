@@ -363,7 +363,7 @@ class App(Tk):
                         monster.hp -= damage
                         if monster.hp < 0:
                             print(f'{monster.name.title()} is killed!')
-                            hero.xp += 10
+                            hero.xp += monster.xp
                             if hero.xp > 500 * hero.level:
                                 hero.level += 1
                                 print(f'Hero ** gained a level! **')
