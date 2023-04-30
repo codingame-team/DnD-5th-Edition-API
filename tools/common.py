@@ -41,7 +41,8 @@ def get_key():
     try:
         while True:
             b = os.read(sys.stdin.fileno(), 3).decode()
-            if len(b) == 3:
+            # if len(b) == 3:
+            if len(b) > 1:
                 k = ord(b[2])
             else:
                 k = ord(b)
