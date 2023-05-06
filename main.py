@@ -458,7 +458,14 @@ def display_character_sheet(char: Character):
     sheet += f'| con: {str(char.constitution).rjust(2)} | cha: {str(char.charism).rjust(2)} | level: {str(char.level).ljust(7)}| AC: {str(char.armor_class).ljust(10)}|\n'
     sheet += '+{:-^51}+\n'.format('')
     sheet += '|{:^51}|\n'.format(f'kills = {char.monster_kills}')
-    sheet += '|{:^51}|\n'.format(f'healing potions = {len(char.healing_potions)}')
+    rarity_types: dict() = {PotionRarity.COMMON: 'C', PotionRarity.UNCOMMON: 'U', PotionRarity.RARE: 'R', PotionRarity: 'VR'}
+    potions: dict() = {'C': 0, 'U': 0, 'R': 0, 'VR': 0}
+    for p in char.healing_potions:
+        rarity: str = rarity_types[p.rarity]
+        potions[rarity] += 1
+    potions = dict(filter(lambda p: p[1] > 0, potions.items()))
+    sheet += '|{:^51}|\n'.format(f'healing potions = {potions}')
+    #sheet += '|{:^51}|\n'.format(f'healing potions = {len(char.healing_potions)}')
     sheet += '|{:^51}|\n'.format(f'armor = {char.armor.name.title()}')
     sheet += '|{:^51}|\n'.format(f'weapon = {char.weapon.name.title()} - Damage = {char.weapon.damage_dice}')
     sheet += '|{:^51}|\n'.format(f'gold = {char.gold} gp')
@@ -472,7 +479,7 @@ def display_character_sheet(char: Character):
         learned_spells.sort(key=lambda s: s.level)
         for spell in learned_spells:
             sheet += '|{:^51}|\n'.format(str(spell))
-    sheet += '+{:-^51}+\n'.format('')
+        sheet += '+{:-^51}+\n'.format('')
     print(sheet)
 
 
@@ -1005,10 +1012,11 @@ def generate_encounter(encounter_level: int, monsters: List[Monster], monster_gr
 
 def display_group_of_monsters(monsters: List[Monster]):
     mixed_pair: bool = len(set([m.name for m in monsters])) == 2
+    alive_monsters = list(filter(lambda m: m.hit_points > 0, monsters))
     if not mixed_pair:
         monsters.sort(key=lambda m: m.hit_points, reverse=True)
         hp_display: str = ' - '.join([f'HP {m.hit_points}' for m in monsters if m.hit_points > 0])
-        cprint(f'{color.PURPLE}Group of {len(monsters)} {monsters[0].name} ({hp_display}){color.END}')
+        cprint(f'{color.PURPLE}Group of {len(alive_monsters)} {monsters[0].name} ({hp_display}){color.END}')
     else:
         for i, monster in enumerate(monsters):
             if monster.hit_points > 0:
@@ -1073,7 +1081,7 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
         monsters: List[Monster] = generate_encounter(encounter_level=encounter_level, monsters=monsters_db, monster_groups_count=monster_groups_count)
         cprint(f'{color.PURPLE}-------------------------------------------------------------------------------------------------------------------------------------------{color.END}')
         cprint(f'{color.PURPLE} New encounter!{color.END}')
-        display_group_of_monsters((monsters))
+        display_group_of_monsters(monsters)
         cprint(f'{color.PURPLE}-------------------------------------------------------------------------------------------------------------------------------------------{color.END}')
         attack_queue = [(c, randint(1, c.abilities.dex)) for c in party] + [(m, randint(1, m.abilities.dex)) for m in monsters]
         attack_queue.sort(key=lambda x: x[1], reverse=True)
@@ -1082,16 +1090,17 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
         round_num = 0
         flee_combat: bool = False
         while alive_monsters and alive_chars:
+            if round_num:
+                cprint('-------------------------------------------------------')
+                cprint(f'{color.DARKCYAN} Round {round_num} results:{color.END}')
+                display_group_of_monsters(monsters)
+                cprint('-------------------------------------------------------')
+                display_party(party)
             message: str = 'engage' if not round_num else 'continue'
             if not continue_message(f'Do you want to {message} combat? (Y/N)'):
                 flee_combat = True
                 break
             round_num += 1
-            cprint('-------------------------------------------------------')
-            cprint(f'{color.DARKCYAN} Round {round_num} :{color.END}')
-            display_group_of_monsters((monsters))
-            cprint('-------------------------------------------------------')
-            display_party(party)
             # Start of Round
             queue = [c for c in attackers if c.hit_points > 0]
             while queue:
@@ -1099,10 +1108,12 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
                 if attacker.hit_points > 0:
                     if isinstance(attacker, Monster):
                         # Monster attacks the weakest alive character
+                        # Monster attacks randomly
                         chars: List[Character] = [c for i, c in enumerate(alive_chars) if i < 3]
                         if not chars:
                             break
-                        char: Character = min(chars, key=lambda c: c.hit_points)
+                        # char: Character = min(chars, key=lambda c: c.hit_points)
+                        char: Character = choice(chars)
                         char.hit_points -= attacker.attack(char)
                         if char.hit_points <= 0:
                             alive_chars.remove(char)
@@ -1123,7 +1134,9 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
                             if monster.hit_points <= 0:
                                 alive_monsters.remove(monster)
                                 # attacker.victory(monster)
+                                cprint(f'{color.RED}{monster.name}{color.END} is ** KILLED **!')
                                 attacker.treasure(weapons, armors, equipment_categories)
+                                attacker.monster_kills += 1
             # End of Round
             alive_chars: List[Character] = [c for c in party if c.hit_points > 0]
             alive_monsters: List[Monster] = [c for c in monsters if c.hit_points > 0]
@@ -1160,6 +1173,27 @@ def cheat_function(roster: List[Character]):
             exit_message(f'{char.name} has been offered 10000 XP!')
             save_character(char)
 
+def delete_all_potions(roster: List[Character]):
+    """ Needs to purge old potions from char's inventory """
+    for char in roster:
+        if char.healing_potions:
+            char.healing_potions.clear()
+            save_character(char)
+
+def delete_armors_weapons(roster: List[Character]):
+    dagger: Weapon = request_weapon('dagger')
+    skin: Armor = request_armor('skin-armor')
+    for char in roster:
+        char.weapon = dagger
+        char.armor = skin
+
+def give_best_armors_weapons(roster: List[Character], armors, weapons):
+    for char in roster:
+        w: Weapon
+        max_damage = lambda damage_dice: sum([randint(1, int(damage_dice.split('d')[1])) for _ in range(int(damage_dice.split('d')[0]))])
+        char.weapon = max(char.allowed_weapons, key=lambda w: max_damage(w.damage_dice))
+        if char.allowed_armors:
+            char.armor = max(char.allowed_armors, key=lambda a: int(a.armor_class['base']))
 
 if __name__ == '__main__':
     seed(time())
@@ -1177,7 +1211,7 @@ if __name__ == '__main__':
     for xp_needed, level, master_bonus in levels:
         xp_levels.append(int(xp_needed))
 
-    """ Load Monster, Armor and Weapon databases """
+    """ Load Monster, Armor, Weapon databases """
     monsters, armors, weapons, equipments, equipment_categories = load_dungeon_collections()
     armors = list(filter(lambda a: a, armors))
     weapons = list(filter(lambda w: w, weapons))
@@ -1198,6 +1232,9 @@ if __name__ == '__main__':
 
     # cheat_function(roster)
     restore_all_roster(roster)
+    # delete_all_potions(roster)
+    # delete_armors_weapons(roster)
+    give_best_armors_weapons(roster, weapons, armors)
 
     while True:
         efface_ecran()

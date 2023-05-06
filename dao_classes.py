@@ -82,26 +82,35 @@ class Monster:
         total_damage: int = 0
         if self.actions:
             melee_attack: Action = choice(self.actions)
-            attack_roll = randint(1, 20) + melee_attack.attack_bonus if melee_attack.attack_bonus else randint(1, 20)
-            if attack_roll >= character.armor_class:
-                if melee_attack.damages:
-                    for damage in melee_attack.damages:
-                        damage_given: int = 0
-                        if 'd' not in damage.dice:
-                            dice_count, damage_dice = damage.dice, 6
-                            damage_given = sum([randint(1, damage_dice) for _ in range(int(dice_count))])
-                        else:
-                            dice_count, damage_dice = damage.dice.split('d')
-                            if '+' in damage_dice:
-                                damage_dice, bonus_damage = map(int, damage_dice.split('+'))
-                                damage_given = sum([randint(1, damage_dice) + bonus_damage for _ in range(int(dice_count))])
-                            elif '-' in damage_dice:
-                                damage_dice, bonus_damage = map(int, damage_dice.split('-'))
-                                damage_given = sum([randint(1, damage_dice) - bonus_damage for _ in range(int(dice_count))])
-                        cprint(f"{color.RED}{self.name}{color.END} {damage.type.index.replace('ing', 'es')} {color.GREEN}{character.name}{color.END} for {damage_given} hit points!")
-                        total_damage += damage_given
+            if melee_attack.multi_attack:
+                cprint(f"{color.RED}{self.name}{color.END} multi-attacks {color.GREEN}{character.name}!{color.END}")
+                attacks: List[Action] = [a for a in melee_attack.multi_attack]
             else:
-                cprint(f'{self.name} misses {character.name}!')
+                attacks: List[Action] = [melee_attack]
+            for attack in attacks:
+                attack_roll = randint(1, 20) + melee_attack.attack_bonus if melee_attack.attack_bonus else randint(1, 20)
+                if attack_roll >= character.armor_class:
+                    if attack.damages:
+                        for damage in attack.damages:
+                            if 'd' not in damage.dice:
+                                dice_count, damage_dice = damage.dice, 6
+                                damage_given = sum([randint(1, damage_dice) for _ in range(int(dice_count))])
+                            else:
+                                if '+' in damage.dice:
+                                    damage_dice, bonus_damage = damage.dice.split('+')
+                                    dice_count, damage_dice = map(int, damage_dice.split('d'))
+                                    damage_given = sum([randint(1, damage_dice) for _ in range(int(dice_count))]) + int(bonus_damage)
+                                elif '-' in damage.dice:
+                                    damage_dice, bonus_damage = damage.dice.split('-')
+                                    dice_count, damage_dice = map(int, damage_dice.split('d'))
+                                    damage_given = sum([randint(1, damage_dice) for _ in range(int(dice_count))]) - int(bonus_damage)
+                                else:
+                                    dice_count, damage_dice = map(int, damage.dice.split('d'))
+                                    damage_given = sum([randint(1, damage_dice) for _ in range(int(dice_count))])
+                            cprint(f"{color.RED}{self.name}{color.END} {damage.type.index.replace('ing', 'es')} {color.GREEN}{character.name}{color.END} for {damage_given} hit points!")
+                            total_damage += damage_given
+                else:
+                    cprint(f'{self.name} misses {character.name}!')
         return total_damage
 
 
@@ -137,20 +146,29 @@ class Proficiency:
 #     armors: List[Armor]
 #     pass
 
+class PotionRarity(Enum):
+    COMMON = 60
+    UNCOMMON = 80
+    RARE = 95
+    VERY_RARE = 100
+
 
 @dataclass
 class Potion:
+    name: str
     hit_dice: str
+    bonus: int
+    rarity: PotionRarity
 
     @property
     def min_hp_restored(self):
         dice_count, roll_dice = map(int, self.hit_dice.split('d'))
-        return 2 + dice_count
+        return self.bonus + dice_count
 
     @property
     def max_hp_restored(self):
         dice_count, roll_dice = map(int, self.hit_dice.split('d'))
-        return 2 + dice_count * roll_dice
+        return self.bonus + dice_count * roll_dice
 
 
 @dataclass
@@ -590,12 +608,12 @@ class Character:
         best_potion: Potion = min(available_potions, key=lambda p: p.max_hp_restored) if available_potions else max(self.healing_potions, key=lambda p: p.max_hp_restored)
         self.healing_potions.remove(best_potion)
         dice_count, roll_dice = map(int, best_potion.hit_dice.split('d'))
-        hp_restored = 2 + randint(1, roll_dice) + randint(1, roll_dice)
+        hp_restored = best_potion.bonus + sum([randint(1, roll_dice) for _ in range(dice_count)])
         self.hit_points = min(self.hit_points + hp_restored, self.max_hit_points)
         if hp_to_recover <= hp_restored:
-            cprint(f'{self.name} drinks healing potion and is {color.BOLD}*fully*{color.END} healed!')
+            cprint(f'{self.name} drinks {best_potion.name} potion and is {color.BOLD}*fully*{color.END} healed!')
         else:
-            cprint(f'{self.name} drinks healing potion and has {min(hp_to_recover, hp_restored)} hit points restored!')
+            cprint(f'{self.name} drinks {best_potion.name} potion and has {min(hp_to_recover, hp_restored)} hit points restored!')
 
     def victory(self, monster: Monster, solo_mode=False):
         self.xp += monster.xp
@@ -611,44 +629,63 @@ class Character:
         cprint(f'{monster.name.title()} is ** KILLED **!')
         cprint(f'{self.name} gained {monster.xp} XP{gold_msg}!')
 
+    @property
+    def allowed_weapons(self) -> List[Weapon]:
+        weapons: List[Weapon] = []
+        for p in self.proficiencies:
+            if p.type == ProfType.WEAPON:
+                weapons += p.ref if isinstance(p.ref, List) else [p.ref]
+        return list(filter(None, weapons))
+
+    @property
+    def allowed_armors(self) -> List[Weapon]:
+        armors: List[Armor] = []
+        for p in self.proficiencies:
+            if p.type == ProfType.ARMOR:
+                armors += p.ref if isinstance(p.ref, List) else [p.ref]
+        return list(filter(None, armors))
+
     def treasure(self, weapons, armors, equipments: List[Equipment], solo_mode=False):
-        treasure_dice = randint(2, 3)
-        if solo_mode and treasure_dice == 1:
-            cprint(f"{self.name} found a healing potion!")
-            self.healing_potions.append(Potion('2d4'))
+        treasure_dice = randint(1, 3)
+        if treasure_dice == 1:
+            potion_dice = randint(1, 100)
+            if potion_dice < PotionRarity.COMMON.value:
+                potion = Potion(name='Healing', rarity=PotionRarity.COMMON, hit_dice='2d4', bonus=2)
+            elif potion_dice < PotionRarity.UNCOMMON.value:
+                potion = Potion(name='Greater healing', rarity=PotionRarity.UNCOMMON, hit_dice='4d4', bonus=4)
+            elif potion_dice < PotionRarity.RARE.value:
+                potion = Potion(name='Superior healing', rarity=PotionRarity.RARE, hit_dice='8d4', bonus=8)
+            else:
+                potion = Potion(name='Supreme healing', rarity=PotionRarity.COMMON, hit_dice='10d4', bonus=20)
+            cprint(f"{self.name} found a {potion.name} potion!")
+            self.healing_potions.append(potion)
         elif treasure_dice == 2:
-            allowed_weapons: List[Weapon] = []
-            for p in self.proficiencies:
-                if p.type == ProfType.WEAPON:
-                    allowed_weapons += p.ref if isinstance(p.ref, List) else [p.ref]
-            allowed_weapons = list(filter(None, allowed_weapons))
-            better_weapons: List[Weapon] = [w for w in allowed_weapons if w.damage_dice > self.weapon.damage_dice]
-            if better_weapons:
-                new_weapon: Weapon = choice(better_weapons)
-                if new_weapon.damage_dice > self.weapon.damage_dice:
-                    cprint(f"{self.name} found a better weapon {new_weapon}!")
-                    self.weapon = new_weapon
-                else:
-                    cprint(f"{self.name} found a lesser weapon {new_weapon}! ** SKIPPING IT **")
-            # else:
-            #     cprint(f"** SYSTEM ERROR ** {self.name} cannot find weapons ! ** SKIPPING IT **")
+            new_weapon: Weapon = choice(self.allowed_weapons)
+            if new_weapon.damage_dice > self.weapon.damage_dice:
+                cprint(f"{self.name} found a better weapon {new_weapon}!")
+                self.weapon = new_weapon
+            else:
+                cprint(f"{self.name} found a lesser weapon {new_weapon}! ** SKIPPING IT **")
         else:
-            allowed_armors: List[Armor] = []
-            for p in self.proficiencies:
-                if p.type == ProfType.ARMOR:
-                    allowed_armors += p.ref if isinstance(p.ref, List) else [p.ref]
-            allowed_armors = list(filter(None, allowed_armors))
-            better_armors: List[Weapon] = [a for a in allowed_armors if a.armor_class['base'] > self.armor.armor_class['base']]
-            if better_armors:
-                new_armor: Armor = choice(better_armors)
-                try:
-                    if new_armor.armor_class['base'] > self.armor.armor_class['base']:
-                        cprint(f"{self.name} found a better armor {new_armor}!")
-                        self.armor = new_armor
-                    else:
-                        cprint(f"{self.name} found a lesser armor {new_armor}! ** SKIPPING IT **")
-                except AttributeError:
-                    cprint(f"** SYSTEM ERROR ** {new_armor} has no attribute1 ! ** SKIPPING IT **")
+            if self.allowed_armors:
+                new_armor: Armor = choice(self.allowed_armors)
+                if new_armor.armor_class['base'] > self.armor.armor_class['base']:
+                    cprint(f"{self.name} found a better armor {new_armor}!")
+                    self.armor = new_armor
+                else:
+                    cprint(f"{self.name} found a lesser armor {new_armor}! ** SKIPPING IT **")
+            else:
+                cprint(f"{self.class_type.name} not allowed to wear an armor! ** SKIPPING IT **")
+            # if better_armors:
+            #     new_armor: Armor = choice(better_armors)
+            #     try:
+            #         if new_armor.armor_class['base'] > self.armor.armor_class['base']:
+            #             cprint(f"{self.name} found a better armor {new_armor}!")
+            #             self.armor = new_armor
+            #         else:
+            #             cprint(f"{self.name} found a lesser armor {new_armor}! ** SKIPPING IT **")
+            #     except AttributeError:
+            #         cprint(f"** SYSTEM ERROR ** {new_armor} has no attribute1 ! ** SKIPPING IT **")
             # else:
             #     cprint(f"** SYSTEM ERROR ** {self.name} cannot find armor ! ** SKIPPING IT **")
 
