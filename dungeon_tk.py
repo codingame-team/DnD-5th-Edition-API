@@ -11,6 +11,8 @@ from numpy import array
 from algo.brehensam import in_view_range
 from algo.lee import parcours_largeur
 
+import DungeonGenerator
+
 
 @dataclass
 class Weapon:
@@ -89,7 +91,7 @@ class Monster(MonsterType):
             damage: int = self.damage_roll
             print(f'{self.name.title()} hits hero for {damage} hp')
             hero.hp -= damage
-            if hero.hp < 0:
+            if hero.hp <= 0:
                 print(f'Hero is killed!')
                 print(f'GAME OVER!!!')
                 photo_rip: PhotoImage = PhotoImage(file=f"{path}/sprites/rip.png")
@@ -99,10 +101,12 @@ class Monster(MonsterType):
         else:
             print(f'{self.name.title()} misses hero')
 
+
 @dataclass
 class Character:
     x: int
     y: int
+    speed: int
     hp: int
     max_hp: int
     weapon: Weapon
@@ -158,6 +162,7 @@ class Character:
                     self.max_hp += new_hp
         else:
             print(f'Hero misses {monster.name.title()}')
+
 
 @dataclass
 class Treasure:
@@ -261,12 +266,32 @@ class App(Tk):
         can: Canvas = Canvas(self, width=size_sprite * self.width, height=size_sprite * self.height, bg="ivory")
         photo_wall: PhotoImage = PhotoImage(file=f"{path}/sprites/WallTile1.png")
         photo_treasure: PhotoImage = PhotoImage(file=f"{path}/sprites/treasure.png")
-        photo_enemy: PhotoImage = PhotoImage(file=f"{path}/sprites/enemy.png")
-        photo_exit: PhotoImage = PhotoImage(file=f"{path}/sprites/exit.png")
+        # photo_enemy: PhotoImage = PhotoImage(file=f"{path}/sprites/enemy.png")
+        # photo_exit: PhotoImage = PhotoImage(file=f"{path}/sprites/exit.png")
         photo_downstairs: PhotoImage = PhotoImage(file=f"{path}/sprites/DownStairs.png")
         photo_upstairs: PhotoImage = PhotoImage(file=f"{path}/sprites/UpStairs.png")
+        photo_hero: PhotoImage = PhotoImage(file=f"{path}/sprites/hero.png")
 
-        monster_candidates: List[MonsterType] = list(filter(lambda m: m.cr < self.level, self.monsters))
+        if not self.hero:
+            # Initialisation du personnage
+            starting_positions: List[tuple] = [(x, y) for x in range(self.width) for y in range(self.height) if self.maze[y][x] == '.']
+            hero_x, hero_y = choice(starting_positions)
+            # hero_x, hero_y = 17, 18
+            start_armor: Armor = Armor(name='Plate Armor', ac=18, image=PhotoImage(file=f'{path}/sprites/beholder.png'))
+            start_weapon: Weapon = Weapon(name='Greatsword', damage_dice='2d6', image=PhotoImage(file=f'{path}/sprites/beholder.png'))
+            hero: Character = Character(x=hero_x, y=hero_y, speed=15, hp=10, max_hp=10, weapon=start_weapon, armor=start_armor, image=photo_hero)
+            hero.id = can.create_image(*hero.img_pos, anchor=NW, image=hero.image)
+            can.photo_hero = photo_hero
+        else:
+            hero = self.hero
+            hero.x, hero.y = stair_pos
+            hero.id = can.create_image(*hero.img_pos, anchor=NW, image=hero.image)
+            can.hero_id = hero.id
+            can.photo_hero = photo_hero
+
+        rating = lambda m: m.cr < (hero.level / 4 if hero.level < 5 else hero.level / 2)
+        # monster_candidates: List[MonsterType] = list(filter(lambda m: m.cr < self.level, self.monsters))
+        monster_candidates: List[MonsterType] = list(filter(rating, self.monsters))
 
         enemies: List[Monster] = []
         treasures: dict = {}
@@ -283,7 +308,7 @@ class App(Tk):
                     # Trésors
                     case '1' | '2' | '3':
                         gold: int = randint(50, 300) * self.level
-                        has_potion: bool = randint(1, 4) == 3
+                        has_potion: bool = randint(1, 3) == 2
                         treasure: Treasure = Treasure(gold=gold, potion=has_potion, image=photo_treasure)
                         treasure.id = can.create_image(*img_pos, anchor=NW, image=photo_treasure)
                         treasures[(x, y)] = treasure
@@ -304,7 +329,7 @@ class App(Tk):
                                                  x=x,
                                                  y=y)
                         enemy.id = can.create_image(*img_pos, anchor=NW, image=photo_enemy)
-                        #can.enemy_id = enemy.id
+                        # can.enemy_id = enemy.id
                         enemies.append(enemy)
                     # Escaliers
                     case '>':
@@ -314,25 +339,6 @@ class App(Tk):
                         can.create_image(*img_pos, anchor=NW, image=photo_upstairs)
                         can.photo_upstairs = photo_upstairs
 
-        photo_hero: PhotoImage = PhotoImage(file=f"{path}/sprites/hero.png")
-
-        if not self.hero:
-            # Initialisation du personnage
-            enemy_pos = [(e.x, e.y) for e in enemies]
-            starting_positions: List[tuple] = [(x, y) for x in range(self.width) for y in range(self.height) if (x, y) not in self.walls + enemy_pos]
-            hero_x, hero_y = choice(starting_positions)
-            # hero_x, hero_y = 17, 18
-            start_armor: Armor = Armor(name='leather_armor', ac=6, image=PhotoImage(file=f'{path}/sprites/beholder.png'))
-            start_weapon: Weapon = Weapon(name='dagger', damage_dice='1d4', image=PhotoImage(file=f'{path}/sprites/beholder.png'))
-            hero: Character = Character(x=hero_x, y=hero_y, hp=100, max_hp=100, weapon=start_weapon, armor=start_armor, image=photo_hero)
-            hero.id = can.create_image(*hero.img_pos, anchor=NW, image=hero.image)
-            can.photo_hero = photo_hero
-        else:
-            hero = self.hero
-            hero.x, hero.y = stair_pos
-            hero.id = can.create_image(*hero.img_pos, anchor=NW, image=hero.image)
-            can.hero_id = hero.id
-            can.photo_hero = photo_hero
         can.pack()
         return can, hero, enemies, treasures
 
@@ -377,7 +383,7 @@ class App(Tk):
 
     def move_enemies(self, can: Canvas, hero: Character, enemies: List[Character]):
         for enemy in enemies:
-            #print(f'{enemy.name} {can.coords(enemy.id)} vs {(enemy.x, enemy.y)}')
+            # print(f'{enemy.name} {can.coords(enemy.id)} vs {(enemy.x, enemy.y)}')
             if hero.hp <= 0:
                 break
             if enemy.hp <= 0:
@@ -395,13 +401,15 @@ class App(Tk):
                     if (x, y) in obstacles:
                         carte[y][x] = 0
             if in_view_range(enemy.x, enemy.y, hero.x, hero.y, self.walls):
-                print(f'{enemy.name} sees Hero on {(hero.x, hero.y)}!')
+                # print(f'{enemy.name} sees Hero on {(hero.x, hero.y)}!')
                 path = find_path(start=(enemy.x, enemy.y), end=(hero.x, hero.y), carte=carte)
                 # print(f'{enemy.name} path to hero: {path}')
                 if not path or len(path) == 1:
                     continue
-                # speed_ratio: int = (enemy.speed - hero.speed) // hero.speed
-                new_x, new_y = path[1]
+                speed_ratio: int = (enemy.speed - hero.speed) // hero.speed
+                #print(f'speed_ratio: {speed_ratio} - path: {path}')
+                dist = min(speed_ratio, len(path))
+                new_x, new_y = path[dist + 1] if len(path) > 3 else path[1]
                 can.moveto(enemy.id, new_x * size_sprite, new_y * size_sprite)
                 # print(f'{enemy.name} moves from {(enemy.x, enemy.y)} to {(new_x, new_y)}')
                 enemy.x, enemy.y = new_x, new_y
@@ -427,7 +435,6 @@ class App(Tk):
                 if y == 0:
                     return
                 y -= 1
-
 
         match maze[y][x]:
             case '#':
@@ -456,7 +463,7 @@ class App(Tk):
             monster: Monster = [m for m in enemies if (m.x, m.y) == (x, y)][0]
             # Hero has initiative!
             hero.attack(monster)
-            print(f'{monster} vs {hero}')
+            # print(f'{monster} vs {hero}')
             if monster.hp < 0:
                 enemies.remove(monster)
                 enemy_pos.remove((x, y))
@@ -550,7 +557,7 @@ def request_monster_type(index_name: str) -> Optional[MonsterType]:
                 attack_bonus = 3
             case 'owl':
                 damage_dice = '1d6+2'
-                speed = data['speed']['walk']
+                speed = data['speed']['fly']
                 attack_bonus = 3
             case 'eagle':
                 damage_dice = '1d6+2'
@@ -586,7 +593,7 @@ def request_monster_type(index_name: str) -> Optional[MonsterType]:
                            damage_dice=damage_dice,
                            attack_bonus=attack_bonus,
                            ac=data['armor_class'],
-                           speed=speed,
+                           speed=int(speed.split()[0]),
                            xp=data['xp'],
                            cr=data['challenge_rating'])
     except FileNotFoundError:
