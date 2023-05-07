@@ -135,6 +135,28 @@ def request_monster(index_name: str) -> Monster:
     with open(f"{path}/data/monsters/{index_name}.json", "r") as f:
         data = json.loads(f.read())
 
+    can_cast: bool = False
+    slots: List[int] = []
+    spells: List[Spell] = []
+    caster_level: int = None
+    dc: int = None
+    ability_modifier: int = 0
+    if "special_abilities" in data:
+        for special_ability in data['special_abilities']:
+            if special_ability['name'] == 'Spellcasting':
+                can_cast = True
+                caster_level = special_ability['spellcasting']['level']
+                dc = special_ability['spellcasting']['dc']
+                ability_modifier = special_ability['spellcasting']['modifier']
+                for slot in special_ability['spellcasting']['slots'].values():
+                    slots.append(slot)
+                for spell_dict in special_ability['spellcasting']['spells']:
+                    index_name: str = spell_dict['url'].split('/')[3]
+                    spell = request_spell(index_name)
+                    if spell is None:
+                        continue
+                    spells.append(spell)
+
     actions: List[Action] = []
     if "actions" in data:
         for action in data['actions']:
@@ -177,7 +199,13 @@ def request_monster(index_name: str) -> Monster:
                    hit_dice=data['hit_dice'],
                    xp=data['xp'],
                    challenge_rating=data['challenge_rating'],
-                   actions=actions
+                   actions=actions,
+                   can_cast=can_cast,
+                   caster_level=caster_level,
+                   dc=dc,
+                   ability_modifier=ability_modifier,
+                   spell_slots=slots,
+                   learned_spells=spells
                    )
 
 

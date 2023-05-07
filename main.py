@@ -971,12 +971,12 @@ def load_encounter_gold_table() -> List[int]:
     return [int(gold) for enc_level, gold in data]
 
 
-def generate_encounter(encounter_level: int, monsters: List[Monster], monster_groups_count: int) -> List[Monster]:
+def generate_encounter(encounter_level: int, monsters: List[Monster], monster_groups_count: int, can_cast: bool=False) -> List[Monster]:
     if monster_groups_count > 2:
         exit_message('System Error!... only 2 groups of monsters allowed here. Please contact the Dungeon Master :-)')
         return
     encounter_level = min(19, encounter_level)
-    if monster_groups_count == 2:
+    if False and monster_groups_count == 2:
         cr1, cr2 = encounter_table[encounter_level][0]
         # print(f'(cr_1, cr2) = {(cr1, cr2)}')
         if cr1 not in available_crs:
@@ -985,7 +985,10 @@ def generate_encounter(encounter_level: int, monsters: List[Monster], monster_gr
         # print(f'{len(cr1_monsters)} cr_1_monsters = {cr1_monsters}')
         if cr2 not in available_crs:
             cr2 = min(available_crs, key=lambda cr: cr - cr2)
-        cr2_monsters: List[Monster] = [m for m in monsters if Fraction(str(m.challenge_rating)) == cr2]
+        if can_cast:
+            cr2_monsters: List[Monster] = [m for m in monsters if Fraction(str(m.challenge_rating)) == cr2 and m.can_cast]
+        else:
+            cr2_monsters: List[Monster] = [m for m in monsters if Fraction(str(m.challenge_rating)) == cr2]
         # print(f'{len(cr2_monsters)} cr2_monsters = {cr2_monsters}')
         monster_1: Monster = choice(cr1_monsters)
         monster_2: Monster = choice(cr2_monsters)
@@ -997,9 +1000,9 @@ def generate_encounter(encounter_level: int, monsters: List[Monster], monster_gr
             monsters_count: int = choice(list(map(int, enc_key.split('-'))))
             if encounter_level == 20:
                 cr: int = cr_list[0]
-                matching_monsters += [(m, monsters_count) for m in monsters if Fraction(str(m.challenge_rating)) >= cr]
+                matching_monsters += [(m, monsters_count) for m in monsters if Fraction(str(m.challenge_rating)) >= cr and m.can_cast]
             else:
-                matching_monsters += [(m, monsters_count) for m in monsters if Fraction(str(m.challenge_rating)) in cr_list]
+                matching_monsters += [(m, monsters_count) for m in monsters if Fraction(str(m.challenge_rating)) in cr_list and m.can_cast]
         monster, monster_count = choice(matching_monsters)
         group_of_monsters: List[Monster] = [copy(monster)]
         for _ in range(monster_count - 1):
@@ -1078,7 +1081,7 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
         if not encounter_levels:
             encounter_levels: List[int] = generate_encounter_levels(party_level=party_level)
         encounter_level: int = encounter_levels.pop()
-        monsters: List[Monster] = generate_encounter(encounter_level=encounter_level, monsters=monsters_db, monster_groups_count=monster_groups_count)
+        monsters: List[Monster] = generate_encounter(encounter_level=encounter_level, monsters=monsters_db, monster_groups_count=monster_groups_count, can_cast=True)
         cprint(f'{color.PURPLE}-------------------------------------------------------------------------------------------------------------------------------------------{color.END}')
         cprint(f'{color.PURPLE} New encounter!{color.END}')
         display_group_of_monsters(monsters)
@@ -1109,11 +1112,16 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
                     if isinstance(attacker, Monster):
                         # Monster attacks the weakest alive character
                         # Monster attacks randomly
-                        chars: List[Character] = [c for i, c in enumerate(alive_chars) if i < 3]
-                        if not chars:
+                        melee_chars: List[Character] = [c for i, c in enumerate(alive_chars) if i < 3]
+                        ranged_chars: List[Character] = [c for i, c in enumerate(alive_chars) if i >= 3]
+                        if not melee_chars + ranged_chars:
                             break
                         # char: Character = min(chars, key=lambda c: c.hit_points)
-                        char: Character = choice(chars)
+                        cantric_spells: List[Spell] = [s for s in attacker.learned_spells if not s.level]
+                        if attacker.can_cast and ((attacker.learned_spells and sum(attacker.spell_slots) > 0) or cantric_spells):
+                            char: Character = choice(ranged_chars) if ranged_chars else choice(melee_chars)
+                        else:
+                            char: Character = choice(melee_chars)
                         char.hit_points -= attacker.attack(char)
                         if char.hit_points <= 0:
                             alive_chars.remove(char)
