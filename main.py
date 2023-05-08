@@ -971,12 +971,12 @@ def load_encounter_gold_table() -> List[int]:
     return [int(gold) for enc_level, gold in data]
 
 
-def generate_encounter(encounter_level: int, monsters: List[Monster], monster_groups_count: int, can_cast: bool=False) -> List[Monster]:
+def generate_encounter(encounter_level: int, monsters: List[Monster], monster_groups_count: int, spell_casters_only: bool=False) -> List[Monster]:
     if monster_groups_count > 2:
         exit_message('System Error!... only 2 groups of monsters allowed here. Please contact the Dungeon Master :-)')
         return
     encounter_level = min(19, encounter_level)
-    if False and monster_groups_count == 2:
+    if not spell_casters_only and monster_groups_count == 2:
         cr1, cr2 = encounter_table[encounter_level][0]
         # print(f'(cr_1, cr2) = {(cr1, cr2)}')
         if cr1 not in available_crs:
@@ -985,7 +985,7 @@ def generate_encounter(encounter_level: int, monsters: List[Monster], monster_gr
         # print(f'{len(cr1_monsters)} cr_1_monsters = {cr1_monsters}')
         if cr2 not in available_crs:
             cr2 = min(available_crs, key=lambda cr: cr - cr2)
-        if can_cast:
+        if spell_casters_only:
             cr2_monsters: List[Monster] = [m for m in monsters if Fraction(str(m.challenge_rating)) == cr2 and m.can_cast]
         else:
             cr2_monsters: List[Monster] = [m for m in monsters if Fraction(str(m.challenge_rating)) == cr2]
@@ -1073,6 +1073,8 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
 
     encounter_levels: List[int] = generate_encounter_levels(party_level=party_level)
 
+    spell_casters_only: bool = False
+
     alive_chars: List[Character] = [c for c in party if c.hit_points > 0]
     while alive_chars:
         if continue_message(f'Do you want to go back to [Castle]? (Y/N)'):
@@ -1081,7 +1083,8 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
         if not encounter_levels:
             encounter_levels: List[int] = generate_encounter_levels(party_level=party_level)
         encounter_level: int = encounter_levels.pop()
-        monsters: List[Monster] = generate_encounter(encounter_level=encounter_level, monsters=monsters_db, monster_groups_count=monster_groups_count, can_cast=True)
+        monsters: List[Monster] = generate_encounter(encounter_level=encounter_level, monsters=monsters_db, monster_groups_count=monster_groups_count, spell_casters_only=spell_casters_only)
+        #monsters: List[Monster] = [request_monster(index_name='guardian-naga') for _ in range(randint(1, 4))]
         cprint(f'{color.PURPLE}-------------------------------------------------------------------------------------------------------------------------------------------{color.END}')
         cprint(f'{color.PURPLE} New encounter!{color.END}')
         display_group_of_monsters(monsters)
@@ -1242,7 +1245,7 @@ if __name__ == '__main__':
     restore_all_roster(roster)
     # delete_all_potions(roster)
     # delete_armors_weapons(roster)
-    give_best_armors_weapons(roster, weapons, armors)
+    # give_best_armors_weapons(roster, weapons, armors)
 
     while True:
         efface_ecran()

@@ -6,7 +6,7 @@ import os
 from copy import deepcopy
 from typing import List, Tuple, Optional
 
-from dao_classes import Monster, Armor, Weapon, Race, SubRace, Proficiency, ClassType, Language, Equipment, WeaponProperty, WeaponRange, AbilityType, WeaponThrowRange, Trait, EquipmentCategory, \
+from dao_classes import CategoryType, Monster, Armor, RangeType, Weapon, Race, SubRace, Proficiency, ClassType, Language, Equipment, WeaponProperty, WeaponRange, AbilityType, WeaponThrowRange, Trait, EquipmentCategory, \
     Inventory, \
     Abilities, Action, Damage, ActionType, DamageType, Spell, ProfType
 from main import exit_message
@@ -301,13 +301,18 @@ def request_weapon(index_name: str) -> Weapon:
     if 'throw_range' in data:
         throw_range = WeaponThrowRange(data['throw_range']['normal'], data['throw_range']['long'])
     if "damage" in data:
+        damage_dice_two_handed = None
+        if "two_handed_damage" in data:
+            damage_dice_two_handed = data['two_handed_damage']['damage_dice']
         return Weapon(index=data['index'],
                       name=data['name'],
                       category=request_equipment_category(data['equipment_category']['index']),
-                      _range=data['weapon_range'],
+                      category_type=CategoryType(data['weapon_category']),
+                      range_type=RangeType(data['weapon_range']),
                       damage_dice=data['damage']['damage_dice'],
-                      damage_type=data['damage']['damage_type']['index'],
-                      range=WeaponRange(data['range']['normal'], data['range']['long']),
+                      damage_dice_two_handed=damage_dice_two_handed,
+                      damage_type=request_damage_type(index_name=data['damage']['damage_type']['index']),
+                      range=WeaponRange(normal=data['range']['normal'], long=data['range']['long']),
                       throw_range=throw_range,
                       is_magic=False,
                       cost=data['cost'],

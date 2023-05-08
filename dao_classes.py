@@ -1,4 +1,5 @@
 from __future__ import annotations
+from cgi import print_arguments
 
 from copy import deepcopy
 from dataclasses import dataclass, field
@@ -55,32 +56,22 @@ class Monster:
         return dice_count * roll_dice
 
     def __copy__(self):
-        return Monster(self.name, self.abilities, self.proficiencies, self.armor_class, self.hit_points, self.hit_dice, self.xp, 
+        return Monster(self.name, self.abilities, self.proficiencies, self.armor_class, self.hit_points, self.hit_dice, self.xp,
                        self.challenge_rating, self.actions, self.can_cast, self.caster_level, self.dc, self.ability_modifier, self.spell_slots, self.learned_spells)
-
+    
     def saving_throw(self, dc: int, spell: Spell) -> bool:
         """
             Determine resistance from a spell casted by a character
-        :param dc: ability needed to defend against the spell
-        :param spell: spell of the caster
+        :param dc: difficulty class of the caster
+        :param spell: spell casted by the character
         :return:
         """
         # 2 - Calculate saving throw of monster
-        # Determine ability for ST in Spell
-        ability_mod = lambda x: (x - 10) // 2
-        prof_bonus = lambda x: x // 5 + 2 if x < 5 else (x - 5) // 4 + 3
-        # print(f'monster.abilities={self.abilities}')
-        # print(f'attack_spell={spell.name} - dc_type={spell.dc_type}')
-        # print(f'monster.abilities.get_value_by_index(attack_spell.dc_type)={self.abilities.get_value_by_index(spell.dc_type)}')
         st_type: str = f'saving-throw-{spell.dc_type}'
         prof_modifiers: List[int] = [p.value for p in self.proficiencies if st_type == p.index]
-        if prof_modifiers:
-            ability_modifier: int = prof_modifiers[0]
-            # print(f'standard ability_modifier = {ability_modifier} ')
-        else:
-            ability_modifier: int = ability_mod(self.abilities.get_value_by_index(spell.dc_type)) + prof_bonus(self.challenge_rating)
-            # print(f'special ability_modifier = {ability_modifier} ')
+        ability_modifier: int = prof_modifiers[0] if prof_modifiers else 0
         return randint(1, 20) + ability_modifier > dc
+    
 
     def attack(self, character: Character) -> int:
         """
@@ -108,7 +99,7 @@ class Monster:
                 # No saving throw available for this spell!
                 cprint(f'{color.RED}{character.name}{color.END} is hit for {total_damage} hit points!')
             else:
-                st_success: bool = character.saving_throw(dc=self.dc, ability_modifier=self.ability_modifier, spell=attack_spell)
+                st_success: bool = character.saving_throw(dc=self.dc, spell=attack_spell)
                 if st_success:
                     cprint(f'{color.RED}{character.name}{color.END} resists the Spell!')
                     if attack_spell.dc_success == 'half':
@@ -154,6 +145,7 @@ class Monster:
 
 """ Character classes """
 
+
 class ProfType(Enum):
     SKILL = 'Skills'
     ARMOR = 'Armor'
@@ -164,6 +156,7 @@ class ProfType(Enum):
     WEAPON = 'Weapons'
     MUSIC = 'Musical Instruments'
     GAMING = 'Gaming Sets'
+
 
 @dataclass
 class Proficiency:
@@ -177,6 +170,7 @@ class Proficiency:
 
     def __repr__(self):
         return f'{self.name} - {self.type}'
+
 
 # @dataclass
 # class Inventory:
@@ -268,11 +262,12 @@ class EquipmentCategory:
     index: str
     name: str
     url: str
-    #equipments: List[Equipment]
+
+    # equipments: List[Equipment]
 
     def __repr__(self):
         # e_list: List[str] = [e.index for e in self.equipments]
-        return f"{self.index}"# {e_list}"
+        return f"{self.index}"  # {e_list}"
 
 
 @dataclass
@@ -299,26 +294,34 @@ class Inventory:
 
 
 @dataclass
-class WeaponProperty():
+class WeaponProperty:
     index: str
     name: str
     desc: str
 
 
 @dataclass
-class WeaponThrowRange():
+class WeaponThrowRange:
     normal: int
     long: int
 
 
 @dataclass
-class WeaponRange():
+class WeaponRange:
     normal: int
     long: Optional[int]
 
 
+class CategoryType(Enum):
+    SIMPLE = 'Simple'
+    MARTIAL = 'Martial'
+
+class RangeType(Enum):
+    MELEE = 'Melee'
+    RANGED = 'Ranged'
+
 @dataclass
-class DamageType():
+class DamageType:
     index: str
     name: str
     desc: str
@@ -331,8 +334,10 @@ class DamageType():
 class Weapon(Equipment):
     properties: List[WeaponProperty]
     damage_type: DamageType
-    _range: str
+    range_type: RangeType
+    category_type: CategoryType
     damage_dice: str
+    damage_dice_two_handed: Optional[str]
     damage_type: str
     range: WeaponRange
     throw_range: WeaponThrowRange
@@ -340,7 +345,7 @@ class Weapon(Equipment):
     category_range: str = field(init=False)
 
     def __post_init__(self):
-        self.category_range = f'{self.category} {self._range}'
+        self.category_range = f'{self.category_type.value} {self.range_type.value}'
 
     def __repr__(self):
         return f"{self.index} ({self.category})"
@@ -513,7 +518,7 @@ class Spell:
     dc_success: str
 
     def __repr__(self):
-        return f'{self.name} dc: {self.dc_type} lvl: {self.level}'# {self.allowed_classes}'
+        return f'{self.name} dc: {self.dc_type} lvl: {self.level}'  # {self.allowed_classes}'
 
     def get_spell_damages(self, caster_level: int, ability_modifier: int) -> List[DamageDice]:
         # TODO modify request_class() in populate_functions to put int instead of str
@@ -544,7 +549,7 @@ class Spell:
                     damage_bonus = int(damage_bonus.strip())
                 damage_dices.append(DamageDice(dice=damage_dice, bonus=damage_bonus))
         else:
-                damage_dices.append(DamageDice(dice=damage_dice, bonus=0))
+            damage_dices.append(DamageDice(dice=damage_dice, bonus=0))
         return damage_dices
 
 
@@ -645,7 +650,11 @@ class Character:
 
     @property
     def damage_dice(self):
-        return self.weapon.damage_dice
+        """TODO Two handed weapon not possible with a shield """
+        try:
+            return self.weapon.damage_dice_two_handed if hasattr(self.weapon, 'damage_dice_two_handed') else self.weapon.damage_dice
+        except AttributeError:
+            pass
 
     """Healing (??? check rules): A Healing potion repairs one six-sided die, plus one, (2-7) points of damage, just like a Cure Light Wounds spell."""
 
@@ -851,26 +860,39 @@ class Character:
                 else:
                     cprint(f'{color.RED}{monster.name}{color.END} is hit for {damage_roll} hit points!')
         else:
-            attack_roll = randint(1, 20) + self.ability_modifiers.get_value_by_index('str')
-            if attack_roll >= monster.armor_class:
-                dice_count, roll_dice = map(int, self.damage_dice.split('d'))
-                damage_roll = sum([randint(1, roll_dice) for _ in range(dice_count)])
-            if damage_roll:
-                cprint(f'{color.GREEN}{self.name}{color.END} hits {color.RED}{monster.name}{color.END} for {damage_roll} hit points!')
-            else:
-                cprint(f'{self.name} misses {monster.name}!')
+            multi_attacks = 2 if self.level >= 5 else 3 if self.level >= 11 else 4 if self.level >= 20 else 1
+            for _ in range(multi_attacks):
+                attack_roll = randint(1, 20) + self.ability_modifiers.get_value_by_index('str')
+                if attack_roll >= monster.armor_class:
+                    dice_count, roll_dice = map(int, self.damage_dice.split('d'))
+                    damage_roll = sum([randint(1, roll_dice) for _ in range(dice_count)])
+                if damage_roll:
+                    cprint(f'{color.GREEN}{self.name}{color.END} hits {color.RED}{monster.name}{color.END} for {damage_roll} hit points!')
+                else:
+                    cprint(f'{self.name} misses {monster.name}!')
         return damage_roll
 
-    def saving_throw(self, dc: int, ability_modifier: int, spell: Spell) -> bool:
+
+    def saving_throw(self, dc: int, spell: Spell) -> bool:
         """
             Determine resistance from a spell casted by a monster
-        :param dc: ability needed to defend against the spell
+        :param dc: difficulty class of the caster
         :param spell: spell of the caster
         :return:
         """
-        # 2 - Calculate saving throw of character
+        # 2 - Calculate saving throw of monster
+        # Determine ability for ST in Spell
+        ability_mod = lambda x: (x - 10) // 2
+        prof_bonus = lambda x: x // 5 + 2 if x < 5 else (x - 5) // 4 + 3
+        st_type: str = f'saving-throw-{spell.dc_type}'
+        prof_modifiers: List[int] = [p.value for p in self.proficiencies if st_type == p.index]
+        if prof_modifiers:
+            ability_modifier: int = prof_modifiers[0]
+        else:
+            ability_modifier: int = ability_mod(self.abilities.get_value_by_index(spell.dc_type)) + prof_bonus(self.level)
         return randint(1, 20) + ability_modifier > dc
-    
+
+
 @dataclass
 class DamageDice:
     dice: str
