@@ -153,7 +153,7 @@
           "url": "/api/ability-scores/con"
         },
         "dc_value": 19,
-        "success_type": "nhalfone"
+        "success_type": "half"
       },
       "damage": [{
     "damage_type": {
