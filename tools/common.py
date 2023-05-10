@@ -60,3 +60,12 @@ def get_key():
             return key_mapping.get(k, chr(k))
     finally:
         termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_settings)
+
+def exit_message(message: str = None):
+    if message:
+        print(message)
+    print('[Return] to continue')
+    while True:
+        k = get_key()
+        if k == 'return':
+            break

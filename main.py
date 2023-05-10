@@ -20,7 +20,7 @@ from populate_functions import *
 from pyQTApp.character_sheet import display_char_sheet
 from pyQTApp.qt_designer_widgets.character_dialog import Ui_character_Dialog
 from tools.ability_scores_roll import ability_rolls
-from tools.common import cprint, Color, get_key
+from tools.common import cprint, Color, exit_message, get_key
 
 
 def continue_message(message: str = 'Do you want to continue? (Y/N)') -> bool:
@@ -327,7 +327,20 @@ def load_dungeon_collections() -> Tuple:
     equipments: List[Equipment] = [request_equipment(name) for name in equipment_names]
     equipment_category_names: List[str] = populate(collection_name='equipment-categories', key_name='results')
     equipment_categories: List[EquipmentCategory] = [request_equipment_category(name) for name in equipment_category_names]
-    return monsters, armors, weapons, equipments, equipment_categories
+    potions: List[Potion] = []
+    for _ in range(PotionRarity.COMMON.value):
+        potion = Potion(name='Healing', rarity=PotionRarity.COMMON, hit_dice='2d4', bonus=2)
+        potions.append(potion)
+    for _ in range(PotionRarity.UNCOMMON.value):
+        potion = Potion(name='Greater healing', rarity=PotionRarity.UNCOMMON, hit_dice='4d4', bonus=4)
+        potions.append(potion)
+    for _ in range(PotionRarity.RARE.value):
+        potion = Potion(name='Superior healing', rarity=PotionRarity.RARE, hit_dice='8d4', bonus=8)
+        potions.append(potion)
+    for _ in range(PotionRarity.VERY_RARE.value):
+        potion = Potion(name='Supreme healing', rarity=PotionRarity.COMMON, hit_dice='10d4', bonus=20)
+        potions.append(potion)
+    return monsters, armors, weapons, equipments, equipment_categories, potions
 
 
 def create_new_character(roster: List[Character]) -> Character:
@@ -356,8 +369,8 @@ def create_new_character(roster: List[Character]) -> Character:
     hit_points = class_type.hit_die
 
     # Phase 2: Spell selection
-    char_level: int = 1
-    learned_spells: List[Spell] = []
+    char_level: int = 5 # could be changed to create higher level characters
+    spell_caster: SpellCaster = None
     if class_type.can_cast:
         learnable_spells: List[Spell] = [s for s in spells if class_type.index in s.allowed_classes and s.level <= char_level and s.damage_type]
         if learnable_spells:
@@ -370,8 +383,15 @@ def create_new_character(roster: List[Character]) -> Character:
             n_slot_spells: int = min(len(slot_spells), class_type.spells_known[char_level - 1])
             slot_spells = sample(slot_spells, n_slot_spells)
             learned_spells = cantrips_spells + slot_spells
+        spell_caster = SpellCaster(level=char_level,
+                                   spell_slots=copy(class_type.spell_slots.get(char_level)),
+                                   learned_spells=learned_spells,
+                                   dc_type=class_type.spellcasting_ability,
+                                   dc_value=None,
+                                   ability_modifier=None)
 
     """ Load Spells characteristic """
+    cheat_xp: int = 10000 # Level 5 chars
     character: Character = Character(race=race,
                                      subrace=subrace,
                                      class_type=class_type,
@@ -389,13 +409,12 @@ def create_new_character(roster: List[Character]) -> Character:
                                      weapon=chosen_weapon,
                                      hit_points=hit_points,
                                      max_hit_points=hit_points,
-                                     xp=0, level=1,
-                                     healing_potions=[Potion('2d4')] * POTION_INITIAL_PACK,
+                                     xp=cheat_xp, level=1,
+                                     healing_potions=[choice(potions) for _ in range(POTION_INITIAL_PACK)],
                                      monster_kills=0,
                                      age=18 * 52 + randint(0, 299),
                                      gold=90 + randint(0, 99),
-                                     spell_slots=copy(class_type.spell_slots.get(char_level)),
-                                     learned_spells=learned_spells)
+                                     sc=spell_caster)
     exit_message()
     return character
 
@@ -412,6 +431,7 @@ def get_roster(characters_dir: str) -> List[Character]:
     for entry in char_file_list:
         if entry.is_file():
             with open(entry, 'rb') as f1:
+                print(f1)
                 roster.append(pickle.load(f1))
     return roster
 
@@ -467,15 +487,15 @@ def display_character_sheet(char: Character):
     sheet += '|{:^51}|\n'.format(f'healing potions = {potions}')
     #sheet += '|{:^51}|\n'.format(f'healing potions = {len(char.healing_potions)}')
     sheet += '|{:^51}|\n'.format(f'armor = {char.armor.name.title()}')
-    sheet += '|{:^51}|\n'.format(f'weapon = {char.weapon.name.title()} - Damage = {char.weapon.damage_dice}')
+    sheet += '|{:^51}|\n'.format(f'weapon = {char.weapon.name.title()} - Damage = {char.weapon.damage_dice.dice}')
     sheet += '|{:^51}|\n'.format(f'gold = {char.gold} gp')
     sheet += '+{:-^51}+\n'.format('')
-    if char.class_type.can_cast:
-        slots: str = '/'.join(map(str, char.spell_slots))
+    if char.can_cast:
+        slots: str = '/'.join(map(str, char.sc.spell_slots))
         sheet += '|{:^51}|\n'.format(f'spell slots: {slots}')
-        known_spells: int = len(char.learned_spells)
+        known_spells: int = len(char.sc.learned_spells)
         sheet += '|{:^51}|\n'.format(f'{known_spells} known spells:')
-        learned_spells: List[Spell] = [s for s in char.learned_spells]
+        learned_spells: List[Spell] = [s for s in char.sc.learned_spells]
         learned_spells.sort(key=lambda s: s.level)
         for spell in learned_spells:
             sheet += '|{:^51}|\n'.format(str(spell))
@@ -723,9 +743,9 @@ def rest_character(char: Character, fee: int, weeks: int):
         char.age += weeks
         display_rest_message(char)
     if char.class_type.can_cast:
-        if char.spell_slots != char.class_type.spell_slots[char.level]:
+        if char.sc.spell_slots != char.class_type.spell_slots[char.level]:
             print(f'{char.name} has memorized all his spells')
-            char.spell_slots = copy(char.class_type.spell_slots[char.level])
+            char.sc.spell_slots = copy(char.class_type.spell_slots[char.level])
     if char.level < len(xp_levels) and char.xp > xp_levels[char.level]:
         if char.class_type.can_cast:
             spell_names: List[str] = populate(collection_name='spells', key_name='results')
@@ -737,14 +757,6 @@ def rest_character(char: Character, fee: int, weeks: int):
     exit_message()
 
 
-def exit_message(message: str = None):
-    if message:
-        print(message)
-    print('[Return] to continue')
-    while True:
-        k = get_key()
-        if k == 'return':
-            break
 
 
 def temple_of_cant(party: List[Character, roster: List[Character]]):
@@ -1084,7 +1096,7 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
             encounter_levels: List[int] = generate_encounter_levels(party_level=party_level)
         encounter_level: int = encounter_levels.pop()
         monsters: List[Monster] = generate_encounter(encounter_level=encounter_level, monsters=monsters_db, monster_groups_count=monster_groups_count, spell_casters_only=spell_casters_only)
-        #monsters: List[Monster] = [request_monster(index_name='guardian-naga') for _ in range(randint(1, 4))]
+        # monsters: List[Monster] = [request_monster(index_name='chuul') for _ in range(randint(1, 2))]
         cprint(f'{color.PURPLE}-------------------------------------------------------------------------------------------------------------------------------------------{color.END}')
         cprint(f'{color.PURPLE} New encounter!{color.END}')
         display_group_of_monsters(monsters)
@@ -1113,24 +1125,45 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
                 attacker = queue.pop()
                 if attacker.hit_points > 0:
                     if isinstance(attacker, Monster):
-                        # Monster attacks the weakest alive character
                         # Monster attacks randomly
                         melee_chars: List[Character] = [c for i, c in enumerate(alive_chars) if i < 3]
                         ranged_chars: List[Character] = [c for i, c in enumerate(alive_chars) if i >= 3]
                         if not melee_chars + ranged_chars:
                             break
-                        # char: Character = min(chars, key=lambda c: c.hit_points)
-                        cantric_spells: List[Spell] = [s for s in attacker.learned_spells if not s.level]
-                        if attacker.can_cast and ((attacker.learned_spells and sum(attacker.spell_slots) > 0) or cantric_spells):
+                        # Precalculate ready spells & special attacks
+                        if attacker.can_cast:
+                            cantric_spells: List[Spell] = [s for s in attacker.sc.learned_spells if not s.level]
+                            slot_spells: List[Spell] = [s for s in attacker.sc.learned_spells if s.level and attacker.sc.spell_slots[s.level - 1] > 0]
+                            castable_spells: List[Spell] = cantric_spells + slot_spells
+                        if attacker.sa and round_num > 1:
+                            for special_attack in attacker.sa:
+                                special_attack.ready = special_attack.recharge_success
+                        # Main loop
+                        if attacker.can_cast and castable_spells:
                             char: Character = choice(ranged_chars) if ranged_chars else choice(melee_chars)
+                            attack_spell: Spell = max(castable_spells, key=lambda s: s.level)
+                            char.hit_points -= attacker.spell_attack(char, attack_spell)
+                            if char.hit_points <= 0:
+                                alive_chars.remove(char)
+                                char.status = 'DEAD'
+                                cprint(f'{char.name} is ** KILLED **!')
+                        elif attacker.sa:
+                            if round_num > 0:
+                                available_attacks: List[SpecialAbility] = list(filter(lambda a: a.ready, attacker.sa))
+                                special_attack: SpecialAbility = max(available_attacks, key=lambda a: sum([d.score(success_type=a.dc_success) for d in a.damages]))
+                            for char in alive_chars:
+                                char.hit_points -= attacker.special_attack(char, special_attack)
+                                if char.hit_points <= 0:
+                                    alive_chars.remove(char)
+                                    char.status = 'DEAD'
+                                    cprint(f'{char.name} is ** KILLED **!')
                         else:
                             char: Character = choice(melee_chars)
-                        char.hit_points -= attacker.attack(char)
-                        if char.hit_points <= 0:
-                            alive_chars.remove(char)
-                            char.status = 'DEAD'
-                            cprint(f'{char.name} is ** KILLED **!')
-                            # melee_attack: List[Character] = [c for i, c in enumerate(active_party) if i < 3]
+                            char.hit_points -= attacker.melee_attack(char)
+                            if char.hit_points <= 0:
+                                alive_chars.remove(char)
+                                char.status = 'DEAD'
+                                cprint(f'{char.name} is ** KILLED **!')
                     else:
                         if not alive_monsters:
                             break
@@ -1146,7 +1179,7 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
                                 alive_monsters.remove(monster)
                                 # attacker.victory(monster)
                                 cprint(f'{color.RED}{monster.name}{color.END} is ** KILLED **!')
-                                attacker.treasure(weapons, armors, equipment_categories)
+                                attacker.treasure(weapons, armors, equipments, potions)
                                 attacker.monster_kills += 1
             # End of Round
             alive_chars: List[Character] = [c for c in party if c.hit_points > 0]
@@ -1176,7 +1209,7 @@ def restore_all_roster(roster: List[Character]):
 
 def cheat_function(roster: List[Character]):
     for char in roster:
-        if char.name == 'Evendur':
+        if char.name == 'Torinn':
             char.xp += 100000
             char.gold = 10000
             char.hit_points = char.max_hit_points
@@ -1198,11 +1231,10 @@ def delete_armors_weapons(roster: List[Character]):
         char.weapon = dagger
         char.armor = skin
 
-def give_best_armors_weapons(roster: List[Character], armors, weapons):
+def give_best_armors_weapons(roster: List[Character]):
     for char in roster:
-        w: Weapon
-        max_damage = lambda damage_dice: sum([randint(1, int(damage_dice.split('d')[1])) for _ in range(int(damage_dice.split('d')[0]))])
-        char.weapon = max(char.allowed_weapons, key=lambda w: max_damage(w.damage_dice))
+        print(char)
+        char.weapon = max(char.allowed_weapons, key=lambda w: w.damage_dice.max_score)
         if char.allowed_armors:
             char.armor = max(char.allowed_armors, key=lambda a: int(a.armor_class['base']))
 
@@ -1223,7 +1255,7 @@ if __name__ == '__main__':
         xp_levels.append(int(xp_needed))
 
     """ Load Monster, Armor, Weapon databases """
-    monsters, armors, weapons, equipments, equipment_categories = load_dungeon_collections()
+    monsters, armors, weapons, equipments, equipment_categories, potions = load_dungeon_collections()
     armors = list(filter(lambda a: a, armors))
     weapons = list(filter(lambda w: w, weapons))
 
@@ -1241,11 +1273,11 @@ if __name__ == '__main__':
     location = 'Castle'
     party: List[Character] = []
 
-    # cheat_function(roster)
+    #cheat_function(roster)
     restore_all_roster(roster)
     # delete_all_potions(roster)
-    # delete_armors_weapons(roster)
-    # give_best_armors_weapons(roster, weapons, armors)
+    delete_armors_weapons(roster)
+    give_best_armors_weapons(roster)
 
     while True:
         efface_ecran()

@@ -6,10 +6,9 @@ import os
 from copy import deepcopy
 from typing import List, Tuple, Optional
 
-from dao_classes import CategoryType, Monster, Armor, RangeType, Weapon, Race, SubRace, Proficiency, ClassType, Language, Equipment, WeaponProperty, WeaponRange, AbilityType, WeaponThrowRange, Trait, EquipmentCategory, \
+from dao_classes import CategoryType, DamageDice, Monster, Armor, RangeType, SpecialAbility, SpellCaster, Weapon, Race, SubRace, Proficiency, ClassType, Language, Equipment, WeaponProperty, WeaponRange, AbilityType, WeaponThrowRange, Trait, EquipmentCategory, \
     Inventory, \
     Abilities, Action, Damage, ActionType, DamageType, Spell, ProfType
-from main import exit_message
 
 """ CSV loads """
 
@@ -80,7 +79,8 @@ def height_weight_table() -> List:
     :return: List of race height/weight modifier's parameters
     """
     """Race;Base Height;Height Modifier;Base Weight;Weight Modifier"""
-    headers = ['Race', 'Base Height', 'Height Modifier', 'Base Weight', 'Weight Modifier']
+    headers = ['Race', 'Base Height', 'Height Modifier',
+               'Base Weight', 'Weight Modifier']
     hw_conv_table = []
     with open(f"{path}/Tables/Height and Weight-Height and Weight.csv", newline='') as csv_file:
         # csv_data = csv.reader(csv_file, delimiter=';')
@@ -109,7 +109,8 @@ def populate(collection_name: str, key_name: str, with_url=False, collection_pat
         print(f'f: {f.name} - key_name: {key_name} - data: {data}')
         exit(0)
     if with_url:
-        data_list = [(json_data['index'], json_data['url']) for json_data in collection_json_list]
+        data_list = [(json_data['index'], json_data['url'])
+                     for json_data in collection_json_list]
     else:
         data_list = [json_data['index'] for json_data in collection_json_list]
     return data_list
@@ -141,23 +142,30 @@ def request_monster(index_name: str) -> Monster:
     caster_level: int = None
     dc: int = None
     ability_modifier: int = 0
+    spell_caster: SpellCaster = None
     if "special_abilities" in data:
         for special_ability in data['special_abilities']:
             if special_ability['name'] == 'Spellcasting':
-                can_cast = True
                 caster_level = special_ability['spellcasting']['level']
-                dc = special_ability['spellcasting']['dc']
+                dc_type = special_ability['spellcasting']['ability']['index']
+                dc_value = special_ability['spellcasting']['dc']
                 ability_modifier = special_ability['spellcasting']['modifier']
-                for slot in special_ability['spellcasting']['slots'].values():
-                    slots.append(slot)
+                slots = [s for s in special_ability['spellcasting']['slots'].values()]
                 for spell_dict in special_ability['spellcasting']['spells']:
                     index_name: str = spell_dict['url'].split('/')[3]
                     spell = request_spell(index_name)
                     if spell is None:
                         continue
                     spells.append(spell)
+                spell_caster: SpellCaster = SpellCaster(level=caster_level,
+                                                        spell_slots=slots,
+                                                        learned_spells=spells,
+                                                        dc_type=dc_type,
+                                                        dc_value=dc_value + ability_modifier,
+                                                        ability_modifier=ability_modifier)
 
     actions: List[Action] = []
+    special_abilities: List[SpecialAbility] = []
     if "actions" in data:
         for action in data['actions']:
             # print(f"{data['name']} - action = {action}")
@@ -167,32 +175,56 @@ def request_monster(index_name: str) -> Monster:
                     # print(f'damage = {damage}')
                     if "damage_type" in damage:
                         damage_type: DamageType = request_damage_type(index_name=damage['damage_type']['index'])
-                        damages.append(Damage(type=damage_type, dice=damage['damage_dice']))
-                actions.append(Action(name=action['name'], desc=action['desc'], type=ActionType.MELEE, attack_bonus=action.get('attack_bonus'),
-                                      multi_attack=None, damages=damages))
+                        damages.append(Damage(type=damage_type, dd=DamageDice(damage['damage_dice'])))
+                if damages:
+                    actions.append(Action(name=action['name'], desc=action['desc'], type=ActionType.MELEE, attack_bonus=action.get('attack_bonus'),
+                                        multi_attack=None, damages=damages))
         for action in data['actions']:
             if action['name'] == 'Multiattack':
                 multi_actions: List[Action] = []
                 for option in action['options']['from'][0]:
-                    multi_action: Action = [a for a in actions if a.name == option['name']]
+                    multi_action: Action = [
+                        a for a in actions if a.name == option['name']]
                     count: int = option['count']
                     if not isinstance(count, int):
                         continue
                     if multi_action and option['type'] == 'melee':
                         for _ in range(int(count)):
                             multi_actions.append(multi_action[0])
+                # action_type: str = ActionType.MELEE if 'Melee' in action['desc'] else ActionType.RANGED if 'Ranged' in action['desc']
                 actions.append(Action(name=action['name'], desc=action['desc'], type=ActionType.MELEE, attack_bonus=None,
                                       multi_attack=multi_actions, damages=None))
+
+        for action in data['actions']:
+            if 'dc' in action:
+                damages: List[Damage] = []
+                for damage in action['damage']:
+                    if "damage_type" in damage:
+                        damage_type: DamageType = request_damage_type(index_name=damage['damage_type']['index'])
+                        damages.append(Damage(type=damage_type, dd=DamageDice(damage['damage_dice'])))
+                #print(index_name)
+                recharge_on_roll: int = None
+                if "recharge_on_roll" in action:
+                    recharge_on_roll = action['usage']['min_value']
+                if damages:
+                    special_abilities.append(SpecialAbility(name=action['name'],
+                                                            desc=action['desc'],
+                                                            damages=damages,
+                                                            dc_type=action['dc']['dc_type']['index'],
+                                                            dc_value=action['dc']['dc_value'],
+                                                            dc_success=action['dc']['success_type']))
 
     proficiencies: List[Proficiency] = []
     if 'proficiencies' in data:
         for prof in data['proficiencies']:
-            proficiency: Proficiency = request_proficiency(index_name=prof['proficiency']['index'])
+            proficiency: Proficiency = request_proficiency(
+                index_name=prof['proficiency']['index'])
             proficiency.value = prof.get('value')
             proficiencies.append(proficiency)
 
     return Monster(name=data['name'],
-                   abilities=Abilities(str=data['strength'], dex=data['dexterity'], con=data['constitution'], int=data['intelligence'], wis=data['wisdom'], cha=data['charisma']),
+                   abilities=Abilities(str=data['strength'], dex=data['dexterity'], con=data['constitution'],
+                                       int=data['intelligence'], wis=data['wisdom'], cha=data['charisma']),
                    proficiencies=proficiencies,
                    armor_class=data['armor_class'],
                    hit_points=data['hit_points'],
@@ -200,13 +232,8 @@ def request_monster(index_name: str) -> Monster:
                    xp=data['xp'],
                    challenge_rating=data['challenge_rating'],
                    actions=actions,
-                   can_cast=can_cast,
-                   caster_level=caster_level,
-                   dc=dc,
-                   ability_modifier=ability_modifier,
-                   spell_slots=slots,
-                   learned_spells=spells
-                   )
+                   sc=spell_caster,
+                   sa=special_abilities)
 
 
 def request_spell(index_name: str) -> Spell:
@@ -227,7 +254,8 @@ def request_spell(index_name: str) -> Spell:
         # print(data['index'], data['damage'])
         damage_type = data['damage']['damage_type']['index'] if "damage_type" in data['damage'] else None
         damage_at_slot_level = data['damage'].get('damage_at_slot_level')
-        damage_at_character_level = data['damage'].get('damage_at_character_level')
+        damage_at_character_level = data['damage'].get(
+            'damage_at_character_level')
         # print(f"{data['index']} - damage_at_character_level={damage_at_character_level}")
         # print(f"{data['index']} - damage_at_slot_level={damage_at_slot_level}")
 
@@ -265,7 +293,8 @@ def request_armor(index_name: str) -> Armor:
                      name=data['name'],
                      armor_class=data['armor_class'],
                      str_minimum=data['str_minimum'],
-                     category=request_equipment_category(data['equipment_category']['index']),
+                     category=request_equipment_category(
+                         data['equipment_category']['index']),
                      stealth_disadvantage=data['stealth_disadvantage'],
                      cost=data['cost'],
                      weight=data['weight'],
@@ -296,20 +325,22 @@ def request_weapon(index_name: str) -> Weapon:
         data = json.loads(f.read())
     weapon_properties = None
     if 'properties' in data:
-        weapon_properties: List[WeaponProperty] = [request_weapon_property(d['index']) for d in data['properties']]
+        weapon_properties: List[WeaponProperty] = [
+            request_weapon_property(d['index']) for d in data['properties']]
     throw_range = None
     if 'throw_range' in data:
-        throw_range = WeaponThrowRange(data['throw_range']['normal'], data['throw_range']['long'])
+        throw_range = WeaponThrowRange(
+            data['throw_range']['normal'], data['throw_range']['long'])
     if "damage" in data:
-        damage_dice_two_handed = None
+        damage_dice_two_handed: DamageDice = None
         if "two_handed_damage" in data:
-            damage_dice_two_handed = data['two_handed_damage']['damage_dice']
+            damage_dice_two_handed: DamageDice = DamageDice(data['two_handed_damage']['damage_dice'])
         return Weapon(index=data['index'],
                       name=data['name'],
                       category=request_equipment_category(data['equipment_category']['index']),
                       category_type=CategoryType(data['weapon_category']),
                       range_type=RangeType(data['weapon_range']),
-                      damage_dice=data['damage']['damage_dice'],
+                      damage_dice=DamageDice(data['damage']['damage_dice']),
                       damage_dice_two_handed=damage_dice_two_handed,
                       damage_type=request_damage_type(index_name=data['damage']['damage_type']['index']),
                       range=WeaponRange(normal=data['range']['normal'], long=data['range']['long']),
@@ -343,17 +374,23 @@ def request_race(index_name: str) -> Race:
     """
     with open(f"{path}/data/races/{index_name}.json", "r") as f:
         data = json.loads(f.read())
-        ability_bonuses = dict([(ability_bonus['ability_score']['index'], ability_bonus['bonus']) for ability_bonus in data['ability_bonuses']])
-        starting_proficiencies: List[Proficiency] = [request_proficiency(d['index']) for d in data.get('starting_proficiencies')]
+        ability_bonuses = dict([(ability_bonus['ability_score']['index'], ability_bonus['bonus'])
+                               for ability_bonus in data['ability_bonuses']])
+        starting_proficiencies: List[Proficiency] = [request_proficiency(
+            d['index']) for d in data.get('starting_proficiencies')]
         starting_proficiency_options: List[Tuple[List[Proficiency], int]] = []
         if data.get('starting_proficiency_options'):
             dat = data.get('starting_proficiency_options')
             choose: int = dat['choose']
-            proficiencies_choose: List[Proficiency] = [request_proficiency(d['index']) for d in dat['from']]
+            proficiencies_choose: List[Proficiency] = [
+                request_proficiency(d['index']) for d in dat['from']]
             starting_proficiency_options.append((choose, proficiencies_choose))
-        languages: List[Language] = [lang['index'] for lang in data['languages']]
-        traits: List[Trait] = [request_trait(d['index']) for d in data['traits']]
-        subraces: List[SubRace] = [request_subrace(d['index']) for d in data['subraces']]
+        languages: List[Language] = [lang['index']
+                                     for lang in data['languages']]
+        traits: List[Trait] = [request_trait(
+            d['index']) for d in data['traits']]
+        subraces: List[SubRace] = [request_subrace(
+            d['index']) for d in data['subraces']]
         subraces: List[str] = [d['index'] for d in data['subraces']]
         return Race(index=data['index'],
                     name=data['name'],
@@ -379,9 +416,12 @@ def request_subrace(index_name: str) -> SubRace:
     """
     with open(f"{path}/data/subraces/{index_name}.json", "r") as f:
         data = json.loads(f.read())
-        ability_bonuses = dict([(ability_bonus['ability_score']['index'], ability_bonus['bonus']) for ability_bonus in data['ability_bonuses']])
-        starting_proficiencies: List[Proficiency] = [request_proficiency(d['index']) for d in data['starting_proficiencies']]
-        racial_traits: List[Trait] = [request_trait(d['index']) for d in data['racial_traits']]
+        ability_bonuses = dict([(ability_bonus['ability_score']['index'], ability_bonus['bonus'])
+                               for ability_bonus in data['ability_bonuses']])
+        starting_proficiencies: List[Proficiency] = [request_proficiency(
+            d['index']) for d in data['starting_proficiencies']]
+        racial_traits: List[Trait] = [request_trait(
+            d['index']) for d in data['racial_traits']]
         return SubRace(index=data['index'],
                        name=data['name'],
                        desc=data['desc'],
@@ -429,7 +469,8 @@ def request_proficiency(index_name: str) -> Proficiency:
         case 'equipment':
             ref: Equipment = request_equipment(index_name=index_name)
         case 'equipment-categories':
-            ref: List[Equipment] = list_equipment_category(index_name=index_name)
+            ref: List[Equipment] = list_equipment_category(
+                index_name=index_name)
         case 'ability-scores':
             ref: AbilityType = AbilityType(index_name)
 
@@ -502,7 +543,8 @@ def request_equipment(index_name: str) -> Optional[Equipment]:
             else:
                 return Equipment(index=data['index'],
                                  name=data['name'],
-                                 category=request_equipment_category(equipment_category),
+                                 category=request_equipment_category(
+                                     equipment_category),
                                  cost=data['cost'],
                                  weight=data.get('weight'),
                                  desc=data.get('desc'))
@@ -522,7 +564,7 @@ def get_spell_slots(class_name: str) -> Tuple[dict(), List[int], List[int]]:
     spell_slots: dict() = dict()
     spells_known: List[int] = []
     cantrips_known: List[int] = []
-    str2int = lambda x: 0 if not x else int(x)
+    def str2int(x): return 0 if not x else int(x)
     # print(class_name)
     match class_name:
         case 'Wizard' | 'Druid' | 'Cleric' | 'Ranger':
@@ -569,7 +611,8 @@ def get_spell_slots(class_name: str) -> Tuple[dict(), List[int], List[int]]:
             for line in data:
                 # Lvl;Proficiency Bonus;Features;Cantrips Known;Spells Known;Spell Slots;Slot Level;Invocations Known
                 char_level, prof_bonus, features, ct_known, sp_known, spell_slots_count, slot_level, inv_known = line
-                spell_slots[int(char_level)] = [int(spell_slots_count)] * int(slot_level) + [0] * (5 - int(slot_level))
+                spell_slots[int(char_level)] = [int(spell_slots_count)] * \
+                    int(slot_level) + [0] * (5 - int(slot_level))
                 cantrips_known.append(str2int(ct_known))
                 spells_known.append(str2int(sp_known))
     return spell_slots, spells_known, cantrips_known
@@ -583,18 +626,22 @@ def request_class(index_name: str, known_proficiencies: List[Proficiency] = None
     """
     with open(f"{path}/data/classes/{index_name}.json", "r") as f:
         data = json.loads(f.read())
-        proficiencies: List[Proficiency] = [request_proficiency(d['index']) for d in data['proficiencies']]
+        proficiencies: List[Proficiency] = [request_proficiency(
+            d['index']) for d in data['proficiencies']]
         proficiency_choices: List[Tuple[List[Proficiency], int]] = []
         for dat in data['proficiency_choices']:
             choose: int = dat['choose']
-            proficiencies_choose: List[Proficiency] = [request_proficiency(d['index']) for d in dat['from']]
+            proficiencies_choose: List[Proficiency] = [
+                request_proficiency(d['index']) for d in dat['from']]
             proficiency_choices.append((choose, proficiencies_choose))
 
         starting_equipment: List[Inventory] = []
         for equip_dict in data['starting_equipment']:
             quantity: int = equip_dict['quantity']
-            equipment: Equipment = request_equipment(equip_dict['equipment']['index'])
-            starting_equipment.append(Inventory(quantity=quantity, equipment=equipment))
+            equipment: Equipment = request_equipment(
+                equip_dict['equipment']['index'])
+            starting_equipment.append(
+                Inventory(quantity=quantity, equipment=equipment))
 
         starting_equipment_options: List[List[Inventory]] = []
         for st_eq_option in data['starting_equipment_options']:
@@ -602,7 +649,8 @@ def request_class(index_name: str, known_proficiencies: List[Proficiency] = None
             equipments_choose: List[Inventory] = []
             for eq_choice in st_eq_option['from']:
                 if known_proficiencies:
-                    known_proficiencies: List[str] = [p.index for p in known_proficiencies]
+                    known_proficiencies: List[str] = [
+                        p.index for p in known_proficiencies]
                     prereq = True
                     for p_dict in eq_choice['prerequisites']:
                         if p_dict['proficiency']['index'] not in known_proficiencies:
@@ -610,35 +658,44 @@ def request_class(index_name: str, known_proficiencies: List[Proficiency] = None
                     if not prereq:
                         continue
                 if 'equipment' in eq_choice:
-                    equipment: Inventory = Inventory(quantity=eq_choice['quantity'], equipment=request_equipment(eq_choice['equipment']['index']))
+                    equipment: Inventory = Inventory(
+                        quantity=eq_choice['quantity'], equipment=request_equipment(eq_choice['equipment']['index']))
                     equipments_choose.append(equipment)
                 elif 'equipment_option' in eq_choice:
                     quantity: int = eq_choice['quantity'] if 'quantity' in eq_choice else 1
-                    equipment_category: EquipmentCategory = request_equipment_category(eq_choice['equipment_option']['from']['equipment_category']['index'])
-                    equipments_choose.append(Inventory(quantity=quantity, equipment=equipment_category))
+                    equipment_category: EquipmentCategory = request_equipment_category(
+                        eq_choice['equipment_option']['from']['equipment_category']['index'])
+                    equipments_choose.append(
+                        Inventory(quantity=quantity, equipment=equipment_category))
                 elif 'equipment_category' in eq_choice:
                     quantity: int = eq_choice['quantity'] if 'quantity' in eq_choice else 1
-                    equipment_category: EquipmentCategory = request_equipment_category(eq_choice['equipment_category']['index'])
-                    equipments_choose.append(Inventory(quantity=quantity, equipment=equipment_category))
+                    equipment_category: EquipmentCategory = request_equipment_category(
+                        eq_choice['equipment_category']['index'])
+                    equipments_choose.append(
+                        Inventory(quantity=quantity, equipment=equipment_category))
                 else:
                     equipments: List[Inventory] = []
                     for item_no, equip_dict in eq_choice.items():
                         # print(f'item_no: {item_no}, equip_dict: {equip_dict}')
                         if 'equipment' in equip_dict:
                             quantity: int = equip_dict['quantity'] if 'quantity' in equip_dict else 1
-                            equipment: Equipment = request_equipment(equip_dict['equipment']['index'])
-                            equipments.append(Inventory(quantity=quantity, equipment=equipment))
+                            equipment: Equipment = request_equipment(
+                                equip_dict['equipment']['index'])
+                            equipments.append(
+                                Inventory(quantity=quantity, equipment=equipment))
                     equipments_choose.append(equipments)
             if equipments_choose:
                 # starting_equipment_options.append((choose, equipments_choose))
                 starting_equipment_options.append(equipments_choose)
 
-        saving_throws: List[AbilityType] = [AbilityType(d['index']) for d in data['saving_throws']]
+        saving_throws: List[AbilityType] = [AbilityType(
+            d['index']) for d in data['saving_throws']]
 
         can_cast: bool = 'spells' in data
         spell_slots, spells_known, cantrips_known = {}, [], []
         if can_cast:
-            spell_slots, spells_known, cantrips_known = get_spell_slots(class_name=data['name'])
+            spell_slots, spells_known, cantrips_known = get_spell_slots(
+                class_name=data['name'])
 
         spellcasting_level: int = None
         spellcasting_ability: str = None
