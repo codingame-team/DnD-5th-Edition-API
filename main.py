@@ -431,7 +431,7 @@ def get_roster(characters_dir: str) -> List[Character]:
     for entry in char_file_list:
         if entry.is_file():
             with open(entry, 'rb') as f1:
-                print(f1)
+                # print(f1)
                 roster.append(pickle.load(f1))
     return roster
 
@@ -1096,7 +1096,7 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
             encounter_levels: List[int] = generate_encounter_levels(party_level=party_level)
         encounter_level: int = encounter_levels.pop()
         monsters: List[Monster] = generate_encounter(encounter_level=encounter_level, monsters=monsters_db, monster_groups_count=monster_groups_count, spell_casters_only=spell_casters_only)
-        # monsters: List[Monster] = [request_monster(index_name='chuul') for _ in range(randint(1, 2))]
+        # monsters: List[Monster] = [request_monster(index_name='giant-shark') for _ in range(randint(1, 2))]
         cprint(f'{color.PURPLE}-------------------------------------------------------------------------------------------------------------------------------------------{color.END}')
         cprint(f'{color.PURPLE} New encounter!{color.END}')
         display_group_of_monsters(monsters)

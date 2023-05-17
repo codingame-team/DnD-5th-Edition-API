@@ -88,7 +88,7 @@ class Monster:
                                                                  ability_modifier=self.sc.ability_modifier)
         for dd in damage_dices:
             total_damage += dd.roll()
-        cprint(f'{color.GREEN}{self.name}{color.END} ** CAST SPELL {spell.name.upper()} **')
+        cprint(f'{color.GREEN}{self.name}{color.END} CAST SPELL ** {spell.name.upper()} ** on {character.name}')
         if spell.dc_type is None:
             # No saving throw available for this spell!
             cprint(f'{color.RED}{character.name}{color.END} is hit for {total_damage} hit points!')
@@ -112,7 +112,7 @@ class Monster:
         total_damage: int = 0
         for damage in sa.damages:
             total_damage += damage.dd.roll()
-        cprint(f'{color.GREEN}{self.name}{color.END} launches ** SPECIAL ATTACK ** {sa.name.upper()}')
+        cprint(f'{color.GREEN}{self.name}{color.END} launches ** {sa.name.upper()} ** on {character.name}')
         if sa.dc_type is None:
             # No saving throw available for this attack!
             cprint(f'{color.RED}{character.name}{color.END} is hit for {total_damage} hit points!')
@@ -148,8 +148,7 @@ class Monster:
                     for damage in attack.damages:
                         damage_given = damage.dd.roll()
                         total_damage += damage_given
-                        cprint(
-                            f"{color.RED}{self.name}{color.END} {damage.type.index.replace('ing', 'es')} {color.GREEN}{character.name}{color.END} for {damage_given} hit points!")
+                        cprint(f"{color.RED}{self.name}{color.END} {damage.type.index.replace('ing', 'es')} {color.GREEN}{character.name}{color.END} for {damage_given} hit points!")
             else:
                 cprint(f'{self.name} misses {character.name}!')
         return total_damage
@@ -542,7 +541,6 @@ class Spell:
 
     def get_spell_damages(self, caster_level: int, ability_modifier: int) -> List[DamageDice]:
         # TODO modify request_class() in populate_functions to put int instead of str
-        # print(self)
         damage_dices: List[DamageDice] = []
         if self.damage_at_slot_level:
             damage_dice: str = self.damage_at_slot_level.get(str(self.level))
@@ -554,7 +552,7 @@ class Spell:
                     if str(level) in self.damage_at_character_level:
                         damage_dice: str = self.damage_at_character_level.get(str(level))
                         break
-        print(f'{self.index} -> damage_dice = {damage_dice}')
+        # print(f'{self.index} -> damage_dice = {damage_dice}')
         if damage_dice and '+' in damage_dice:
             if damage_dice.count('d') == 0:
                 damage_dices.append(DamageDice(dice=None, bonus=int(damage_dice)))
@@ -928,7 +926,8 @@ class Character:
                 if attack_roll >= monster.armor_class:
                     damage_roll = self.damage_dice.roll()
                 if damage_roll:
-                    cprint(f'{color.GREEN}{self.name}{color.END} hits {color.RED}{monster.name}{color.END} for {damage_roll} hit points!')
+                    #cprint(f'{color.GREEN}{self.name}{color.END} hits {color.RED}{monster.name}{color.END} for {damage_roll} hit points!')
+                    cprint(f"{color.RED}{self.name}{color.END} {self.weapon.damage_type.index.replace('ing', 'es')} {color.GREEN}{monster.name}{color.END} for {damage_roll} hit points!")
                 else:
                     cprint(f'{self.name} misses {monster.name}!')
         return damage_roll
