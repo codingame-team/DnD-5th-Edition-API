@@ -171,7 +171,7 @@ def request_monster(index_name: str) -> Monster:
         # Melee attacks
         for action in data['actions']:
             # print(f"{data['name']} - action = {action}")
-            if action['name'] != 'Multiattack' and "damage" in action and re.search("^(Weapon|Melee) Attack", action['desc']):
+            if action['name'] != 'Multiattack' and "damage" in action and re.search("(Weapon|Melee).*Attack", action['desc']):
                 damages: List[Damage] = []
                 for damage in action['damage']:
                     # print(f'damage = {damage}')
@@ -551,7 +551,7 @@ def request_equipment(index_name: str) -> Optional[Equipment]:
                                  weight=data.get('weight'),
                                  desc=data.get('desc'))
     except FileNotFoundError:
-        print(f'equipment {index_name} not existing in database!')
+        # print(f'equipment {index_name} not existing in database!')
         return None
 
 
