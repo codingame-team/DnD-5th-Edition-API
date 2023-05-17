@@ -392,7 +392,7 @@ def create_new_character(roster: List[Character]) -> Character:
                                    ability_modifier=None)
 
     """ Load Spells characteristic """
-    cheat_xp: int = 10000 # Level 5 chars
+    # cheat_xp: int = 10000 # Level 5 chars
     character: Character = Character(race=race,
                                      subrace=subrace,
                                      class_type=class_type,
@@ -410,7 +410,7 @@ def create_new_character(roster: List[Character]) -> Character:
                                      weapon=chosen_weapon,
                                      hit_points=hit_points,
                                      max_hit_points=hit_points,
-                                     xp=cheat_xp, level=1,
+                                     xp=0, level=1,
                                      healing_potions=[choice(potions) for _ in range(POTION_INITIAL_PACK)],
                                      monster_kills=0,
                                      age=18 * 52 + randint(0, 299),
@@ -1326,7 +1326,8 @@ if __name__ == '__main__':
                     game_mode: str = read_choice(game_modes, 'Choose game mode:')
                     if game_mode == 'ARENA (Simulation)':
                         display_adventurers(roster=roster, party=party, location=location)
-                        simulate_arena(roster)
+                        # simulate_arena(roster)
+                        exit_message(message="*** NOT MAINTAINED ANYMORE (Sorry) - please return to Castle! ***")
                         location = 'Castle'
                     else:
                         if party:
