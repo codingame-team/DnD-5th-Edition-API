@@ -1233,7 +1233,6 @@ def delete_armors_weapons(roster: List[Character]):
 
 def give_best_armors_weapons(roster: List[Character]):
     for char in roster:
-        print(char)
         char.weapon = max(char.allowed_weapons, key=lambda w: w.damage_dice.max_score)
         if char.allowed_armors:
             char.armor = max(char.allowed_armors, key=lambda a: int(a.armor_class['base']))
@@ -1276,8 +1275,8 @@ if __name__ == '__main__':
     #cheat_function(roster)
     restore_all_roster(roster)
     # delete_all_potions(roster)
-    delete_armors_weapons(roster)
-    give_best_armors_weapons(roster)
+    # delete_armors_weapons(roster)
+    # give_best_armors_weapons(roster)
 
     while True:
         efface_ecran()
