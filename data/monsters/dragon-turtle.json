@@ -156,10 +156,21 @@
           "index": "con",
           "name": "CON",
           "url": "/api/ability-scores/con"
-        }, "dc_value": 18, "success_type": "half"
-  }, "damage": [{
-    "damage_type": {
-      "index": "fire", "name": "Fire", "url": "/api/damage-types/fire"
-    }, "damage_dice": "15d6"
-  }]}], "url": "/api/monsters/dragon-turtle"
+        },
+        "dc_value": 18,
+        "success_type": "half"
+      },
+      "damage": [
+        {
+          "damage_type": {
+            "index": "fire",
+            "name": "Fire",
+            "url": "/api/damage-types/fire"
+          },
+          "damage_dice": "15d6"
+        }
+      ]
+    }
+  ],
+  "url": "/api/monsters/dragon-turtle"
 }

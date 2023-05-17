@@ -127,7 +127,14 @@
       "damage": [
         {
           "damage_type": {
-      "index": "fire", "name": "Fire", "url": "/api/damage-types/fire"
-    }, "damage_dice": "7d6"
-  }]}], "url": "/api/monsters/red-dragon-wyrmling"
+            "index": "fire",
+            "name": "Fire",
+            "url": "/api/damage-types/fire"
+          },
+          "damage_dice": "7d6"
+        }
+      ]
+    }
+  ],
+  "url": "/api/monsters/red-dragon-wyrmling"
 }
