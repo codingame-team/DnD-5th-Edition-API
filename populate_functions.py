@@ -5,6 +5,7 @@ import json
 import os
 from copy import deepcopy
 from typing import List, Tuple, Optional
+import re
 
 from dao_classes import CategoryType, DamageDice, Monster, Armor, RangeType, SpecialAbility, SpellCaster, Weapon, Race, SubRace, Proficiency, ClassType, Language, Equipment, WeaponProperty, WeaponRange, AbilityType, WeaponThrowRange, Trait, EquipmentCategory, \
     Inventory, \
@@ -167,9 +168,10 @@ def request_monster(index_name: str) -> Monster:
     actions: List[Action] = []
     special_abilities: List[SpecialAbility] = []
     if "actions" in data:
+        # Melee attacks
         for action in data['actions']:
             # print(f"{data['name']} - action = {action}")
-            if action['name'] != 'Multiattack' and "damage" in action and "Melee" in action['desc']:
+            if action['name'] != 'Multiattack' and "damage" in action and re.search("^(Weapon|Melee) Attack", action['desc']):
                 damages: List[Damage] = []
                 for damage in action['damage']:
                     # print(f'damage = {damage}')
@@ -179,12 +181,12 @@ def request_monster(index_name: str) -> Monster:
                 if damages:
                     actions.append(Action(name=action['name'], desc=action['desc'], type=ActionType.MELEE, attack_bonus=action.get('attack_bonus'),
                                         multi_attack=None, damages=damages))
+        # Multiattacks
         for action in data['actions']:
             if action['name'] == 'Multiattack':
-                multi_actions: List[Action] = []
+                multi_actions: List[List[Action]] = []
                 for option in action['options']['from'][0]:
-                    multi_action: Action = [
-                        a for a in actions if a.name == option['name']]
+                    multi_action: List[Action] = [a for a in actions if a.name == option['name']]
                     count: int = option['count']
                     if not isinstance(count, int):
                         continue
@@ -194,7 +196,7 @@ def request_monster(index_name: str) -> Monster:
                 # action_type: str = ActionType.MELEE if 'Melee' in action['desc'] else ActionType.RANGED if 'Ranged' in action['desc']
                 actions.append(Action(name=action['name'], desc=action['desc'], type=ActionType.MELEE, attack_bonus=None,
                                       multi_attack=multi_actions, damages=None))
-
+        # Special abilities
         for action in data['actions']:
             if 'dc' in action:
                 damages: List[Damage] = []
