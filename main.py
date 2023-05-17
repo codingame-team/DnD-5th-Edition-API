@@ -369,7 +369,7 @@ def create_new_character(roster: List[Character]) -> Character:
     hit_points = class_type.hit_die
 
     # Phase 2: Spell selection
-    char_level: int = 5 # could be changed to create higher level characters
+    char_level: int = 1 # could be changed to create higher level characters
     spell_caster: SpellCaster = None
     if class_type.can_cast:
         learnable_spells: List[Spell] = [s for s in spells if class_type.index in s.allowed_classes and s.level <= char_level and s.damage_type]
