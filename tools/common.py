@@ -43,7 +43,7 @@ def get_key():
             b = os.read(sys.stdin.fileno(), 3).decode()
             # if len(b) == 3:
             if len(b) > 1:
-                k = ord(b[2])
+                k = ord(b[1])
             else:
                 k = ord(b)
             key_mapping = {
