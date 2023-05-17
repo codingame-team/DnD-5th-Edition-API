@@ -371,6 +371,7 @@ def create_new_character(roster: List[Character]) -> Character:
     # Phase 2: Spell selection
     char_level: int = 1 # could be changed to create higher level characters
     spell_caster: SpellCaster = None
+    learned_spells: List[Spell] = []
     if class_type.can_cast:
         learnable_spells: List[Spell] = [s for s in spells if class_type.index in s.allowed_classes and s.level <= char_level and s.damage_type]
         if learnable_spells:
@@ -640,6 +641,7 @@ def add_member_to_party(roster: List[Character], party: List[Character]):
         print(f'No more character in roster! Go to [Training Grounds] to create one.')
         sleep(2)
         return
+    roster = sorted(roster, key=lambda c: c.level)
     char_names: List[str] = [c.name for c in roster if c.status == 'OK' and c not in party and not c.in_dungeon]
     if not char_names:
         print(f'No available character to join party!')
@@ -1096,7 +1098,7 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
             encounter_levels: List[int] = generate_encounter_levels(party_level=party_level)
         encounter_level: int = encounter_levels.pop()
         monsters: List[Monster] = generate_encounter(encounter_level=encounter_level, monsters=monsters_db, monster_groups_count=monster_groups_count, spell_casters_only=spell_casters_only)
-        # monsters: List[Monster] = [request_monster(index_name='giant-shark') for _ in range(randint(1, 2))]
+        # monsters: List[Monster] = [request_monster(index_name='swarm-of-centipedes') for _ in range(randint(1, 2))]
         cprint(f'{color.PURPLE}-------------------------------------------------------------------------------------------------------------------------------------------{color.END}')
         cprint(f'{color.PURPLE} New encounter!{color.END}')
         display_group_of_monsters(monsters)
