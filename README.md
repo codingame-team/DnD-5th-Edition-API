@@ -7,7 +7,7 @@ Usage to run:
   - (under construction...) GUI mode:
     - python /pyQT5App/wizardry.py
 
-** New Feature (Staging) ** graphic maze exploration using Tk:
+** New Feature (Staging) ** graphic maze exploration using Tk with a single character (and limited gameplay):
 
     - explore levels of dungeons
     - collect treasures
