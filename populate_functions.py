@@ -203,7 +203,15 @@ def request_monster(index_name: str) -> Monster:
                 for damage in action['damage']:
                     if "damage_type" in damage:
                         damage_type: DamageType = request_damage_type(index_name=damage['damage_type']['index'])
-                        damages.append(Damage(type=damage_type, dd=DamageDice(damage['damage_dice'])))
+                        if '+' in damage['damage_dice']:
+                            damage_dice, bonus = damage['damage_dice'].split('+')
+                            bonus = int(bonus)
+                        elif '-' in damage['damage_dice']:
+                            damage_dice, bonus = damage['damage_dice'].split('-')
+                            bonus = -int(bonus)
+                        else:
+                            damage_dice, bonus = damage['damage_dice'], 0
+                        damages.append(Damage(type=damage_type, dd=DamageDice(damage_dice, bonus)))
                 #print(index_name)
                 recharge_on_roll: int = None
                 if "recharge_on_roll" in action:

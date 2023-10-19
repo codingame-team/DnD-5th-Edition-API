@@ -112,7 +112,7 @@ class Monster:
         total_damage: int = 0
         for damage in sa.damages:
             total_damage += damage.dd.roll()
-        cprint(f'{color.GREEN}{self.name}{color.END} launches ** {sa.name.upper()} ** on {character.name}')
+
         if sa.dc_type is None:
             # No saving throw available for this attack!
             cprint(f'{color.RED}{character.name}{color.END} is hit for {total_damage} hit points!')
@@ -516,10 +516,6 @@ class Damage:
     type: DamageType
     dd: DamageDice
 
-    def score(self, success_type: str = 'None') -> int:
-        dice_count, roll_dice = map(int, self.dd.dice.split('d'))
-        factor: int = 1 if success_type in ('none', 'None') else 0.5
-        return (self.dd.bonus + roll_dice * (1 + dice_count)) * factor / 2
 
 
 @dataclass
@@ -992,3 +988,8 @@ class DamageDice:
             else:
                 dice_count, damage_dice = map(int, self.dice.split('d'))
                 return sum([randint(1, damage_dice) for _ in range(dice_count)])
+
+    def score(self, success_type: str = 'None') -> int:
+        dice_count, roll_dice = map(int, self.dice.split('d'))
+        factor: int = 1 if success_type in ('none', 'None') else 0.5
+        return (self.bonus + roll_dice * (1 + dice_count)) * factor / 2

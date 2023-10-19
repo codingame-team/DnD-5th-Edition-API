@@ -610,7 +610,7 @@ def arena(character: Character):
 
     character.monster_kills += killed_monsters
     save_character(character)
-    display_character_sheet(character)
+    display_character_sheet_pyQT(character)
 
 
 def display_party(party: List[Character]):
@@ -694,7 +694,7 @@ def gilgamesh_tavern(party: List[Character], roster: List[Character]):
                 char_names: List[str] = [c.name for c in party]
                 name: str = read_choice(char_names, 'Select a Character:')
                 char: Character = get_character(name, party)
-                display_character_sheet(char)
+                display_character_sheet_pyQT(char)
                 exit_message()
             case 'Reorder':
                 if not party:
@@ -1099,6 +1099,9 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
         encounter_level: int = encounter_levels.pop()
         monsters: List[Monster] = generate_encounter(encounter_level=encounter_level, monsters=monsters_db, monster_groups_count=monster_groups_count, spell_casters_only=spell_casters_only)
         # monsters: List[Monster] = [request_monster(index_name='swarm-of-centipedes') for _ in range(randint(1, 2))]
+        # To debug monster multi-attacks
+        # monsters_names_for_debug = ['water-elemental']
+        monsters: List[Monster] = [request_monster(index_name=monsters_names_for_debug[0])]
         cprint(f'{color.PURPLE}-------------------------------------------------------------------------------------------------------------------------------------------{color.END}')
         cprint(f'{color.PURPLE} New encounter!{color.END}')
         display_group_of_monsters(monsters)
@@ -1149,16 +1152,16 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
                                 alive_chars.remove(char)
                                 char.status = 'DEAD'
                                 cprint(f'{char.name} is ** KILLED **!')
-                        elif attacker.sa:
-                            if round_num > 0:
+                        elif attacker.sa and round_num > 0:
                                 available_attacks: List[SpecialAbility] = list(filter(lambda a: a.ready, attacker.sa))
-                                special_attack: SpecialAbility = max(available_attacks, key=lambda a: sum([d.score(success_type=a.dc_success) for d in a.damages]))
-                            for char in alive_chars:
-                                char.hit_points -= attacker.special_attack(char, special_attack)
-                                if char.hit_points <= 0:
-                                    alive_chars.remove(char)
-                                    char.status = 'DEAD'
-                                    cprint(f'{char.name} is ** KILLED **!')
+                                special_attack: SpecialAbility = max(available_attacks, key=lambda a: sum([damage.dd.score(success_type=a.dc_success) for damage in a.damages]))
+                                cprint(f'{color.GREEN}{attacker.name}{color.END} launches ** {special_attack.name.upper()} ** on whole party!')
+                                for char in alive_chars:
+                                    char.hit_points -= attacker.special_attack(char, special_attack)
+                                    if char.hit_points <= 0:
+                                        alive_chars.remove(char)
+                                        char.status = 'DEAD'
+                                        cprint(f'{char.name} is ** KILLED **!')
                         else:
                             char: Character = choice(melee_chars)
                             char.hit_points -= attacker.melee_attack(char)
