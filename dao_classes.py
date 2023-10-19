@@ -582,11 +582,13 @@ class SpecialAbility:
     dc_type: str
     dc_value: int
     dc_success: str
+    recharge_on_roll: Optional[int]
     ready: int = True
 
     def __repr__(self):
         return f'{self.name} dc: {self.dc_type} damages: {self.damages}'
 
+    @property
     def recharge_success(self) -> bool:
         return randint(1, 6) >= self.recharge_on_roll
 

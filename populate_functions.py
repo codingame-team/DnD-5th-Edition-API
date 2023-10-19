@@ -214,15 +214,17 @@ def request_monster(index_name: str) -> Monster:
                         damages.append(Damage(type=damage_type, dd=DamageDice(damage_dice, bonus)))
                 #print(index_name)
                 recharge_on_roll: int = None
-                if "recharge_on_roll" in action:
-                    recharge_on_roll = action['usage']['min_value']
+                if "usage" in action:
+                    if action['usage'].get('type') == 'recharge on roll':
+                        recharge_on_roll = action['usage']['min_value']
                 if damages:
                     special_abilities.append(SpecialAbility(name=action['name'],
                                                             desc=action['desc'],
                                                             damages=damages,
                                                             dc_type=action['dc']['dc_type']['index'],
                                                             dc_value=action['dc']['dc_value'],
-                                                            dc_success=action['dc']['success_type']))
+                                                            dc_success=action['dc']['success_type'],
+                                                            recharge_on_roll=recharge_on_roll))
 
     proficiencies: List[Proficiency] = []
     if 'proficiencies' in data:

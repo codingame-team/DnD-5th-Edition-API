@@ -1100,7 +1100,7 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
         monsters: List[Monster] = generate_encounter(encounter_level=encounter_level, monsters=monsters_db, monster_groups_count=monster_groups_count, spell_casters_only=spell_casters_only)
         # monsters: List[Monster] = [request_monster(index_name='swarm-of-centipedes') for _ in range(randint(1, 2))]
         # To debug monster multi-attacks
-        # monsters_names_for_debug = ['water-elemental']
+        monsters_names_for_debug = ['water-elemental']
         monsters: List[Monster] = [request_monster(index_name=monsters_names_for_debug[0])]
         cprint(f'{color.PURPLE}-------------------------------------------------------------------------------------------------------------------------------------------{color.END}')
         cprint(f'{color.PURPLE} New encounter!{color.END}')
@@ -1140,9 +1140,10 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
                             cantric_spells: List[Spell] = [s for s in attacker.sc.learned_spells if not s.level]
                             slot_spells: List[Spell] = [s for s in attacker.sc.learned_spells if s.level and attacker.sc.spell_slots[s.level - 1] > 0]
                             castable_spells: List[Spell] = cantric_spells + slot_spells
-                        if attacker.sa and round_num > 1:
+                        if attacker.sa and round_num > 0: # ou 1? (à vérifier)
                             for special_attack in attacker.sa:
                                 special_attack.ready = special_attack.recharge_success
+                        available_special_attacks: List[SpecialAbility] = list(filter(lambda a: a.ready, attacker.sa))
                         # Main loop
                         if attacker.can_cast and castable_spells:
                             char: Character = choice(ranged_chars) if ranged_chars else choice(melee_chars)
@@ -1152,16 +1153,15 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
                                 alive_chars.remove(char)
                                 char.status = 'DEAD'
                                 cprint(f'{char.name} is ** KILLED **!')
-                        elif attacker.sa and round_num > 0:
-                                available_attacks: List[SpecialAbility] = list(filter(lambda a: a.ready, attacker.sa))
-                                special_attack: SpecialAbility = max(available_attacks, key=lambda a: sum([damage.dd.score(success_type=a.dc_success) for damage in a.damages]))
-                                cprint(f'{color.GREEN}{attacker.name}{color.END} launches ** {special_attack.name.upper()} ** on whole party!')
-                                for char in alive_chars:
-                                    char.hit_points -= attacker.special_attack(char, special_attack)
-                                    if char.hit_points <= 0:
-                                        alive_chars.remove(char)
-                                        char.status = 'DEAD'
-                                        cprint(f'{char.name} is ** KILLED **!')
+                        elif available_special_attacks:
+                            special_attack: SpecialAbility = max(available_special_attacks, key=lambda a: sum([damage.dd.score(success_type=a.dc_success) for damage in a.damages]))
+                            cprint(f'{color.GREEN}{attacker.name}{color.END} launches ** {special_attack.name.upper()} ** on whole party!')
+                            for char in alive_chars:
+                                char.hit_points -= attacker.special_attack(char, special_attack)
+                                if char.hit_points <= 0:
+                                    alive_chars.remove(char)
+                                    char.status = 'DEAD'
+                                    cprint(f'{char.name} is ** KILLED **!')
                         else:
                             char: Character = choice(melee_chars)
                             char.hit_points -= attacker.melee_attack(char)
