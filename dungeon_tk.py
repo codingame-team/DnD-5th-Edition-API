@@ -212,7 +212,9 @@ class App(Tk):
         self.iconphoto(False, PhotoImage(file=f"{path}/sprites/beholder.png"))
 
         self.maze = self.load_maze(level)
-        self.height, self.width = len(self.maze), len(self.maze[0])
+        self.height = len(self.maze)
+
+        self.width = max([len(self.maze[i]) for i in range(self.height)])
         self.walls = [(x, y) for y in range(self.height) for x in range(self.width) if self.maze[y][x] == '#']
 
         monster_names: List[str] = ['ankheg', 'baboon', 'bat', 'blob', 'crab', 'ghost', 'goblin', 'eagle', 'harpy', 'lizard', 'mimic', 'owl', 'rat', 'rat_scull', 'skeleton', 'snake',
@@ -260,6 +262,9 @@ class App(Tk):
             exit(1)
         for i in range(len(data)):
             data[i] = data[i].strip()
+        width = max([len(data[i]) for i in range(len(data))])
+        for i in range(len(data)):
+            data[i] = "{:{g}}".format(data[i], g = f"^{width}")
         return data
 
     def display(self, stair_pos) -> Tuple[Canvas, List[Character], List[Treasure]]:
