@@ -138,6 +138,7 @@ def request_monster(index_name: str) -> Monster:
         data = json.loads(f.read())
 
     can_cast: bool = False
+    can_attack: bool = False
     slots: List[int] = []
     spells: List[Spell] = []
     caster_level: int = None
@@ -158,15 +159,18 @@ def request_monster(index_name: str) -> Monster:
                     if spell is None:
                         continue
                     spells.append(spell)
-                spell_caster: SpellCaster = SpellCaster(level=caster_level,
-                                                        spell_slots=slots,
-                                                        learned_spells=spells,
-                                                        dc_type=dc_type,
-                                                        dc_value=dc_value + ability_modifier,
-                                                        ability_modifier=ability_modifier)
+        if spells:
+            can_attack = True
+            spell_caster: SpellCaster = SpellCaster(level=caster_level,
+                                                    spell_slots=slots,
+                                                    learned_spells=spells,
+                                                    dc_type=dc_type,
+                                                    dc_value=dc_value + ability_modifier,
+                                                    ability_modifier=ability_modifier)
 
     actions: List[Action] = []
     special_abilities: List[SpecialAbility] = []
+
     if "actions" in data:
         # Melee attacks
         for action in data['actions']:
@@ -179,11 +183,13 @@ def request_monster(index_name: str) -> Monster:
                         damage_type: DamageType = request_damage_type(index_name=damage['damage_type']['index'])
                         damages.append(Damage(type=damage_type, dd=DamageDice(damage['damage_dice'])))
                 if damages:
+                    can_attack = True
                     actions.append(Action(name=action['name'], desc=action['desc'], type=ActionType.MELEE, attack_bonus=action.get('attack_bonus'),
                                         multi_attack=None, damages=damages))
         # Multiattacks
         for action in data['actions']:
             if action['name'] == 'Multiattack':
+                can_attack = True
                 multi_actions: List[List[Action]] = []
                 for option in action['options']['from'][0]:
                     multi_action: List[Action] = [a for a in actions if a.name == option['name']]
@@ -202,6 +208,7 @@ def request_monster(index_name: str) -> Monster:
                 damages: List[Damage] = []
                 for damage in action['damage']:
                     if "damage_type" in damage:
+                        can_attack = True
                         damage_type: DamageType = request_damage_type(index_name=damage['damage_type']['index'])
                         if '+' in damage['damage_dice']:
                             damage_dice, bonus = damage['damage_dice'].split('+')
@@ -245,7 +252,7 @@ def request_monster(index_name: str) -> Monster:
                    challenge_rating=data['challenge_rating'],
                    actions=actions,
                    sc=spell_caster,
-                   sa=special_abilities)
+                   sa=special_abilities)# if can_attack else None
 
 
 def request_spell(index_name: str) -> Spell:
