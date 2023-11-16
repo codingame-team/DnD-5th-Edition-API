@@ -86,6 +86,22 @@ def read_name(race: str, gender: str, names: dict(), reserved_names):
         name = read_choice(names, 'Choose name:')
         return name
 
+def read_choice_tuple(choice_list: List, message: str = None) -> str:
+    choice = None
+    while choice not in range(1, len(choice_list) + 1):
+        items_list = '\n'.join([f'{i + 1}) {" ".join(map(str, item))}' for i, item in enumerate(choice_list)])
+        if message:
+            print(message)
+        print(f'{items_list}')
+        err_msg = f'Bad value! Please enter a number between 1 and {len(choice_list)}'
+        try:
+            choice = int(input())
+            if choice not in range(1, len(choice_list) + 1):
+                raise ValueError
+        except ValueError:
+            print(err_msg)
+            continue
+    return choice_list[choice - 1][0]
 
 def read_choice(choice_list: List[str], message: str = None) -> str:
     choice = None
@@ -610,7 +626,7 @@ def arena(character: Character):
 
     character.monster_kills += killed_monsters
     save_character(character)
-    display_character_sheet_pyQT(character)
+    display_character_sheet(character)
 
 
 def display_party(party: List[Character]):
@@ -642,12 +658,12 @@ def add_member_to_party(roster: List[Character], party: List[Character]):
         sleep(2)
         return
     roster = sorted(roster, key=lambda c: c.level)
-    char_names: List[str] = [c.name for c in roster if c.status == 'OK' and c not in party and not c.in_dungeon]
+    char_names: List[tuple] = [(c.name, c.class_type, f'Lvl {c.level}') for c in roster if c.status == 'OK' and c not in party and not c.in_dungeon]
     if not char_names:
         print(f'No available character to join party!')
         sleep(2)
         return
-    name: str = read_choice(char_names, 'Select character to add in party')
+    name: str = read_choice_tuple(char_names, 'Select character to add in party')
     char: Character = get_character(name, roster)
     if char:
         party.append(char)
@@ -694,7 +710,7 @@ def gilgamesh_tavern(party: List[Character], roster: List[Character]):
                 char_names: List[str] = [c.name for c in party]
                 name: str = read_choice(char_names, 'Select a Character:')
                 char: Character = get_character(name, party)
-                display_character_sheet_pyQT(char)
+                display_character_sheet(char)
                 exit_message()
             case 'Reorder':
                 if not party:
@@ -1100,8 +1116,9 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
         monsters: List[Monster] = generate_encounter(encounter_level=encounter_level, monsters=monsters_db, monster_groups_count=monster_groups_count, spell_casters_only=spell_casters_only)
         # monsters: List[Monster] = [request_monster(index_name='swarm-of-centipedes') for _ in range(randint(1, 2))]
         # To debug monster multi-attacks
-        monsters_names_for_debug = ['water-elemental']
-        monsters: List[Monster] = [request_monster(index_name=monsters_names_for_debug[0])]
+        #monsters_names_for_debug = ['water-elemental']
+        # monsters_names_for_debug = ['aboleth']
+        # monsters: List[Monster] = [request_monster(index_name=monsters_names_for_debug[0])]
         cprint(f'{color.PURPLE}-------------------------------------------------------------------------------------------------------------------------------------------{color.END}')
         cprint(f'{color.PURPLE} New encounter!{color.END}')
         display_group_of_monsters(monsters)
@@ -1142,7 +1159,7 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
                             castable_spells: List[Spell] = cantric_spells + slot_spells
                         if attacker.sa and round_num > 0: # ou 1? (à vérifier)
                             for special_attack in attacker.sa:
-                                special_attack.ready = special_attack.recharge_success
+                                special_attack.ready = special_attack.recharge_success if special_attack.recharge_on_roll else None
                         available_special_attacks: List[SpecialAbility] = list(filter(lambda a: a.ready, attacker.sa))
                         # Main loop
                         if attacker.can_cast and castable_spells:
