@@ -4,3 +4,5 @@
 - [ ] Temple of Cant: raise dead, cure poison/paralysis/stone (to be fixed)
 - [x] Adventurer's inn: healing (stables, etc...)
 - [ ] Boltac's trading post
+- [ ] Coder un explorateur de cartes pour déplacer le groupe d'aventuriers
+- [ ] Coder un mode Combat avec positions du groupe et monstres dans la zone (mode Zoom) et actions pour chaque personnage
