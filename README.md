@@ -7,15 +7,19 @@ Usage to run:
   - (under construction...) GUI mode:
     - python /pyQT5App/wizardry.py [under construction...]
 
-#### New Feature (Staging)
+#### New Features (Staging)
     Graphic maze exploration using Tk with a single character (and limited gameplay) and DnD minimal rulesets:
 
     - explore levels of dungeons
     - collect treasures
 
     How to run:
-    - `python dungeon_tk.py`
+    - `python dungeon_tk.py` (playable version)
     
+    Similar projet but with pyGame:
+
+    How to run:
+    - `python dungeon_pygame.py` (draft version)
 
 Prerequisites:
 - List of required modules for python v3.11:
