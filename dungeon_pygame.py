@@ -1,5 +1,11 @@
+from __future__ import annotations
+
+from dataclasses import dataclass
+
 import pygame
 import sys
+
+from pygame import SurfaceType, Surface
 
 # Initialisation de Pygame
 pygame.init()
@@ -55,6 +61,26 @@ world_map = [
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 ]
 
+UP, DOWN, LEFT, RIGHT = (0, -1), (0, 1), (-1, 0), (1, 0)
+
+
+@dataclass
+class Character:
+    x: int
+    y: int
+    img: Surface | SurfaceType
+
+    def draw(self, screen):
+        screen.blit(self.img, (self.x * TILE_SIZE, self.y * TILE_SIZE))
+
+    def can_move(self, dir: tuple) -> bool:
+        dx, dy = dir
+        x, y = self.x + dx, self.y + dy
+        return 0 <= x < MAP_WIDTH and 0 <= y < MAP_HEIGHT and world_map[y][x] == 1
+
+    def check_collision(self, other: "Character"):
+        return self.x == other.x and self.y == other.y
+
 
 # Fonction pour dessiner la carte
 def draw_map():
@@ -71,21 +97,6 @@ def draw_button(surface, rect, color, text):
     text_surface = font.render(text, True, BLACK)
     text_rect = text_surface.get_rect(center=rect.center)
     surface.blit(text_surface, text_rect)
-
-
-# Fonction pour dessiner le joueur
-def draw_player():
-    screen.blit(player_img, (player_x * TILE_SIZE, player_y * TILE_SIZE))
-
-
-# Fonction pour dessiner l'ennemi
-def draw_enemy():
-    screen.blit(enemy_img, (enemy_x * TILE_SIZE, enemy_y * TILE_SIZE))
-
-
-# Fonction pour vérifier si le joueur entre en collision avec un ennemi
-def check_collision():
-    return player_x == enemy_x and player_y == enemy_y
 
 
 # Fonction pour dessiner la feuille de stats du personnage
@@ -150,10 +161,12 @@ def draw_action_panel():
 # Chargement de l'image du personnage joueur
 player_img = pygame.image.load('sprites/hero.png')
 player_x, player_y = 1, 1  # Position initiale du joueur
+player: Character = Character(x=player_x, y=player_y, img=player_img)
 
 # Chargement de l'image de l'ennemi
 enemy_img = pygame.image.load('sprites/enemy.png')
 enemy_x, enemy_y = 3, 3  # Position initiale de l'ennemi
+enemy: Character = Character(x=enemy_x, y=enemy_y, img=enemy_img)
 
 # Initialiser le dictionnaire pour enregistrer les zones rectangulaires de chaque texte d'action
 action_rects = {}
@@ -171,17 +184,17 @@ while running:
                 if action_rect.collidepoint(event.pos):
                     print(f"Action: {action_text}")
         elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_UP:
-                player_y -= 1
-            elif event.key == pygame.K_DOWN:
-                player_y += 1
-            elif event.key == pygame.K_LEFT:
-                player_x -= 1
-            elif event.key == pygame.K_RIGHT:
-                player_x += 1
+            if event.key == pygame.K_UP and player.can_move(UP):
+                player.y -= 1
+            elif event.key == pygame.K_DOWN and player.can_move(DOWN):
+                player.y += 1
+            elif event.key == pygame.K_LEFT and player.can_move(LEFT):
+                player.x -= 1
+            elif event.key == pygame.K_RIGHT and player.can_move(RIGHT):
+                player.x += 1
 
     # Vérifier les collisions avec les ennemis
-    if check_collision():
+    if player.check_collision(enemy):
         print("Combat!")
 
     # Rendu
@@ -193,8 +206,8 @@ while running:
     draw_map()
 
     # Afficher les personnages
-    draw_player()
-    draw_enemy()
+    player.draw(screen)
+    enemy.draw(screen)
 
     # Dessiner la feuille de stats du personnage
     draw_character_stats()
