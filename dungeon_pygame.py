@@ -1,94 +1,12 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+import os, pygame
+from dataclasses import dataclass, field
+from random import choice, randint
+from typing import List
 
-import pygame
-import sys
-
-from pygame import SurfaceType, Surface
-
-# Initialisation de Pygame
-pygame.init()
-
-# Définition des constantes pour la mise en page
-STATS_WIDTH = 200
-ACTIONS_HEIGHT = 200
-
-# Paramètres de l'écran
-TILE_SIZE = 32
-# ROWS, COLS = HEIGHT // TILE_SIZE, WIDTH // TILE_SIZE
-# ROWS, COLS = 5, 5
-ROWS, COLS = 10, 10
-MAP_WIDTH, MAP_HEIGHT = TILE_SIZE * ROWS, TILE_SIZE * COLS
-SCREEN_WIDTH = MAP_WIDTH + STATS_WIDTH
-SCREEN_HEIGHT = MAP_HEIGHT + ACTIONS_HEIGHT
-FPS = 60
-
-# Couleurs
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-
-# Création de la fenêtre
-screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-pygame.display.set_caption("RPG avec Pygame")
-
-# Font
-font = pygame.font.SysFont(None, 36)
-
-# Chargement des tuiles
-tile_img = pygame.image.load('sprites/TilesDungeon/Tile.png')
-
-# Carte du monde
-# world_map_old = [
-#     [0, 0, 0, 0, 0],
-#     [0, 1, 1, 1, 0],
-#     [0, 1, 0, 1, 0],
-#     [0, 1, 1, 1, 0],
-#     [0, 0, 0, 0, 0]
-# ]
-
-# Carte du monde
-world_map = [
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 1, 1, 1, 0, 1, 1, 1, 1, 0],
-    [0, 1, 0, 1, 0, 1, 0, 1, 0, 0],
-    [0, 1, 1, 1, 0, 1, 0, 1, 1, 0],
-    [0, 0, 0, 1, 0, 1, 0, 0, 0, 0],
-    [0, 1, 1, 1, 0, 1, 1, 1, 1, 0],
-    [0, 1, 0, 1, 0, 0, 0, 1, 0, 0],
-    [0, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-]
-
-UP, DOWN, LEFT, RIGHT = (0, -1), (0, 1), (-1, 0), (1, 0)
-
-
-@dataclass
-class Character:
-    x: int
-    y: int
-    img: Surface | SurfaceType
-
-    def draw(self, screen):
-        screen.blit(self.img, (self.x * TILE_SIZE, self.y * TILE_SIZE))
-
-    def can_move(self, dir: tuple) -> bool:
-        dx, dy = dir
-        x, y = self.x + dx, self.y + dy
-        return 0 <= x < MAP_WIDTH and 0 <= y < MAP_HEIGHT and world_map[y][x] == 1
-
-    def check_collision(self, other: "Character"):
-        return self.x == other.x and self.y == other.y
-
-
-# Fonction pour dessiner la carte
-def draw_map():
-    for row in range(ROWS):
-        for col in range(COLS):
-            tile_x, tile_y = col * TILE_SIZE, row * TILE_SIZE
-            if world_map[row][col] == 0:
-                screen.blit(tile_img, (tile_x, tile_y))
+from dao_rpg_classes import Character, Monster, Armor, Weapon, Treasure
+from populate_rpg_functions import request_monster
 
 
 # Fonction pour dessiner un bouton
@@ -99,124 +17,340 @@ def draw_button(surface, rect, color, text):
     surface.blit(text_surface, text_rect)
 
 
-# Fonction pour dessiner la feuille de stats du personnage
-def draw_character_stats():
-    stats_rect = pygame.Rect(MAP_WIDTH, 0, STATS_WIDTH, MAP_HEIGHT)
-    pygame.draw.rect(screen, (200, 200, 200), stats_rect)
-    font = pygame.font.Font(None, 24)
-    stat_texts = [
-        "Santé: 100/100",
-        "Force: 10",
-        "Défense: 5",
-        # Ajoutez d'autres statistiques ici
-    ]
-    for i, stat_text in enumerate(stat_texts):
-        text_surface = font.render(stat_text, True, (0, 0, 0))
-        text_rect = text_surface.get_rect()
-        text_rect.topleft = (stats_rect[0] + 20, stats_rect[1] + 20 + i * 30)  # Ajuster la position en fonction de la marge
-        screen.blit(text_surface, text_rect)
+def mh_dist(p1: tuple, p2: tuple):
+    return abs(p1[0] - p2[0]) + abs(p1[1] - p2[1])
 
 
-# Fonction pour dessiner le panneau de commande d'actions
-def draw_action_panel():
-    """ left: La position horizontale du coin supérieur gauche du rectangle.
-        top: La position verticale du coin supérieur gauche du rectangle.
-        width: La largeur du rectangle.
-        height: La hauteur du rectangle.
-    """
-    actions_rect = pygame.Rect(0, MAP_HEIGHT, SCREEN_WIDTH, ACTIONS_HEIGHT)
-    left, top, width, height = actions_rect
-    pygame.draw.rect(screen, (200, 200, 200), actions_rect)
-    # left, top, width, height = MAP_HEIGHT, 0, STATS_WIDTH, 300
-    # pygame.draw.rect(screen, (200, 200, 200), (left, top, width, height))  # Fond du panneau d'actions
-    font = pygame.font.Font(None, 24)
-    action_texts = [
-        "Attaquer",
-        "Utiliser objet",
-        "Sorts",
-        "Inventaire"
-        # Ajoutez d'autres actions ici
-    ]
-    action_count = len(action_texts)
-    action_height = height // action_count  # Calcul de la hauteur de chaque action
-    for i, action_text in enumerate(action_texts):
-        text_surface = font.render(action_text, True, (0, 0, 0))
-        text_rect = text_surface.get_rect()
-        text_rect.center = (left + width // 2, top + i * action_height + action_height // 2)
+class Game:
+    world_map: List[List[int]]
+    map_width: int
+    map_height: int
+    screen_width: int
+    screen_height: int
+    view_port_width: int
+    view_port_height: int
+    hero: Character
+    monsters: List[Monster]
+    treasures: dict
+    dungeon_level: int
+    action_rects: dict
 
-        # Définir les marges intérieures
-        margin_x = 10
-        margin_y = 5
-        # Calculer les nouvelles coordonnées du rectangle pour centrer les marges intérieures
-        rect = pygame.Rect(left + margin_x, top + i * action_height + margin_y,
-                           width - 2 * margin_x, action_height - 2 * margin_y)
-        # Dessiner le rectangle avec des coins arrondis autour du texte avec marges intérieures
-        pygame.draw.rect(screen, BLACK, rect, 1, border_radius=4)
-        screen.blit(text_surface, text_rect)
+    def __init__(self):
+        # Chargement de la carte
+        self.dungeon_level = 2
+        self.world_map = self.load_maze(level=self.dungeon_level)
+        self.map_height = len(self.world_map)
+        self.map_width = max([len(self.world_map[i]) for i in range(self.map_height)])
+        self.walls = [(x, y) for y in range(self.map_height) for x in range(self.map_width) if self.world_map[y][x] == '#']
+        # Redimensionnement de l'écran
+        self.view_port_width = min(self.map_width * TILE_SIZE, SCREEN_WIDTH - STATS_WIDTH)
+        self.view_port_height = min(self.map_height * TILE_SIZE, SCREEN_HEIGHT - ACTIONS_HEIGHT)
+        self.screen_width = self.view_port_width + STATS_WIDTH
+        self.screen_height = self.view_port_height + ACTIONS_HEIGHT
+        self.action_rects = {}
+        # Initialisation du personnage
+        open_positions: List[tuple] = [(x, y) for x in range(self.map_width) for y in range(self.map_height) if self.world_map[y][x] == '.']
+        hero_x, hero_y = choice(open_positions)
+        open_positions.remove((hero_x, hero_y))
+        start_armor: Armor = Armor(name='Plate Armor', ac=18, img=pygame.image.load(f'{path}/sprites/beholder.png'))
+        start_weapon: Weapon = Weapon(name='Greatsword', damage_dice='2d6', img=pygame.image.load(f'{path}/sprites/beholder.png'))
+        self.hero: Character = Character(x=hero_x, y=hero_y, speed=15, hp=10, max_hp=10, weapon=start_weapon, armor=start_armor, img=pygame.image.load(f'{path}/sprites/hero.png'))
+        self.load(level=1)
 
-        # Enregistrer les zones rectangulaires de chaque texte d'action
-        action_rects[action_text] = rect
+    # Define a method to calculate the view window
+    def calculate_view_window(self):
+        view_width = self.view_port_width // TILE_SIZE
+        view_height = self.view_port_height // TILE_SIZE
+        viewport_x = max(0, min(self.hero.x - view_width // 2, self.map_width - view_width))
+        viewport_y = max(0, min(self.hero.y - view_height // 2, self.map_height - view_height))
+        return viewport_x, viewport_y, view_width, view_height
 
 
-# Chargement de l'image du personnage joueur
-player_img = pygame.image.load('sprites/hero.png')
-player_x, player_y = 1, 1  # Position initiale du joueur
-player: Character = Character(x=player_x, y=player_y, img=player_img)
+    def draw_map(self, screen):
+        # photo_wall = pygame.image.load(f"{path}/sprites/WallTile1.png")
+        photo_wall = pygame.image.load(f"{path}/sprites/TilesDungeon/Wall.png")
+        photo_downstairs = pygame.image.load(f"{path}/sprites/DownStairs.png")
+        photo_upstairs = pygame.image.load(f"{path}/sprites/UpStairs.png")
 
-# Chargement de l'image de l'ennemi
-enemy_img = pygame.image.load('sprites/enemy.png')
-enemy_x, enemy_y = 3, 3  # Position initiale de l'ennemi
-enemy: Character = Character(x=enemy_x, y=enemy_y, img=enemy_img)
+        # Calculate the view window
+        view_x, view_y, view_width, view_height = self.calculate_view_window()
 
-# Initialiser le dictionnaire pour enregistrer les zones rectangulaires de chaque texte d'action
-action_rects = {}
+        # Draw only the portion of the map that falls within the view window
+        for row in range(view_y, view_y + view_height):
+            for col in range(view_x, view_x + view_width):
+                tile_x, tile_y = (col - view_x) * TILE_SIZE, (row - view_y) * TILE_SIZE
+                if self.world_map[row][col] == '#':
+                    screen.blit(photo_wall, (tile_x, tile_y))
+                elif self.world_map[row][col] == '<':
+                    screen.blit(photo_upstairs, (tile_x, tile_y))
+                elif self.world_map[row][col] == '>':
+                    screen.blit(photo_downstairs, (tile_x, tile_y))
 
-# Boucle de jeu
-running = True
-while running:
-    # Gestion des événements
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-        elif event.type == pygame.MOUSEBUTTONDOWN:
-            # Vérifier si un texte d'action a été cliqué
-            for action_text, action_rect in action_rects.items():
-                if action_rect.collidepoint(event.pos):
-                    print(f"Action: {action_text}")
-        elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_UP and player.can_move(UP):
-                player.y -= 1
-            elif event.key == pygame.K_DOWN and player.can_move(DOWN):
-                player.y += 1
-            elif event.key == pygame.K_LEFT and player.can_move(LEFT):
-                player.x -= 1
-            elif event.key == pygame.K_RIGHT and player.can_move(RIGHT):
-                player.x += 1
+    def draw_map_old(self):
+        # photo_wall = pygame.image.load(f"{path}/sprites/WallTile1.png")
+        photo_wall = pygame.image.load(f"{path}/sprites/TilesDungeon/Wall.png")
+        photo_downstairs = pygame.image.load(f"{path}/sprites/DownStairs.png")
+        photo_upstairs = pygame.image.load(f"{path}/sprites/UpStairs.png")
+        for row in range(self.map_height):
+            for col in range(self.map_width):
+                tile_x, tile_y = col * TILE_SIZE, row * TILE_SIZE
+                if self.world_map[row][col] == '#':
+                    screen.blit(photo_wall, (tile_x, tile_y))
+                elif self.world_map[row][col] == '<':
+                    screen.blit(photo_upstairs, (tile_x, tile_y))
+                elif self.world_map[row][col] == '>':
+                    screen.blit(photo_downstairs, (tile_x, tile_y))
 
-    # Vérifier les collisions avec les ennemis
-    if player.check_collision(enemy):
-        print("Combat!")
+    # Fonction pour dessiner la feuille de stats du personnage
+    def draw_character_stats(self, screen):
+        #stats_rect = pygame.Rect(self.map_width * TILE_SIZE, 0, STATS_WIDTH, self.map_height * TILE_SIZE)
+        stats_rect = pygame.Rect(self.view_port_width, 0, STATS_WIDTH, self.view_port_height)
 
-    # Rendu
-    screen.fill(WHITE)
+        pygame.draw.rect(screen, (200, 200, 200), stats_rect)
+        font = pygame.font.Font(None, 24)
+        stat_texts = [
+            f"Level: {self.dungeon_level}",
+            f"Santé: {self.hero.hp}/{self.hero.max_hp}",
+            f"Attaque: {self.hero.weapon.damage_dice}",
+            f"Défense: {self.hero.armor.ac}",
+            f"Potions: {self.hero.potions}",
+            f"Gold: {self.hero.gold}"
+            # Ajoutez d'autres statistiques ici
+        ]
+        for i, stat_text in enumerate(stat_texts):
+            text_surface = font.render(stat_text, True, (0, 0, 0))
+            text_rect = text_surface.get_rect()
+            text_rect.topleft = (stats_rect[0] + 20, stats_rect[1] + 20 + i * 30)  # Ajuster la position en fonction de la marge
+            screen.blit(text_surface, text_rect)
 
-    # Dessiner la carte
-    map_rect = pygame.Rect(0, 0, MAP_WIDTH, MAP_HEIGHT)
-    pygame.draw.rect(screen, (200, 200, 200), map_rect)
-    draw_map()
+    # Fonction pour dessiner le panneau de commande d'actions
+    def draw_action_panel(self, screen):
+        """ left: La position horizontale du coin supérieur gauche du rectangle.
+            top: La position verticale du coin supérieur gauche du rectangle.
+            width: La largeur du rectangle.
+            height: La hauteur du rectangle.
+        """
+        #actions_rect = pygame.Rect(0, self.map_height * TILE_SIZE, self.screen_width, ACTIONS_HEIGHT)
+        actions_rect = pygame.Rect(0, self.view_port_height, self.screen_width, ACTIONS_HEIGHT)
+        left, top, width, height = actions_rect
+        pygame.draw.rect(screen, (200, 200, 200), actions_rect)
+        # left, top, width, height = MAP_HEIGHT, 0, STATS_WIDTH, 300
+        # pygame.draw.rect(screen, (200, 200, 200), (left, top, width, height))  # Fond du panneau d'actions
+        font = pygame.font.Font(None, 24)
+        action_texts = [
+            "Attaquer",
+            "Utiliser objet",
+            "Sorts",
+            "Inventaire"
+            # Ajoutez d'autres actions ici
+        ]
+        action_count = len(action_texts)
+        action_height = height // action_count  # Calcul de la hauteur de chaque action
+        for i, action_text in enumerate(action_texts):
+            text_surface = font.render(action_text, True, (0, 0, 0))
+            text_rect = text_surface.get_rect()
+            text_rect.center = (left + width // 2, top + i * action_height + action_height // 2)
 
-    # Afficher les personnages
-    player.draw(screen)
-    enemy.draw(screen)
+            # Définir les marges intérieures
+            margin_x = 10
+            margin_y = 5
+            # Calculer les nouvelles coordonnées du rectangle pour centrer les marges intérieures
+            rect = pygame.Rect(left + margin_x, top + i * action_height + margin_y,
+                               width - 2 * margin_x, action_height - 2 * margin_y)
+            # Dessiner le rectangle avec des coins arrondis autour du texte avec marges intérieures
+            pygame.draw.rect(screen, BLACK, rect, 1, border_radius=4)
+            screen.blit(text_surface, text_rect)
 
-    # Dessiner la feuille de stats du personnage
-    draw_character_stats()
+            # Enregistrer les zones rectangulaires de chaque texte d'action
+            self.action_rects[action_text] = rect
 
-    # Dessiner le panneau de commande d'actions
-    draw_action_panel()
+    def can_move(self, char: Character | Monster, dir: tuple) -> bool:
+        dx, dy = dir
+        x, y = char.x + dx, char.y + dy
+        return 0 <= x < self.map_width and 0 <= y < self.map_height and self.world_map[y][x] != '#'
 
-    # Mise à jour de l'affichage
-    pygame.display.flip()
+    def load_maze(self, level: int) -> List:
+        """
+        Charge le labyrinthe depuis le fichier level.txt
+        nom : nom du fichier contenant le labyrinthe (sans l’extension .txt)
+        Valeur de retour :
+        - une liste avec les données du labyrinthe
+        """
+        try:
+            with open(f"{path}/maze/level_{level}.txt", newline='') as fic:
+                data = fic.readlines()
+        except IOError:
+            print("Impossible de lire le fichier {}.txt".format(level))
+            exit(1)
+        for i in range(len(data)):
+            data[i] = data[i].strip()
+        width = max([len(data[i]) for i in range(len(data))])
+        for i in range(len(data)):
+            data[i] = "{:{g}}".format(data[i], g=f"^{width}")
+        return data
 
-    # Limiter le nombre d'images par seconde
-    pygame.time.Clock().tick(FPS)
+    def load(self, level: int):
+        """
+            Chargement des entités du donjon (monstres et trésors)
+        :param level:
+        :return:
+        """
+        photo_treasure = pygame.image.load(f"{path}/sprites/treasure.png")
+        # photo_exit: PhotoImage = PhotoImage(file=f"{path}/sprites/exit.png")
+
+        # rating = lambda m: m.cr < (hero.level / 4 if hero.level < 5 else hero.level / 2)
+        monster_names: List[str] = ['ankheg', 'baboon', 'bat', 'blob', 'crab', 'ghost', 'goblin', 'eagle', 'harpy', 'lizard', 'mimic', 'owl', 'rat', 'rat_scull', 'skeleton',
+                                    'snake', 'spider', 'tentacle', 'wasp', 'wolf']
+        monster_candidates: List[Monster] = [request_monster(name) for name in monster_names]
+        monster_candidates = list(filter(None, monster_candidates))
+        monster_candidates = list(filter(lambda m: m.cr < self.dungeon_level, monster_candidates))
+        allowed_monster_names: list[str] = [m.name for m in monster_candidates]
+
+        open_positions: List[tuple] = [(x, y) for x in range(self.map_width) for y in range(self.map_height) if self.world_map[y][x] == '.' and (x, y) != self.hero.pos]
+
+        self.monsters = [request_monster(choice(allowed_monster_names)) for _ in range(randint(1, 5))]
+        for m in self.monsters:
+            m.x, m.y = choice(open_positions)
+            open_positions.remove((m.x, m.y))
+
+        self.treasures: List[Treasure] = []
+        for _ in range(randint(1, 5)):
+            gold: int = randint(50, 300) * self.dungeon_level
+            has_potion: bool = randint(1, 3) == 2
+            t_x, t_y = choice(open_positions)
+            treasure: Treasure = Treasure(x=t_x, y=t_y, img=photo_treasure, gold=gold, potion=has_potion)
+            self.treasures.append(treasure)
+
+    def update_level(self, dir: int, screen):
+        # Chargement de la carte
+        self.dungeon_level += 1 if dir > 0 else -1
+        self.world_map = self.load_maze(level=self.dungeon_level)
+        self.map_height = len(self.world_map)
+        self.map_width = max([len(self.world_map[i]) for i in range(self.map_height)])
+        self.walls = [(x, y) for y in range(self.map_height) for x in range(self.map_width) if self.world_map[y][x] == '#']
+        # Redimensionnement de l'écran
+        self.view_port_width = min(self.map_width * TILE_SIZE, SCREEN_WIDTH - STATS_WIDTH)
+        self.view_port_height = min(self.map_height * TILE_SIZE, SCREEN_HEIGHT - ACTIONS_HEIGHT)
+        self.screen_width = self.view_port_width + STATS_WIDTH
+        self.screen_height = self.view_port_height + ACTIONS_HEIGHT
+        # # Redimensionnement de l'écran
+        # self.screen_width = TILE_SIZE * self.map_width + STATS_WIDTH
+        # self.screen_height = TILE_SIZE * self.map_height + ACTIONS_HEIGHT
+        # Position personnage
+        stair: str = '<' if dir > 0 else '>'
+        stair_pos = [(x, y) for y in range(self.map_height) for x in range(self.map_width) if self.world_map[y][x] == stair][0]
+        exit_positions: List[tuple] = [(x, y) for x in range(self.map_width) for y in range(self.map_height) if
+                                       self.world_map[y][x] == '.' and mh_dist((x, y), stair_pos) == 1]
+        self.hero.x, self.hero.y = choice(exit_positions)
+        self.load(level=self.dungeon_level)
+        screen = pygame.display.set_mode((game.screen_width, game.screen_height))
+
+
+if __name__ == "__main__":
+
+    path = os.path.dirname(__file__)
+
+    # Initialisation de Pygame
+    pygame.init()
+
+    # Définition des constantes pour la mise en page
+    # SCREEN_WIDTH, SCREEN_HEIGHT = 1920, 1080
+    SCREEN_WIDTH, SCREEN_HEIGHT = 1280, 720
+    STATS_WIDTH, ACTIONS_HEIGHT = 200, 200
+
+    # Paramètres de l'écran
+    TILE_SIZE = 32
+    FPS = 60
+
+    # Couleurs
+    WHITE = (255, 255, 255)
+    BLACK = (0, 0, 0)
+
+    # Chargement des tuiles
+    tile_img = pygame.image.load('sprites/TilesDungeon/Tile.png')
+
+    UP, DOWN, LEFT, RIGHT = (0, -1), (0, 1), (-1, 0), (1, 0)
+
+    game: Game = Game()
+
+    # Création de la fenêtre
+    screen = pygame.display.set_mode((game.screen_width, game.screen_height))
+    pygame.display.set_caption("RPG avec Pygame")
+
+    # Font
+    font = pygame.font.SysFont(None, 36)
+
+    # Boucle de jeu
+    running = True
+    while running:
+        # Gestion des événements
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                # Vérifier si un texte d'action a été cliqué
+                for action_text, action_rect in game.action_rects.items():
+                    if action_rect.collidepoint(event.pos):
+                        print(f"Action: {action_text}")
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_UP and game.can_move(char=game.hero, dir=UP):
+                    game.hero.y -= 1
+                elif event.key == pygame.K_DOWN and game.can_move(char=game.hero, dir=DOWN):
+                    game.hero.y += 1
+                elif event.key == pygame.K_LEFT and game.can_move(char=game.hero, dir=LEFT):
+                    game.hero.x -= 1
+                elif event.key == pygame.K_RIGHT and game.can_move(char=game.hero, dir=RIGHT):
+                    game.hero.x += 1
+
+        is_treasure: List[Treasure] = [t for t in game.treasures if t.pos == game.hero.pos]
+        if any(t for t in game.treasures if t.pos == game.hero.pos):
+            print(f'Hero gained a treasure!')
+            treasure: Treasure = is_treasure[0]
+            game.treasures.remove(treasure)
+            game.hero.gold += treasure.gold
+            if treasure.potion:
+                game.hero.potions += 1
+                print(f'Hero found a potion!')
+
+        match game.world_map[game.hero.y][game.hero.x]:
+            case '>':
+                print(f'Hero found downstairs!')
+                game.update_level(dir=1, screen=screen)
+            case '<':
+                print(f'Hero found upstairs!')
+                game.update_level(dir=-1, screen=screen)
+
+        # Vérifier les collisions avec les ennemis
+        if any(game.hero.check_collision(e) for e in game.monsters):
+            print("Combat!")
+
+        # Rendu
+        screen.fill(WHITE)
+
+        # Dessiner la carte
+        map_rect = pygame.Rect(0, 0, game.map_width + TILE_SIZE, game.map_height * TILE_SIZE)
+        pygame.draw.rect(screen, (200, 200, 200), map_rect)
+        game.draw_map(screen)
+
+        view_port_tuple = game.calculate_view_window()
+        # Afficher les personnages
+        game.hero.draw(screen, TILE_SIZE, *view_port_tuple)
+        # game.hero.draw_old(screen, TILE_SIZE)
+        for e in game.monsters:
+            e.draw(screen, TILE_SIZE, *view_port_tuple)
+
+        # Afficher les trésors
+        for t in game.treasures:
+            t.draw(screen, TILE_SIZE, *view_port_tuple)
+
+        # Dessiner la feuille de stats du personnage
+        game.draw_character_stats(screen)
+
+        # Dessiner le panneau de commande d'actions
+        game.draw_action_panel(screen)
+
+        # Mise à jour de l'affichage
+        pygame.display.flip()
+
+        # Limiter le nombre d'images par seconde
+        pygame.time.Clock().tick(FPS)
