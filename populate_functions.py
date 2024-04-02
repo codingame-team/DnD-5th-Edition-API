@@ -4,12 +4,15 @@ import csv
 import json
 import os
 from copy import deepcopy
+from logging import debug
 from typing import List, Tuple, Optional
 import re
 
-from dao_classes import CategoryType, DamageDice, Monster, Armor, RangeType, SpecialAbility, SpellCaster, Weapon, Race, SubRace, Proficiency, ClassType, Language, Equipment, WeaponProperty, WeaponRange, AbilityType, WeaponThrowRange, Trait, EquipmentCategory, \
+from dao_classes import CategoryType, DamageDice, Monster, Armor, RangeType, SpecialAbility, SpellCaster, Weapon, Race, \
+    SubRace, Proficiency, ClassType, Language, Equipment, WeaponProperty, WeaponRange, AbilityType, WeaponThrowRange, \
+    Trait, EquipmentCategory, \
     Inventory, \
-    Abilities, Action, Damage, ActionType, DamageType, Spell, ProfType
+    Abilities, Action, Damage, ActionType, DamageType, Spell, ProfType, Condition
 
 """ CSV loads """
 
@@ -128,6 +131,41 @@ def request_damage_type(index_name: str) -> DamageType:
     return DamageType(index=data['index'], name=data['name'], desc=data['desc'])
 
 
+def request_condition(index_name: str) -> Condition:
+    """
+    Send a request to local database for a condition's characteristic
+    :param index_name: name of the condition
+    :return: Condition object
+    """
+    with open(f"{path}/data/conditions/{index_name}.json", "r") as f:
+        data = json.loads(f.read())
+
+    return Condition(index=data['index'], name=data['name'], desc=data['desc'])
+
+
+def request_other_actions(index_name: str) -> List[Action]:
+    actions: List[Action] = []
+    with open(f"{path}/data/monsters/{index_name}.json", "r") as f:
+        data = json.loads(f.read())
+        damages: List[Damage] = []
+        if index_name == 'rug-of-smothering':
+            effects: List[Condition] = []
+            for index in ('restrained', 'blinded'):
+                effect: Condition = request_condition(index)
+                if effect.index == 'restrained':
+                    effect.dc_type = AbilityType.STR
+                    effect.dc_value = 13
+                effects.append(effect)
+            damage_type: DamageType = request_damage_type(index_name='bludgeoning')
+            damages.append(Damage(type=damage_type, dd=DamageDice('2d6', 3)))
+            action_dict: dict = data['actions'][0]
+            action = Action(name=action_dict['name'], desc=action_dict['desc'], type=ActionType.MELEE,
+                            attack_bonus=action_dict.get('attack_bonus'), multi_attack=None, damages=damages,
+                            effects=effects)
+            actions.append(action)
+            return actions
+
+
 def request_monster(index_name: str) -> Monster:
     """
     Send a request to local database for a monster's characteristic
@@ -154,8 +192,8 @@ def request_monster(index_name: str) -> Monster:
                 ability_modifier = special_ability['spellcasting']['modifier']
                 slots = [s for s in special_ability['spellcasting']['slots'].values()]
                 for spell_dict in special_ability['spellcasting']['spells']:
-                    index_name: str = spell_dict['url'].split('/')[3]
-                    spell = request_spell(index_name)
+                    spell_index_name: str = spell_dict['url'].split('/')[3]
+                    spell = request_spell(spell_index_name)
                     if spell is None:
                         continue
                     spells.append(spell)
@@ -175,7 +213,8 @@ def request_monster(index_name: str) -> Monster:
         # Melee attacks
         for action in data['actions']:
             # print(f"{data['name']} - action = {action}")
-            if action['name'] != 'Multiattack' and "damage" in action and re.search("(Weapon|Melee).*Attack", action['desc']):
+            if action['name'] != 'Multiattack' and "damage" in action and re.search("(Weapon|Melee).*Attack",
+                                                                                    action['desc']):
                 damages: List[Damage] = []
                 for damage in action['damage']:
                     # print(f'damage = {damage}')
@@ -184,24 +223,33 @@ def request_monster(index_name: str) -> Monster:
                         damages.append(Damage(type=damage_type, dd=DamageDice(damage['damage_dice'])))
                 if damages:
                     can_attack = True
-                    actions.append(Action(name=action['name'], desc=action['desc'], type=ActionType.MELEE, attack_bonus=action.get('attack_bonus'),
-                                        multi_attack=None, damages=damages))
+                    actions.append(Action(name=action['name'], desc=action['desc'], type=ActionType.MELEE,
+                                          attack_bonus=action.get('attack_bonus'),
+                                          multi_attack=None, damages=damages))
         # Multiattacks
         for action in data['actions']:
             if action['name'] == 'Multiattack':
                 can_attack = True
-                multi_actions: List[List[Action]] = []
-                for option in action['options']['from'][0]:
-                    multi_action: List[Action] = [a for a in actions if a.name == option['name']]
-                    count: int = option['count']
+                multi_attack: List[Action] = []
+                # Todo: verify if there could be more than one choice...
+                choose_count: int = action['options']['choose']
+                for action_dict in action['options']['from'][0]:
+                    multi_action: List[Action] = [a for a in actions if a.name == action_dict['name']]
+                    try:
+                        count: int = int(action_dict['count'])
+                    except:
+                        print(f"invalid count option for {index_name} : {action_dict['name']}")
+                        continue
                     if not isinstance(count, int):
                         continue
-                    if multi_action and option['type'] == 'melee':
-                        for _ in range(int(count)):
-                            multi_actions.append(multi_action[0])
+                    # if multi_action[0].type == ActionType.MELEE:
+                    if multi_action and multi_action[0].type in (ActionType.MELEE, ActionType.RANGED):
+                        for _ in range(count):
+                            multi_attack.append(multi_action[0])
                 # action_type: str = ActionType.MELEE if 'Melee' in action['desc'] else ActionType.RANGED if 'Ranged' in action['desc']
-                actions.append(Action(name=action['name'], desc=action['desc'], type=ActionType.MELEE, attack_bonus=None,
-                                      multi_attack=multi_actions, damages=None))
+                actions.append(
+                    Action(name=action['name'], desc=action['desc'], type=ActionType.MELEE, attack_bonus=None,
+                           multi_attack=multi_attack, damages=None))
         # Special abilities
         for action in data['actions']:
             if 'dc' in action:
@@ -219,7 +267,7 @@ def request_monster(index_name: str) -> Monster:
                         else:
                             damage_dice, bonus = damage['damage_dice'], 0
                         damages.append(Damage(type=damage_type, dd=DamageDice(damage_dice, bonus)))
-                #print(index_name)
+                # print(index_name)
                 recharge_on_roll: int = None
                 if "usage" in action:
                     if action['usage'].get('type') == 'recharge on roll':
@@ -232,6 +280,10 @@ def request_monster(index_name: str) -> Monster:
                                                             dc_value=action['dc']['dc_value'],
                                                             dc_success=action['dc']['success_type'],
                                                             recharge_on_roll=recharge_on_roll))
+
+    # TODO Check if there are other special abilities that we did not cover...
+    if not actions:
+        actions = request_other_actions(index_name)
 
     proficiencies: List[Proficiency] = []
     if 'proficiencies' in data:
@@ -252,7 +304,7 @@ def request_monster(index_name: str) -> Monster:
                    challenge_rating=data['challenge_rating'],
                    actions=actions,
                    sc=spell_caster,
-                   sa=special_abilities)# if can_attack else None
+                   sa=special_abilities)  # if can_attack else None
 
 
 def request_spell(index_name: str) -> Spell:
@@ -394,7 +446,7 @@ def request_race(index_name: str) -> Race:
     with open(f"{path}/data/races/{index_name}.json", "r") as f:
         data = json.loads(f.read())
         ability_bonuses = dict([(ability_bonus['ability_score']['index'], ability_bonus['bonus'])
-                               for ability_bonus in data['ability_bonuses']])
+                                for ability_bonus in data['ability_bonuses']])
         starting_proficiencies: List[Proficiency] = [request_proficiency(
             d['index']) for d in data.get('starting_proficiencies')]
         starting_proficiency_options: List[Tuple[List[Proficiency], int]] = []
@@ -436,7 +488,7 @@ def request_subrace(index_name: str) -> SubRace:
     with open(f"{path}/data/subraces/{index_name}.json", "r") as f:
         data = json.loads(f.read())
         ability_bonuses = dict([(ability_bonus['ability_score']['index'], ability_bonus['bonus'])
-                               for ability_bonus in data['ability_bonuses']])
+                                for ability_bonus in data['ability_bonuses']])
         starting_proficiencies: List[Proficiency] = [request_proficiency(
             d['index']) for d in data['starting_proficiencies']]
         racial_traits: List[Trait] = [request_trait(
@@ -583,7 +635,10 @@ def get_spell_slots(class_name: str) -> Tuple[dict(), List[int], List[int]]:
     spell_slots: dict() = dict()
     spells_known: List[int] = []
     cantrips_known: List[int] = []
-    def str2int(x): return 0 if not x else int(x)
+
+    def str2int(x):
+        return 0 if not x else int(x)
+
     # print(class_name)
     match class_name:
         case 'Wizard' | 'Druid' | 'Cleric' | 'Ranger':
@@ -631,13 +686,14 @@ def get_spell_slots(class_name: str) -> Tuple[dict(), List[int], List[int]]:
                 # Lvl;Proficiency Bonus;Features;Cantrips Known;Spells Known;Spell Slots;Slot Level;Invocations Known
                 char_level, prof_bonus, features, ct_known, sp_known, spell_slots_count, slot_level, inv_known = line
                 spell_slots[int(char_level)] = [int(spell_slots_count)] * \
-                    int(slot_level) + [0] * (5 - int(slot_level))
+                                               int(slot_level) + [0] * (5 - int(slot_level))
                 cantrips_known.append(str2int(ct_known))
                 spells_known.append(str2int(sp_known))
     return spell_slots, spells_known, cantrips_known
 
 
-def request_class(index_name: str, known_proficiencies: List[Proficiency] = None, abilities: List[AbilityType] = None) -> ClassType:
+def request_class(index_name: str, known_proficiencies: List[Proficiency] = None,
+                  abilities: List[AbilityType] = None) -> ClassType:
     """
     Send a request to local database for a class's characteristic
     :param index_name: name of the class
@@ -668,8 +724,7 @@ def request_class(index_name: str, known_proficiencies: List[Proficiency] = None
             equipments_choose: List[Inventory] = []
             for eq_choice in st_eq_option['from']:
                 if known_proficiencies:
-                    known_proficiencies: List[str] = [
-                        p.index for p in known_proficiencies]
+                    known_proficiencies: List[str] = [p.index for p in known_proficiencies]
                     prereq = True
                     for p_dict in eq_choice['prerequisites']:
                         if p_dict['proficiency']['index'] not in known_proficiencies:
