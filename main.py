@@ -347,14 +347,14 @@ def load_dungeon_collections() -> Tuple:
     for _ in range(PotionRarity.COMMON.value):
         potion = Potion(name='Healing', rarity=PotionRarity.COMMON, hit_dice='2d4', bonus=2)
         potions.append(potion)
-    for _ in range(PotionRarity.UNCOMMON.value):
+    for _ in range(PotionRarity.COMMON.value + 1, PotionRarity.UNCOMMON.value + 1):
         potion = Potion(name='Greater healing', rarity=PotionRarity.UNCOMMON, hit_dice='4d4', bonus=4)
         potions.append(potion)
-    for _ in range(PotionRarity.RARE.value):
+    for _ in range(PotionRarity.UNCOMMON.value + 1, PotionRarity.RARE.value + 1):
         potion = Potion(name='Superior healing', rarity=PotionRarity.RARE, hit_dice='8d4', bonus=8)
         potions.append(potion)
-    for _ in range(PotionRarity.VERY_RARE.value):
-        potion = Potion(name='Supreme healing', rarity=PotionRarity.COMMON, hit_dice='10d4', bonus=20)
+    for _ in range(PotionRarity.RARE.value + 1, PotionRarity.VERY_RARE.value + 1):
+        potion = Potion(name='Supreme healing', rarity=PotionRarity.VERY_RARE, hit_dice='10d4', bonus=20)
         potions.append(potion)
     return monsters, armors, weapons, equipments, equipment_categories, potions
 
@@ -431,7 +431,8 @@ def create_new_character(roster: List[Character]) -> Character:
                                      monster_kills=0,
                                      age=18 * 52 + randint(0, 299),
                                      gold=90 + randint(0, 99),
-                                     sc=spell_caster)
+                                     sc=spell_caster,
+                                     conditions=[])
     exit_message()
     return character
 
@@ -1116,9 +1117,10 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
         monsters: List[Monster] = generate_encounter(encounter_level=encounter_level, monsters=monsters_db, monster_groups_count=monster_groups_count, spell_casters_only=spell_casters_only)
         # monsters: List[Monster] = [request_monster(index_name='swarm-of-centipedes') for _ in range(randint(1, 2))]
         # To debug monster multi-attacks
-        #monsters_names_for_debug = ['water-elemental']
+        # monsters_names_for_debug = ['rug-of-smothering']
         # monsters_names_for_debug = ['aboleth']
-        # monsters: List[Monster] = [request_monster(index_name=monsters_names_for_debug[0])]
+        monsters_names_for_debug = ['half-red-dragon-veteran']
+        monsters: List[Monster] = [request_monster(index_name) for index_name in monsters_names_for_debug]
         cprint(f'{color.PURPLE}-------------------------------------------------------------------------------------------------------------------------------------------{color.END}')
         cprint(f'{color.PURPLE} New encounter!{color.END}')
         display_group_of_monsters(monsters)
@@ -1159,7 +1161,8 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
                             castable_spells: List[Spell] = cantric_spells + slot_spells
                         if attacker.sa and round_num > 0: # ou 1? (à vérifier)
                             for special_attack in attacker.sa:
-                                special_attack.ready = special_attack.recharge_success if special_attack.recharge_on_roll else None
+                                if special_attack.recharge_on_roll:
+                                    special_attack.ready = special_attack.recharge_success
                         available_special_attacks: List[SpecialAbility] = list(filter(lambda a: a.ready, attacker.sa))
                         # Main loop
                         if attacker.can_cast and castable_spells:
@@ -1172,8 +1175,19 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
                                 cprint(f'{char.name} is ** KILLED **!')
                         elif available_special_attacks:
                             special_attack: SpecialAbility = max(available_special_attacks, key=lambda a: sum([damage.dd.score(success_type=a.dc_success) for damage in a.damages]))
-                            cprint(f'{color.GREEN}{attacker.name}{color.END} launches ** {special_attack.name.upper()} ** on whole party!')
-                            for char in alive_chars:
+                            if special_attack.targets_count > len(party):
+                                cprint(f'{color.GREEN}{attacker.name}{color.END} launches ** {special_attack.name.upper()} ** on whole party!')
+                                target_chars: List[Character] = party
+                            else:
+                                if special_attack.range == RangeType.MELEE:
+                                    target_chars: List[Character] = sample(melee_chars, special_attack.targets_count)
+                                elif special_attack.range == RangeType.RANGED:
+                                    target_chars: List[Character] = sample(ranged_chars, special_attack.targets_count)
+                                else:
+                                    target_chars: List[Character] = sample(party, special_attack.targets_count)
+                                targets: str = ' and '.join([char.name for char in target_chars])
+                                cprint(f'{color.GREEN}{attacker.name}{color.END} launches ** {special_attack.name.upper()} ** on {targets}!')
+                            for char in target_chars:
                                 char.hit_points -= attacker.special_attack(char, special_attack)
                                 if char.hit_points <= 0:
                                     alive_chars.remove(char)
@@ -1186,17 +1200,31 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
                                 alive_chars.remove(char)
                                 char.status = 'DEAD'
                                 cprint(f'{char.name} is ** KILLED **!')
-                    else:
+                    else:   # CHARACTER ATTACKS
                         if not alive_monsters:
                             break
                         if attacker.hit_points < 0.3 * attacker.max_hit_points and attacker.healing_potions:
                             attacker.drink_potion()
                             cprint(f'{attacker.name} has {len(attacker.healing_potions)} remaining potions')
                         else:
-                            # Character attacks the weakest alive monster
-                            order: int = alive_chars.index(attacker)
-                            monster: Monster = min(alive_monsters, key=lambda m: m.hit_points)
-                            monster.hit_points -= attacker.attack(monster, order)
+                            # Character attacks the weakest alive monster or the restraining creature
+                            # order: int = alive_chars.index(attacker)
+                            restrained_effects: List[Condition] = [e for e in attacker.conditions if e.index == 'restrained' and e.creature]
+                            if restrained_effects:
+                                effect = restrained_effects[0]
+                                # Make ability check to escape
+                                try:
+                                    if attacker.saving_throw(effect.dc_type.value, effect.dc_value):
+                                        cprint(f'{color.RED}{attacker.name}{color.END} is not restrained anymore from {effect.creature.name}!')
+                                        attacker.conditions.clear()
+                                        monster: Monster = min(alive_monsters, key=lambda m: m.hit_points)
+                                    else:
+                                        monster: Monster = effect.creature
+                                except AttributeError:
+                                    print(f'{effect}')
+                            else:
+                                monster: Monster = min(alive_monsters, key=lambda m: m.hit_points)
+                            monster.hit_points -= attacker.attack(monster)
                             if monster.hit_points <= 0:
                                 alive_monsters.remove(monster)
                                 # attacker.victory(monster)
@@ -1206,7 +1234,10 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
             # End of Round
             alive_chars: List[Character] = [c for c in party if c.hit_points > 0]
             alive_monsters: List[Monster] = [c for c in monsters if c.hit_points > 0]
+
         if not alive_chars:
+            for char in party:
+                char.conditions.clear()
             exit_message(f'** DEFEAT! ALL PARTY HAS BEEN KILLED **')
             break
         elif not alive_monsters:
@@ -1216,6 +1247,7 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
             for char in alive_chars:
                 char.gold += earned_gold // len(party)
                 char.xp += xp_gained // len(alive_chars)
+                char.conditions.clear()
             exit_message(f'Party has earned {earned_gold} GP and gained {xp_gained} XP!')
         elif flee_combat:
             exit_message(f'** Party successfully escaped! **')
@@ -1231,12 +1263,12 @@ def restore_all_roster(roster: List[Character]):
 
 def cheat_function(roster: List[Character]):
     for char in roster:
-        if char.name == 'Torinn':
+        if char.name in ('Esvele', 'Alberich'):
             char.xp += 100000
             char.gold = 10000
             char.hit_points = char.max_hit_points
             char.status = 'OK'
-            exit_message(f'{char.name} has been offered 10000 XP!')
+            exit_message(f'{char.name} has been offered 1000 XP!')
             save_character(char)
 
 def delete_all_potions(roster: List[Character]):
@@ -1294,7 +1326,7 @@ if __name__ == '__main__':
     location = 'Castle'
     party: List[Character] = []
 
-    #cheat_function(roster)
+    # cheat_function(roster)
     restore_all_roster(roster)
     # delete_all_potions(roster)
     # delete_armors_weapons(roster)
