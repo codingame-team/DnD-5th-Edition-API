@@ -5,9 +5,59 @@ from dataclasses import dataclass, field
 from random import choice, randint
 from typing import List
 
-from dao_rpg_classes import Character, Monster, Armor, Weapon, Treasure
-from populate_rpg_functions import request_monster
+from pygame import Surface
 
+from dao_rpg_classes import Character, Monster, Armor, Weapon, Treasure
+from dao_classes import Weapon as Weapon2, Armor as Armor2, Potion
+from populate_functions import populate, request_weapon, request_armor
+from populate_rpg_functions import request_monster, load_armor_image, load_potions_collections, load_potion_image, load_weapon_image
+
+
+# Définition de la classe Item pour représenter un objet dans l'inventaire
+class Item:
+    def __init__(self, name, description, image):
+        self.name = name
+        self.description = description
+        self.image = image
+        self.image.set_colorkey(PINK)  # Définir le fond rose comme transparent
+        self.selected = False
+
+
+
+# Fonction pour afficher du texte
+def draw_text(text, font, color, surface, x, y):
+    text_obj = font.render(text, True, color)
+    text_rect = text_obj.get_rect()
+    text_rect.topleft = (x, y)
+    surface.blit(text_obj, text_rect)
+
+
+# Définition de la fonction pour afficher une info-bulle
+def draw_tooltip(description, surface, x, y):
+    font = pygame.font.Font(None, 18)
+    text = font.render(description, True, BLACK)
+    text_rect = text.get_rect()
+    text_rect.topleft = (x, y)
+
+    # Créer une surface pour le rectangle d'arrière-plan
+    tooltip_surface = pygame.Surface((text_rect.width + 10, text_rect.height + 10), pygame.SRCALPHA)  # SRCALPHA pour la transparence
+    tooltip_surface.fill((150, 150, 150, 150))  # Remplir avec une couleur grise semi-transparente
+
+    # Dessiner le texte sur la surface d'arrière-plan
+    tooltip_surface.blit(text, (5, 5))  # Décalage de 5 pixels pour laisser un espace
+
+    # Dessiner la surface d'arrière-plan sur l'écran principal
+    surface.blit(tooltip_surface, (text_rect.left - 5, text_rect.top - 5))  # Décalage de 5 pixels pour centrer le texte dans le rectangle
+
+
+# Définition de la fonction pour afficher une info-bulle
+def draw_tooltip_old(description, surface, x, y):
+    font = pygame.font.Font(None, 18)
+    text = font.render(description, True, BLACK)
+    text_rect = text.get_rect()
+    text_rect.topleft = (x, y)
+    pygame.draw.rect(surface, GRAY, (text_rect.left - 5, text_rect.top - 5, text_rect.width + 10, text_rect.height + 10))
+    surface.blit(text, text_rect)
 
 # Fonction pour dessiner un bouton
 def draw_button(surface, rect, color, text):
@@ -37,7 +87,7 @@ class Game:
 
     def __init__(self):
         # Chargement de la carte
-        self.dungeon_level = 2
+        self.dungeon_level = 1
         self.world_map = self.load_maze(level=self.dungeon_level)
         self.map_height = len(self.world_map)
         self.map_width = max([len(self.world_map[i]) for i in range(self.map_height)])
@@ -106,7 +156,7 @@ class Game:
         #stats_rect = pygame.Rect(self.map_width * TILE_SIZE, 0, STATS_WIDTH, self.map_height * TILE_SIZE)
         stats_rect = pygame.Rect(self.view_port_width, 0, STATS_WIDTH, self.view_port_height)
 
-        pygame.draw.rect(screen, (200, 200, 200), stats_rect)
+        pygame.draw.rect(screen, GRAY, stats_rect)
         font = pygame.font.Font(None, 24)
         stat_texts = [
             f"Level: {self.dungeon_level}",
@@ -122,6 +172,38 @@ class Game:
             text_rect = text_surface.get_rect()
             text_rect.topleft = (stats_rect[0] + 20, stats_rect[1] + 20 + i * 30)  # Ajuster la position en fonction de la marge
             screen.blit(text_surface, text_rect)
+
+    def draw_inventory(self, screen):
+        # # Afficher le titre de l'inventaire
+        # draw_text("Inventaire", font, BLACK, screen, 10, 10)
+
+        # Obtenir les coordonnées de la souris
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+
+        # Stocker les informations de l'info-bulle
+        tooltip_text = None
+
+        # Afficher les cases de l'inventaire
+        for i, item in enumerate(inventory):
+            # Calculer les coordonnées de l'image dans la case
+            icon_x = self.view_port_width + 10 + (i % 5) * 40
+            icon_y = 150 + 70 + (i // 5) * 40
+            # Afficher l'icône de l'objet s'il y en a un dans la case
+            if item is not None:
+                screen.blit(item.image, (icon_x, icon_y))
+                frame_color: tuple = BLUE if item.selected else WHITE
+                pygame.draw.rect(screen, frame_color, (icon_x, icon_y, ICON_SIZE, ICON_SIZE), 2)
+                # Vérifier si la souris survole la case
+                if pygame.Rect(icon_x, icon_y, ICON_SIZE, ICON_SIZE).collidepoint(mouse_x, mouse_y):
+                    # Stocker la description de l'objet pour l'info-bulle
+                    tooltip_text = item.description
+            # Dessiner un cadre vide pour les cases vides
+            else:
+                pygame.draw.rect(screen, GRAY, (icon_x, icon_y, ICON_SIZE, ICON_SIZE), 2)
+
+        # Afficher l'info-bulle avec la description de l'objet
+        if tooltip_text:
+            draw_tooltip(tooltip_text, screen, mouse_x + 10, mouse_y)
 
     # Fonction pour dessiner le panneau de commande d'actions
     def draw_action_panel(self, screen):
@@ -256,15 +338,22 @@ if __name__ == "__main__":
     # Définition des constantes pour la mise en page
     # SCREEN_WIDTH, SCREEN_HEIGHT = 1920, 1080
     SCREEN_WIDTH, SCREEN_HEIGHT = 1280, 720
-    STATS_WIDTH, ACTIONS_HEIGHT = 200, 200
+    STATS_WIDTH, ACTIONS_HEIGHT = 350, 200
 
     # Paramètres de l'écran
     TILE_SIZE = 32
     FPS = 60
 
+    # Autres paramètres
+    ICON_SIZE = 32
+
     # Couleurs
-    WHITE = (255, 255, 255)
     BLACK = (0, 0, 0)
+    WHITE = (255, 255, 255)
+    GRAY = (200, 200, 200)
+    BLUE = (0, 0, 255)
+    RED = (255, 0, 0)
+    PINK = (255, 0, 255)
 
     # Chargement des tuiles
     tile_img = pygame.image.load('sprites/TilesDungeon/Tile.png')
@@ -280,6 +369,78 @@ if __name__ == "__main__":
     # Font
     font = pygame.font.SysFont(None, 36)
 
+    # Inventaire du personnage (liste d'objets)
+    inventory: List[Item] = []
+    # inventory += [
+    #     Item("Épée", "Une épée tranchante", pygame.image.load(f"{path}/sprites/Items/Sword01.PNG")),
+    #     Item("Potion de santé", "Restaure 50 points de vie", pygame.image.load(f"{path}/sprites/Items/PotionRed.PNG")),
+    #     Item("Potion de vitesse", "Accélère la vitesse", pygame.image.load(f"{path}/sprites/Items/PotionTallTan.PNG")),
+    #     Item("Armure", "Une armure solide", pygame.image.load(f"{path}/sprites/Items/ArmorChainMail.PNG")),
+    #     Item("Bottes", "Une paire de bottes dorée", pygame.image.load(f"{path}/sprites/Items/BootsGolden.PNG")),
+    #     Item("Arc", "Un arc long", pygame.image.load(f"{path}/sprites/Items/Bow.PNG")),
+    #     Item("Clef", "Une clef en cuivre", pygame.image.load(f"{path}/sprites/Items/KeyCopper.PNG")),
+    #     Item("Bouclier", "Un bouclier rayé rouge", pygame.image.load(f"{path}/sprites/Items/ShieldStripeRed.PNG")),
+    #     Item("Épée à 2 mains", "Une épée à 2 mains", pygame.image.load(f"{path}/sprites/Items/SwordTwoHanded.PNG")),
+    #     Item("Mace", "Une mace magique", pygame.image.load(f"{path}/sprites/Items/MaceMagic.PNG")),
+    #     Item("Bâton", "Un bâton magique", pygame.image.load(f"{path}/sprites/Items/Staff01.PNG")),
+    #     Item("Fléau", "Un fléau", pygame.image.load(f"{path}/sprites/Items/Flail01.PNG")),
+    #     Item("Sort", "Un méchant sort", pygame.image.load(f"{path}/sprites/Items/Scroll0010.PNG")),
+    #     Item("Clef", "Une clef en cuivre", pygame.image.load(f"{path}/sprites/Items/KeyCopper.PNG")),
+    #     Item("Bouclier", "Un bouclier rayé rouge", pygame.image.load(f"{path}/sprites/Items/ShieldStripeRed.PNG")),
+    #     Item("Épée à 2 mains", "Une épée à 2 mains", pygame.image.load(f"{path}/sprites/Items/SwordTwoHanded.PNG")),
+    #     Item("Mace", "Une mace magique", pygame.image.load(f"{path}/sprites/Items/MaceMagic.PNG")),
+    #     Item("Bâton", "Un bâton magique", pygame.image.load(f"{path}/sprites/Items/Staff01.PNG")),
+    #     Item("Fléau", "Un fléau", pygame.image.load(f"{path}/sprites/Items/Flail01.PNG")),
+    #     Item("Sort", "Un méchant sort", pygame.image.load(f"{path}/sprites/Items/Scroll0010.PNG")),
+    #     Item("Mace", "Une mace magique", pygame.image.load(f"{path}/sprites/Items/MaceMagic.PNG")),
+    #     Item("Bâton", "Un bâton magique", pygame.image.load(f"{path}/sprites/Items/Staff01.PNG")),
+    #     Item("Fléau", "Un fléau", pygame.image.load(f"{path}/sprites/Items/Flail01.PNG")),
+    #     Item("Sort", "Un méchant sort", pygame.image.load(f"{path}/sprites/Items/Scroll0010.PNG")),
+    #     Item("Sort", "Un méchant sort", pygame.image.load(f"{path}/sprites/Items/Scroll0010.PNG")),
+    #     Item("Mace", "Une mace magique", pygame.image.load(f"{path}/sprites/Items/MaceMagic.PNG")),
+    #     Item("Bâton", "Un bâton magique", pygame.image.load(f"{path}/sprites/Items/Staff01.PNG")),
+    #     Item("Fléau", "Un fléau", pygame.image.load(f"{path}/sprites/Items/Flail01.PNG")),
+    #     Item("Sort", "Un méchant sort", pygame.image.load(f"{path}/sprites/Items/Scroll0010.PNG")),
+    #     Item("Fléau", "Un fléau", pygame.image.load(f"{path}/sprites/Items/Flail01.PNG")),
+    #     Item("Sort", "Un méchant sort", pygame.image.load(f"{path}/sprites/Items/Scroll0010.PNG")),
+    #     Item("Sort", "Un méchant sort", pygame.image.load(f"{path}/sprites/Items/Scroll0010.PNG")),
+    #     Item("Mace", "Une mace magique", pygame.image.load(f"{path}/sprites/Items/MaceMagic.PNG")),
+    # ]
+    # inventory += [None] * (20 - len(inventory))
+
+
+    # monster_names: List[str] = populate(collection_name='monsters', key_name='results')
+    # monsters: List[Monster] = [request_monster(name) for name in monster_names]
+    armor_names: List[str] = populate(collection_name='armors', key_name='equipment')
+    armors: List[Armor] = [request_armor(name) for name in armor_names]
+    weapon_names: List[str] = populate(collection_name='weapons', key_name='equipment')
+    weapons: List[Weapon] = [request_weapon(name) for name in weapon_names]
+    armors = list(filter(lambda a: a, armors))
+    weapons = list(filter(lambda w: w, weapons))
+    potions: List[Potion] = load_potions_collections()
+
+    for _ in range(10):
+        a: Armor2 = choice(armors)
+        a_image: Surface = load_armor_image(a.index)
+        desc: str = f'{a.name} (AC: {a.armor_class['base']})'
+        inventory += [Item(a.name, desc, a_image)]
+
+    for _ in range(10):
+        w: Weapon2 = choice(weapons)
+        w_image: Surface = load_weapon_image(w.index)
+        damage_dice: str = f'{w.damage_dice.dice}' if not w.damage_dice.bonus else f'{w.damage_dice.dice} + {w.damage_dice.bonus}'
+        desc: str = f'{w.name} ({damage_dice})'
+        inventory += [Item(w.name, desc, w_image)]
+
+    for _ in range(10):
+        p: Potion = choice(potions)
+        p_image: Surface = load_potion_image(p.name)
+        hit_dice: str = f'{p.hit_dice}' if not p.bonus else f'{p.hit_dice} + {p.bonus}'
+        desc: str = f'{p.name} ({hit_dice})'
+        inventory += [Item(p.name, desc, p_image)]
+
+    inventory += [None] * (20 - len(inventory))
+
     # Boucle de jeu
     running = True
     while running:
@@ -292,6 +453,22 @@ if __name__ == "__main__":
                 for action_text, action_rect in game.action_rects.items():
                     if action_rect.collidepoint(event.pos):
                         print(f"Action: {action_text}")
+                # Vérifier si une case de l'inventaire a été cliquée
+                for i, item in enumerate(inventory):
+                    if item is not None:
+                        icon_x = game.view_port_width + 10 + (i % 5) * 40
+                        icon_y = 150 + 70 + (i // 5) * 40
+                        icon_rect = item.image.get_rect(topleft=(icon_x, icon_y))
+                        if icon_rect.collidepoint(event.pos):
+                            if item.selected:
+                                item.selected = False
+                                if item.name == 'Épée':
+                                    game.hero.weapon.damage_dice = '1d4'
+                            else:
+                                item.selected = True
+                                if item.name == 'Épée':
+                                    game.hero.weapon.damage_dice = '2d10'
+                            break
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_UP and game.can_move(char=game.hero, dir=UP):
                     game.hero.y -= 1
@@ -328,8 +505,8 @@ if __name__ == "__main__":
         screen.fill(WHITE)
 
         # Dessiner la carte
-        map_rect = pygame.Rect(0, 0, game.map_width + TILE_SIZE, game.map_height * TILE_SIZE)
-        pygame.draw.rect(screen, (200, 200, 200), map_rect)
+        map_rect = pygame.Rect(0, 0, game.map_width * TILE_SIZE, game.map_height * TILE_SIZE)
+        pygame.draw.rect(screen, WHITE, map_rect)
         game.draw_map(screen)
 
         view_port_tuple = game.calculate_view_window()
@@ -346,8 +523,14 @@ if __name__ == "__main__":
         # Dessiner la feuille de stats du personnage
         game.draw_character_stats(screen)
 
+        # Dessiner la feuille d'inventaire du personnage
+        game.draw_inventory(screen)
+
         # Dessiner le panneau de commande d'actions
         game.draw_action_panel(screen)
+
+        # Mise à jour de l'affichage
+        # pygame.display.update()
 
         # Mise à jour de l'affichage
         pygame.display.flip()
