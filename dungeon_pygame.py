@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os, pygame
+import sys
 from dataclasses import dataclass, field
 from random import choice, randint
 from typing import List
@@ -9,7 +10,7 @@ from pygame import Surface
 
 from dao_rpg_classes import Character, Monster, Armor, Weapon, Treasure
 from dao_classes import Weapon as Weapon2, Armor as Armor2, Potion, Character as Char2
-from main import get_roster
+from main import get_roster, save_character
 from populate_functions import populate, request_weapon, request_armor
 from populate_rpg_functions import request_monster, load_armor_image, load_potions_collections, load_potion_image, load_weapon_image
 
@@ -108,6 +109,7 @@ class Game:
         self.hero: Character = Character(x=hero_x, y=hero_y, speed=15, hp=10, max_hp=10, weapon=start_weapon, armor=start_armor, img=pygame.image.load(f'{path}/sprites/hero.png'))
         roster: List[Character] = get_roster(characters_dir=f'{path}/gameState/characters')
         self.hero = choice(roster)
+        self.hero = [c for c in roster if c.name == 'Balasar'][0]
         self.hero.x, self.hero.y = hero_x, hero_y
         self.load(level=1)
 
@@ -465,7 +467,10 @@ if __name__ == "__main__":
         # Gestion des événements
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                running = False
+                running = False  # Set running to False to exit the loop
+                save_character(char=game.hero, _dir=characters_dir)
+                pygame.quit()  # Quit Pygame
+                sys.exit()  # Quit the Python script
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 # Vérifier si un texte d'action a été cliqué
                 for action_text, action_rect in game.action_rects.items():

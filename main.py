@@ -455,9 +455,9 @@ def create_new_character(roster: List[Character]) -> Character:
     return character
 
 
-def save_character(char: Character):
+def save_character(char: Character, _dir: str):
     # print(f'Sauvegarde personnage {char.name}')
-    with open(f'{characters_dir}/{char.name}.dmp', 'wb') as f1:
+    with open(f'{_dir}/{char.name}.dmp', 'wb') as f1:
         pickle.dump(char, f1)
 
 
