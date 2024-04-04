@@ -8,7 +8,8 @@ from typing import List
 from pygame import Surface
 
 from dao_rpg_classes import Character, Monster, Armor, Weapon, Treasure
-from dao_classes import Weapon as Weapon2, Armor as Armor2, Potion
+from dao_classes import Weapon as Weapon2, Armor as Armor2, Potion, Character as Char2
+from main import get_roster
 from populate_functions import populate, request_weapon, request_armor
 from populate_rpg_functions import request_monster, load_armor_image, load_potions_collections, load_potion_image, load_weapon_image
 
@@ -79,7 +80,7 @@ class Game:
     screen_height: int
     view_port_width: int
     view_port_height: int
-    hero: Character
+    hero: Char2
     monsters: List[Monster]
     treasures: dict
     dungeon_level: int
@@ -105,6 +106,9 @@ class Game:
         start_armor: Armor = Armor(name='Plate Armor', ac=18, img=pygame.image.load(f'{path}/sprites/beholder.png'))
         start_weapon: Weapon = Weapon(name='Greatsword', damage_dice='2d6', img=pygame.image.load(f'{path}/sprites/beholder.png'))
         self.hero: Character = Character(x=hero_x, y=hero_y, speed=15, hp=10, max_hp=10, weapon=start_weapon, armor=start_armor, img=pygame.image.load(f'{path}/sprites/hero.png'))
+        roster: List[Character] = get_roster(characters_dir=f'{path}/gameState/characters')
+        self.hero = choice(roster)
+        self.hero.x, self.hero.y = hero_x, hero_y
         self.load(level=1)
 
     # Define a method to calculate the view window
@@ -158,12 +162,18 @@ class Game:
 
         pygame.draw.rect(screen, GRAY, stats_rect)
         font = pygame.font.Font(None, 24)
+        pygame.display.set_caption(f"Dungeon Level: {self.dungeon_level}")
         stat_texts = [
-            f"Level: {self.dungeon_level}",
-            f"Santé: {self.hero.hp}/{self.hero.max_hp}",
-            f"Attaque: {self.hero.weapon.damage_dice}",
-            f"Défense: {self.hero.armor.ac}",
-            f"Potions: {self.hero.potions}",
+            f"Nom: {self.hero.name}",
+            f"Race: {self.hero.race.name}",
+            f"Classe: {self.hero.class_type.name}",
+            # f"Santé: {self.hero.hp}/{self.hero.max_hp}",
+            f"Santé: {self.hero.hit_points}/{self.hero.max_hit_points}",
+            # damage_dice: str = f'{self.hero.weapon.damage_dice}' if not w.damage_dice.bonus else f'{w.damage_dice.dice} + {w.damage_dice.bonus}'
+            f"Attaque: {self.hero.weapon.damage_dice.dice}",
+            # f"Défense: {self.hero.armor.ac}",
+            f"Défense: {self.hero.armor.armor_class['base']}",
+            #f"Potions: {self.hero.potions}",
             f"Gold: {self.hero.gold}"
             # Ajoutez d'autres statistiques ici
         ]
@@ -440,6 +450,13 @@ if __name__ == "__main__":
         inventory += [Item(p.name, desc, p_image)]
 
     inventory += [None] * (20 - len(inventory))
+
+    path = os.path.dirname(__file__)
+    abspath = os.path.abspath(path)
+    # print(f'path = {path}')
+    # print(f'abspath = {abspath}')
+    characters_dir = f'{abspath}/gameState/characters'
+    roster: List[Character] = get_roster(characters_dir)
 
     # Boucle de jeu
     running = True

@@ -4,6 +4,8 @@ import os
 import pickle
 import sys
 from fractions import Fraction
+
+import pygame
 from numpy import array
 
 from collections import namedtuple
@@ -409,7 +411,23 @@ def create_new_character(roster: List[Character]) -> Character:
 
     """ Load Spells characteristic """
     # cheat_xp: int = 10000 # Level 5 chars
-    character: Character = Character(race=race,
+    sprites: dict = {'barbarian': 'barbarian',
+                     'bard': 'cleric',
+                     'cleric': 'cleric',
+                     'druid': 'cleric',
+                     'fighter': 'knight',
+                     'monk': 'monk',
+                     'paladin': 'knight',
+                     'ranger': 'ranger',
+                     'rogue': 'rogue',
+                     'sorcerer': 'necromant',
+                     'warlock': 'necromant',
+                     'wizard': 'wizzard'
+                     }
+    character: Character = Character(x=-1,
+                                     y=-1,
+                                     image_path=f'sprites/rpgcharacterspack/hero_{sprites[class_type.name.lower()]}.png',
+                                     race=race,
                                      subrace=subrace,
                                      class_type=class_type,
                                      proficiencies=char_proficiencies,

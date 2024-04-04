@@ -7,6 +7,9 @@ from math import floor, prod
 from typing import List, Optional, Tuple
 from random import randint, choice
 
+import pygame
+from pygame import Surface, SurfaceType
+
 from tools.common import cprint
 
 """ Needs to separate presentation layer from data layer """
@@ -643,9 +646,35 @@ class Action:
     damages: List[Damage] | None
     effects: List[Condition] = None
 
+@dataclass
+class Sprite:
+    x: int
+    y: int
+    image_path: str
+
+    @property
+    def pos(self) -> tuple:
+        return self.x, self.y
+
+    def check_collision(self, other: "Sprite"):
+        return self.x == other.x and self.y == other.y
+
+    def draw_old(self, screen, tile_size):
+        screen.blit(self.img, (self.x * tile_size, self.y * tile_size))
+
+    def draw(self, screen, tile_size, viewport_x, viewport_y, viewport_width, viewport_height):
+        if self.image_path:
+            # Calculate the position of the sprite relative to the viewport
+            draw_x = (self.x - viewport_x) * tile_size
+            draw_y = (self.y - viewport_y) * tile_size
+
+            # Check if the sprite is within the viewport boundaries
+            if 0 <= draw_x <= viewport_width * tile_size and 0 <= draw_y <= viewport_height * tile_size:
+                image: Surface = pygame.image.load(self.image_path)
+                screen.blit(image, (draw_x, draw_y))
 
 @dataclass
-class Character:
+class Character(Sprite):
     name: str
     race: Race
     subrace: SubRace
