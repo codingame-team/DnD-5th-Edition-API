@@ -109,7 +109,8 @@ class Game:
         self.hero: Character = Character(x=hero_x, y=hero_y, speed=15, hp=10, max_hp=10, weapon=start_weapon, armor=start_armor, img=pygame.image.load(f'{path}/sprites/hero.png'))
         roster: List[Character] = get_roster(characters_dir=f'{path}/gameState/characters')
         self.hero = choice(roster)
-        self.hero = [c for c in roster if c.name == 'Balasar'][0]
+        # self.hero = max(roster, key=lambda c: c.gold)
+        # self.hero = [c for c in roster if c.name == 'Balasar'][0]
         self.hero.x, self.hero.y = hero_x, hero_y
         self.load(level=1)
 
@@ -157,11 +158,15 @@ class Game:
                 elif self.world_map[row][col] == '>':
                     screen.blit(photo_downstairs, (tile_x, tile_y))
 
+    def feet_inches_to_m_cm(self, height_feet: int , height_inches: int):
+        total_inches = height_feet * 12 + height_inches
+        height_meters = total_inches * 2.54 / 100
+        height_centimeters = total_inches * 2.54 % 100
+        return height_meters, height_centimeters
+
     # Fonction pour dessiner la feuille de stats du personnage
     def draw_character_stats(self, screen):
-        #stats_rect = pygame.Rect(self.map_width * TILE_SIZE, 0, STATS_WIDTH, self.map_height * TILE_SIZE)
         stats_rect = pygame.Rect(self.view_port_width, 0, STATS_WIDTH, self.view_port_height)
-
         pygame.draw.rect(screen, GRAY, stats_rect)
         font = pygame.font.Font(None, 24)
         pygame.display.set_caption(f"Dungeon Level: {self.dungeon_level}")
@@ -179,10 +184,31 @@ class Game:
             f"Gold: {self.hero.gold}"
             # Ajoutez d'autres statistiques ici
         ]
+        height_feet, height_inches = map(int, self.hero.height.split("'"))
+        height_meters, height_centimeters = map(round, self.feet_inches_to_m_cm(height_feet, height_inches))
+        abilities_texts = [
+            f"Force: {self.hero.abilities.str}",
+            f"Dextérité: {self.hero.abilities.dex}",
+            f"Constitution: {self.hero.abilities.con}",
+            f"Intelligence: {self.hero.abilities.int}",
+            f"Sagesse: {self.hero.abilities.wis}",
+            f"Charisme: {self.hero.abilities.cha}",
+            f"Taille: {height_meters}m{height_centimeters:2d}",
+            f"Poids: {round(int(self.hero.weight.split(' ')[0]) * 0.453592)} kg",
+            f"Age: {self.hero.age // 52}",
+            f"Niveau: {self.hero.level}",
+            f"XP: {self.hero.xp}"
+        ]
         for i, stat_text in enumerate(stat_texts):
             text_surface = font.render(stat_text, True, (0, 0, 0))
             text_rect = text_surface.get_rect()
             text_rect.topleft = (stats_rect[0] + 20, stats_rect[1] + 20 + i * 30)  # Ajuster la position en fonction de la marge
+            screen.blit(text_surface, text_rect)
+        font = pygame.font.Font(None, 20)
+        for i, stat_text in enumerate(abilities_texts):
+            text_surface = font.render(stat_text, True, (0, 0, 0))
+            text_rect = text_surface.get_rect()
+            text_rect.topleft = (stats_rect[0] + 210, stats_rect[1] + 20 + i * 20)  # Ajuster la position en fonction de la marge
             screen.blit(text_surface, text_rect)
 
     def draw_inventory(self, screen):
@@ -199,7 +225,7 @@ class Game:
         for i, item in enumerate(inventory):
             # Calculer les coordonnées de l'image dans la case
             icon_x = self.view_port_width + 10 + (i % 5) * 40
-            icon_y = 150 + 70 + (i // 5) * 40
+            icon_y = 200 + 70 + (i // 5) * 40
             # Afficher l'icône de l'objet s'il y en a un dans la case
             if item is not None:
                 screen.blit(item.image, (icon_x, icon_y))
