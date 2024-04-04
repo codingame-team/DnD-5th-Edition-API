@@ -308,7 +308,8 @@ class Game:
         self.treasures: List[Treasure] = []
         for _ in range(randint(1, 5)):
             gold: int = randint(50, 300) * self.dungeon_level
-            has_potion: bool = randint(1, 3) == 2
+            # has_potion: bool = randint(1, 3) == 2
+            has_potion: bool = False
             t_x, t_y = choice(open_positions)
             treasure: Treasure = Treasure(x=t_x, y=t_y, img=photo_treasure, gold=gold, potion=has_potion)
             self.treasures.append(treasure)
