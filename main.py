@@ -514,7 +514,7 @@ def display_character_sheet(char: Character):
     sheet += f'| con: {str(char.constitution).rjust(2)} | cha: {str(char.charism).rjust(2)} | level: {str(char.level).ljust(7)}| AC: {str(char.armor_class).ljust(10)}|\n'
     sheet += '+{:-^51}+\n'.format('')
     sheet += '|{:^51}|\n'.format(f'kills = {char.monster_kills}')
-    rarity_types: dict() = {PotionRarity.COMMON: 'C', PotionRarity.UNCOMMON: 'U', PotionRarity.RARE: 'R', PotionRarity: 'VR'}
+    rarity_types: dict() = {PotionRarity.COMMON: 'C', PotionRarity.UNCOMMON: 'U', PotionRarity.RARE: 'R', PotionRarity.VERY_RARE: 'VR'}
     potions: dict() = {'C': 0, 'U': 0, 'R': 0, 'VR': 0}
     for p in char.healing_potions:
         rarity: str = rarity_types[p.rarity]
@@ -644,7 +644,7 @@ def arena(character: Character):
         print(f'{character.name} has killed {killed_monsters} monsters{level_up_msg}')
 
     character.monster_kills += killed_monsters
-    save_character(character)
+    save_character(character, _dir=characters_dir)
     display_character_sheet(character)
 
 
@@ -755,7 +755,7 @@ def gilgamesh_tavern(party: List[Character], roster: List[Character]):
                     char.gold = total_gold // len(party)
                 print("All the party's gold has been divided.")
                 for char in party:
-                    save_character(char)
+                    save_character(char, _dir=characters_dir)
                 sleep(1)
             case 'Exit Tavern':
                 exit_tavern = True
@@ -837,7 +837,7 @@ def temple_of_cant(party: List[Character, roster: List[Character]]):
                 else:
                     char_to_save.status = 'ASHES'
                     print(f'{char_to_save.name} converts to ** ASHES! ***')
-                save_character(char_to_save)
+                save_character(char_to_save, _dir=characters_dir)
                 sleep(2)
             elif char_to_save.status == 'ASHES':
                 success: bool = randint(1, 100) < 40 + 3 * char_to_save.constitution
@@ -849,7 +849,7 @@ def temple_of_cant(party: List[Character, roster: List[Character]]):
                 else:
                     char_to_save.status = 'LOST'
                     print(f'{char_to_save.name} is ** LOST! ***')
-                save_character(char_to_save)
+                save_character(char_to_save, _dir=characters_dir)
                 sleep(2)
 
 
@@ -879,7 +879,7 @@ def adventurer_inn(party):
                 continue
             # print(f'{char.name} selected {room} - Fee is {fees[fee_no]} GP / Week!')
             rest_character(char, fees[room_number], weeks[room_number])
-            save_character(char)
+            save_character(char, _dir=characters_dir)
 
 
 def get_character(name: str, roster: List[Character]) -> Optional[Character]:
@@ -955,7 +955,7 @@ def training_grounds(roster: List[Character]):
         match option:
             case 'Create a New Character':
                 character = create_new_character(roster)
-                save_character(character)
+                save_character(character, _dir=characters_dir)
                 roster.append(character)
             case 'Character Status':
                 efface_ecran()
@@ -986,7 +986,7 @@ def training_grounds(roster: List[Character]):
                     continue
                 os.remove(f'{characters_dir}/{char.name}.dmp')
                 char.name = new_name
-                save_character(char)
+                save_character(char, _dir=characters_dir)
                 sleep(2)
             case 'Change a Character\'s class':
                 input('not yet created!... [Return] to main menu')
@@ -1137,8 +1137,9 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
         # To debug monster multi-attacks
         # monsters_names_for_debug = ['rug-of-smothering']
         # monsters_names_for_debug = ['aboleth']
-        monsters_names_for_debug = ['half-red-dragon-veteran']
-        monsters: List[Monster] = [request_monster(index_name) for index_name in monsters_names_for_debug]
+        # monsters_names_for_debug = ['half-red-dragon-veteran']Ice Mephit
+        # monsters_names_for_debug = ['ice-mephit']
+        # monsters: List[Monster] = [request_monster(index_name) for index_name in monsters_names_for_debug]
         cprint(f'{color.PURPLE}-------------------------------------------------------------------------------------------------------------------------------------------{color.END}')
         cprint(f'{color.PURPLE} New encounter!{color.END}')
         display_group_of_monsters(monsters)
@@ -1147,6 +1148,7 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
         attack_queue.sort(key=lambda x: x[1], reverse=True)
         attackers = [c for c, init_roll in attack_queue]
         alive_monsters: List[Monster] = [c for c in monsters if c.hit_points > 0]
+        alive_chars: List[Character] = [c for c in party if c.hit_points > 0]
         round_num = 0
         flee_combat: bool = False
         while alive_monsters and alive_chars:
@@ -1193,6 +1195,7 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
                                 cprint(f'{char.name} is ** KILLED **!')
                         elif available_special_attacks:
                             special_attack: SpecialAbility = max(available_special_attacks, key=lambda a: sum([damage.dd.score(success_type=a.dc_success) for damage in a.damages]))
+                            #cprint(special_attack)
                             if special_attack.targets_count > len(party):
                                 cprint(f'{color.GREEN}{attacker.name}{color.END} launches ** {special_attack.name.upper()} ** on whole party!')
                                 target_chars: List[Character] = party
@@ -1205,12 +1208,16 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
                                     target_chars: List[Character] = sample(party, special_attack.targets_count)
                                 targets: str = ' and '.join([char.name for char in target_chars])
                                 cprint(f'{color.GREEN}{attacker.name}{color.END} launches ** {special_attack.name.upper()} ** on {targets}!')
+                            #cprint('target chars: ' + '/'.join([c.name for c in target_chars]))
                             for char in target_chars:
-                                char.hit_points -= attacker.special_attack(char, special_attack)
-                                if char.hit_points <= 0:
-                                    alive_chars.remove(char)
-                                    char.status = 'DEAD'
-                                    cprint(f'{char.name} is ** KILLED **!')
+                                if char in alive_chars:
+                                    char.hit_points -= attacker.special_attack(char, special_attack)
+                                    if char.hit_points <= 0:
+                                        # cprint('/'.join([c.name for c in alive_chars]))
+                                        # cprint(f'removing {char.name}')
+                                        alive_chars.remove(char)
+                                        char.status = 'DEAD'
+                                        cprint(f'{char.name} is ** KILLED **!')
                         else:
                             char: Character = choice(melee_chars)
                             char.hit_points -= attacker.melee_attack(char)
@@ -1287,14 +1294,14 @@ def cheat_function(roster: List[Character]):
             char.hit_points = char.max_hit_points
             char.status = 'OK'
             exit_message(f'{char.name} has been offered 1000 XP!')
-            save_character(char)
+            save_character(char, _dir=characters_dir)
 
 def delete_all_potions(roster: List[Character]):
     """ Needs to purge old potions from char's inventory """
     for char in roster:
         if char.healing_potions:
             char.healing_potions.clear()
-            save_character(char)
+            save_character(char, _dir=characters_dir)
 
 def delete_armors_weapons(roster: List[Character]):
     dagger: Weapon = request_weapon('dagger')
@@ -1406,7 +1413,7 @@ if __name__ == '__main__':
                             for char in party:
                                 if char.hit_points <= 0:
                                     char.status = 'DEAD'
-                                save_character(char)
+                                save_character(char, _dir=characters_dir)
                             location = 'Castle'
                         else:
                             if roster:
