@@ -9,7 +9,7 @@ from typing import List
 from pygame import Surface
 
 from dao_rpg_classes import Character, Monster, Armor, Weapon, Treasure
-from dao_classes import Weapon as Weapon2, Armor as Armor2, Potion, Character as Char2
+from dao_classes import Weapon as Weapon2, Armor as Armor2, Potion, Character as Char2, Spell
 from main import get_roster, save_character
 from populate_functions import populate, request_weapon, request_armor
 from populate_rpg_functions import request_monster, load_armor_image, load_potions_collections, load_potion_image, load_weapon_image
@@ -168,47 +168,59 @@ class Game:
     def draw_character_stats(self, screen):
         stats_rect = pygame.Rect(self.view_port_width, 0, STATS_WIDTH, self.view_port_height)
         pygame.draw.rect(screen, GRAY, stats_rect)
-        font = pygame.font.Font(None, 24)
+        font = pygame.font.Font(None, 20)
         pygame.display.set_caption(f"Dungeon Level: {self.dungeon_level}")
+        height_feet, height_inches = map(int, self.hero.height.split("'"))
+        height_meters, height_centimeters = map(round, self.feet_inches_to_m_cm(height_feet, height_inches))
         stat_texts = [
             f"Nom: {self.hero.name}",
             f"Race: {self.hero.race.name}",
             f"Classe: {self.hero.class_type.name}",
-            # f"Santé: {self.hero.hp}/{self.hero.max_hp}",
-            f"Santé: {self.hero.hit_points}/{self.hero.max_hit_points}",
+            f"Niveau: {self.hero.level}",
+            f"XP: {self.hero.xp}",
+            f"Santé: {self.hero.hit_points}/{self.hero.max_hit_points} ({self.hero.get_status})",
             # damage_dice: str = f'{self.hero.weapon.damage_dice}' if not w.damage_dice.bonus else f'{w.damage_dice.dice} + {w.damage_dice.bonus}'
             f"Attaque: {self.hero.weapon.damage_dice.dice}",
             # f"Défense: {self.hero.armor.ac}",
             f"Défense: {self.hero.armor.armor_class['base']}",
-            #f"Potions: {self.hero.potions}",
-            f"Gold: {self.hero.gold}"
-            # Ajoutez d'autres statistiques ici
-        ]
-        height_feet, height_inches = map(int, self.hero.height.split("'"))
-        height_meters, height_centimeters = map(round, self.feet_inches_to_m_cm(height_feet, height_inches))
-        abilities_texts = [
-            f"Force: {self.hero.abilities.str}",
-            f"Dextérité: {self.hero.abilities.dex}",
-            f"Constitution: {self.hero.abilities.con}",
-            f"Intelligence: {self.hero.abilities.int}",
-            f"Sagesse: {self.hero.abilities.wis}",
-            f"Charisme: {self.hero.abilities.cha}",
+            # f"Potions: {self.hero.potions}",
+            f"Gold: {self.hero.gold}",
             f"Taille: {height_meters}m{height_centimeters:2d}",
             f"Poids: {round(int(self.hero.weight.split(' ')[0]) * 0.453592)} kg",
             f"Age: {self.hero.age // 52}",
-            f"Niveau: {self.hero.level}",
-            f"XP: {self.hero.xp}"
+            # Ajoutez d'autres statistiques ici
         ]
-        for i, stat_text in enumerate(stat_texts):
-            text_surface = font.render(stat_text, True, (0, 0, 0))
+        abilities_texts = [
+            f"Force: {self.hero.strength}",
+            f"Dextérité: {self.hero.dexterity}",
+            f"Constitution: {self.hero.constitution}",
+            f"Intelligence: {self.hero.intelligence}",
+            f"Sagesse: {self.hero.wisdom}",
+            f"Charisme: {self.hero.charism}"
+        ]
+        spells_texts = []
+        if self.hero.can_cast:
+            slots: str = '/'.join(map(str, self.hero.sc.spell_slots))
+            spells_texts.append(f"Slots: {slots}")
+            known_spells: int = len(self.hero.sc.learned_spells)
+            learned_spells: List[Spell] = [s for s in self.hero.sc.learned_spells]
+            learned_spells.sort(key=lambda s: s.level)
+            for s in learned_spells:
+                spells_texts.append(f"L{s.level}: {str(s)}")
+        for i, text in enumerate(stat_texts):
+            text_surface = font.render(text, True, (0, 0, 0))
             text_rect = text_surface.get_rect()
-            text_rect.topleft = (stats_rect[0] + 20, stats_rect[1] + 20 + i * 30)  # Ajuster la position en fonction de la marge
+            text_rect.topleft = (stats_rect[0] + 20, stats_rect[1] + 20 + i * 20)  # Ajuster la position en fonction de la marge
             screen.blit(text_surface, text_rect)
-        font = pygame.font.Font(None, 20)
-        for i, stat_text in enumerate(abilities_texts):
-            text_surface = font.render(stat_text, True, (0, 0, 0))
+        for i, text in enumerate(abilities_texts):
+            text_surface = font.render(text, True, (0, 0, 0))
             text_rect = text_surface.get_rect()
             text_rect.topleft = (stats_rect[0] + 210, stats_rect[1] + 20 + i * 20)  # Ajuster la position en fonction de la marge
+            screen.blit(text_surface, text_rect)
+        for i, text in enumerate(spells_texts):
+            text_surface = font.render(text, True, (0, 0, 0))
+            text_rect = text_surface.get_rect()
+            text_rect.topleft = (stats_rect[0] + 210, stats_rect[1] + 150 + i * 20)  # Ajuster la position en fonction de la marge
             screen.blit(text_surface, text_rect)
 
     def draw_inventory(self, screen):
@@ -225,7 +237,7 @@ class Game:
         for i, item in enumerate(inventory):
             # Calculer les coordonnées de l'image dans la case
             icon_x = self.view_port_width + 10 + (i % 5) * 40
-            icon_y = 200 + 70 + (i // 5) * 40
+            icon_y = 210 + 70 + (i // 5) * 40
             # Afficher l'icône de l'objet s'il y en a un dans la case
             if item is not None:
                 screen.blit(item.image, (icon_x, icon_y))
@@ -377,7 +389,7 @@ if __name__ == "__main__":
     # Définition des constantes pour la mise en page
     # SCREEN_WIDTH, SCREEN_HEIGHT = 1920, 1080
     SCREEN_WIDTH, SCREEN_HEIGHT = 1280, 720
-    STATS_WIDTH, ACTIONS_HEIGHT = 350, 200
+    STATS_WIDTH, ACTIONS_HEIGHT = 450, 200
 
     # Paramètres de l'écran
     TILE_SIZE = 32

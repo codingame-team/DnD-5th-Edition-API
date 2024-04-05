@@ -659,8 +659,6 @@ class Sprite:
     def check_collision(self, other: "Sprite"):
         return self.x == other.x and self.y == other.y
 
-    def draw_old(self, screen, tile_size):
-        screen.blit(self.img, (self.x * tile_size, self.y * tile_size))
 
     def draw(self, screen, tile_size, viewport_x, viewport_y, viewport_width, viewport_height):
         if self.image_path:
@@ -702,6 +700,10 @@ class Character(Sprite):
     status: str = 'OK'
     id_party: int = -1
     OUT: bool = False
+
+    @property
+    def get_status(self) -> str:
+        return 'DEAD' if self.hit_points <= 0 else 'OK'
 
     @property
     def can_cast(self) -> bool:
