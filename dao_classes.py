@@ -838,7 +838,7 @@ class Character(Sprite):
         return list(filter(None, weapons))
 
     @property
-    def allowed_armors(self) -> List[Weapon]:
+    def allowed_armors(self) -> List[Armor]:
         armors: List[Armor] = []
         for p in self.proficiencies:
             if p.type == ProfType.ARMOR:
@@ -1093,7 +1093,7 @@ class DamageDice:
 class Treasure(Sprite):
     # type: Potion | Armor | Weapon
     gold: int
-    potion: bool
+    has_item: bool
 
     def __repr__(self):
-        return f'#{self.id} {self.gold} {self.potion}'
+        return f'#{self.id} {self.gold} {self.has_item}'

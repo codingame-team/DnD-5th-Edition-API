@@ -128,10 +128,10 @@ class Level:
         self.treasures: List[Treasure] = []
         for _ in range(randint(1, 5)):
             gold: int = randint(50, 300) * self.level_no
-            has_potion: bool = randint(1, 3) == 2
+            has_item: bool = randint(1, 3) == 2
             # has_potion: bool = False
             t_x, t_y = choice(open_positions)
-            t: Treasure = Treasure(id=(max(self.sprites) + 1 if self.sprites else 0), x=t_x, y=t_y, image_name='treasure.png', gold=gold, potion=has_potion)
+            t: Treasure = Treasure(id=(max(self.sprites) + 1 if self.sprites else 0), x=t_x, y=t_y, image_name='treasure.png', gold=gold, has_item=has_item)
             self.treasures.append(t)
             self.sprites[t.id] = pygame.image.load(f"{sprites_dir}/{t.image_name}").convert_alpha()
 
@@ -507,23 +507,29 @@ if __name__ == "__main__":
             game.level.treasures.remove(t)
             del game.level.sprites[t.id]
             game.hero.gold += t.gold
-            if t.potion:
-                p: HealingPotion = choice(healing_potions)
-                print(f'Hero found a {p.name} potion!')
-                image: Surface = pygame.image.load(f"{item_sprites_dir}/{p.image_name}")
+            if t.has_item:
+                match randint(1, 3):
+                    case 1:
+                        item: HealingPotion = choice(healing_potions)
+                    case 2:
+                        item: Armor = choice(game.hero.allowed_armors)
+                    case 3:
+                        item: Weapon = choice(game.hero.allowed_weapons)
+                print(f'Hero found a {item.name}!')
+                image: Surface = pygame.image.load(f"{item_sprites_dir}/{item.image_name}")
                 free_slots: List[int] = [i for i, item in enumerate(game.hero.inventory) if not item]
-                can_add_item: bool = game.hero.add_item_to_inv(p)
+                can_add_item: bool = game.hero.add_item_to_inv(item)
                 if can_add_item:
                     # Add item to inventory
-                    p.id = max(game.sprites) + 1 if game.sprites else 0
-                    game.sprites[p.id] = image
+                    item.id = max(game.sprites) + 1 if game.sprites else 0
+                    game.sprites[item.id] = image
                 else:
                     # Drop item to the ground
                     print(f'Inventory is full!')
-                    p.x, p.y = game.hero.pos
-                    p.id = max(game.level.sprites) + 1 if game.level.sprites else 0
-                    game.level.sprites[p.id] = image
-                    game.level.items.append(p)
+                    item.x, item.y = game.hero.pos
+                    item.id = max(game.level.sprites) + 1 if game.level.sprites else 0
+                    game.level.sprites[item.id] = image
+                    game.level.items.append(item)
 
         match game.world_map[game.hero.y][game.hero.x]:
             case '>':
