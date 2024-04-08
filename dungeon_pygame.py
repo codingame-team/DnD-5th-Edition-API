@@ -406,6 +406,7 @@ if __name__ == "__main__":
     # SCREEN_WIDTH, SCREEN_HEIGHT = 1920, 1080
     SCREEN_WIDTH, SCREEN_HEIGHT = 1280, 720
     STATS_WIDTH, ACTIONS_HEIGHT = 450, 200
+    STATS_HEIGHT = 250
 
     # Paramètres de l'écran
     TILE_SIZE = 32
@@ -465,13 +466,32 @@ if __name__ == "__main__":
                 for i, item in enumerate(game.hero.inventory):
                     if item is not None and isinstance(item, Armor | Weapon):
                         icon_x = game.view_port_width + 10 + (i % 5) * 40
-                        icon_y = 150 + 70 + (i // 5) * 40
+                        icon_y = 200 + 70 + (i // 5) * 40
                         image: Surface = game.sprites[item.id]
                         icon_rect = image.get_rect(topleft=(icon_x, icon_y))
+                        # cprint(icon_rect)
                         if icon_rect.collidepoint(event.pos):
-                            cprint(f'{item.name} clicked!')
-                            item.equipped = not item.equipped
-                            # break
+                            #  cprint(f'{item.name} clicked!')
+                            if isinstance(item, Armor):
+                                if game.hero.used_armor:
+                                    if item == game.hero.used_armor:
+                                        # Unequip armor
+                                        item.equipped = not item.equipped
+                                    else:
+                                        cprint(f'Hero cannot equip *{item.name}* - Please un-equip *{game.hero.used_armor.name}* first!')
+                                else:
+                                    # equip armor
+                                    item.equipped = not item.equipped
+                            elif isinstance(item, Weapon):
+                                if game.hero.used_weapon:
+                                    if item == game.hero.used_weapon:
+                                        # Unequip weapon
+                                        item.equipped = not item.equipped
+                                    else:
+                                        cprint(f'Hero cannot equip *{item.name}* - Please un-equip *{game.hero.used_weapon.name}* first!')
+                                else:
+                                    # equip weapon
+                                    item.equipped = not item.equipped
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_UP and game.can_move(char=game.hero, dir=UP):
                     game.hero.y -= 1

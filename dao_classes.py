@@ -797,6 +797,16 @@ class Character(Sprite):
         return self.weapon.damage_dice_two_handed if self.weapon.damage_dice_two_handed else self.weapon.damage_dice
 
     @property
+    def used_armor(self) -> Optional[Armor]:
+        equipped_armors: List[Armor] = [item for item in self.inventory if isinstance(item, Armor) and item.equipped]
+        return equipped_armors[0] if equipped_armors else None
+
+    @property
+    def used_weapon(self) -> Optional[Weapon]:
+        equipped_weapons: List[Weapon] = [item for item in self.inventory if isinstance(item, Weapon) and item.equipped]
+        return equipped_weapons[0] if equipped_weapons else None
+
+    @property
     def is_full(self) -> bool:
         return not any(item is None for item in self.inventory)
 
