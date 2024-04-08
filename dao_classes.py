@@ -30,6 +30,7 @@ class color:
 
 """ Monster classes """
 
+
 @dataclass
 class Sprite:
     id: int
@@ -53,6 +54,8 @@ class Sprite:
             # Check if the sprite is within the viewport boundaries
             if 0 <= draw_x <= viewport_width * tile_size and 0 <= draw_y <= viewport_height * tile_size:
                 screen.blit(image, (draw_x, draw_y))
+
+
 #
 @dataclass
 class Monster(Sprite):
@@ -309,6 +312,7 @@ class DamageType:
     def __repr__(self):
         return f'{self.index}'
 
+
 @dataclass
 class Cost:
     quantity: int
@@ -344,6 +348,7 @@ class Equipment(Sprite):
     def __repr__(self):
         return f"#{self.id} {self.index} ({self.category})"
 
+
 @dataclass
 class Inventory:
     quantity: str
@@ -351,6 +356,7 @@ class Inventory:
 
     def __repr__(self):
         return f"{self.quantity} {self.equipment.index}"
+
 
 @dataclass
 class Weapon(Equipment):
@@ -406,6 +412,10 @@ class HealingPotion(Sprite):
     def max_hp_restored(self):
         dice_count, roll_dice = map(int, self.hit_dice.split('d'))
         return self.bonus + dice_count * roll_dice
+
+    @property
+    def score(self) -> float:
+        return (self.min_hp_restored + self.max_hp_restored) / 2 + self.bonus
 
 
 class AbilityType(Enum):
@@ -669,9 +679,6 @@ class Action:
     effects: List[Condition] = None
 
 
-
-
-
 @dataclass
 class Character(Sprite):
     name: str
@@ -706,8 +713,20 @@ class Character(Sprite):
     def can_equip(self, eq: Equipment) -> bool:
         return (eq.category.index == 'armor' and eq in self.allowed_armors) or (eq.category.index == 'armor' and eq in self.allowed_weapons)
 
+    def add_item_to_inv(self, item: Equipment) -> bool:
+        free_slots: List[int] = [i for i, item in enumerate(self.inventory) if not item]
+        if free_slots:
+            next_slot: int = min(free_slots)
+            self.inventory[next_slot] = item
+            return True
+        return False
+
     def can_drink(self, eq: Equipment) -> bool:
         return eq.category.index == 'potion'
+
+    @property
+    def healing_potions(self) -> List[HealingPotion]:
+        return [item for item in self.inventory if isinstance(item, HealingPotion)]
 
     @property
     def can_cast(self) -> bool:
@@ -777,25 +796,24 @@ class Character(Sprite):
         # print(f'error {self.weapon}')
         return self.weapon.damage_dice_two_handed if self.weapon.damage_dice_two_handed else self.weapon.damage_dice
 
-    def drink_potion(self):
+    @property
+    def is_full(self) -> bool:
+        return not any(item is None for item in self.inventory)
+
+    def drink_potion(self) -> int:
         """Healing (??? check rules): A Healing potion repairs one six-sided die, plus one, (2-7) points of damage, just like a Cure Light Wounds spell."""
         hp_to_recover = self.max_hit_points - self.hit_points
-        available_potions = [
-            p for p in self.healing_potions if p.max_hp_restored >= hp_to_recover]
-        best_potion: HealingPotion = min(available_potions, key=lambda p: p.max_hp_restored) if available_potions else max(
-            self.healing_potions, key=lambda p: p.max_hp_restored)
-        self.healing_potions.remove(best_potion)
+        available_potions = [p for p in self.healing_potions if p.max_hp_restored >= hp_to_recover]
+        best_potion: HealingPotion = min(available_potions, key=lambda p: p.max_hp_restored) if available_potions else max(self.healing_potions, key=lambda p: p.max_hp_restored)
+        self.inventory[self.inventory.index(best_potion)] = None
         dice_count, roll_dice = map(int, best_potion.hit_dice.split('d'))
-        hp_restored = best_potion.bonus + \
-                      sum([randint(1, roll_dice) for _ in range(dice_count)])
-        self.hit_points = min(
-            self.hit_points + hp_restored, self.max_hit_points)
+        hp_restored = best_potion.bonus + sum([randint(1, roll_dice) for _ in range(dice_count)])
+        self.hit_points = min(self.hit_points + hp_restored, self.max_hit_points)
         if hp_to_recover <= hp_restored:
-            cprint(
-                f'{self.name} drinks {best_potion.name} potion and is {color.BOLD}*fully*{color.END} healed!')
+            cprint(f'{self.name} drinks {best_potion.name} (id={best_potion.id}) potion and is {color.BOLD}*fully*{color.END} healed!')
         else:
-            cprint(
-                f'{self.name} drinks {best_potion.name} potion and has {min(hp_to_recover, hp_restored)} hit points restored!')
+            cprint(f'{self.name} drinks {best_potion.name} (id={best_potion.id}) potion and has {min(hp_to_recover, hp_restored)} hit points restored!')
+        return best_potion.id
 
     def victory(self, monster: Monster, solo_mode=False):
         self.xp += monster.xp
@@ -1070,6 +1088,7 @@ class DamageDice:
         factor: int = 1 if success_type in ('none', 'None') else 0.5
         return (self.bonus + roll_dice * (1 + dice_count)) * factor / 2
 
+
 @dataclass
 class Treasure(Sprite):
     # type: Potion | Armor | Weapon
@@ -1077,4 +1096,4 @@ class Treasure(Sprite):
     potion: bool
 
     def __repr__(self):
-        return f'{self.gold} {self.potion}'
+        return f'#{self.id} {self.gold} {self.potion}'

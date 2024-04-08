@@ -352,7 +352,7 @@ def load_dungeon_collections() -> Tuple:
 
 
 def get_next_item_id(roster: List[Character]) -> int:
-    return max([item.id for c in roster for item in c.inventory]) + 1 if roster else MAX_ROSTER + 1
+    return max([item.id for c in roster for item in c.inventory if item]) + 1 if roster else MAX_ROSTER + 1
 
 def create_new_character(roster: List[Character]) -> Character:
     """
@@ -441,7 +441,7 @@ def create_new_character(roster: List[Character]) -> Character:
                                      ethnic=ethnic,
                                      height=height,
                                      weight=weight,
-                                     inventory=starting_equipment,
+                                     inventory=starting_equipment + [None] * (20 - len(starting_equipment)),
                                      hit_points=hit_points,
                                      max_hit_points=hit_points,
                                      xp=0, level=1,
@@ -1327,7 +1327,7 @@ def give_best_armors_weapons(roster: List[Character]):
 if __name__ == '__main__':
     seed(time())
     PAUSE_ON_RAISE_LEVEL = True
-    POTION_INITIAL_PACK = 5
+    POTION_INITIAL_PACK = 15
     MAX_ROSTER = 100 # maximum number of characters allowed in this game
     path = os.path.dirname(__file__)
     abspath = os.path.abspath(path)
