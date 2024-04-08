@@ -11,8 +11,8 @@ import re
 from dao_classes import CategoryType, DamageDice, Monster, Armor, RangeType, SpecialAbility, SpellCaster, Weapon, Race, \
     SubRace, Proficiency, ClassType, Language, Equipment, WeaponProperty, WeaponRange, AbilityType, WeaponThrowRange, \
     Trait, EquipmentCategory, \
-    Inventory, \
-    Abilities, Action, Damage, ActionType, DamageType, Spell, ProfType, Condition
+    Abilities, Action, Damage, ActionType, DamageType, Spell, ProfType, Condition, Inventory
+from populate_rpg_functions import load_armor_image_name, load_weapon_image_name
 
 """ CSV loads """
 
@@ -293,7 +293,11 @@ def request_monster(index_name: str) -> Monster:
             proficiency.value = prof.get('value')
             proficiencies.append(proficiency)
 
-    return Monster(name=data['name'],
+    return Monster(id=-1,
+                   image_name=f'monster_{index_name}.png',
+                   x=-1,
+                   y=-1,
+                   name=data['name'],
                    abilities=Abilities(str=data['strength'], dex=data['dexterity'], con=data['constitution'],
                                        int=data['intelligence'], wis=data['wisdom'], cha=data['charisma']),
                    proficiencies=proficiencies,
@@ -360,7 +364,11 @@ def request_armor(index_name: str) -> Armor:
     with open(f"{path}/data/armors/{index_name}.json", "r") as f:
         data = json.loads(f.read())
     if "armor_class" in data:
-        return Armor(index=data['index'],
+        image_name = load_armor_image_name(index_name)
+        return Armor(id=-1,
+                     image_name=image_name,
+                     x=-1, y=-1,
+                     index=data['index'],
                      name=data['name'],
                      armor_class=data['armor_class'],
                      str_minimum=data['str_minimum'],
@@ -369,7 +377,8 @@ def request_armor(index_name: str) -> Armor:
                      stealth_disadvantage=data['stealth_disadvantage'],
                      cost=data['cost'],
                      weight=data['weight'],
-                     desc=None)
+                     desc=None,
+                     equipped=False)
     return None
 
 
@@ -406,7 +415,10 @@ def request_weapon(index_name: str) -> Weapon:
         damage_dice_two_handed: DamageDice = None
         if "two_handed_damage" in data:
             damage_dice_two_handed: DamageDice = DamageDice(data['two_handed_damage']['damage_dice'])
-        return Weapon(index=data['index'],
+        return Weapon(id=-1,
+                      image_name=load_weapon_image_name(index_name),
+                      x=-1, y=-1,
+                      index=data['index'],
                       name=data['name'],
                       category=request_equipment_category(data['equipment_category']['index']),
                       category_type=CategoryType(data['weapon_category']),
@@ -420,7 +432,8 @@ def request_weapon(index_name: str) -> Weapon:
                       cost=data['cost'],
                       weight=data['weight'],
                       properties=weapon_properties,
-                      desc=None)
+                      desc=None,
+                      equipped=False)
     return None
 
 
@@ -612,13 +625,16 @@ def request_equipment(index_name: str) -> Optional[Equipment]:
             elif equipment_category == 'armor':
                 return request_armor(index_name)
             else:
-                return Equipment(index=data['index'],
+                return Equipment(id=-1,
+                                 image_name='None.PNG',
+                                 x=-1, y=-1,
+                                 index=data['index'],
                                  name=data['name'],
-                                 category=request_equipment_category(
-                                     equipment_category),
+                                 category=request_equipment_category(equipment_category),
                                  cost=data['cost'],
                                  weight=data.get('weight'),
-                                 desc=data.get('desc'))
+                                 desc=data.get('desc'),
+                                 equipped=False)
     except FileNotFoundError:
         # print(f'equipment {index_name} not existing in database!')
         return None

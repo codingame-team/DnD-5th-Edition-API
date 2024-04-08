@@ -166,7 +166,6 @@ class Treasure(Sprite):
     # type: Potion | Armor | Weapon
     gold: int
     potion: bool
-    img: Surface | SurfaceType
 
     def __repr__(self):
         return f'{self.gold} {self.potion}'

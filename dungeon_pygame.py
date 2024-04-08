@@ -8,11 +8,13 @@ from typing import List
 
 from pygame import Surface
 
-from dao_rpg_classes import Character, Monster, Armor, Weapon, Treasure
-from dao_classes import Weapon as Weapon2, Armor as Armor2, Potion, Character as Char2, Spell
+# from dao_rpg_classes import Character, Monster, Armor, Weapon, Treasure
+from dao_classes import Weapon, Armor, HealingPotion, Character, Spell, Equipment, Monster, Treasure
 from main import get_roster, save_character
-from populate_functions import populate, request_weapon, request_armor
-from populate_rpg_functions import request_monster, load_armor_image, load_potions_collections, load_potion_image, load_weapon_image
+from populate_functions import populate, request_weapon, request_armor, request_monster
+from populate_rpg_functions import load_potions_collections, load_potion_image_name, load_armor_image_name, \
+    load_weapon_image_name
+from tools.common import cprint
 
 
 # Définition de la classe Item pour représenter un objet dans l'inventaire
@@ -23,7 +25,6 @@ class Item:
         self.image = image
         self.image.set_colorkey(PINK)  # Définir le fond rose comme transparent
         self.selected = False
-
 
 
 # Fonction pour afficher du texte
@@ -61,6 +62,7 @@ def draw_tooltip_old(description, surface, x, y):
     pygame.draw.rect(surface, GRAY, (text_rect.left - 5, text_rect.top - 5, text_rect.width + 10, text_rect.height + 10))
     surface.blit(text, text_rect)
 
+
 # Fonction pour dessiner un bouton
 def draw_button(surface, rect, color, text):
     pygame.draw.rect(surface, color, rect)
@@ -73,6 +75,77 @@ def mh_dist(p1: tuple, p2: tuple):
     return abs(p1[0] - p2[0]) + abs(p1[1] - p2[1])
 
 
+class Level:
+    level_no: int
+    world_map: List[List[int]]
+    map_height: int
+    map_width: int
+    monsters: List[Monster]
+    treasures: dict
+    sprites: dict
+
+    def __init__(self, level_no: int):
+        self.level_no = level_no
+        self.world_map = self.load_maze(level=level_no)
+        self.map_height = len(self.world_map)
+        self.map_width = max([len(self.world_map[i]) for i in range(self.map_height)])
+        self.sprites = {}
+
+    def load_maze(self, level: int) -> List:
+        """
+        Charge le labyrinthe depuis le fichier level.txt
+        nom : nom du fichier contenant le labyrinthe (sans l’extension .txt)
+        Valeur de retour :
+        - une liste avec les données du labyrinthe
+        """
+        try:
+            with open(f"{path}/maze/level_{level}.txt", newline='') as fic:
+                data = fic.readlines()
+        except IOError:
+            print("Impossible de lire le fichier {}.txt".format(level))
+            exit(1)
+        for i in range(len(data)):
+            data[i] = data[i].strip()
+        width = max([len(data[i]) for i in range(len(data))])
+        for i in range(len(data)):
+            data[i] = "{:{g}}".format(data[i], g=f"^{width}")
+        return data
+
+    def load(self, hero: Character):
+        """
+            Chargement des entités du donjon (monstres et trésors)
+        :param level:
+        :return:
+        """
+        # photo_exit: PhotoImage = PhotoImage(file=f"{path}/sprites/exit.png")
+
+        # rating = lambda m: m.cr < (hero.level / 4 if hero.level < 5 else hero.level / 2)
+        monster_names: List[str] = ['ankheg', 'baboon', 'bat', 'crab', 'ghost', 'goblin', 'harpy', 'lizard', 'mimic', 'owl', 'rat', 'skeleton', 'spider', 'wolf']
+        monster_candidates: List[Monster] = [request_monster(name) for name in monster_names]
+        monster_candidates = list(filter(None, monster_candidates))
+        monster_candidates = list(filter(lambda m: m.challenge_rating < self.level_no, monster_candidates))
+        allowed_monster_names: list[str] = [m.name for m in monster_candidates]
+
+        open_positions: List[tuple] = [(x, y) for x in range(self.map_width) for y in range(self.map_height) if self.world_map[y][x] == '.' and (x, y) != hero.pos]
+
+        self.monsters = [request_monster(choice(allowed_monster_names).lower()) for _ in range(randint(1, 5))]
+        for m in self.monsters:
+            m.x, m.y = choice(open_positions)
+            m.id = len(self.sprites)
+            open_positions.remove((m.x, m.y))
+            self.sprites[m.id] = pygame.image.load(f"{char_sprites_dir}/{m.image_name}")
+
+        self.treasures: List[Treasure] = []
+        for _ in range(randint(1, 5)):
+            gold: int = randint(50, 300) * self.level_no
+            has_potion: bool = randint(1, 3) == 2
+            # has_potion: bool = False
+            t_x, t_y = choice(open_positions)
+            t: Treasure = Treasure(id=len(self.sprites), x=t_x, y=t_y, image_name='treasure.png', gold=gold, potion=has_potion)
+            self.treasures.append(t)
+            self.sprites[t.id] = pygame.image.load(f"{sprites_dir}/{t.image_name}")
+
+
 class Game:
     world_map: List[List[int]]
     map_width: int
@@ -81,18 +154,21 @@ class Game:
     screen_height: int
     view_port_width: int
     view_port_height: int
-    hero: Char2
-    monsters: List[Monster]
-    treasures: dict
+    hero: Character
     dungeon_level: int
     action_rects: dict
+    sprites: dict
+    levels: List[Level]
+    level: Level
 
     def __init__(self):
         # Chargement de la carte
         self.dungeon_level = 1
-        self.world_map = self.load_maze(level=self.dungeon_level)
-        self.map_height = len(self.world_map)
-        self.map_width = max([len(self.world_map[i]) for i in range(self.map_height)])
+        self.level = Level(1)
+        self.levels = [self.level]
+        self.world_map = self.level.world_map
+        self.map_height = self.level.map_height
+        self.map_width = self.level.map_width
         self.walls = [(x, y) for y in range(self.map_height) for x in range(self.map_width) if self.world_map[y][x] == '#']
         # Redimensionnement de l'écran
         self.view_port_width = min(self.map_width * TILE_SIZE, SCREEN_WIDTH - STATS_WIDTH)
@@ -100,19 +176,22 @@ class Game:
         self.screen_width = self.view_port_width + STATS_WIDTH
         self.screen_height = self.view_port_height + ACTIONS_HEIGHT
         self.action_rects = {}
+        self.sprites = {}
         # Initialisation du personnage
         open_positions: List[tuple] = [(x, y) for x in range(self.map_width) for y in range(self.map_height) if self.world_map[y][x] == '.']
         hero_x, hero_y = choice(open_positions)
         open_positions.remove((hero_x, hero_y))
-        start_armor: Armor = Armor(name='Plate Armor', ac=18, img=pygame.image.load(f'{path}/sprites/beholder.png'))
-        start_weapon: Weapon = Weapon(name='Greatsword', damage_dice='2d6', img=pygame.image.load(f'{path}/sprites/beholder.png'))
-        self.hero: Character = Character(x=hero_x, y=hero_y, speed=15, hp=10, max_hp=10, weapon=start_weapon, armor=start_armor, img=pygame.image.load(f'{path}/sprites/hero.png'))
         roster: List[Character] = get_roster(characters_dir=f'{path}/gameState/characters')
         self.hero = choice(roster)
+        self.sprites[self.hero.id] = pygame.image.load(f"{char_sprites_dir}/{self.hero.image_name}")
+        for item in self.hero.inventory:
+            if item:
+                self.sprites[item.id] = pygame.image.load(f"{item_sprites_dir}/{item.image_name}")
+        # image: Surface = pygame.image.load(f"{image_path}/{self.image_name}")
         # self.hero = max(roster, key=lambda c: c.gold)
         # self.hero = [c for c in roster if c.name == 'Balasar'][0]
         self.hero.x, self.hero.y = hero_x, hero_y
-        self.load(level=1)
+        self.level.load(hero=self.hero)
 
     # Define a method to calculate the view window
     def calculate_view_window(self):
@@ -121,7 +200,6 @@ class Game:
         viewport_x = max(0, min(self.hero.x - view_width // 2, self.map_width - view_width))
         viewport_y = max(0, min(self.hero.y - view_height // 2, self.map_height - view_height))
         return viewport_x, viewport_y, view_width, view_height
-
 
     def draw_map(self, screen):
         # photo_wall = pygame.image.load(f"{path}/sprites/WallTile1.png")
@@ -158,7 +236,7 @@ class Game:
                 elif self.world_map[row][col] == '>':
                     screen.blit(photo_downstairs, (tile_x, tile_y))
 
-    def feet_inches_to_m_cm(self, height_feet: int , height_inches: int):
+    def feet_inches_to_m_cm(self, height_feet: int, height_inches: int):
         total_inches = height_feet * 12 + height_inches
         height_meters = total_inches * 2.54 / 100
         height_centimeters = total_inches * 2.54 % 100
@@ -172,6 +250,16 @@ class Game:
         pygame.display.set_caption(f"Dungeon Level: {self.dungeon_level}")
         height_feet, height_inches = map(int, self.hero.height.split("'"))
         height_meters, height_centimeters = map(round, self.feet_inches_to_m_cm(height_feet, height_inches))
+        weapon: Weapon = None
+        armor: Armor = None
+        for item in self.hero.inventory:
+            if not item or isinstance(item, HealingPotion):
+                continue
+            if item.equipped:
+                if isinstance(item, Weapon):
+                    weapon = item
+                elif isinstance(item, Armor):
+                    armor = item
         stat_texts = [
             f"Nom: {self.hero.name}",
             f"Race: {self.hero.race.name}",
@@ -180,9 +268,9 @@ class Game:
             f"XP: {self.hero.xp}",
             f"Santé: {self.hero.hit_points}/{self.hero.max_hit_points} ({self.hero.get_status})",
             # damage_dice: str = f'{self.hero.weapon.damage_dice}' if not w.damage_dice.bonus else f'{w.damage_dice.dice} + {w.damage_dice.bonus}'
-            f"Attaque: {self.hero.weapon.damage_dice.dice}",
+            f"Attaque: {weapon.damage_dice.dice}" if weapon else f"Attaque: 1d2",
             # f"Défense: {self.hero.armor.ac}",
-            f"Défense: {self.hero.armor.armor_class['base']}",
+            f"Défense: {armor.armor_class['base']}" if armor else "Défense: 10",
             # f"Potions: {self.hero.potions}",
             f"Gold: {self.hero.gold}",
             f"Taille: {height_meters}m{height_centimeters:2d}",
@@ -223,7 +311,7 @@ class Game:
             text_rect.topleft = (stats_rect[0] + 210, stats_rect[1] + 150 + i * 20)  # Ajuster la position en fonction de la marge
             screen.blit(text_surface, text_rect)
 
-    def draw_inventory(self, screen):
+    def draw_inventory(self, screen, image_dir: str):
         # # Afficher le titre de l'inventaire
         # draw_text("Inventaire", font, BLACK, screen, 10, 10)
 
@@ -240,13 +328,14 @@ class Game:
             icon_y = 210 + 70 + (i // 5) * 40
             # Afficher l'icône de l'objet s'il y en a un dans la case
             if item is not None:
-                screen.blit(item.image, (icon_x, icon_y))
-                frame_color: tuple = BLUE if item.selected else WHITE
+                image: Surface = self.sprites[item.id]
+                screen.blit(image, (icon_x, icon_y))
+                frame_color: tuple = BLUE if isinstance(item, Armor | Weapon) and item.equipped else WHITE
                 pygame.draw.rect(screen, frame_color, (icon_x, icon_y, ICON_SIZE, ICON_SIZE), 2)
                 # Vérifier si la souris survole la case
                 if pygame.Rect(icon_x, icon_y, ICON_SIZE, ICON_SIZE).collidepoint(mouse_x, mouse_y):
                     # Stocker la description de l'objet pour l'info-bulle
-                    tooltip_text = item.description
+                    tooltip_text = item.name
             # Dessiner un cadre vide pour les cases vides
             else:
                 pygame.draw.rect(screen, GRAY, (icon_x, icon_y, ICON_SIZE, ICON_SIZE), 2)
@@ -262,7 +351,7 @@ class Game:
             width: La largeur du rectangle.
             height: La hauteur du rectangle.
         """
-        #actions_rect = pygame.Rect(0, self.map_height * TILE_SIZE, self.screen_width, ACTIONS_HEIGHT)
+        # actions_rect = pygame.Rect(0, self.map_height * TILE_SIZE, self.screen_width, ACTIONS_HEIGHT)
         actions_rect = pygame.Rect(0, self.view_port_height, self.screen_width, ACTIONS_HEIGHT)
         left, top, width, height = actions_rect
         pygame.draw.rect(screen, (200, 200, 200), actions_rect)
@@ -301,63 +390,9 @@ class Game:
         x, y = char.x + dx, char.y + dy
         return 0 <= x < self.map_width and 0 <= y < self.map_height and self.world_map[y][x] != '#'
 
-    def load_maze(self, level: int) -> List:
-        """
-        Charge le labyrinthe depuis le fichier level.txt
-        nom : nom du fichier contenant le labyrinthe (sans l’extension .txt)
-        Valeur de retour :
-        - une liste avec les données du labyrinthe
-        """
-        try:
-            with open(f"{path}/maze/level_{level}.txt", newline='') as fic:
-                data = fic.readlines()
-        except IOError:
-            print("Impossible de lire le fichier {}.txt".format(level))
-            exit(1)
-        for i in range(len(data)):
-            data[i] = data[i].strip()
-        width = max([len(data[i]) for i in range(len(data))])
-        for i in range(len(data)):
-            data[i] = "{:{g}}".format(data[i], g=f"^{width}")
-        return data
-
-    def load(self, level: int):
-        """
-            Chargement des entités du donjon (monstres et trésors)
-        :param level:
-        :return:
-        """
-        photo_treasure = pygame.image.load(f"{path}/sprites/treasure.png")
-        # photo_exit: PhotoImage = PhotoImage(file=f"{path}/sprites/exit.png")
-
-        # rating = lambda m: m.cr < (hero.level / 4 if hero.level < 5 else hero.level / 2)
-        monster_names: List[str] = ['ankheg', 'baboon', 'bat', 'blob', 'crab', 'ghost', 'goblin', 'eagle', 'harpy', 'lizard', 'mimic', 'owl', 'rat', 'rat_scull', 'skeleton',
-                                    'snake', 'spider', 'tentacle', 'wasp', 'wolf']
-        monster_candidates: List[Monster] = [request_monster(name) for name in monster_names]
-        monster_candidates = list(filter(None, monster_candidates))
-        monster_candidates = list(filter(lambda m: m.cr < self.dungeon_level, monster_candidates))
-        allowed_monster_names: list[str] = [m.name for m in monster_candidates]
-
-        open_positions: List[tuple] = [(x, y) for x in range(self.map_width) for y in range(self.map_height) if self.world_map[y][x] == '.' and (x, y) != self.hero.pos]
-
-        self.monsters = [request_monster(choice(allowed_monster_names)) for _ in range(randint(1, 5))]
-        for m in self.monsters:
-            m.x, m.y = choice(open_positions)
-            open_positions.remove((m.x, m.y))
-
-        self.treasures: List[Treasure] = []
-        for _ in range(randint(1, 5)):
-            gold: int = randint(50, 300) * self.dungeon_level
-            # has_potion: bool = randint(1, 3) == 2
-            has_potion: bool = False
-            t_x, t_y = choice(open_positions)
-            treasure: Treasure = Treasure(x=t_x, y=t_y, img=photo_treasure, gold=gold, potion=has_potion)
-            self.treasures.append(treasure)
-
-    def update_level(self, dir: int, screen):
+    def update_level(self, dir: int):
         # Chargement de la carte
-        self.dungeon_level += 1 if dir > 0 else -1
-        self.world_map = self.load_maze(level=self.dungeon_level)
+        self.world_map = self.level.world_map
         self.map_height = len(self.world_map)
         self.map_width = max([len(self.world_map[i]) for i in range(self.map_height)])
         self.walls = [(x, y) for y in range(self.map_height) for x in range(self.map_width) if self.world_map[y][x] == '#']
@@ -375,13 +410,17 @@ class Game:
         exit_positions: List[tuple] = [(x, y) for x in range(self.map_width) for y in range(self.map_height) if
                                        self.world_map[y][x] == '.' and mh_dist((x, y), stair_pos) == 1]
         self.hero.x, self.hero.y = choice(exit_positions)
-        self.load(level=self.dungeon_level)
-        screen = pygame.display.set_mode((game.screen_width, game.screen_height))
 
 
 if __name__ == "__main__":
 
     path = os.path.dirname(__file__)
+    abspath = os.path.abspath(path)
+    characters_dir = f'{abspath}/gameState/characters'
+    sprites_dir = f"{path}/sprites"
+    char_sprites_dir = f"{sprites_dir}/rpgcharacterspack"
+    item_sprites_dir = f"{sprites_dir}/Items"
+    roster: List[Character] = get_roster(characters_dir)
 
     # Initialisation de Pygame
     pygame.init()
@@ -421,45 +460,6 @@ if __name__ == "__main__":
     font = pygame.font.SysFont(None, 36)
 
     # Inventaire du personnage (liste d'objets)
-    inventory: List[Item] = []
-    # inventory += [
-    #     Item("Épée", "Une épée tranchante", pygame.image.load(f"{path}/sprites/Items/Sword01.PNG")),
-    #     Item("Potion de santé", "Restaure 50 points de vie", pygame.image.load(f"{path}/sprites/Items/PotionRed.PNG")),
-    #     Item("Potion de vitesse", "Accélère la vitesse", pygame.image.load(f"{path}/sprites/Items/PotionTallTan.PNG")),
-    #     Item("Armure", "Une armure solide", pygame.image.load(f"{path}/sprites/Items/ArmorChainMail.PNG")),
-    #     Item("Bottes", "Une paire de bottes dorée", pygame.image.load(f"{path}/sprites/Items/BootsGolden.PNG")),
-    #     Item("Arc", "Un arc long", pygame.image.load(f"{path}/sprites/Items/Bow.PNG")),
-    #     Item("Clef", "Une clef en cuivre", pygame.image.load(f"{path}/sprites/Items/KeyCopper.PNG")),
-    #     Item("Bouclier", "Un bouclier rayé rouge", pygame.image.load(f"{path}/sprites/Items/ShieldStripeRed.PNG")),
-    #     Item("Épée à 2 mains", "Une épée à 2 mains", pygame.image.load(f"{path}/sprites/Items/SwordTwoHanded.PNG")),
-    #     Item("Mace", "Une mace magique", pygame.image.load(f"{path}/sprites/Items/MaceMagic.PNG")),
-    #     Item("Bâton", "Un bâton magique", pygame.image.load(f"{path}/sprites/Items/Staff01.PNG")),
-    #     Item("Fléau", "Un fléau", pygame.image.load(f"{path}/sprites/Items/Flail01.PNG")),
-    #     Item("Sort", "Un méchant sort", pygame.image.load(f"{path}/sprites/Items/Scroll0010.PNG")),
-    #     Item("Clef", "Une clef en cuivre", pygame.image.load(f"{path}/sprites/Items/KeyCopper.PNG")),
-    #     Item("Bouclier", "Un bouclier rayé rouge", pygame.image.load(f"{path}/sprites/Items/ShieldStripeRed.PNG")),
-    #     Item("Épée à 2 mains", "Une épée à 2 mains", pygame.image.load(f"{path}/sprites/Items/SwordTwoHanded.PNG")),
-    #     Item("Mace", "Une mace magique", pygame.image.load(f"{path}/sprites/Items/MaceMagic.PNG")),
-    #     Item("Bâton", "Un bâton magique", pygame.image.load(f"{path}/sprites/Items/Staff01.PNG")),
-    #     Item("Fléau", "Un fléau", pygame.image.load(f"{path}/sprites/Items/Flail01.PNG")),
-    #     Item("Sort", "Un méchant sort", pygame.image.load(f"{path}/sprites/Items/Scroll0010.PNG")),
-    #     Item("Mace", "Une mace magique", pygame.image.load(f"{path}/sprites/Items/MaceMagic.PNG")),
-    #     Item("Bâton", "Un bâton magique", pygame.image.load(f"{path}/sprites/Items/Staff01.PNG")),
-    #     Item("Fléau", "Un fléau", pygame.image.load(f"{path}/sprites/Items/Flail01.PNG")),
-    #     Item("Sort", "Un méchant sort", pygame.image.load(f"{path}/sprites/Items/Scroll0010.PNG")),
-    #     Item("Sort", "Un méchant sort", pygame.image.load(f"{path}/sprites/Items/Scroll0010.PNG")),
-    #     Item("Mace", "Une mace magique", pygame.image.load(f"{path}/sprites/Items/MaceMagic.PNG")),
-    #     Item("Bâton", "Un bâton magique", pygame.image.load(f"{path}/sprites/Items/Staff01.PNG")),
-    #     Item("Fléau", "Un fléau", pygame.image.load(f"{path}/sprites/Items/Flail01.PNG")),
-    #     Item("Sort", "Un méchant sort", pygame.image.load(f"{path}/sprites/Items/Scroll0010.PNG")),
-    #     Item("Fléau", "Un fléau", pygame.image.load(f"{path}/sprites/Items/Flail01.PNG")),
-    #     Item("Sort", "Un méchant sort", pygame.image.load(f"{path}/sprites/Items/Scroll0010.PNG")),
-    #     Item("Sort", "Un méchant sort", pygame.image.load(f"{path}/sprites/Items/Scroll0010.PNG")),
-    #     Item("Mace", "Une mace magique", pygame.image.load(f"{path}/sprites/Items/MaceMagic.PNG")),
-    # ]
-    # inventory += [None] * (20 - len(inventory))
-
-
     # monster_names: List[str] = populate(collection_name='monsters', key_name='results')
     # monsters: List[Monster] = [request_monster(name) for name in monster_names]
     armor_names: List[str] = populate(collection_name='armors', key_name='equipment')
@@ -468,36 +468,9 @@ if __name__ == "__main__":
     weapons: List[Weapon] = [request_weapon(name) for name in weapon_names]
     armors = list(filter(lambda a: a, armors))
     weapons = list(filter(lambda w: w, weapons))
-    potions: List[Potion] = load_potions_collections()
-
-    for _ in range(10):
-        a: Armor2 = choice(armors)
-        a_image: Surface = load_armor_image(a.index)
-        desc: str = f'{a.name} (AC: {a.armor_class['base']})'
-        inventory += [Item(a.name, desc, a_image)]
-
-    for _ in range(10):
-        w: Weapon2 = choice(weapons)
-        w_image: Surface = load_weapon_image(w.index)
-        damage_dice: str = f'{w.damage_dice.dice}' if not w.damage_dice.bonus else f'{w.damage_dice.dice} + {w.damage_dice.bonus}'
-        desc: str = f'{w.name} ({damage_dice})'
-        inventory += [Item(w.name, desc, w_image)]
-
-    for _ in range(10):
-        p: Potion = choice(potions)
-        p_image: Surface = load_potion_image(p.name)
-        hit_dice: str = f'{p.hit_dice}' if not p.bonus else f'{p.hit_dice} + {p.bonus}'
-        desc: str = f'{p.name} ({hit_dice})'
-        inventory += [Item(p.name, desc, p_image)]
-
+    healing_potions: List[HealingPotion] = load_potions_collections()
+    inventory: List[Equipment] = game.hero.inventory
     inventory += [None] * (20 - len(inventory))
-
-    path = os.path.dirname(__file__)
-    abspath = os.path.abspath(path)
-    # print(f'path = {path}')
-    # print(f'abspath = {abspath}')
-    characters_dir = f'{abspath}/gameState/characters'
-    roster: List[Character] = get_roster(characters_dir)
 
     # Boucle de jeu
     running = True
@@ -515,21 +488,16 @@ if __name__ == "__main__":
                     if action_rect.collidepoint(event.pos):
                         print(f"Action: {action_text}")
                 # Vérifier si une case de l'inventaire a été cliquée
-                for i, item in enumerate(inventory):
-                    if item is not None:
+                for i, item in enumerate(game.hero.inventory):
+                    if item is not None and isinstance(item, Armor | Weapon):
                         icon_x = game.view_port_width + 10 + (i % 5) * 40
                         icon_y = 150 + 70 + (i // 5) * 40
-                        icon_rect = item.image.get_rect(topleft=(icon_x, icon_y))
+                        image: Surface = game.sprites[item.id]
+                        icon_rect = image.get_rect(topleft=(icon_x, icon_y))
                         if icon_rect.collidepoint(event.pos):
-                            if item.selected:
-                                item.selected = False
-                                if item.name == 'Épée':
-                                    game.hero.weapon.damage_dice = '1d4'
-                            else:
-                                item.selected = True
-                                if item.name == 'Épée':
-                                    game.hero.weapon.damage_dice = '2d10'
-                            break
+                            cprint(f'{item.name} clicked!')
+                            item.equipped = not item.equipped
+                            # break
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_UP and game.can_move(char=game.hero, dir=UP):
                     game.hero.y -= 1
@@ -540,26 +508,47 @@ if __name__ == "__main__":
                 elif event.key == pygame.K_RIGHT and game.can_move(char=game.hero, dir=RIGHT):
                     game.hero.x += 1
 
-        is_treasure: List[Treasure] = [t for t in game.treasures if t.pos == game.hero.pos]
-        if any(t for t in game.treasures if t.pos == game.hero.pos):
+        is_treasure: List[Treasure] = [t for t in game.level.treasures if t.pos == game.hero.pos]
+        if any(t for t in game.level.treasures if t.pos == game.hero.pos):
             print(f'Hero gained a treasure!')
-            treasure: Treasure = is_treasure[0]
-            game.treasures.remove(treasure)
-            game.hero.gold += treasure.gold
-            if treasure.potion:
-                game.hero.potions += 1
-                print(f'Hero found a potion!')
+            t: Treasure = is_treasure[0]
+            game.level.treasures.remove(t)
+            del game.level.sprites[t.id]
+            game.hero.gold += t.gold
+            if t.potion:
+                p: HealingPotion = choice(healing_potions)
+                print(f'Hero found a {p.name} potion!')
+                free_slots: List[int] = [i for i, item in enumerate(game.hero.inventory) if not item]
+                if free_slots:
+                    next_slot: int = min(free_slots)
+                    # p.id = max([item.id for item in game.hero.inventory if item])
+                    p.id = len(game.sprites) + 1
+                    game.hero.inventory[next_slot] = p
+                    game.sprites[p.id] = pygame.image.load(f"{item_sprites_dir}/{p.image_name}")
+                else:
+                    print(f'Inventory is full!')
 
         match game.world_map[game.hero.y][game.hero.x]:
             case '>':
                 print(f'Hero found downstairs!')
-                game.update_level(dir=1, screen=screen)
+                game.dungeon_level += 1
+                if game.dungeon_level > len(game.levels):
+                    game.level = Level(level_no=game.dungeon_level)
+                    game.levels.append(game.level)
+                    game.level.load(hero=game.hero)
+                else:
+                    game.level = game.levels[game.dungeon_level - 1]
+                game.update_level(dir=1)
+                screen = pygame.display.set_mode((game.screen_width, game.screen_height))
             case '<':
                 print(f'Hero found upstairs!')
-                game.update_level(dir=-1, screen=screen)
+                game.dungeon_level -= 1
+                game.level = game.levels[game.dungeon_level - 1]
+                game.update_level(dir=-1)
+                screen = pygame.display.set_mode((game.screen_width, game.screen_height))
 
         # Vérifier les collisions avec les ennemis
-        if any(game.hero.check_collision(e) for e in game.monsters):
+        if any(game.hero.check_collision(e) for e in game.level.monsters):
             print("Combat!")
 
         # Rendu
@@ -572,20 +561,23 @@ if __name__ == "__main__":
 
         view_port_tuple = game.calculate_view_window()
         # Afficher les personnages
-        game.hero.draw(screen, TILE_SIZE, *view_port_tuple)
+        image: Surface = game.sprites[game.hero.id]
+        game.hero.draw(screen, image, TILE_SIZE, *view_port_tuple)
         # game.hero.draw_old(screen, TILE_SIZE)
-        for e in game.monsters:
-            e.draw(screen, TILE_SIZE, *view_port_tuple)
+        for e in game.level.monsters:
+            image: Surface = game.level.sprites[e.id]
+            e.draw(screen, image, TILE_SIZE, *view_port_tuple)
 
         # Afficher les trésors
-        for t in game.treasures:
-            t.draw(screen, TILE_SIZE, *view_port_tuple)
+        for t in game.level.treasures:
+            image: Surface = game.level.sprites[t.id]
+            t.draw(screen, image, TILE_SIZE, *view_port_tuple)
 
         # Dessiner la feuille de stats du personnage
         game.draw_character_stats(screen)
 
         # Dessiner la feuille d'inventaire du personnage
-        game.draw_inventory(screen)
+        game.draw_inventory(screen, sprites_dir)
 
         # Dessiner le panneau de commande d'actions
         game.draw_action_panel(screen)

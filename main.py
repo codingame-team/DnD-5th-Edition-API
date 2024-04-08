@@ -19,6 +19,7 @@ from PyQt5.QtWidgets import QApplication, QDialog
 
 from dao_classes import *
 from populate_functions import *
+from populate_rpg_functions import load_potion_image_name, load_potions_collections
 from pyQTApp.character_sheet import display_char_sheet
 from pyQTApp.qt_designer_widgets.character_dialog import Ui_character_Dialog
 from tools.ability_scores_roll import ability_rolls
@@ -192,7 +193,7 @@ def choose_equipment_from(starting_equipment_options: List[List[Inventory]]):
 
 
 def create_new_character_start(races: List[Race], subraces: List[SubRace], classes: List[ClassType], proficiencies: List[Proficiency], equipments: List[Equipment], names: dict(), human_names: dict(),
-                               reserved_names: List[str]) -> tuple:
+                               roster: List[Character]) -> tuple:
     """
         Character selection on 1st set of attributes
     :param races: list of available races
@@ -276,6 +277,7 @@ def create_new_character_start(races: List[Race], subraces: List[SubRace], class
     genders = ['male', 'female']
     gender: str = read_choice(genders, 'Choose genre:')
     ethnic: str = None
+    reserved_names: List[str] = [c.name for c in roster]
     if race.index in ['human', 'half-elf']:
         name, ethnic = read_name(race.index, gender, human_names, reserved_names)
     else:
@@ -345,21 +347,12 @@ def load_dungeon_collections() -> Tuple:
     equipments: List[Equipment] = [request_equipment(name) for name in equipment_names]
     equipment_category_names: List[str] = populate(collection_name='equipment-categories', key_name='results')
     equipment_categories: List[EquipmentCategory] = [request_equipment_category(name) for name in equipment_category_names]
-    potions: List[Potion] = []
-    for _ in range(PotionRarity.COMMON.value):
-        potion = Potion(name='Healing', rarity=PotionRarity.COMMON, hit_dice='2d4', bonus=2)
-        potions.append(potion)
-    for _ in range(PotionRarity.COMMON.value + 1, PotionRarity.UNCOMMON.value + 1):
-        potion = Potion(name='Greater healing', rarity=PotionRarity.UNCOMMON, hit_dice='4d4', bonus=4)
-        potions.append(potion)
-    for _ in range(PotionRarity.UNCOMMON.value + 1, PotionRarity.RARE.value + 1):
-        potion = Potion(name='Superior healing', rarity=PotionRarity.RARE, hit_dice='8d4', bonus=8)
-        potions.append(potion)
-    for _ in range(PotionRarity.RARE.value + 1, PotionRarity.VERY_RARE.value + 1):
-        potion = Potion(name='Supreme healing', rarity=PotionRarity.VERY_RARE, hit_dice='10d4', bonus=20)
-        potions.append(potion)
-    return monsters, armors, weapons, equipments, equipment_categories, potions
+    healing_potions: List[HealingPotion] = load_potions_collections()
+    return monsters, armors, weapons, equipments, equipment_categories, healing_potions
 
+
+def get_next_item_id(roster: List[Character]) -> int:
+    return max([item.id for c in roster for item in c.inventory]) + 1 if roster else MAX_ROSTER + 1
 
 def create_new_character(roster: List[Character]) -> Character:
     """
@@ -371,20 +364,29 @@ def create_new_character(roster: List[Character]) -> Character:
     # TODO: do not load spell data collections if class_type cannot perform spell casting
     races, subraces, classes, alignments, equipments, proficiencies, names, human_names, spells = load_character_collections()
     prof_types: set() = set([p.type for p in proficiencies])
-    reserved_names: List[str] = [c.name for c in roster]
+    # reserved_names: List[str] = [c.name for c in roster]
     race, subrace, class_type, char_proficiencies, abilities, ability_modifiers, name, gender, ethnic, height, weight, starting_equipment \
         = create_new_character_start(races=races, subraces=subraces, classes=classes, equipments=equipments, proficiencies=proficiencies, names=names, human_names=human_names,
-                                     reserved_names=reserved_names)
+                                     roster=roster)
     # Equip the character with a weapon and an armor from the starting equipment list of the class
     available_weapons = {e.index: e for e in starting_equipment if e.category.index == 'weapon'}
     available_armors = {e.index: e for e in starting_equipment if e.category.index == 'armor'}
     chosen_weapon: str = read_choice(list(available_weapons.keys()), f'Choose 1 weapon to equip:')
     chosen_weapon: Weapon = available_weapons[chosen_weapon]
+    chosen_weapon.equipped = True
     if not available_armors:
         available_armors = {'skin-armor': request_armor('skin-armor')}
     chosen_armor: str = read_choice(list(available_armors.keys()), f'Choose 1 armor to equip')
     chosen_armor: Armor = available_armors[chosen_armor]
+    chosen_armor.equipped = True
     hit_points = class_type.hit_die
+    # Add a set of healing potions to the starting equipment
+    starting_equipment += [choice(healing_potions) for _ in range(POTION_INITIAL_PACK)]
+    # Assign sprite id for each item inside inventory
+    max_item_id: int = get_next_item_id(roster)
+    for item in starting_equipment:
+        item.id = max_item_id
+        max_item_id += 1
 
     # Phase 2: Spell selection
     char_level: int = 1 # could be changed to create higher level characters
@@ -424,9 +426,9 @@ def create_new_character(roster: List[Character]) -> Character:
                      'warlock': 'necromant',
                      'wizard': 'wizzard'
                      }
-    character: Character = Character(x=-1,
-                                     y=-1,
-                                     image_path=f'sprites/rpgcharacterspack/hero_{sprites[class_type.name.lower()]}.png',
+    character: Character = Character(id=len(roster),
+                                     image_name=f'hero_{sprites[class_type.name.lower()]}.png',
+                                     x=-1, y=-1,
                                      race=race,
                                      subrace=subrace,
                                      class_type=class_type,
@@ -440,12 +442,9 @@ def create_new_character(roster: List[Character]) -> Character:
                                      height=height,
                                      weight=weight,
                                      inventory=starting_equipment,
-                                     armor=chosen_armor,
-                                     weapon=chosen_weapon,
                                      hit_points=hit_points,
                                      max_hit_points=hit_points,
                                      xp=0, level=1,
-                                     healing_potions=[choice(potions) for _ in range(POTION_INITIAL_PACK)],
                                      monster_kills=0,
                                      age=18 * 52 + randint(0, 299),
                                      gold=90 + randint(0, 99),
@@ -508,6 +507,7 @@ def location_prompt_ok(location: str) -> bool:
 
 
 def display_character_sheet(char: Character):
+    print(char.id)
     sheet = '+{:-^51}+\n'.format(f' {char.name} (age: {char.age // 52})')
     sheet += f'| str: {str(char.strength).rjust(2)} | int: {str(char.strength).rjust(2)} | hp: {str(char.hit_points).rjust(3)} / {str(char.max_hit_points).ljust(4)}| {str(char.class_type).upper().ljust(14)}|\n'
     sheet += f'| dex: {str(char.dexterity).rjust(2)} | wis: {str(char.wisdom).rjust(2)} | xp: {str(char.xp).ljust(10)}| {str(char.race).title().ljust(14)}|\n'
@@ -516,14 +516,19 @@ def display_character_sheet(char: Character):
     sheet += '|{:^51}|\n'.format(f'kills = {char.monster_kills}')
     rarity_types: dict() = {PotionRarity.COMMON: 'C', PotionRarity.UNCOMMON: 'U', PotionRarity.RARE: 'R', PotionRarity.VERY_RARE: 'VR'}
     potions: dict() = {'C': 0, 'U': 0, 'R': 0, 'VR': 0}
-    for p in char.healing_potions:
+    healing_potions: List[HealingPotion] = [item for item in char.inventory if isinstance(item, HealingPotion)]
+    for p in healing_potions:
         rarity: str = rarity_types[p.rarity]
         potions[rarity] += 1
     potions = dict(filter(lambda p: p[1] > 0, potions.items()))
     sheet += '|{:^51}|\n'.format(f'healing potions = {potions}')
     #sheet += '|{:^51}|\n'.format(f'healing potions = {len(char.healing_potions)}')
-    sheet += '|{:^51}|\n'.format(f'armor = {char.armor.name.title()}')
-    sheet += '|{:^51}|\n'.format(f'weapon = {char.weapon.name.title()} - Damage = {char.weapon.damage_dice.dice}')
+    armors: List[Armor] = [item for item in char.inventory if isinstance(item, Armor) and item.equipped]
+    weapons: List[Weapon] = [item for item in char.inventory if isinstance(item, Weapon) and item.equipped]
+    armors_list: str = ' + '.join([a.name.title() for a in armors])
+    sheet += '|{:^51}|\n'.format(f'armors in use = {armors_list}')
+    for w in weapons:
+        sheet += '|{:^51}|\n'.format(f'weapon in use = {w.name.title()} - Damage = {w.damage_dice.dice}')
     sheet += '|{:^51}|\n'.format(f'gold = {char.gold} gp')
     sheet += '+{:-^51}+\n'.format('')
     if char.can_cast:
@@ -954,6 +959,9 @@ def training_grounds(roster: List[Character]):
         char_names: List[str] = [c.name for c in roster]
         match option:
             case 'Create a New Character':
+                if len(roster) > MAX_ROSTER:
+                    print(f'maximum number ({MAX_ROSTER}) of characters exceeded!!! Please delete existing characters to create a new one...')
+                    continue
                 character = create_new_character(roster)
                 save_character(character, _dir=characters_dir)
                 roster.append(character)
@@ -1254,7 +1262,7 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
                                 alive_monsters.remove(monster)
                                 # attacker.victory(monster)
                                 cprint(f'{color.RED}{monster.name}{color.END} is ** KILLED **!')
-                                attacker.treasure(weapons, armors, equipments, potions)
+                                attacker.treasure(weapons, armors, equipments, healing_potions)
                                 attacker.monster_kills += 1
             # End of Round
             alive_chars: List[Character] = [c for c in party if c.hit_points > 0]
@@ -1320,6 +1328,7 @@ if __name__ == '__main__':
     seed(time())
     PAUSE_ON_RAISE_LEVEL = True
     POTION_INITIAL_PACK = 5
+    MAX_ROSTER = 100 # maximum number of characters allowed in this game
     path = os.path.dirname(__file__)
     abspath = os.path.abspath(path)
     print(f'path = {path}')
@@ -1333,7 +1342,7 @@ if __name__ == '__main__':
         xp_levels.append(int(xp_needed))
 
     """ Load Monster, Armor, Weapon databases """
-    monsters, armors, weapons, equipments, equipment_categories, potions = load_dungeon_collections()
+    monsters, armors, weapons, equipments, equipment_categories, healing_potions = load_dungeon_collections()
     armors = list(filter(lambda a: a, armors))
     weapons = list(filter(lambda w: w, weapons))
 

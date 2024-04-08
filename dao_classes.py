@@ -30,9 +30,32 @@ class color:
 
 """ Monster classes """
 
-
 @dataclass
-class Monster:
+class Sprite:
+    id: int
+    image_name: str
+    x: int
+    y: int
+
+    @property
+    def pos(self) -> tuple:
+        return self.x, self.y
+
+    def check_collision(self, other: "Sprite"):
+        return self.x == other.x and self.y == other.y
+
+    def draw(self, screen, image, tile_size, viewport_x, viewport_y, viewport_width, viewport_height):
+        if self.image_name:
+            # Calculate the position of the sprite relative to the viewport
+            draw_x = (self.x - viewport_x) * tile_size
+            draw_y = (self.y - viewport_y) * tile_size
+
+            # Check if the sprite is within the viewport boundaries
+            if 0 <= draw_x <= viewport_width * tile_size and 0 <= draw_y <= viewport_height * tile_size:
+                screen.blit(image, (draw_x, draw_y))
+#
+@dataclass
+class Monster(Sprite):
     name: str
     abilities: Abilities
     proficiencies: List[Proficiency]
@@ -46,7 +69,10 @@ class Monster:
     sa: List[SpecialAbility] | None
 
     def __repr__(self):
-        return f"{self.name} (AC {self.armor_class} HD: {self.hit_dice} CR: {self.challenge_rating})"
+        return f"#{self.id} {self.name} (AC {self.armor_class} HD: {self.hit_dice} CR: {self.challenge_rating})"
+
+    def __hash__(self):
+        return hash(self)
 
     @property
     def can_cast(self) -> bool:
@@ -154,7 +180,8 @@ class Monster:
                         for damage in attack.damages:
                             damage_given = damage.dd.roll()
                             total_damage += damage_given
-                            cprint(f"{color.RED}{self.name}{color.END} {damage.type.index.replace('ing', 'es')} {color.GREEN}{character.name}{color.END} for {damage_given} hit points!")
+                            cprint(
+                                f"{color.RED}{self.name}{color.END} {damage.type.index.replace('ing', 'es')} {color.GREEN}{character.name}{color.END} for {damage_given} hit points!")
                     if attack.effects:
                         character.conditions = [copy(e) for e in attack.effects]
                         for e in character.conditions:
@@ -194,37 +221,6 @@ class Proficiency:
 
     def __repr__(self):
         return f'{self.name} - {self.type}'
-
-
-# @dataclass
-# class Inventory:
-#     weapons: List[Weapon]
-#     armors: List[Armor]
-#     pass
-
-class PotionRarity(Enum):
-    COMMON = 60
-    UNCOMMON = 80
-    RARE = 95
-    VERY_RARE = 100
-
-
-@dataclass
-class Potion:
-    name: str
-    hit_dice: str
-    bonus: int
-    rarity: PotionRarity
-
-    @property
-    def min_hp_restored(self):
-        dice_count, roll_dice = map(int, self.hit_dice.split('d'))
-        return self.bonus + dice_count
-
-    @property
-    def max_hp_restored(self):
-        dice_count, roll_dice = map(int, self.hit_dice.split('d'))
-        return self.bonus + dice_count * roll_dice
 
 
 @dataclass
@@ -276,48 +272,6 @@ class Race:
 
 
 @dataclass
-class Cost:
-    quantity: int
-    unit: str
-
-
-@dataclass
-class EquipmentCategory:
-    index: str
-    name: str
-    url: str
-
-    # equipments: List[Equipment]
-
-    def __repr__(self):
-        # e_list: List[str] = [e.index for e in self.equipments]
-        return f"{self.index}"  # {e_list}"
-
-
-@dataclass
-class Equipment:
-    index: str
-    name: str
-    cost: Cost
-    weight: int
-    desc: Optional[List[str]]
-    category: EquipmentCategory
-    equipped: bool = field(init=False)
-
-    def __repr__(self):
-        return f"{self.index} {self.category}"
-
-
-@dataclass
-class Inventory:
-    quantity: str
-    equipment: Equipment | EquipmentCategory
-
-    def __repr__(self):
-        return f"{self.quantity} {self.equipment.index}"
-
-
-@dataclass
 class WeaponProperty:
     index: str
     name: str
@@ -355,6 +309,48 @@ class DamageType:
     def __repr__(self):
         return f'{self.index}'
 
+@dataclass
+class Cost:
+    quantity: int
+    unit: str
+
+
+@dataclass
+class EquipmentCategory:
+    index: str
+    name: str
+    url: str
+
+    # equipments: List[Equipment]
+
+    def __repr__(self):
+        # e_list: List[str] = [e.index for e in self.equipments]
+        return f"{self.index}"  # {e_list}"
+
+
+@dataclass
+class Equipment(Sprite):
+    index: str
+    name: str
+    cost: Cost
+    weight: int
+    desc: Optional[List[str]]
+    category: EquipmentCategory
+    equipped: bool
+
+    def __hash__(self):
+        return hash(self.id)
+
+    def __repr__(self):
+        return f"#{self.id} {self.index} ({self.category})"
+
+@dataclass
+class Inventory:
+    quantity: str
+    equipment: Equipment | EquipmentCategory
+
+    def __repr__(self):
+        return f"{self.quantity} {self.equipment.index}"
 
 @dataclass
 class Weapon(Equipment):
@@ -374,7 +370,7 @@ class Weapon(Equipment):
         self.category_range = f'{self.category_type.value} {self.range_type.value}'
 
     def __repr__(self):
-        return f"{self.index} ({self.category})"
+        return f"#{self.id} {self.index} ({self.category})"
 
 
 @dataclass
@@ -384,7 +380,32 @@ class Armor(Equipment):
     stealth_disadvantage: bool
 
     def __repr__(self):
-        return f"{self.index} ({self.category})"
+        return f"#{self.id} {self.index} ({self.category})"
+
+
+class PotionRarity(Enum):
+    COMMON = 60
+    UNCOMMON = 80
+    RARE = 95
+    VERY_RARE = 100
+
+
+@dataclass
+class HealingPotion(Sprite):
+    name: str
+    hit_dice: str
+    bonus: int
+    rarity: PotionRarity
+
+    @property
+    def min_hp_restored(self):
+        dice_count, roll_dice = map(int, self.hit_dice.split('d'))
+        return self.bonus + dice_count
+
+    @property
+    def max_hp_restored(self):
+        dice_count, roll_dice = map(int, self.hit_dice.split('d'))
+        return self.bonus + dice_count * roll_dice
 
 
 class AbilityType(Enum):
@@ -529,6 +550,7 @@ class Damage:
     type: DamageType
     dd: DamageDice
 
+
 @dataclass
 class Condition:
     index: str
@@ -540,6 +562,7 @@ class Condition:
 
     def __copy__(self):
         return Condition(self.index, self.name, self.desc, self.dc_type, self.dc_value, self.creature)
+
 
 @dataclass
 class Spell:
@@ -598,7 +621,6 @@ class ActionType(Enum):
     # MAGIC = 'magic'
 
 
-
 @dataclass
 class SpecialAbility:
     name: str
@@ -646,30 +668,9 @@ class Action:
     damages: List[Damage] | None
     effects: List[Condition] = None
 
-@dataclass
-class Sprite:
-    x: int
-    y: int
-    image_path: str
-
-    @property
-    def pos(self) -> tuple:
-        return self.x, self.y
-
-    def check_collision(self, other: "Sprite"):
-        return self.x == other.x and self.y == other.y
 
 
-    def draw(self, screen, tile_size, viewport_x, viewport_y, viewport_width, viewport_height):
-        if self.image_path:
-            # Calculate the position of the sprite relative to the viewport
-            draw_x = (self.x - viewport_x) * tile_size
-            draw_y = (self.y - viewport_y) * tile_size
 
-            # Check if the sprite is within the viewport boundaries
-            if 0 <= draw_x <= viewport_width * tile_size and 0 <= draw_y <= viewport_height * tile_size:
-                image: Surface = pygame.image.load(self.image_path)
-                screen.blit(image, (draw_x, draw_y))
 
 @dataclass
 class Character(Sprite):
@@ -689,11 +690,8 @@ class Character(Sprite):
     max_hit_points: int
     xp: int
     level: int
-    healing_potions: List[Potion]
     monster_kills: int
     inventory: List[Equipment]
-    armor: Armor
-    weapon: Weapon
     gold: int
     sc: SpellCaster | None
     conditions: List[Condition] | None
@@ -705,9 +703,15 @@ class Character(Sprite):
     def get_status(self) -> str:
         return 'DEAD' if self.hit_points <= 0 else 'OK'
 
+    def can_equip(self, eq: Equipment) -> bool:
+        return (eq.category.index == 'armor' and eq in self.allowed_armors) or (eq.category.index == 'armor' and eq in self.allowed_weapons)
+
+    def can_drink(self, eq: Equipment) -> bool:
+        return eq.category.index == 'potion'
+
     @property
     def can_cast(self) -> bool:
-        #return hasattr(self, 'sc')
+        # return hasattr(self, 'sc')
         return self.sc is not None
 
     @property
@@ -765,7 +769,7 @@ class Character(Sprite):
 
     @property
     def armor_class(self):
-        return self.armor.armor_class['base']
+        return sum([item.armor_class['base'] for item in self.inventory if isinstance(item, Armor) and item.equipped])
 
     @property
     def damage_dice(self) -> DamageDice:
@@ -778,7 +782,7 @@ class Character(Sprite):
         hp_to_recover = self.max_hit_points - self.hit_points
         available_potions = [
             p for p in self.healing_potions if p.max_hp_restored >= hp_to_recover]
-        best_potion: Potion = min(available_potions, key=lambda p: p.max_hp_restored) if available_potions else max(
+        best_potion: HealingPotion = min(available_potions, key=lambda p: p.max_hp_restored) if available_potions else max(
             self.healing_potions, key=lambda p: p.max_hp_restored)
         self.healing_potions.remove(best_potion)
         dice_count, roll_dice = map(int, best_potion.hit_dice.split('d'))
@@ -985,8 +989,9 @@ class Character(Sprite):
                 if attack_roll >= monster.armor_class:
                     damage_roll = self.damage_dice.roll()
                 if damage_roll:
-                    #cprint(f'{color.GREEN}{self.name}{color.END} hits {color.RED}{monster.name}{color.END} for {damage_roll} hit points!')
-                    cprint(f"{color.RED}{self.name}{color.END} {self.weapon.damage_type.index.replace('ing', 'es')} {color.GREEN}{monster.name}{color.END} for {damage_roll} hit points!")
+                    # cprint(f'{color.GREEN}{self.name}{color.END} hits {color.RED}{monster.name}{color.END} for {damage_roll} hit points!')
+                    cprint(
+                        f"{color.RED}{self.name}{color.END} {self.weapon.damage_type.index.replace('ing', 'es')} {color.GREEN}{monster.name}{color.END} for {damage_roll} hit points!")
                     if any([e for e in self.conditions if e.index == 'restrained']):
                         damage_roll //= 2
                         self.hit_points -= damage_roll
@@ -1064,3 +1069,12 @@ class DamageDice:
         dice_count, roll_dice = map(int, self.dice.split('d'))
         factor: int = 1 if success_type in ('none', 'None') else 0.5
         return (self.bonus + roll_dice * (1 + dice_count)) * factor / 2
+
+@dataclass
+class Treasure(Sprite):
+    # type: Potion | Armor | Weapon
+    gold: int
+    potion: bool
+
+    def __repr__(self):
+        return f'{self.gold} {self.potion}'
