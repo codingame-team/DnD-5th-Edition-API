@@ -352,7 +352,7 @@ def load_dungeon_collections() -> Tuple:
 
 
 def get_next_item_id(roster: List[Character]) -> int:
-    return max([item.id for c in roster for item in c.inventory if item]) + 1 if roster else MAX_ROSTER + 1
+    return max([item.id for item in c.inventory for c in roster if item]) + 1 if roster else MAX_ROSTER + 1
 
 def create_new_character(roster: List[Character]) -> Character:
     """

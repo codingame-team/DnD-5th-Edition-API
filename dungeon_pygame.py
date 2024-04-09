@@ -129,7 +129,7 @@ class Level:
         for _ in range(randint(1, 5)):
             gold: int = randint(50, 300) * self.level_no
             has_item: bool = randint(1, 3) == 2
-            # has_potion: bool = False
+            has_item: bool = True
             t_x, t_y = choice(open_positions)
             t: Treasure = Treasure(id=(max(self.sprites) + 1 if self.sprites else 0), x=t_x, y=t_y, image_name='treasure.png', gold=gold, has_item=has_item)
             self.treasures.append(t)
@@ -177,9 +177,11 @@ class Game:
         roster: List[Character] = get_roster(characters_dir=f'{path}/gameState/characters')
         self.hero = choice(roster)
         self.sprites[self.hero.id] = pygame.image.load(f"{char_sprites_dir}/{self.hero.image_name}").convert_alpha()
-        for item in self.hero.inventory:
-            if item:
-                self.sprites[item.id] = pygame.image.load(f"{item_sprites_dir}/{item.image_name}").convert_alpha()
+        # self.hero.inventory = [None] * 20
+        for char in roster:
+            for item in char.inventory:
+                if item:
+                    self.sprites[item.id] = pygame.image.load(f"{item_sprites_dir}/{item.image_name}").convert_alpha()
         # self.hero = max(roster, key=lambda c: c.gold)
         # self.hero = [c for c in roster if c.name == 'Balasar'][0]
         self.hero.x, self.hero.y = hero_x, hero_y
@@ -502,8 +504,13 @@ if __name__ == "__main__":
                 elif event.key == pygame.K_RIGHT and game.can_move(char=game.hero, dir=RIGHT):
                     game.hero.x += 1
                 elif event.key == pygame.K_p:
-                    item_id: int = game.hero.drink_potion()
-                    del game.sprites[item_id]
+                    if game.hero.healing_potions:
+                        p: HealingPotion = game.hero.drink_potion()
+                        p_idx: int = game.hero.inventory.index(p)
+                        game.hero.inventory[p_idx] = None
+                        del game.sprites[p.id]
+                    else:
+                        cprint('Sorry dude! no healing potion available...')
 
         # Ramassage des items au sol si place libre dans inventaire
         if not game.hero.is_full:

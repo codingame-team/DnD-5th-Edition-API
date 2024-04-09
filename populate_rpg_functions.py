@@ -5,93 +5,114 @@ from typing import Optional, List
 import pygame
 from pygame import Surface
 
-from dao_classes import Potion, PotionRarity
+from dao_classes import HealingPotion, PotionRarity
 from dao_rpg_classes import Monster
 
 path = os.path.dirname(__file__)
 
 armors = ['padded-armor', 'leather-armor', 'studded-leather-armor', 'hide-armor', 'chain-shirt', 'scale-mail',
-           'breastplate', 'half-plate-armor', 'ring-mail', 'chain-mail', 'splint-armor', 'plate-armor', 'shield']
+          'breastplate', 'half-plate-armor', 'ring-mail', 'chain-mail', 'splint-armor', 'plate-armor', 'shield']
 
 weapons = ['club', 'dagger', 'greatclub', 'handaxe', 'javelin', 'light-hammer', 'mace', 'quarterstaff', 'sickle',
            'spear', 'crossbow-light', 'dart', 'shortbow', 'sling', 'battleaxe', 'flail', 'glaive', 'greataxe',
            'greatsword', 'halberd', 'lance', 'longsword', 'maul', 'morningstar', 'pike', 'rapier', 'scimitar',
            'shortsword', 'trident', 'war-pick', 'warhammer', 'whip', 'blowgun', 'crossbow-hand', 'crossbow-heavy', 'longbow']
 
-def load_weapon_image(index_name: str) -> Surface:
-    weapons = {'club': 'Club01', 'dagger': 'Dagger', 'greatclub': 'Club02', 'handaxe': 'Axe01', 'javelin': '', 'light-hammer': 'Hammer01', 'mace': 'Mace', 'quarterstaff': 'Quarterstaff', 'sickle': '',
-               'spear': 'Spear', 'crossbow-light': 'CrossbowLight', 'dart': 'Dart', 'shortbow': 'BowShort', 'sling': 'Sling', 'battleaxe': 'AxeBattle', 'flail': 'Flail01', 'glaive': 'AxeGlaive', 'greataxe': 'AxeGreat',
-               'greatsword': 'SwordBroad', 'halberd': '', 'lance': '', 'longsword': 'SwordLong', 'maul': '', 'morningstar': 'ThrowingStar', 'pike': 'Pike', 'rapier': 'SwordRapier', 'scimitar': 'SwordScimitar',
-               'shortsword': 'SwordShort', 'trident': 'Trident', 'war-pick': 'Pick2', 'warhammer': 'HammerWar', 'whip': 'Whip', 'blowgun': '', 'crossbow-hand': 'CrossBowLight', 'crossbow-heavy': 'CrossBowHeavy', 'longbow': 'BowLong'}
+
+def load_weapon_image_name(index_name: str) -> Optional[str]:
+    weapons = {'club': 'Club01',
+               'dagger': 'Dagger',
+               'greatclub': 'Club02',
+               'handaxe': 'Axe01',
+               'javelin': '',
+               'light-hammer': 'Hammer01',
+               'mace': 'Mace',
+               'quarterstaff': 'Quarterstaff',
+               'sickle': '',
+               'spear': 'Spear',
+               'crossbow-light': 'CrossbowLight',
+               'dart': 'Dart',
+               'shortbow': 'BowShort',
+               'sling': 'Sling',
+               'battleaxe': 'AxeBattle',
+               'flail': 'Flail01',
+               'glaive': 'AxeGlaive',
+               'greataxe': 'AxeGreat',
+               'greatsword': 'SwordBroad',
+               'halberd': '', 'lance': '',
+               'longsword': 'SwordLong',
+               'maul': '',
+               'morningstar': 'ThrowingStar',
+               'pike': 'Pike',
+               'rapier': 'SwordRapier',
+               'scimitar': 'SwordScimitar',
+               'shortsword': 'SwordShort',
+               'trident': 'Trident',
+               'war-pick': 'Pick2',
+               'warhammer': 'HammerWar',
+               'whip': 'Whip',
+               'blowgun': '',
+               'crossbow-hand': 'CrossBowLight',
+               'crossbow-heavy': 'CrossBowHeavy',
+               'longbow': 'BowLong'}
     image_name: str = weapons.get(index_name)
-    image_filename: str = f"{path}/sprites/Items/{image_name}.PNG" if image_name else f"{path}/sprites/None.PNG"
-    return pygame.image.load(image_filename)
+    return image_name + '.PNG' if image_name else 'None.PNG'
+
 
 # https://www.aidedd.org/en/rules/equipment/armor/
 # https://opengameart.org/content/armor-icons-by-equipment-slot
-def load_armor_image(index_name: str) -> Surface:
-    match index_name:
-        case 'padded-armor':
-            image_name = 'ArmorLeatherSoft' # Not found
-        case 'leather-armor':
-            image_name = 'ArmorLeatherSoft'
-        case 'studded-leather-armor':
-            image_name = 'ArmorLeatherSoftStudded'
-        case 'hide-armor':
-            image_name = None
-        case 'chain-shirt':
-            image_name = 'ArmorChainMail' # not exactly
-        case 'scale-mail':
-            image_name = 'ArmorLeatherScaleMail'
-        case 'breastplate':
-            image_name = 'ArmorMetalScaleMail'
-        case 'half-plate-armor':
-            image_name = 'ArmorPlatemailPartial'
-        case 'ring-mail':
-            image_name = 'ArmorLeatherHardStudded'
-        case 'chain-mail':
-            image_name = 'ArmorChainMailAugmented'
-        case 'splint-mail':
-            image_name = 'ArmorMetalBrigandine'
-        case 'plate-armor':
-            image_name = 'ArmorPlatemailFull'
-        case 'shield':
-            image_name = 'ShieldWoodenRound'
-        case _:
-            image_name = None
-    image_filename: str = f"{path}/sprites/Items/{image_name}.PNG" if image_name else f"{path}/sprites/None.PNG"
-    return pygame.image.load(image_filename)
+def load_armor_image_name(index_name: str) -> Optional[str]:
+    armors = {
+        'padded-armor': 'ArmorLeatherSoft',
+        'leather-armor': 'ArmorLeatherSoft',
+        'studded-leather-armor': 'ArmorLeatherSoftStudded',
+        'hide-armor': '',
+        'chain-shirt': 'ArmorChainMail',
+        'scale-mail': 'ArmorLeatherScaleMail',
+        'breastplate': 'ArmorMetalScaleMail',
+        'half-plate-armor': 'ArmorPlatemailPartial',
+        'ring-mail': 'ArmorLeatherHardStudded',
+        'chain-mail': 'ArmorChainMailAugmented',
+        'splint-mail': 'ArmorMetalBrigandine',
+        'plate-armor': 'ArmorPlatemailFull',
+        'shield': 'ShieldWoodenRound',
+    }
+    image_name: str = armors.get(index_name)
+    return image_name + '.PNG' if image_name else 'None.PNG'
 
-def load_potion_image(name: str) -> Surface:
-    match name:
-        case 'Healing':
-            image_name = 'PotionShortRed'
-        case 'Greater healing':
-            image_name = 'PotionRed'
-        case 'Superior healing':
-            image_name = 'PotionTallRed'
-        case 'Supreme healing':
-            image_name = 'PotionTallRed2'
-        case _:
-            image_name = None
-    image_filename: str = f"{path}/sprites/Items/{image_name}.PNG" if image_name else f"{path}/sprites/None.PNG"
-    return pygame.image.load(image_filename)
 
-def load_potions_collections() -> List[Potion]:
-    potions: List[Potion] = []
+def load_potion_image_name(name: str) -> Optional[str]:
+    potions = {
+        'Healing': 'PotionShortRed',
+        'Greater healing': 'PotionRed',
+        'Superior healing': 'PotionTallRed',
+        'Supreme healing': 'PotionTallRed2',
+
+    }
+    image_name: str = potions.get(name)
+    return image_name + '.PNG' if image_name else 'None.PNG'
+
+
+def load_potions_collections() -> List[HealingPotion]:
+    healing_potions: List[HealingPotion] = []
     for _ in range(PotionRarity.COMMON.value):
-        potion = Potion(name='Healing', rarity=PotionRarity.COMMON, hit_dice='2d4', bonus=2)
-        potions.append(potion)
+        image_name: str = load_potion_image_name('Healing')
+        potion = HealingPotion(id=-1, image_name=image_name, x=-1, y=-1, name='Healing', rarity=PotionRarity.COMMON, hit_dice='2d4', bonus=2)
+        healing_potions.append(potion)
     for _ in range(PotionRarity.COMMON.value + 1, PotionRarity.UNCOMMON.value + 1):
-        potion = Potion(name='Greater healing', rarity=PotionRarity.UNCOMMON, hit_dice='4d4', bonus=4)
-        potions.append(potion)
+        image_name: str = load_potion_image_name('Greater healing')
+        potion = HealingPotion(id=-1, image_name=image_name, x=-1, y=-1, name='Greater healing', rarity=PotionRarity.UNCOMMON, hit_dice='4d4', bonus=4)
+        healing_potions.append(potion)
     for _ in range(PotionRarity.UNCOMMON.value + 1, PotionRarity.RARE.value + 1):
-        potion = Potion(name='Superior healing', rarity=PotionRarity.RARE, hit_dice='8d4', bonus=8)
-        potions.append(potion)
+        image_name: str = load_potion_image_name('Superior healing')
+        potion = HealingPotion(id=-1, image_name=image_name, x=-1, y=-1, name='Superior healing', rarity=PotionRarity.RARE, hit_dice='8d4', bonus=8)
+        healing_potions.append(potion)
     for _ in range(PotionRarity.RARE.value + 1, PotionRarity.VERY_RARE.value + 1):
-        potion = Potion(name='Supreme healing', rarity=PotionRarity.VERY_RARE, hit_dice='10d4', bonus=20)
-        potions.append(potion)
-    return potions
+        image_name: str = load_potion_image_name('Supreme healing')
+        potion = HealingPotion(id=-1, image_name=image_name, x=-1, y=-1, name='Supreme healing', rarity=PotionRarity.VERY_RARE, hit_dice='10d4', bonus=20)
+        healing_potions.append(potion)
+    return healing_potions
+
 
 def request_monster(index_name: str) -> Optional[Monster]:
     try:
