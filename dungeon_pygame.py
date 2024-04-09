@@ -390,6 +390,26 @@ class Game:
                                        self.world_map[y][x] == '.' and mh_dist((x, y), stair_pos) == 1]
         self.hero.x, self.hero.y = choice(exit_positions)
 
+    def drop(self, item) -> bool:
+        targets: List[tuple] = [(x, y) for x in range(self.map_width) for y in range(self.map_height)
+                                if self.world_map[y][x] == '.' and 0 < mh_dist((x, y), self.hero.pos) <= 2 and item not in self.level.items + self.level.monsters]
+        if not targets:
+            print(f'Unable to drop item {item.name} here. Please move away')
+        item.x, item.y = min(targets, key=lambda p: mh_dist(p, self.hero.pos))
+        image: Surface = self.sprites[item.id]
+        old_item_id = item.id
+        item.id = max(self.level.sprites) + 1 if self.level.sprites else 0
+        self.level.sprites[item.id] = image
+        self.level.items.append(item)
+        self.hero.inventory[self.hero.inventory.index(item)] = None
+        del self.sprites[old_item_id]
+        print(f'{item.name} dropped to ({item.pos})!')
+
+    def remove_from_inv(self, item):
+        p_idx: int = self.hero.inventory.index(item)
+        self.hero.inventory[p_idx] = None
+        del self.sprites[item.id]
+
 
 if __name__ == "__main__":
 
@@ -466,7 +486,7 @@ if __name__ == "__main__":
                         print(f"Action: {action_text}")
                 # Vérifier si une case de l'inventaire a été cliquée
                 for i, item in enumerate(game.hero.inventory):
-                    if item is not None and isinstance(item, Armor | Weapon):
+                    if item is not None:#pp and isinstance(item, Armor | Weapon):
                         icon_x = game.view_port_width + 10 + (i % 5) * 40
                         icon_y = 200 + 70 + (i // 5) * 40
                         image: Surface = game.sprites[item.id]
@@ -476,24 +496,49 @@ if __name__ == "__main__":
                             #  cprint(f'{item.name} clicked!')
                             if isinstance(item, Armor):
                                 if game.hero.used_armor:
-                                    if item == game.hero.used_armor:
-                                        # Unequip armor
+                                    if item.id == game.hero.used_armor.id:
+                                        if event.button == 1:  # Left mouse button
+                                            # Unequip armor
+                                            item.equipped = not item.equipped
+                                        elif event.button == 3:  # Right mouse button
+                                            cprint(f'Hero cannot drop *{item.name}* - Please un-equip *{item.name}* first!')
+                                    else:
+                                        if event.button == 1:  # Left mouse button
+                                            cprint(f'Hero cannot equip *{item.name}* - Please un-equip *{game.hero.used_armor.name}* first!')
+                                        elif event.button == 3:  # Right mouse button
+                                            game.drop(item)
+                                else:
+                                    if event.button == 1:  # Left mouse button
+                                        # equip armor
                                         item.equipped = not item.equipped
                                     else:
-                                        cprint(f'Hero cannot equip *{item.name}* - Please un-equip *{game.hero.used_armor.name}* first!')
-                                else:
-                                    # equip armor
-                                    item.equipped = not item.equipped
+                                        game.drop(item)
                             elif isinstance(item, Weapon):
                                 if game.hero.used_weapon:
-                                    if item == game.hero.used_weapon:
-                                        # Unequip weapon
-                                        item.equipped = not item.equipped
+                                    if item.id == game.hero.used_weapon.id:
+                                        if event.button == 1:  # Left mouse button
+                                            # Unequip weapon
+                                            item.equipped = not item.equipped
+                                        elif event.button == 3:  # Right mouse button
+                                            cprint(f'Hero cannot drop *{item.name}* - Please un-equip *{item.name}* first!')
                                     else:
-                                        cprint(f'Hero cannot equip *{item.name}* - Please un-equip *{game.hero.used_weapon.name}* first!')
+                                        if event.button == 1:  # Left mouse button
+                                            cprint(f'Hero cannot equip *{item.name}* - Please un-equip *{game.hero.used_weapon.name}* first!')
+                                        elif event.button == 3:  # Right mouse button
+                                            game.drop(item)
                                 else:
-                                    # equip weapon
-                                    item.equipped = not item.equipped
+                                    if event.button == 1:  # Left mouse button
+                                        # equip weapon
+                                        item.equipped = not item.equipped
+                                    elif event.button == 3:  # Right mouse button
+                                        game.drop(item)
+                            elif isinstance(item, HealingPotion):
+                                if event.button == 1:  # Left mouse button
+                                    game.hero.drink(item)
+                                    game.remove_from_inv(item)
+                                elif event.button == 3:  # Right mouse button
+                                    game.drop(item)
+
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_UP and game.can_move(char=game.hero, dir=UP):
                     game.hero.y -= 1
@@ -505,10 +550,9 @@ if __name__ == "__main__":
                     game.hero.x += 1
                 elif event.key == pygame.K_p:
                     if game.hero.healing_potions:
-                        p: HealingPotion = game.hero.drink_potion()
-                        p_idx: int = game.hero.inventory.index(p)
-                        game.hero.inventory[p_idx] = None
-                        del game.sprites[p.id]
+                        p: HealingPotion = game.hero.choose_best_potion()
+                        game.hero.drink(p)
+                        game.remove_from_inv(p)
                     else:
                         cprint('Sorry dude! no healing potion available...')
 

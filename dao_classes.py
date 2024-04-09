@@ -42,6 +42,9 @@ class Sprite:
     def pos(self) -> tuple:
         return self.x, self.y
 
+    def __eq__(self, other: "Sprite"):
+        return self.x == other.x and self.y == other.y
+
     def check_collision(self, other: "Sprite"):
         return self.x == other.x and self.y == other.y
 
@@ -810,19 +813,21 @@ class Character(Sprite):
     def is_full(self) -> bool:
         return not any(item is None for item in self.inventory)
 
-    def drink_potion(self) -> HealingPotion:
-        """Healing (??? check rules): A Healing potion repairs one six-sided die, plus one, (2-7) points of damage, just like a Cure Light Wounds spell."""
+    def choose_best_potion(self) -> HealingPotion:
         hp_to_recover = self.max_hit_points - self.hit_points
         available_potions = [p for p in self.healing_potions if p.max_hp_restored >= hp_to_recover]
-        best_potion: HealingPotion = min(available_potions, key=lambda p: p.max_hp_restored) if available_potions else max(self.healing_potions, key=lambda p: p.max_hp_restored)
-        dice_count, roll_dice = map(int, best_potion.hit_dice.split('d'))
-        hp_restored = best_potion.bonus + sum([randint(1, roll_dice) for _ in range(dice_count)])
+        return min(available_potions, key=lambda p: p.max_hp_restored) if available_potions else max(self.healing_potions, key=lambda p: p.max_hp_restored)
+
+    def drink(self, potion: HealingPotion):
+        """Healing (??? check rules): A Healing potion repairs one six-sided die, plus one, (2-7) points of damage, just like a Cure Light Wounds spell."""
+        hp_to_recover = self.max_hit_points - self.hit_points
+        dice_count, roll_dice = map(int, potion.hit_dice.split('d'))
+        hp_restored = potion.bonus + sum([randint(1, roll_dice) for _ in range(dice_count)])
         self.hit_points = min(self.hit_points + hp_restored, self.max_hit_points)
         if hp_to_recover <= hp_restored:
-            cprint(f'{self.name} drinks {best_potion.name} (id={best_potion.id}) potion and is {color.BOLD}*fully*{color.END} healed!')
+            cprint(f'{self.name} drinks {potion.name} (id={potion.id}) potion and is {color.BOLD}*fully*{color.END} healed!')
         else:
-            cprint(f'{self.name} drinks {best_potion.name} (id={best_potion.id}) potion and has {min(hp_to_recover, hp_restored)} hit points restored!')
-        return best_potion
+            cprint(f'{self.name} drinks {potion.name} (id={potion.id}) potion and has {min(hp_to_recover, hp_restored)} hit points restored!')
 
     def victory(self, monster: Monster, solo_mode=False):
         self.xp += monster.xp
