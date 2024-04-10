@@ -390,25 +390,36 @@ class Game:
                                        self.world_map[y][x] == '.' and mh_dist((x, y), stair_pos) == 1]
         self.hero.x, self.hero.y = choice(exit_positions)
 
-    def drop(self, item) -> bool:
-        targets: List[tuple] = [(x, y) for x in range(self.map_width) for y in range(self.map_height)
-                                if self.world_map[y][x] == '.' and 0 < mh_dist((x, y), self.hero.pos) <= 2 and item not in self.level.items + self.level.monsters]
-        if not targets:
+    def add_to_level(self, item, image) -> bool:
+        possible_drop_locations: List[tuple] = [(x, y) for x in range(self.map_width) for y in range(self.map_height) if self.world_map[y][x] == '.'
+         and 0 < mh_dist((x, y), self.hero.pos) <= 2 and item not in self.level.items + self.level.monsters]
+        if not possible_drop_locations:
             print(f'Unable to drop item {item.name} here. Please move away')
-        item.x, item.y = min(targets, key=lambda p: mh_dist(p, self.hero.pos))
-        image: Surface = self.sprites[item.id]
-        old_item_id = item.id
+            return False
+        item.x, item.y = min(possible_drop_locations, key=lambda p: mh_dist(p, self.hero.pos))
         item.id = max(self.level.sprites) + 1 if self.level.sprites else 0
         self.level.sprites[item.id] = image
         self.level.items.append(item)
-        self.hero.inventory[self.hero.inventory.index(item)] = None
-        del self.sprites[old_item_id]
         print(f'{item.name} dropped to ({item.pos})!')
+        return True
+
+    def remove_from_level(self, item):
+        p_idx: int = self.level.items.index(item)
+        self.level.items[p_idx] = None
+        del self.level.sprites[item.id]
 
     def remove_from_inv(self, item):
         p_idx: int = self.hero.inventory.index(item)
         self.hero.inventory[p_idx] = None
         del self.sprites[item.id]
+
+    def add_to_inv(self, item: Equipment, image: Surface):
+        free_slots: List[int] = [i for i, item in enumerate(self.hero.inventory) if not item]
+        next_slot: int = min(free_slots)
+        item.x, item.y = -1, -1
+        item.id = max(self.sprites) + 1 if self.sprites else 0
+        self.hero.inventory[next_slot] = item
+        self.sprites[item.id] = image
 
 
 if __name__ == "__main__":
@@ -506,13 +517,15 @@ if __name__ == "__main__":
                                         if event.button == 1:  # Left mouse button
                                             cprint(f'Hero cannot equip *{item.name}* - Please un-equip *{game.hero.used_armor.name}* first!')
                                         elif event.button == 3:  # Right mouse button
-                                            game.drop(item)
+                                            game.remove_from_inv(item)
+                                            game.add_to_level(item, image)
                                 else:
                                     if event.button == 1:  # Left mouse button
                                         # equip armor
                                         item.equipped = not item.equipped
                                     else:
-                                        game.drop(item)
+                                        game.remove_from_inv(item)
+                                        game.add_to_level(item, image)
                             elif isinstance(item, Weapon):
                                 if game.hero.used_weapon:
                                     if item.id == game.hero.used_weapon.id:
@@ -525,19 +538,22 @@ if __name__ == "__main__":
                                         if event.button == 1:  # Left mouse button
                                             cprint(f'Hero cannot equip *{item.name}* - Please un-equip *{game.hero.used_weapon.name}* first!')
                                         elif event.button == 3:  # Right mouse button
-                                            game.drop(item)
+                                            game.remove_from_inv(item)
+                                            game.add_to_level(item, image)
                                 else:
                                     if event.button == 1:  # Left mouse button
                                         # equip weapon
                                         item.equipped = not item.equipped
                                     elif event.button == 3:  # Right mouse button
-                                        game.drop(item)
+                                        game.remove_from_inv(item)
+                                        game.add_to_level(item, image)
                             elif isinstance(item, HealingPotion):
                                 if event.button == 1:  # Left mouse button
                                     game.hero.drink(item)
                                     game.remove_from_inv(item)
                                 elif event.button == 3:  # Right mouse button
-                                    game.drop(item)
+                                    game.remove_from_inv(item)
+                                    game.add_to_level(item, image)
 
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_UP and game.can_move(char=game.hero, dir=UP):
@@ -556,19 +572,6 @@ if __name__ == "__main__":
                     else:
                         cprint('Sorry dude! no healing potion available...')
 
-        # Ramassage des items au sol si place libre dans inventaire
-        if not game.hero.is_full:
-            is_item: List[Equipment] = [item for item in game.level.items if item.pos == game.hero.pos]
-            if any(item for item in game.level.items if item.pos == game.hero.pos):
-                item: Equipment = is_item[0]
-                game.level.items.remove(item)
-                image: Surface = game.level.sprites[item.id]
-                del game.level.sprites[item.id]
-                item.id = max(game.sprites) + 1 if game.sprites else 0
-                item.x, item.y = -1, -1
-                game.sprites[item.id] = image
-                game.hero.add_item_to_inv(item)
-                print(f'Hero gained an item! ({item.name})')
 
         # Ouverture des coffres à trésor (Gold + item aléatoire éventuel)
         is_treasure: List[Treasure] = [t for t in game.level.treasures if t.pos == game.hero.pos]
@@ -589,18 +592,14 @@ if __name__ == "__main__":
                 print(f'Hero found a {item.name}!')
                 image: Surface = pygame.image.load(f"{item_sprites_dir}/{item.image_name}")
                 free_slots: List[int] = [i for i, item in enumerate(game.hero.inventory) if not item]
-                can_add_item: bool = game.hero.add_item_to_inv(item)
-                if can_add_item:
+                if free_slots:
                     # Add item to inventory
-                    item.id = max(game.sprites) + 1 if game.sprites else 0
-                    game.sprites[item.id] = image
+                    game.add_to_inv(item, image)
                 else:
                     # Drop item to the ground
                     print(f'Inventory is full!')
-                    item.x, item.y = game.hero.pos
-                    item.id = max(game.level.sprites) + 1 if game.level.sprites else 0
-                    game.level.sprites[item.id] = image
-                    game.level.items.append(item)
+                    game.add_to_level(item, image)
+
 
         match game.world_map[game.hero.y][game.hero.x]:
             case '>':
@@ -648,11 +647,36 @@ if __name__ == "__main__":
             image: Surface = game.level.sprites[t.id]
             t.draw(game.screen, image, TILE_SIZE, *view_port_tuple)
 
-        # Afficher les items laissés au sol
+        # # Ramassage des items au sol si place libre dans inventaire
+        # if not game.hero.is_full:
+        #     is_item: List[Equipment] = [item for item in game.level.items if item.pos == game.hero.pos]
+        #     if any(item for item in game.level.items if item.pos == game.hero.pos):
+        #         item: Equipment = is_item[0]
+        #         game.remove_from_level(item)
+        #         image: Surface = game.level.sprites[item.id]
+        #         game.add_to_inv(item, image)
+        #         print(f'Hero gained an item! ({item.name})')
+
+        # Afficher ou Ramasser des items laissés au sol
         for item in game.level.items:
-            image: Surface = game.level.sprites[item.id]
-            image.set_colorkey(PINK)  # Set the pink color as transparent
-            item.draw(game.screen, image, TILE_SIZE, *view_port_tuple)
+            try:
+                image: Surface = game.level.sprites[item.id]
+                item_taken: bool = False
+                if item.pos == game.hero.pos:
+                    free_slots: List[int] = [i for i, item in enumerate(game.hero.inventory) if not item]
+                    if free_slots:
+                        game.remove_from_level(item)
+                        # Add item to inventory
+                        game.add_to_inv(item, image)
+                        print(f'Hero gained an item! ({item.name}) #{item.id}')
+                        item_taken = True
+                    else:
+                        print(f'Cannot take item {item.name}. Inventory is full!')
+                if not item_taken:
+                    image.set_colorkey(PINK)  # Set the pink color as transparent
+                    item.draw(game.screen, image, TILE_SIZE, *view_port_tuple)
+            except AttributeError:
+                pass
 
         # Dessiner la feuille de stats du personnage
         game.draw_character_stats()

@@ -716,13 +716,6 @@ class Character(Sprite):
     def can_equip(self, eq: Equipment) -> bool:
         return (eq.category.index == 'armor' and eq in self.allowed_armors) or (eq.category.index == 'armor' and eq in self.allowed_weapons)
 
-    def add_item_to_inv(self, item: Equipment) -> bool:
-        free_slots: List[int] = [i for i, item in enumerate(self.inventory) if not item]
-        if free_slots:
-            next_slot: int = min(free_slots)
-            self.inventory[next_slot] = item
-            return True
-        return False
 
     def can_drink(self, eq: Equipment) -> bool:
         return eq.category.index == 'potion'
