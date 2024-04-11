@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os, pygame
 import sys
+from copy import copy
 from dataclasses import dataclass, field
 from random import choice, randint
 from typing import List
@@ -433,11 +434,11 @@ class Game:
         if t.has_item:
             match randint(1, 3):
                 case 1:
-                    item: HealingPotion = choice(healing_potions)
+                    item: HealingPotion = copy(choice(healing_potions))
                 case 2:
-                    item: Armor = choice(self.hero.allowed_armors)
+                    item: Armor = copy(choice(self.hero.allowed_armors))
                 case 3:
-                    item: Weapon = choice(self.hero.allowed_weapons)
+                    item: Weapon = copy(choice(self.hero.allowed_weapons))
             print(f'Hero found a {item.name}!')
             image: Surface = pygame.image.load(f"{item_sprites_dir}/{item.image_name}")
             free_slots: List[int] = [i for i, item in enumerate(self.hero.inventory) if not item]

@@ -372,16 +372,16 @@ def create_new_character(roster: List[Character]) -> Character:
     available_weapons = {e.index: e for e in starting_equipment if e.category.index == 'weapon'}
     available_armors = {e.index: e for e in starting_equipment if e.category.index == 'armor'}
     chosen_weapon: str = read_choice(list(available_weapons.keys()), f'Choose 1 weapon to equip:')
-    chosen_weapon: Weapon = available_weapons[chosen_weapon]
+    chosen_weapon: Weapon = copy(available_weapons[chosen_weapon])
     chosen_weapon.equipped = True
     if not available_armors:
         available_armors = {'skin-armor': request_armor('skin-armor')}
     chosen_armor: str = read_choice(list(available_armors.keys()), f'Choose 1 armor to equip')
-    chosen_armor: Armor = available_armors[chosen_armor]
+    chosen_armor: Armor = copy(available_armors[chosen_armor])
     chosen_armor.equipped = True
     hit_points = class_type.hit_die
     # Add a set of healing potions to the starting equipment
-    starting_equipment += [choice(healing_potions) for _ in range(POTION_INITIAL_PACK)]
+    starting_equipment += [copy(choice(healing_potions)) for _ in range(POTION_INITIAL_PACK)]
     # Assign sprite id for each item inside inventory
     max_item_id: int = get_next_item_id(roster)
     for item in starting_equipment:
