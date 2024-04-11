@@ -70,7 +70,7 @@ class Level:
     map_width: int
     monsters: List[Monster]
     treasures: dict
-    items: List[Equipment|HealingPotion]
+    items: List[Equipment | HealingPotion]
     sprites: dict
 
     def __init__(self, level_no: int):
@@ -306,15 +306,18 @@ class Game:
             icon_y = 210 + 70 + (i // 5) * 40
             # Afficher l'icône de l'objet s'il y en a un dans la case
             if item is not None:
-                image: Surface = self.sprites[item.id]
-                image.set_colorkey(PINK)
-                self.screen.blit(image, (icon_x, icon_y))
-                frame_color: tuple = BLUE if isinstance(item, Armor | Weapon) and item.equipped else WHITE
-                pygame.draw.rect(self.screen, frame_color, (icon_x, icon_y, ICON_SIZE, ICON_SIZE), 2)
-                # Vérifier si la souris survole la case
-                if pygame.Rect(icon_x, icon_y, ICON_SIZE, ICON_SIZE).collidepoint(mouse_x, mouse_y):
-                    # Stocker la description de l'objet pour l'info-bulle
-                    tooltip_text = item.name
+                try:
+                    image: Surface = self.sprites[item.id]
+                    image.set_colorkey(PINK)
+                    self.screen.blit(image, (icon_x, icon_y))
+                    frame_color: tuple = BLUE if isinstance(item, Armor | Weapon) and item.equipped else WHITE
+                    pygame.draw.rect(self.screen, frame_color, (icon_x, icon_y, ICON_SIZE, ICON_SIZE), 2)
+                    # Vérifier si la souris survole la case
+                    if pygame.Rect(icon_x, icon_y, ICON_SIZE, ICON_SIZE).collidepoint(mouse_x, mouse_y):
+                        # Stocker la description de l'objet pour l'info-bulle
+                        tooltip_text = item.name
+                except KeyError:
+                    pass
             # Dessiner un cadre vide pour les cases vides
             else:
                 pygame.draw.rect(self.screen, GRAY, (icon_x, icon_y, ICON_SIZE, ICON_SIZE), 2)
@@ -392,7 +395,7 @@ class Game:
 
     def add_to_level(self, item, image) -> bool:
         possible_drop_locations: List[tuple] = [(x, y) for x in range(self.map_width) for y in range(self.map_height) if self.world_map[y][x] == '.'
-         and 0 < mh_dist((x, y), self.hero.pos) <= 2 and item not in self.level.items + self.level.monsters]
+                                                and 0 < mh_dist((x, y), self.hero.pos) <= 2 and item not in self.level.items + self.level.monsters]
         if not possible_drop_locations:
             print(f'Unable to drop item {item.name} here. Please move away')
             return False
@@ -420,6 +423,64 @@ class Game:
         item.id = max(self.sprites) + 1 if self.sprites else 0
         self.hero.inventory[next_slot] = item
         self.sprites[item.id] = image
+
+    def open_chest(self):
+        print(f'Hero gained a treasure!')
+        t: Treasure = [t for t in self.level.treasures if t.pos == self.hero.pos][0]
+        self.level.treasures.remove(t)
+        del self.level.sprites[t.id]
+        self.hero.gold += t.gold
+        if t.has_item:
+            match randint(1, 3):
+                case 1:
+                    item: HealingPotion = choice(healing_potions)
+                case 2:
+                    item: Armor = choice(self.hero.allowed_armors)
+                case 3:
+                    item: Weapon = choice(self.hero.allowed_weapons)
+            print(f'Hero found a {item.name}!')
+            image: Surface = pygame.image.load(f"{item_sprites_dir}/{item.image_name}")
+            free_slots: List[int] = [i for i, item in enumerate(self.hero.inventory) if not item]
+            if free_slots:
+                # Add item to inventory
+                self.add_to_inv(item, image)
+            else:
+                # Drop item to the ground
+                print(f'Inventory is full!')
+                self.add_to_level(item, image)
+
+    def equip(self, item):
+        if isinstance(item, Armor):
+            if self.hero.used_armor:
+                if item.id == self.hero.used_armor.id:
+                    # un-equip armor
+                    item.equipped = not item.equipped
+                else:
+                    cprint(f'Hero cannot equip *{item.name}* - Please un-equip *{self.hero.used_armor.name}* first!')
+            else:
+                # equip armor
+                item.equipped = not item.equipped
+        elif isinstance(item, Weapon):
+            if self.hero.used_weapon:
+                if item.id == self.hero.used_weapon.id:
+                    # un-equip weapon
+                    item.equipped = not item.equipped
+                else:
+                    cprint(f'Hero cannot equip *{item.name}* - Please un-equip *{self.hero.used_armor.name}* first!')
+            else:
+                # equip weapon
+                item.equipped = not item.equipped
+
+    def use(self, item):
+        self.hero.drink(item)
+        self.remove_from_inv(item)
+
+    def drop(self, item, image):
+        if isinstance(item, Armor | Weapon) and item.equipped:
+            cprint(f'Hero cannot drop *{item.name}* - Please un-equip *{item.name}* first!')
+        else:
+            self.remove_from_inv(item)
+            self.add_to_level(item, image)
 
 
 if __name__ == "__main__":
@@ -497,63 +558,23 @@ if __name__ == "__main__":
                         print(f"Action: {action_text}")
                 # Vérifier si une case de l'inventaire a été cliquée
                 for i, item in enumerate(game.hero.inventory):
-                    if item is not None:#pp and isinstance(item, Armor | Weapon):
-                        icon_x = game.view_port_width + 10 + (i % 5) * 40
-                        icon_y = 200 + 70 + (i // 5) * 40
-                        image: Surface = game.sprites[item.id]
-                        icon_rect = image.get_rect(topleft=(icon_x, icon_y))
-                        # cprint(icon_rect)
-                        if icon_rect.collidepoint(event.pos):
-                            #  cprint(f'{item.name} clicked!')
-                            if isinstance(item, Armor):
-                                if game.hero.used_armor:
-                                    if item.id == game.hero.used_armor.id:
-                                        if event.button == 1:  # Left mouse button
-                                            # Unequip armor
-                                            item.equipped = not item.equipped
-                                        elif event.button == 3:  # Right mouse button
-                                            cprint(f'Hero cannot drop *{item.name}* - Please un-equip *{item.name}* first!')
-                                    else:
-                                        if event.button == 1:  # Left mouse button
-                                            cprint(f'Hero cannot equip *{item.name}* - Please un-equip *{game.hero.used_armor.name}* first!')
-                                        elif event.button == 3:  # Right mouse button
-                                            game.remove_from_inv(item)
-                                            game.add_to_level(item, image)
-                                else:
-                                    if event.button == 1:  # Left mouse button
-                                        # equip armor
-                                        item.equipped = not item.equipped
-                                    else:
-                                        game.remove_from_inv(item)
-                                        game.add_to_level(item, image)
-                            elif isinstance(item, Weapon):
-                                if game.hero.used_weapon:
-                                    if item.id == game.hero.used_weapon.id:
-                                        if event.button == 1:  # Left mouse button
-                                            # Unequip weapon
-                                            item.equipped = not item.equipped
-                                        elif event.button == 3:  # Right mouse button
-                                            cprint(f'Hero cannot drop *{item.name}* - Please un-equip *{item.name}* first!')
-                                    else:
-                                        if event.button == 1:  # Left mouse button
-                                            cprint(f'Hero cannot equip *{item.name}* - Please un-equip *{game.hero.used_weapon.name}* first!')
-                                        elif event.button == 3:  # Right mouse button
-                                            game.remove_from_inv(item)
-                                            game.add_to_level(item, image)
-                                else:
-                                    if event.button == 1:  # Left mouse button
-                                        # equip weapon
-                                        item.equipped = not item.equipped
-                                    elif event.button == 3:  # Right mouse button
-                                        game.remove_from_inv(item)
-                                        game.add_to_level(item, image)
-                            elif isinstance(item, HealingPotion):
+                    if item is not None:  # pp and isinstance(item, Armor | Weapon):
+                        try:
+                            icon_x = game.view_port_width + 10 + (i % 5) * 40
+                            icon_y = 200 + 70 + (i // 5) * 40
+                            image: Surface = game.sprites[item.id]
+                            icon_rect = image.get_rect(topleft=(icon_x, icon_y))
+                            # cprint(icon_rect)
+                            if icon_rect.collidepoint(event.pos):
                                 if event.button == 1:  # Left mouse button
-                                    game.hero.drink(item)
-                                    game.remove_from_inv(item)
+                                    if isinstance(item, Armor | Weapon):
+                                        game.equip(item)
+                                    else:
+                                        game.use(item)
                                 elif event.button == 3:  # Right mouse button
-                                    game.remove_from_inv(item)
-                                    game.add_to_level(item, image)
+                                    game.drop(item, image)
+                        except KeyError:
+                            pass
 
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_UP and game.can_move(char=game.hero, dir=UP):
@@ -572,34 +593,9 @@ if __name__ == "__main__":
                     else:
                         cprint('Sorry dude! no healing potion available...')
 
-
         # Ouverture des coffres à trésor (Gold + item aléatoire éventuel)
-        is_treasure: List[Treasure] = [t for t in game.level.treasures if t.pos == game.hero.pos]
-        if any(t for t in game.level.treasures if t.pos == game.hero.pos):
-            print(f'Hero gained a treasure!')
-            t: Treasure = is_treasure[0]
-            game.level.treasures.remove(t)
-            del game.level.sprites[t.id]
-            game.hero.gold += t.gold
-            if t.has_item:
-                match randint(1, 3):
-                    case 1:
-                        item: HealingPotion = choice(healing_potions)
-                    case 2:
-                        item: Armor = choice(game.hero.allowed_armors)
-                    case 3:
-                        item: Weapon = choice(game.hero.allowed_weapons)
-                print(f'Hero found a {item.name}!')
-                image: Surface = pygame.image.load(f"{item_sprites_dir}/{item.image_name}")
-                free_slots: List[int] = [i for i, item in enumerate(game.hero.inventory) if not item]
-                if free_slots:
-                    # Add item to inventory
-                    game.add_to_inv(item, image)
-                else:
-                    # Drop item to the ground
-                    print(f'Inventory is full!')
-                    game.add_to_level(item, image)
-
+        if any(t.pos == game.hero.pos for t in game.level.treasures):
+            game.open_chest()
 
         match game.world_map[game.hero.y][game.hero.x]:
             case '>':
@@ -647,16 +643,6 @@ if __name__ == "__main__":
             image: Surface = game.level.sprites[t.id]
             t.draw(game.screen, image, TILE_SIZE, *view_port_tuple)
 
-        # # Ramassage des items au sol si place libre dans inventaire
-        # if not game.hero.is_full:
-        #     is_item: List[Equipment] = [item for item in game.level.items if item.pos == game.hero.pos]
-        #     if any(item for item in game.level.items if item.pos == game.hero.pos):
-        #         item: Equipment = is_item[0]
-        #         game.remove_from_level(item)
-        #         image: Surface = game.level.sprites[item.id]
-        #         game.add_to_inv(item, image)
-        #         print(f'Hero gained an item! ({item.name})')
-
         # Afficher ou Ramasser des items laissés au sol
         for item in game.level.items:
             try:
@@ -665,6 +651,7 @@ if __name__ == "__main__":
                 if item.pos == game.hero.pos:
                     free_slots: List[int] = [i for i, item in enumerate(game.hero.inventory) if not item]
                     if free_slots:
+                        # Grab item
                         game.remove_from_level(item)
                         # Add item to inventory
                         game.add_to_inv(item, image)
