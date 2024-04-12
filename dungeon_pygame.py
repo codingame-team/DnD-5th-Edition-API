@@ -179,6 +179,7 @@ class Game:
         self.hero = choice(roster)
         self.sprites[self.hero.id] = pygame.image.load(f"{char_sprites_dir}/{self.hero.image_name}").convert_alpha()
         # self.hero.inventory = [None] * 20
+        # self.hero.abilities.str = 12
         for char in roster:
             for item in char.inventory:
                 if item:
@@ -304,7 +305,7 @@ class Game:
         for i, item in enumerate(self.hero.inventory):
             # Calculer les coordonnées de l'image dans la case
             icon_x = self.view_port_width + 10 + (i % 5) * 40
-            icon_y = 210 + 70 + (i // 5) * 40
+            icon_y = 204 + 70 + (i // 5) * 40
             # Afficher l'icône de l'objet s'il y en a un dans la case
             if item is not None:
                 try:
@@ -436,9 +437,10 @@ class Game:
                 case 1:
                     item: HealingPotion = copy(choice(healing_potions))
                 case 2:
-                    item: Armor = copy(choice(self.hero.allowed_armors))
+                    item: Armor = request_armor(index_name=choice(self.hero.allowed_armors).index)
                 case 3:
-                    item: Weapon = copy(choice(self.hero.allowed_weapons))
+                    item: Weapon = request_weapon(index_name=choice(self.hero.allowed_weapons).index)
+                    # item: Weapon = request_weapon('halberd')
             print(f'Hero found a {item.name}!')
             image: Surface = pygame.image.load(f"{item_sprites_dir}/{item.image_name}")
             free_slots: List[int] = [i for i, item in enumerate(self.hero.inventory) if not item]
@@ -457,17 +459,20 @@ class Game:
                     # un-equip armor
                     item.equipped = not item.equipped
                 else:
-                    cprint(f'Hero cannot equip *{item.name}* - Please un-equip *{self.hero.used_armor.name}* first!')
+                    cprint(f'Hero cannot equip <{item.name}> - Please un-equip <{self.hero.used_armor.name}> first!')
             else:
-                # equip armor
-                item.equipped = not item.equipped
+                if self.hero.strength < item.str_minimum:
+                    cprint(f'Hero cannot equip <{item.name}> - Minimum strength required is <{item.str_minimum}>!')
+                else:
+                    # equip armor
+                    item.equipped = not item.equipped
         elif isinstance(item, Weapon):
             if self.hero.used_weapon:
                 if item.id == self.hero.used_weapon.id:
                     # un-equip weapon
                     item.equipped = not item.equipped
                 else:
-                    cprint(f'Hero cannot equip *{item.name}* - Please un-equip *{self.hero.used_armor.name}* first!')
+                    cprint(f'Hero cannot equip <{item.name}> - Please un-equip <{self.hero.used_weapon.name}> first!')
             else:
                 # equip weapon
                 item.equipped = not item.equipped
@@ -478,7 +483,7 @@ class Game:
 
     def drop(self, item, image):
         if isinstance(item, Armor | Weapon) and item.equipped:
-            cprint(f'Hero cannot drop *{item.name}* - Please un-equip *{item.name}* first!')
+            cprint(f'Hero cannot drop <{item.name}> - Please un-equip <{item.name}> first!')
         else:
             self.remove_from_inv(item)
             self.add_to_level(item, image)

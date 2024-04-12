@@ -372,12 +372,12 @@ def create_new_character(roster: List[Character]) -> Character:
     available_weapons = {e.index: e for e in starting_equipment if e.category.index == 'weapon'}
     available_armors = {e.index: e for e in starting_equipment if e.category.index == 'armor'}
     chosen_weapon: str = read_choice(list(available_weapons.keys()), f'Choose 1 weapon to equip:')
-    chosen_weapon: Weapon = copy(available_weapons[chosen_weapon])
+    chosen_weapon: Weapon = request_weapon(available_weapons[chosen_weapon].index)
     chosen_weapon.equipped = True
     if not available_armors:
         available_armors = {'skin-armor': request_armor('skin-armor')}
     chosen_armor: str = read_choice(list(available_armors.keys()), f'Choose 1 armor to equip')
-    chosen_armor: Armor = copy(available_armors[chosen_armor])
+    chosen_armor: Armor = request_armor(available_armors[chosen_armor].index)
     chosen_armor.equipped = True
     hit_points = class_type.hit_die
     # Add a set of healing potions to the starting equipment
