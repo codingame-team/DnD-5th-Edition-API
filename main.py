@@ -352,7 +352,8 @@ def load_dungeon_collections() -> Tuple:
 
 
 def get_next_item_id(roster: List[Character]) -> int:
-    return max([item.id for item in c.inventory for c in roster if item]) + 1 if roster else MAX_ROSTER + 1
+    # return max([item.id for c in roster for item in c.inventory if item]) + 1 if roster else MAX_ROSTER + 1
+    return max([item.id for c in roster for item in c.inventory if item]) + 1 if roster else MAX_ROSTER + 1
 
 def create_new_character(roster: List[Character]) -> Character:
     """
@@ -392,7 +393,7 @@ def create_new_character(roster: List[Character]) -> Character:
     char_level: int = 1 # could be changed to create higher level characters
     spell_caster: SpellCaster = None
     learned_spells: List[Spell] = []
-    if class_type.can_cast:
+    if class_type.is_spell_caster:
         learnable_spells: List[Spell] = [s for s in spells if class_type.index in s.allowed_classes and s.level <= char_level and s.damage_type]
         if learnable_spells:
             cantrips_spells: List[Spell] = []
@@ -531,7 +532,7 @@ def display_character_sheet(char: Character):
         sheet += '|{:^51}|\n'.format(f'weapon in use = {w.name.title()} - Damage = {w.damage_dice.dice}')
     sheet += '|{:^51}|\n'.format(f'gold = {char.gold} gp')
     sheet += '+{:-^51}+\n'.format('')
-    if char.can_cast:
+    if char.is_spell_caster:
         slots: str = '/'.join(map(str, char.sc.spell_slots))
         sheet += '|{:^51}|\n'.format(f'spell slots: {slots}')
         known_spells: int = len(char.sc.learned_spells)
@@ -1049,7 +1050,7 @@ def generate_encounter(encounter_level: int, monsters: List[Monster], monster_gr
         # print(f'{len(cr2_monsters)} cr2_monsters = {cr2_monsters}')
         monster_1: Monster = choice(cr1_monsters)
         monster_2: Monster = choice(cr2_monsters)
-        return [copy(monster_1), copy(monster_2)]
+        return [request_monster(monster_1.index), request_monster(monster_2.index)]
     else:
         matching_monsters: List[Tuple[Monster, int]] = []
         cr_dict: dict() = encounter_table[encounter_level][1]
@@ -1061,9 +1062,9 @@ def generate_encounter(encounter_level: int, monsters: List[Monster], monster_gr
             else:
                 matching_monsters += [(m, monsters_count) for m in monsters if Fraction(str(m.challenge_rating)) in cr_list and m.can_cast]
         monster, monster_count = choice(matching_monsters)
-        group_of_monsters: List[Monster] = [copy(monster)]
+        group_of_monsters: List[Monster] = [request_monster(monster.index) for m in matching_monsters]
         for _ in range(monster_count - 1):
-            m: Monster = copy(monster)
+            m: Monster = request_monster(monster.index)
             dice_count, roll_dice = map(int, m.hit_dice.split('d'))
             m.hit_points = sum([randint(1, roll_dice) for _ in range(dice_count)])
             group_of_monsters.append(m)
@@ -1237,7 +1238,9 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
                         if not alive_monsters:
                             break
                         if attacker.hit_points < 0.3 * attacker.max_hit_points and attacker.healing_potions:
-                            attacker.drink_potion()
+                            p: HealingPotion = attacker.choose_best_potion()
+                            attacker.drink(p)
+                            attacker.inventory.remove(p)
                             cprint(f'{attacker.name} has {len(attacker.healing_potions)} remaining potions')
                         else:
                             # Character attacks the weakest alive monster or the restraining creature
@@ -1296,13 +1299,10 @@ def restore_all_roster(roster: List[Character]):
 
 def cheat_function(roster: List[Character]):
     for char in roster:
-        if char.name in ('Esvele', 'Alberich'):
-            char.xp += 100000
-            char.gold = 10000
-            char.hit_points = char.max_hit_points
-            char.status = 'OK'
-            exit_message(f'{char.name} has been offered 1000 XP!')
-            save_character(char, _dir=characters_dir)
+        char.xp += 10000
+        char.gold = 1000
+        char.hit_points = char.max_hit_points
+        char.status = 'OK'
 
 def delete_all_potions(roster: List[Character]):
     """ Needs to purge old potions from char's inventory """
@@ -1360,7 +1360,7 @@ if __name__ == '__main__':
     location = 'Castle'
     party: List[Character] = []
 
-    # cheat_function(roster)
+    cheat_function(roster)
     restore_all_roster(roster)
     # delete_all_potions(roster)
     # delete_armors_weapons(roster)

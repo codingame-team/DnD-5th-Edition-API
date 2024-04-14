@@ -152,6 +152,9 @@ class Game:
     sprites: dict
     levels: List[Level]
     level: Level
+    school_images: dict
+    ready_spell: Spell = None
+    target_pos: tuple = None
 
     def __init__(self):
         # Chargement de la carte
@@ -176,16 +179,24 @@ class Game:
         hero_x, hero_y = choice(open_positions)
         open_positions.remove((hero_x, hero_y))
         roster: List[Character] = get_roster(characters_dir=f'{path}/gameState/characters')
-        self.hero = choice(roster)
+        self.hero = choice(list(filter(lambda c: c.is_spell_caster, roster)))
+        # self.hero = max(roster, key=lambda c: c.gold)
+        self.hero = [c for c in roster if c.name == 'Balasar'][0]
         self.sprites[self.hero.id] = pygame.image.load(f"{char_sprites_dir}/{self.hero.image_name}").convert_alpha()
         # self.hero.inventory = [None] * 20
         # self.hero.abilities.str = 12
+        if self.hero.is_spell_caster:
+            for s in self.hero.sc.learned_spells:
+                image = pygame.image.load(f"{spell_sprites_dir}/{s.school}.png")
+                s.id = len(self.sprites) + 1
+                self.sprites[s.id] = pygame.transform.scale(image, (ICON_SIZE, ICON_SIZE)) # Resize the image
         for char in roster:
             for item in char.inventory:
                 if item:
                     self.sprites[item.id] = pygame.image.load(f"{item_sprites_dir}/{item.image_name}").convert_alpha()
-        # self.hero = max(roster, key=lambda c: c.gold)
-        # self.hero = [c for c in roster if c.name == 'Balasar'][0]
+            # if char.can_cast:
+            #     for spell in self.hero.sc.learned_spells:
+            #         self.sprites[spell.id] = pygame.image.load(f"{spell_sprites_dir}/{spell.school}")
         self.hero.x, self.hero.y = hero_x, hero_y
         self.level.load(hero=self.hero)
 
@@ -267,14 +278,14 @@ class Game:
             f"Charisme: {self.hero.charism}"
         ]
         spells_texts = []
-        if self.hero.can_cast:
+        if self.hero.is_spell_caster:
             slots: str = '/'.join(map(str, self.hero.sc.spell_slots))
-            spells_texts.append(f"Slots: {slots}")
-            known_spells: int = len(self.hero.sc.learned_spells)
-            learned_spells: List[Spell] = [s for s in self.hero.sc.learned_spells]
-            learned_spells.sort(key=lambda s: s.level)
-            for s in learned_spells:
-                spells_texts.append(f"L{s.level}: {str(s)}")
+            spells_texts.append(f"Spell slots: {slots}")
+            # known_spells: int = len(self.hero.sc.learned_spells)
+            # learned_spells: List[Spell] = [s for s in self.hero.sc.learned_spells]
+            # learned_spells.sort(key=lambda s: s.level)
+            # for s in learned_spells:
+            #     spells_texts.append(f"L{s.level}: {str(s)}")
         for i, text in enumerate(stat_texts):
             text_surface = font.render(text, True, (0, 0, 0))
             text_rect = text_surface.get_rect()
@@ -291,7 +302,40 @@ class Game:
             text_rect.topleft = (stats_rect[0] + 210, stats_rect[1] + 150 + i * 20)  # Ajuster la position en fonction de la marge
             self.screen.blit(text_surface, text_rect)
 
-    def draw_inventory(self, image_dir: str):
+    def draw_spell_book(self):
+        # Obtenir les coordonnées de la souris
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+
+        # Stocker les informations de l'info-bulle
+        tooltip_text = None
+
+        # learned_spells: List[Spell] = [s for s in self.hero.sc.learned_spells]
+        # learned_spells.sort(key=lambda s: s.level)
+        max_spell_level: int = max([s.level for s in self.hero.sc.learned_spells])
+        for i in range(max_spell_level + 1):
+            spells_by_level = [s for s in self.hero.sc.learned_spells if s.level == i]
+            for j, spell in enumerate(spells_by_level):
+                icon_x = self.view_port_width + 210 + j * 40
+                # icon_y = 204 + 70 + i * 40
+                icon_y = 170 + i * 40
+                # spells_texts.append(f"L{s.level}: {str(s)}")
+                image: Surface = self.sprites[spell.id].convert_alpha()
+                # Define the transparency level (0 to 255, 0 = fully transparent, 255 = fully opaque)
+                transparency_level = 255 if self.hero.sc.spell_slots[i - 1] or spell.is_cantrip else 128
+                # Set the transparency level of the image
+                image.set_alpha(transparency_level)
+                self.screen.blit(image, (icon_x, icon_y))
+                # Vérifier si la souris survole la case
+                if pygame.Rect(icon_x, icon_y, ICON_SIZE, ICON_SIZE).collidepoint(mouse_x, mouse_y):
+                    # Stocker la description de l'objet pour l'info-bulle
+                    # tooltip_text = f'{spell.name}\n{spell.desc[0]}'
+                    tooltip_text = spell.name
+
+        # Afficher l'info-bulle avec la description du sort
+        if tooltip_text:
+            draw_tooltip(tooltip_text, self.screen, mouse_x + 10, mouse_y)
+
+    def draw_inventory(self):
         # # Afficher le titre de l'inventaire
         # draw_text("Inventaire", font, BLACK, screen, 10, 10)
 
@@ -437,7 +481,10 @@ class Game:
                 case 1:
                     item: HealingPotion = copy(choice(healing_potions))
                 case 2:
-                    item: Armor = request_armor(index_name=choice(self.hero.allowed_armors).index)
+                    if self.hero.allowed_armors:
+                        item: Armor = request_armor(index_name=choice(self.hero.allowed_armors).index)
+                    else:
+                        item: Armor = request_armor(index_name='skin-armor')
                 case 3:
                     item: Weapon = request_weapon(index_name=choice(self.hero.allowed_weapons).index)
                     # item: Weapon = request_weapon('halberd')
@@ -478,8 +525,11 @@ class Game:
                 item.equipped = not item.equipped
 
     def use(self, item):
-        self.hero.drink(item)
-        self.remove_from_inv(item)
+        if isinstance(item, HealingPotion):
+            self.hero.drink(item)
+            self.remove_from_inv(item)
+        else:
+            cprint(f'Hero cannot use <{item.name}> yet! *Feature not yet implemented*')
 
     def drop(self, item, image):
         if isinstance(item, Armor | Weapon) and item.equipped:
@@ -488,6 +538,8 @@ class Game:
             self.remove_from_inv(item)
             self.add_to_level(item, image)
 
+    def in_map(self, x: int, y: int) -> bool:
+        return 0 <= x < self.map_width and 0 <= y < self.map_height
 
 if __name__ == "__main__":
 
@@ -497,6 +549,7 @@ if __name__ == "__main__":
     sprites_dir = f"{path}/sprites"
     char_sprites_dir = f"{sprites_dir}/rpgcharacterspack"
     item_sprites_dir = f"{sprites_dir}/Items"
+    spell_sprites_dir = f"{sprites_dir}/schools"
     roster: List[Character] = get_roster(characters_dir)
 
     # Initialisation de Pygame
@@ -505,8 +558,11 @@ if __name__ == "__main__":
     # Définition des constantes pour la mise en page
     # SCREEN_WIDTH, SCREEN_HEIGHT = 1920, 1080
     SCREEN_WIDTH, SCREEN_HEIGHT = 1280, 720
-    STATS_WIDTH, ACTIONS_HEIGHT = 450, 200
+    STATS_WIDTH, ACTIONS_HEIGHT = 600, 200
     STATS_HEIGHT = 250
+
+    # Paramètres de la map
+    UNIT_SIZE = 5
 
     # Paramètres de l'écran
     TILE_SIZE = 32
@@ -565,23 +621,57 @@ if __name__ == "__main__":
                 # Vérifier si une case de l'inventaire a été cliquée
                 for i, item in enumerate(game.hero.inventory):
                     if item is not None:  # pp and isinstance(item, Armor | Weapon):
-                        try:
-                            icon_x = game.view_port_width + 10 + (i % 5) * 40
-                            icon_y = 200 + 70 + (i // 5) * 40
-                            image: Surface = game.sprites[item.id]
+                        icon_x = game.view_port_width + 10 + (i % 5) * 40
+                        icon_y = 200 + 70 + (i // 5) * 40
+                        image: Surface = game.sprites[item.id]
+                        icon_rect = image.get_rect(topleft=(icon_x, icon_y))
+                        # cprint(icon_rect)
+                        if icon_rect.collidepoint(event.pos):
+                            if event.button == 1:  # Left mouse button
+                                if isinstance(item, (Armor, Weapon)):
+                                    game.equip(item)
+                                else:
+                                    game.use(item)
+                            elif event.button == 3:  # Right mouse button
+                                game.drop(item, image)
+                # TODO: area of effect
+                if not game.ready_spell:
+                    # Vérifier si un sort a été sélectionné
+                    max_spell_level: int = max([s.level for s in game.hero.sc.learned_spells])
+                    for i in range(max_spell_level + 2):
+                        spells_by_level = [s for s in game.hero.sc.learned_spells if s.level == i]
+                        for j, spell in enumerate(spells_by_level):
+                            icon_x = game.view_port_width + 210 + j * 40
+                            icon_y = 170 + i * 40
+                            image: Surface = game.sprites[spell.id]
                             icon_rect = image.get_rect(topleft=(icon_x, icon_y))
-                            # cprint(icon_rect)
                             if icon_rect.collidepoint(event.pos):
-                                if event.button == 1:  # Left mouse button
-                                    if isinstance(item, Armor | Weapon):
-                                        game.equip(item)
-                                    else:
-                                        game.use(item)
-                                elif event.button == 3:  # Right mouse button
-                                    game.drop(item, image)
-                        except KeyError:
-                            pass
-
+                                if event.button == 1 and game.hero.can_cast(spell):  # Left mouse button
+                                    cprint(f'hero pos: {game.hero.pos}')
+                                    cprint(f'select target for spell <{spell.name}>,  area of effect: {spell.area_of_effect}, range: {spell.range}')
+                                    frame_color = BLUE if game.hero.sc.spell_slots[i] > 0 else WHITE
+                                    pygame.draw.rect(game.screen, frame_color, (icon_x - 2, icon_y - 2, ICON_SIZE + 4, ICON_SIZE + 4), 4)
+                                    pygame.draw.rect(game.screen, RED, (icon_x - 2, icon_y - 2, ICON_SIZE + 4, ICON_SIZE + 4), 4)
+                                    game.ready_spell = spell
+                elif event.button == 1:
+                    view_x, view_y, view_width, view_height = game.calculate_view_window()
+                    game.target_pos = view_x + event.pos[0] // TILE_SIZE, view_y + event.pos[1] // TILE_SIZE
+                    monsters_in_range: List[Monster] = [m for m in game.level.monsters if mh_dist(game.hero.pos, m.pos) <= game.ready_spell.range // UNIT_SIZE]
+                    if monsters_in_range:
+                        for monster in monsters_in_range:
+                            if monster.pos == game.target_pos:
+                                monster.hit_points -= game.hero.cast(game.ready_spell, monster)
+                                if monster.hit_points <= 0:
+                                    cprint(f'{monster.name} at pos {monster.pos} is *KILLED*')
+                                    game.hero.victory(monster=monster, solo_mode=True)
+                                    game.level.monsters.remove(monster)
+                                    game.level.sprites.pop(monster.id)
+                    else:
+                        cprint('No monster in range!')
+                    if not game.ready_spell.is_cantrip:
+                        game.hero.update_spell_slots(game.ready_spell)
+                    game.ready_spell = None
+                    game.target_pos = None
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_UP and game.can_move(char=game.hero, dir=UP):
                     game.hero.y -= 1
@@ -623,8 +713,8 @@ if __name__ == "__main__":
                 game.screen = pygame.display.set_mode((game.screen_width, game.screen_height))
 
         # Vérifier les collisions avec les ennemis
-        if any(game.hero.check_collision(e) for e in game.level.monsters):
-            print("Combat!")
+        # if any(game.hero.check_collision(e) for e in game.level.monsters):
+        #     print("Combat!")
 
         # Rendu
         game.screen.fill(WHITE)
@@ -675,7 +765,10 @@ if __name__ == "__main__":
         game.draw_character_stats()
 
         # Dessiner la feuille d'inventaire du personnage
-        game.draw_inventory(image_dir=sprites_dir)
+        game.draw_inventory()
+
+        # Dessiner le grimoire du personnage
+        game.draw_spell_book()
 
         # Dessiner le panneau de commande d'actions
         game.draw_action_panel()
@@ -688,3 +781,5 @@ if __name__ == "__main__":
 
         # Limiter le nombre d'images par seconde
         pygame.time.Clock().tick(FPS)
+
+    del game

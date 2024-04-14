@@ -59,9 +59,9 @@ class Sprite:
                 screen.blit(image, (draw_x, draw_y))
 
 
-#
 @dataclass
 class Monster(Sprite):
+    index: str
     name: str
     abilities: Abilities
     proficiencies: List[Proficiency]
@@ -398,13 +398,21 @@ class PotionRarity(Enum):
     RARE = 95
     VERY_RARE = 100
 
-
 @dataclass
 class HealingPotion(Sprite):
     name: str
     hit_dice: str
     bonus: int
     rarity: PotionRarity
+
+    def __copy__(self):
+        # Create a shallow copy of the object
+        cls = self.__class__
+        result = cls.__new__(cls)
+        result.__dict__.update(self.__dict__)
+        # For each attribute that should be deep-copied, use copy.copy
+        result.rarity = copy(self.rarity)
+        return result
 
     @property
     def min_hp_restored(self):
@@ -576,6 +584,10 @@ class Condition:
     def __copy__(self):
         return Condition(self.index, self.name, self.desc, self.dc_type, self.dc_value, self.creature)
 
+@dataclass
+class AreaOfEffect:
+    type: str # sphere, cube, ...
+    size: int
 
 @dataclass
 class Spell:
@@ -589,10 +601,18 @@ class Spell:
     damage_at_character_level: dict()
     dc_type: str
     dc_success: str
+    range: int
+    area_of_effect: Optional[AreaOfEffect]
+    school: str
+    id: int = -1
 
     def __repr__(self):
         # {self.allowed_classes}'
         return f'{self.name} dc: {self.dc_type} lvl: {self.level}'
+
+    @property
+    def is_cantrip(self) -> bool:
+        return self.level == 0
 
     def get_spell_damages(self, caster_level: int, ability_modifier: int) -> List[DamageDice]:
         # TODO modify request_class() in populate_functions to put int instead of str
@@ -709,13 +729,25 @@ class Character(Sprite):
     id_party: int = -1
     OUT: bool = False
 
+    def __init__(self):
+        self.armor = None
+
+    @property
+    def weapon(self) -> Optional[Weapon]:
+        equipped_weapons: List[Weapon] = [item for item in self.inventory if isinstance(item, Weapon) if item.equipped]
+        return equipped_weapons[0] if equipped_weapons else None
+
+    # @property
+    # def armor(self) -> Optional[Armor]:
+    #     equipped_armors: List[Armor] = [item for item in self.inventory if isinstance(item, Armor) if item.equipped]
+    #     return equipped_armors[0] if equipped_armors else request_armor('skin-armor')
+
     @property
     def get_status(self) -> str:
         return 'DEAD' if self.hit_points <= 0 else 'OK'
 
     def can_equip(self, eq: Equipment) -> bool:
         return (eq.category.index == 'armor' and eq in self.allowed_armors) or (eq.category.index == 'armor' and eq in self.allowed_weapons)
-
 
     def can_drink(self, eq: Equipment) -> bool:
         return eq.category.index == 'potion'
@@ -725,9 +757,12 @@ class Character(Sprite):
         return [item for item in self.inventory if isinstance(item, HealingPotion)]
 
     @property
-    def can_cast(self) -> bool:
+    def is_spell_caster(self) -> bool:
         # return hasattr(self, 'sc')
         return self.sc is not None
+
+    def can_cast(self, spell: Spell) -> bool:
+        return self.is_spell_caster and spell in self.sc.learned_spells and (self.sc.spell_slots[spell.level - 1] > 0 or spell.is_cantrip)
 
     @property
     def dc_value(self):
@@ -784,13 +819,14 @@ class Character(Sprite):
 
     @property
     def armor_class(self):
-        return sum([item.armor_class['base'] for item in self.inventory if isinstance(item, Armor) and item.equipped])
+        equipped_armors: List[Armor] = [item for item in self.inventory if isinstance(item, Armor) and item.equipped]
+        return sum([item.armor_class['base'] for item in equipped_armors]) if equipped_armors else 10
 
     @property
     def damage_dice(self) -> DamageDice:
         """TODO Two handed weapon not possible with a shield """
         # print(f'error {self.weapon}')
-        return self.weapon.damage_dice_two_handed if self.weapon.damage_dice_two_handed else self.weapon.damage_dice
+        return self.weapon.damage_dice_two_handed if self.weapon.damage_dice_two_handed else self.weapon.damage_dice if self.weapon else DamageDice('1d2')
 
     @property
     def used_armor(self) -> Optional[Armor]:
@@ -804,7 +840,7 @@ class Character(Sprite):
 
     @property
     def is_full(self) -> bool:
-        return not any(item is None for item in self.inventory)
+        return all(item for item in self.inventory)
 
     def choose_best_potion(self) -> HealingPotion:
         hp_to_recover = self.max_hit_points - self.hit_points
@@ -853,6 +889,9 @@ class Character(Sprite):
         return list(filter(None, armors))
 
     def treasure(self, weapons, armors, equipments: List[Equipment], potions, solo_mode=False):
+        if self.is_full:
+            cprint(f'{self.name}\'s inventory is full - no treasure!!!')
+            return
         treasure_dice = randint(1, 3)
         if treasure_dice == 1:
             potion = choice(potions)
@@ -860,36 +899,26 @@ class Character(Sprite):
             self.healing_potions.append(choice(potions))
         elif treasure_dice == 2:
             new_weapon: Weapon = choice(self.allowed_weapons)
-            if new_weapon.damage_dice > self.weapon.damage_dice:
-                cprint(f"{self.name} found a better weapon {new_weapon}!")
-                self.weapon = new_weapon
+            if not self.weapon or new_weapon.damage_dice > self.weapon.damage_dice:
+                cprint(f"{self.name} found a better weapon {new_weapon.name}!")
+                self.inventory.append(new_weapon)
+                new_weapon.equipped = True
             else:
                 cprint(
-                    f"{self.name} found a lesser weapon {new_weapon}! ** SKIPPING IT **")
+                    f"{self.name} found a lesser weapon {new_weapon.name}! ** SKIPPING IT **")
         else:
             if self.allowed_armors:
                 new_armor: Armor = choice(self.allowed_armors)
-                if new_armor.armor_class['base'] > self.armor.armor_class['base']:
-                    cprint(f"{self.name} found a better armor {new_armor}!")
-                    self.armor = new_armor
+                if new_armor.armor_class['base'] > self.armor_class:
+                    cprint(f"{self.name} found a better armor {new_armor.name}!")
+                    self.inventory.append(new_armor)
+                    new_armor.equipped = True
                 else:
                     cprint(
-                        f"{self.name} found a lesser armor {new_armor}! ** SKIPPING IT **")
+                        f"{self.name} found a lesser armor {new_armor.name}! ** SKIPPING IT **")
             else:
                 cprint(
                     f"{self.class_type.name} not allowed to wear an armor! ** SKIPPING IT **")
-            # if better_armors:
-            #     new_armor: Armor = choice(better_armors)
-            #     try:
-            #         if new_armor.armor_class['base'] > self.armor.armor_class['base']:
-            #             cprint(f"{self.name} found a better armor {new_armor}!")
-            #             self.armor = new_armor
-            #         else:
-            #             cprint(f"{self.name} found a lesser armor {new_armor}! ** SKIPPING IT **")
-            #     except AttributeError:
-            #         cprint(f"** SYSTEM ERROR ** {new_armor} has no attribute1 ! ** SKIPPING IT **")
-            # else:
-            #     cprint(f"** SYSTEM ERROR ** {self.name} cannot find armor ! ** SKIPPING IT **")
 
     def gain_level_arena(self, pause: bool):
         self.level += 1
@@ -967,43 +996,47 @@ class Character(Sprite):
             case _:
                 self.sc.spell_slots[casted_spell.level - 1] -= 1
 
-    def attack(self, monster: Monster):
+    def cast(self, spell: Spell, monster: Monster) -> int:
+        # print(attack_spell)
+        ability_modifier: int = int(self.ability_modifiers.get_value_by_index(name=self.class_type.spellcasting_ability))
+        damage_dices: List[DamageDice] = spell.get_spell_damages(caster_level=self.level,
+                                                                        ability_modifier=ability_modifier)
+        damage_roll: int = 0
+        for dd in damage_dices:
+            damage_roll += dd.roll()
+        cprint(f'{color.GREEN}{self.name}{color.END} ** CAST SPELL ** {spell.name.upper()}')
+        if spell.dc_type is None:
+            # No saving throw available for this spell!
+            cprint(f'{color.RED}{monster.name}{color.END} is hit for {damage_roll} hit points!')
+        else:
+            st_success: bool = monster.saving_throw(dc_type=self.class_type.spellcasting_ability,
+                                                    dc_value=self.dc_value)
+            if st_success:
+                cprint(f'{color.RED}{monster.name}{color.END} resists the Spell!')
+                if spell.dc_success == 'half':
+                    damage_roll //= 2
+                    cprint(f'{color.RED}{monster.name}{color.END} is hit for {damage_roll} hit points!')
+                elif spell.dc_success == 'none':
+                    damage_roll = 0
+            else:
+                cprint(f'{color.RED}{monster.name}{color.END} is hit for {damage_roll} hit points!')
+        return damage_roll
+
+    def attack(self, monster: Monster) -> int:
         """
         :return: damage generated
         """
         damage_roll = 0
-        if self.can_cast:
+        if self.is_spell_caster:
             cantric_spells: List[Spell] = [s for s in self.sc.learned_spells if not s.level]
             slot_spells: List[Spell] = [s for s in self.sc.learned_spells if s.level and self.sc.spell_slots[s.level - 1] > 0]
             castable_spells: List[Spell] = cantric_spells + slot_spells
-        if self.can_cast and castable_spells:
+        if self.is_spell_caster and castable_spells:
             # TODO modify spell_slots to [] for non casters
             attack_spell: Spell = max(castable_spells, key=lambda s: s.level)
-            # print(attack_spell)
-            if attack_spell.level > 0:
+            damage_roll = self.cast(attack_spell, monster)
+            if not attack_spell.is_cantrip:
                 self.update_spell_slots(casted_spell=attack_spell)
-            ability_modifier: int = int(self.ability_modifiers.get_value_by_index(name=self.class_type.spellcasting_ability))
-            damage_dices: List[DamageDice] = attack_spell.get_spell_damages(caster_level=self.level,
-                                                                            ability_modifier=ability_modifier)
-            damage_roll: int = 0
-            for dd in damage_dices:
-                damage_roll += dd.roll()
-            cprint(f'{color.GREEN}{self.name}{color.END} ** CAST SPELL ** {attack_spell.name.upper()}')
-            if attack_spell.dc_type is None:
-                # No saving throw available for this spell!
-                cprint(f'{color.RED}{monster.name}{color.END} is hit for {damage_roll} hit points!')
-            else:
-                st_success: bool = monster.saving_throw(dc_type=self.class_type.spellcasting_ability,
-                                                        dc_value=self.dc_value)
-                if st_success:
-                    cprint(f'{color.RED}{monster.name}{color.END} resists the Spell!')
-                    if attack_spell.dc_success == 'half':
-                        damage_roll //= 2
-                        cprint(f'{color.RED}{monster.name}{color.END} is hit for {damage_roll} hit points!')
-                    elif attack_spell.dc_success == 'none':
-                        damage_roll = 0
-                else:
-                    cprint(f'{color.RED}{monster.name}{color.END} is hit for {damage_roll} hit points!')
         else:
             multi_attacks = 2 if self.level >= 5 else 3 if self.level >= 11 else 4 if self.level >= 20 else 1
             damage_multi = 0

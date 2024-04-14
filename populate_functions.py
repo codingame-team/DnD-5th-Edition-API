@@ -11,7 +11,7 @@ import re
 from dao_classes import CategoryType, DamageDice, Monster, Armor, RangeType, SpecialAbility, SpellCaster, Weapon, Race, \
     SubRace, Proficiency, ClassType, Language, Equipment, WeaponProperty, WeaponRange, AbilityType, WeaponThrowRange, \
     Trait, EquipmentCategory, \
-    Abilities, Action, Damage, ActionType, DamageType, Spell, ProfType, Condition, Inventory
+    Abilities, Action, Damage, ActionType, DamageType, Spell, ProfType, Condition, Inventory, AreaOfEffect
 from populate_rpg_functions import load_armor_image_name, load_weapon_image_name
 
 """ CSV loads """
@@ -297,6 +297,7 @@ def request_monster(index_name: str) -> Monster:
                    image_name=f'monster_{index_name}.png',
                    x=-1,
                    y=-1,
+                   index=index_name,
                    name=data['name'],
                    abilities=Abilities(str=data['strength'], dex=data['dexterity'], con=data['constitution'],
                                        int=data['intelligence'], wis=data['wisdom'], cha=data['charisma']),
@@ -322,6 +323,8 @@ def request_spell(index_name: str) -> Spell:
 
     allowed_classes: List[str] = [c['index'] for c in data['classes']]
 
+
+
     damage_type: DamageType = None
     damage_at_slot_level: dict() = None
     damage_at_character_level: dict() = None
@@ -342,6 +345,18 @@ def request_spell(index_name: str) -> Spell:
             dc_success = data['dc']['dc_success']
             # print(f"{data['index']} - dc_type = {dc_type}")
 
+        # range: int
+        # attack_type: str  # ranged, touch
+        # area_of_effet: AreaOfEffect
+        # school: str
+
+        # print(index_name)
+        range = int(data['range'].split()[0]) if 'feet' in data['range'] else 5
+        area_of_effect: Optional[AreaOfEffect] = None
+        if 'area_of_effect' in data:
+            area_of_effect = AreaOfEffect(type=data['area_of_effect']['type'], size=data['area_of_effect']['size'])
+        school: str = data['school']['index']
+
         return Spell(index=data['index'],
                      name=data['name'],
                      desc=data['desc'],
@@ -351,7 +366,10 @@ def request_spell(index_name: str) -> Spell:
                      damage_at_slot_level=damage_at_slot_level,
                      damage_at_character_level=damage_at_character_level,
                      dc_type=dc_type,
-                     dc_success=dc_success
+                     dc_success=dc_success,
+                     range=range,
+                     area_of_effect=area_of_effect,
+                     school=school
                      )
 
 
