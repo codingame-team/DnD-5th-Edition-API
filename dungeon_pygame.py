@@ -1,14 +1,17 @@
 from __future__ import annotations
 
 import os, pygame
+import subprocess
 import sys
 from copy import copy
 from dataclasses import dataclass, field
 from random import choice, randint
-from typing import List
+from typing import List, Optional
 
 from pygame import Surface
 
+from algo.brehensam import in_view_range
+from algo.lee import parcours_largeur
 from dao_classes import Weapon, Armor, HealingPotion, Character, Spell, Equipment, Monster, Treasure
 from main import get_roster, save_character
 from populate_functions import populate, request_weapon, request_armor, request_monster
@@ -62,6 +65,24 @@ def draw_button(surface, rect, color, text):
 
 def mh_dist(p1: tuple, p2: tuple):
     return abs(p1[0] - p2[0]) + abs(p1[1] - p2[1])
+
+
+def dist(p1, p2) -> float:
+    return ((p1[0] - p2[0]) ** 2 + (p1[1] - p2[1]) ** 2) ** 0.5
+
+
+def find_path(start: tuple, end: tuple, carte: List) -> Optional[List[tuple]]:
+    dist, pred = parcours_largeur(carte, *start, *end)
+
+    path: List[tuple] = []
+
+    if dist != float('inf'):
+        path.append(end)
+        while end != start:
+            end = pred[end]
+            path.append(end)
+
+    return path[::-1]
 
 
 class Level:
@@ -136,6 +157,14 @@ class Level:
             self.treasures.append(t)
             self.sprites[t.id] = pygame.image.load(f"{sprites_dir}/{t.image_name}").convert_alpha()
 
+    @property
+    def walkable_tiles(self):
+        return [(x, y) for y in range(self.map_height) for x in range(self.map_width) if self.world_map[y][x] == '.']
+
+    @property
+    def obstacles(self):
+        return [(x, y) for y in range(self.map_height) for x in range(self.map_width) if self.world_map[y][x] == '#']
+
 
 class Game:
     screen: Surface
@@ -156,7 +185,7 @@ class Game:
     ready_spell: Spell = None
     target_pos: tuple = None
 
-    def __init__(self):
+    def __init__(self, character: Character):
         # Chargement de la carte
         self.dungeon_level = 1
         self.level = Level(1)
@@ -178,25 +207,18 @@ class Game:
         open_positions: List[tuple] = [(x, y) for x in range(self.map_width) for y in range(self.map_height) if self.world_map[y][x] == '.']
         hero_x, hero_y = choice(open_positions)
         open_positions.remove((hero_x, hero_y))
-        roster: List[Character] = get_roster(characters_dir=f'{path}/gameState/characters')
-        self.hero = choice(list(filter(lambda c: c.is_spell_caster, roster)))
-        # self.hero = max(roster, key=lambda c: c.gold)
-        self.hero = [c for c in roster if c.name == 'Balasar'][0]
+        self.hero = character
         self.sprites[self.hero.id] = pygame.image.load(f"{char_sprites_dir}/{self.hero.image_name}").convert_alpha()
-        # self.hero.inventory = [None] * 20
-        # self.hero.abilities.str = 12
+        print(self.hero.name, self.hero.id, id(self.sprites[self.hero.id]))
         if self.hero.is_spell_caster:
             for s in self.hero.sc.learned_spells:
                 image = pygame.image.load(f"{spell_sprites_dir}/{s.school}.png")
-                s.id = len(self.sprites) + 1
-                self.sprites[s.id] = pygame.transform.scale(image, (ICON_SIZE, ICON_SIZE)) # Resize the image
-        for char in roster:
-            for item in char.inventory:
-                if item:
-                    self.sprites[item.id] = pygame.image.load(f"{item_sprites_dir}/{item.image_name}").convert_alpha()
-            # if char.can_cast:
-            #     for spell in self.hero.sc.learned_spells:
-            #         self.sprites[spell.id] = pygame.image.load(f"{spell_sprites_dir}/{spell.school}")
+                s.id = max(self.sprites) + 1
+                self.sprites[s.id] = pygame.transform.scale(image, (ICON_SIZE, ICON_SIZE))  # Resize the image
+                print(s.name, s.id, id(self.sprites[s.id]))
+        for item in self.hero.inventory:
+            if item:
+                self.sprites[item.id] = pygame.image.load(f"{item_sprites_dir}/{item.image_name}").convert_alpha()
         self.hero.x, self.hero.y = hero_x, hero_y
         self.level.load(hero=self.hero)
 
@@ -251,6 +273,7 @@ class Game:
                     weapon = item
                 elif isinstance(item, Armor):
                     armor = item
+        ranged_weapon_info: str = f' ({self.hero.weapon.range.normal}")' if self.hero.weapon and self.hero.weapon.range else ''
         stat_texts = [
             f"Nom: {self.hero.name}",
             f"Race: {self.hero.race.name}",
@@ -259,7 +282,7 @@ class Game:
             f"XP: {self.hero.xp}",
             f"Santé: {self.hero.hit_points}/{self.hero.max_hit_points} ({self.hero.get_status})",
             # damage_dice: str = f'{self.hero.weapon.damage_dice}' if not w.damage_dice.bonus else f'{w.damage_dice.dice} + {w.damage_dice.bonus}'
-            f"Attaque: {weapon.damage_dice.dice}" if weapon else f"Attaque: 1d2",
+            f"Attaque: {weapon.damage_dice.dice}{ranged_weapon_info}" if weapon else f"Attaque: 1d2",
             # f"Défense: {self.hero.armor.ac}",
             f"Défense: {armor.armor_class['base']}" if armor else "Défense: 10",
             # f"Potions: {self.hero.potions}",
@@ -541,6 +564,10 @@ class Game:
     def in_map(self, x: int, y: int) -> bool:
         return 0 <= x < self.map_width and 0 <= y < self.map_height
 
+    def in_visible_map(self, x, y) -> bool:
+        view_x, view_y, view_width, view_height = self.calculate_view_window()
+        return 0 <= x < view_width and 0 <= y < view_height
+
 if __name__ == "__main__":
 
     path = os.path.dirname(__file__)
@@ -550,7 +577,26 @@ if __name__ == "__main__":
     char_sprites_dir = f"{sprites_dir}/rpgcharacterspack"
     item_sprites_dir = f"{sprites_dir}/Items"
     spell_sprites_dir = f"{sprites_dir}/schools"
-    roster: List[Character] = get_roster(characters_dir)
+    roster: List[Character] = get_roster(characters_dir=f'{path}/gameState/characters')
+
+    # Récupération du personnage choisi par l'utilisateur
+    if len(sys.argv) > 1:
+        character_name = sys.argv[1]
+        try:
+            selected_character: Character = [c for c in roster if c.name == character_name][0]
+            # print(f"Character name: {character_name}")
+            # for i, item in enumerate(selected_character.inventory):
+            #     if item:
+            #         print(f"#{i} (id #{item.id}) - {item.name}")
+        except IndexError:
+            print(f"Character name <{character_name}> not found in roster")
+    else:
+        print("No character name provided")
+        selected_character: Character = choice(list(filter(lambda c: c.is_spell_caster, roster)))
+        # character = max(roster, key=lambda c: c.gold)
+        # character = [c for c in roster if c.name == 'Balasar'][0]
+        # character.inventory = [None] * 20
+        # character.abilities.str = 12
 
     # Initialisation de Pygame
     pygame.init()
@@ -583,8 +629,9 @@ if __name__ == "__main__":
     tile_img = pygame.image.load('sprites/TilesDungeon/Tile.png')
 
     UP, DOWN, LEFT, RIGHT = (0, -1), (0, 1), (-1, 0), (1, 0)
+    DIRECTIONS = [UP, DOWN, LEFT, RIGHT]
 
-    game: Game = Game()
+    game: Game = Game(character=selected_character)
 
     # Font
     font = pygame.font.SysFont(None, 36)
@@ -614,66 +661,96 @@ if __name__ == "__main__":
                 pygame.quit()  # Quit Pygame
                 sys.exit()  # Quit the Python script
             elif event.type == pygame.MOUSEBUTTONDOWN:
-                # Vérifier si un texte d'action a été cliqué
-                for action_text, action_rect in game.action_rects.items():
-                    if action_rect.collidepoint(event.pos):
-                        print(f"Action: {action_text}")
-                # Vérifier si une case de l'inventaire a été cliquée
-                for i, item in enumerate(game.hero.inventory):
-                    if item is not None:  # pp and isinstance(item, Armor | Weapon):
-                        icon_x = game.view_port_width + 10 + (i % 5) * 40
-                        icon_y = 200 + 70 + (i // 5) * 40
-                        image: Surface = game.sprites[item.id]
-                        icon_rect = image.get_rect(topleft=(icon_x, icon_y))
-                        # cprint(icon_rect)
-                        if icon_rect.collidepoint(event.pos):
-                            if event.button == 1:  # Left mouse button
-                                if isinstance(item, (Armor, Weapon)):
-                                    game.equip(item)
-                                else:
-                                    game.use(item)
-                            elif event.button == 3:  # Right mouse button
-                                game.drop(item, image)
-                # TODO: area of effect
-                if not game.ready_spell:
-                    # Vérifier si un sort a été sélectionné
-                    max_spell_level: int = max([s.level for s in game.hero.sc.learned_spells])
-                    for i in range(max_spell_level + 2):
-                        spells_by_level = [s for s in game.hero.sc.learned_spells if s.level == i]
-                        for j, spell in enumerate(spells_by_level):
-                            icon_x = game.view_port_width + 210 + j * 40
-                            icon_y = 170 + i * 40
-                            image: Surface = game.sprites[spell.id]
-                            icon_rect = image.get_rect(topleft=(icon_x, icon_y))
-                            if icon_rect.collidepoint(event.pos):
-                                if event.button == 1 and game.hero.can_cast(spell):  # Left mouse button
-                                    cprint(f'hero pos: {game.hero.pos}')
-                                    cprint(f'select target for spell <{spell.name}>,  area of effect: {spell.area_of_effect}, range: {spell.range}')
-                                    frame_color = BLUE if game.hero.sc.spell_slots[i] > 0 else WHITE
-                                    pygame.draw.rect(game.screen, frame_color, (icon_x - 2, icon_y - 2, ICON_SIZE + 4, ICON_SIZE + 4), 4)
-                                    pygame.draw.rect(game.screen, RED, (icon_x - 2, icon_y - 2, ICON_SIZE + 4, ICON_SIZE + 4), 4)
-                                    game.ready_spell = spell
-                elif event.button == 1:
+                x, y = event.pos[0] // TILE_SIZE, event.pos[1] // TILE_SIZE
+                # msg = 'INSIDE' if game.in_visible_map(x, y) else 'OUTSIDE'
+                # print(f'event pos = {event.pos} - (x, y) = {(x, y)} -> {msg} - event button: {event.button}')
+                if game.in_visible_map(x, y):
                     view_x, view_y, view_width, view_height = game.calculate_view_window()
-                    game.target_pos = view_x + event.pos[0] // TILE_SIZE, view_y + event.pos[1] // TILE_SIZE
-                    monsters_in_range: List[Monster] = [m for m in game.level.monsters if mh_dist(game.hero.pos, m.pos) <= game.ready_spell.range // UNIT_SIZE]
-                    if monsters_in_range:
-                        for monster in monsters_in_range:
-                            if monster.pos == game.target_pos:
-                                monster.hit_points -= game.hero.cast(game.ready_spell, monster)
-                                if monster.hit_points <= 0:
-                                    cprint(f'{monster.name} at pos {monster.pos} is *KILLED*')
-                                    game.hero.victory(monster=monster, solo_mode=True)
-                                    game.level.monsters.remove(monster)
-                                    game.level.sprites.pop(monster.id)
-                    else:
-                        cprint('No monster in range!')
-                    if not game.ready_spell.is_cantrip:
-                        game.hero.update_spell_slots(game.ready_spell)
-                    game.ready_spell = None
-                    game.target_pos = None
+                    game.target_pos = view_x + x, view_y + y
+                    if event.button == 3 and game.ready_spell:  # Right click
+                        monsters_in_range: List[Monster] = [m for m in game.level.monsters if dist(game.hero.pos, m.pos) <= game.ready_spell.range // UNIT_SIZE]
+                        if monsters_in_range:
+                            for monster in monsters_in_range:
+                                if monster.pos == game.target_pos:
+                                    monster.hit_points -= game.hero.cast(game.ready_spell, monster)
+                                    if monster.hit_points <= 0:
+                                        cprint(f'{monster.name} at pos {monster.pos} is *KILLED*')
+                                        game.hero.victory(monster=monster, solo_mode=True)
+                                        game.level.monsters.remove(monster)
+                                        game.level.sprites.pop(monster.id)
+                        else:
+                            cprint('No monster in range!')
+                        if not game.ready_spell.is_cantrip:
+                            game.hero.update_spell_slots(game.ready_spell)
+                        game.ready_spell = None
+                        game.target_pos = None
+                    elif event.button == 1:  # Left click
+                        monsters_in_range: List[Monster] = [m for m in game.level.monsters
+                                                            if ((game.hero.weapon and game.hero.weapon.range and dist(game.hero.pos,
+                                                                                                                      m.pos) <= game.hero.weapon.range.normal // UNIT_SIZE) or mh_dist(
+                                game.hero.pos, m.pos) == 1)
+                                                            and in_view_range(*game.hero.pos, *m.pos, obstacles=game.level.obstacles)]
+                        if monsters_in_range:
+                            for monster in monsters_in_range:
+                                if monster.pos == game.target_pos:
+                                    monster.hit_points -= game.hero.attack(monster, cast=False)
+                                    if monster.hit_points <= 0:
+                                        cprint(f'{monster.name} at pos {monster.pos} is *KILLED*')
+                                        game.hero.victory(monster=monster, solo_mode=True)
+                                        game.level.monsters.remove(monster)
+                                        game.level.sprites.pop(monster.id)
+                        else:
+                            if (x, y) in game.level.walkable_tiles and mh_dist(game.hero.pos, (x, y)) == 1:
+                                # path = find_path(start=game.hero.pos, end=(x, y), carte=
+                                game.hero.x, game.hero.y = x, y
+                            else:
+                                cprint('No monster in range!')
+                else:
+                    # Gestion des click hors de la carte d'exploration
+                    # Vérifier si un texte d'action a été cliqué
+                    for action_text, action_rect in game.action_rects.items():
+                        if action_rect.collidepoint(event.pos):
+                            print(f"Action: {action_text}")
+                    # Vérifier si une case de l'inventaire a été cliquée
+                    for i, item in enumerate(game.hero.inventory):
+                        if item is not None:  # pp and isinstance(item, Armor | Weapon):
+                            icon_x = game.view_port_width + 10 + (i % 5) * 40
+                            icon_y = 200 + 70 + (i // 5) * 40
+                            image: Surface = game.sprites[item.id]
+                            icon_rect = image.get_rect(topleft=(icon_x, icon_y))
+                            # cprint(icon_rect)
+                            if icon_rect.collidepoint(event.pos):
+                                if event.button == 1:  # Left mouse button
+                                    if isinstance(item, (Armor, Weapon)):
+                                        game.equip(item)
+                                    else:
+                                        game.use(item)
+                                elif event.button == 3:  # Right mouse button
+                                    game.drop(item, image)
+
+                    # TODO: area of effect
+                    if game.hero.sc and not game.ready_spell:
+                        # Vérifier si un sort a été sélectionné
+                        max_spell_level: int = max([s.level for s in game.hero.sc.learned_spells])
+                        for i in range(max_spell_level + 2):
+                            spells_by_level = [s for s in game.hero.sc.learned_spells if s.level == i]
+                            for j, spell in enumerate(spells_by_level):
+                                icon_x = game.view_port_width + 210 + j * 40
+                                icon_y = 170 + i * 40
+                                image: Surface = game.sprites[spell.id]
+                                icon_rect = image.get_rect(topleft=(icon_x, icon_y))
+                                if icon_rect.collidepoint(event.pos):
+                                    if event.button == 1 and game.hero.can_cast(spell):  # Left mouse button
+                                        cprint(f'hero pos: {game.hero.pos}')
+                                        cprint(f'select target for spell <{spell.name}>,  area of effect: {spell.area_of_effect}, range: {spell.range}')
+                                        frame_color = BLUE if game.hero.sc.spell_slots[i] > 0 else WHITE
+                                        pygame.draw.rect(game.screen, frame_color, (icon_x - 2, icon_y - 2, ICON_SIZE + 4, ICON_SIZE + 4), 4)
+                                        pygame.draw.rect(game.screen, RED, (icon_x - 2, icon_y - 2, ICON_SIZE + 4, ICON_SIZE + 4), 4)
+                                        game.ready_spell = spell
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_UP and game.can_move(char=game.hero, dir=UP):
+                if event.key == pygame.K_ESCAPE:  # Quitter le jeu et revenir au menu principal avec la touche Echap
+                    running = False
+                elif event.key == pygame.K_UP and game.can_move(char=game.hero, dir=UP):
                     game.hero.y -= 1
                 elif event.key == pygame.K_DOWN and game.can_move(char=game.hero, dir=DOWN):
                     game.hero.y += 1
@@ -768,7 +845,8 @@ if __name__ == "__main__":
         game.draw_inventory()
 
         # Dessiner le grimoire du personnage
-        game.draw_spell_book()
+        if game.hero.sc:
+            game.draw_spell_book()
 
         # Dessiner le panneau de commande d'actions
         game.draw_action_panel()
@@ -783,3 +861,5 @@ if __name__ == "__main__":
         pygame.time.Clock().tick(FPS)
 
     del game
+    # subprocess.run(['python', 'dungeon_menu_pygame.py'])  # Revenir au script principal après avoir fermé le jeu
+
