@@ -11,8 +11,6 @@ from numpy import array
 from algo.brehensam import in_view_range
 from algo.lee import parcours_largeur
 
-import DungeonGenerator
-
 
 @dataclass
 class Weapon:
@@ -255,7 +253,7 @@ class App(Tk):
         - une liste avec les données du labyrinthe
         """
         try:
-            with open(f"{path}/maze/{level}.txt", newline='') as fic:
+            with open(f"{path}/maze_tk/{level}.txt", newline='') as fic:
                 data = fic.readlines()
         except IOError:
             print("Impossible de lire le fichier {}.txt".format(level))
