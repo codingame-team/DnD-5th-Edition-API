@@ -393,7 +393,7 @@ def create_new_character(roster: List[Character]) -> Character:
     char_level: int = 1 # could be changed to create higher level characters
     spell_caster: SpellCaster = None
     learned_spells: List[Spell] = []
-    if class_type.is_spell_caster:
+    if class_type.can_cast:
         learnable_spells: List[Spell] = [s for s in spells if class_type.index in s.allowed_classes and s.level <= char_level and s.damage_type]
         if learnable_spells:
             cantrips_spells: List[Spell] = []
@@ -427,7 +427,9 @@ def create_new_character(roster: List[Character]) -> Character:
                      'warlock': 'necromant',
                      'wizard': 'wizzard'
                      }
-    character: Character = Character(id=len(roster),
+    # sorted_roster_by_id = sorted(roster, key=lambda c: c.id)
+    free_id = max([c.id for c in roster]) + 1
+    character: Character = Character(id=free_id,
                                      image_name=f'hero_{sprites[class_type.name.lower()]}.png',
                                      x=-1, y=-1,
                                      race=race,
