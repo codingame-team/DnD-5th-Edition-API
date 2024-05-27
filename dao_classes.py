@@ -38,6 +38,9 @@ class Sprite:
     x: int
     y: int
 
+    def __repr__(self):
+        return f"#{self.id} {self.image_name} ({self.x}, {self.y})"
+
     @property
     def pos(self) -> tuple:
         return self.x, self.y
@@ -729,7 +732,7 @@ class Character(Sprite):
     id_party: int = -1
     OUT: bool = False
 
-    def __init__(self):
+    def __post__init__(self):
         self.armor = None
 
     @property
@@ -813,6 +816,7 @@ class Character(Sprite):
                                                                                  self.race.ability_bonuses['cha']
 
     def __repr__(self):
+        # return f'{self.id} {self.name} {self.class_type} {self.image_name}'
         race = self.subrace if self.subrace else self.race
         ethnic = f'ethnic: {self.ethnic} - ' if self.ethnic else ''
         return f"{self.name} - Age: {self.age // 52} - Abilities: {self.abilities} - Ability modifiers: {self.ability_modifiers} - ({ethnic}{self.gender} {race.name} - height: {self.height} weight: {self.weight}- class: {self.class_type} - AC {self.armor_class} Damage: {self.damage_dice} - w: {self.weapon.name} a: {self.armor.name} - potions: {len(self.healing_potions)})"
@@ -826,7 +830,7 @@ class Character(Sprite):
     def damage_dice(self) -> DamageDice:
         """TODO Two handed weapon not possible with a shield """
         # print(f'error {self.weapon}')
-        return self.weapon.damage_dice_two_handed if self.weapon.damage_dice_two_handed else self.weapon.damage_dice if self.weapon else DamageDice('1d2')
+        return self.weapon.damage_dice_two_handed if self.weapon and self.weapon.damage_dice_two_handed else self.weapon.damage_dice if self.weapon else DamageDice('1d2')
 
     @property
     def used_armor(self) -> Optional[Armor]:
@@ -1022,21 +1026,22 @@ class Character(Sprite):
                 cprint(f'{color.RED}{monster.name}{color.END} is hit for {damage_roll} hit points!')
         return damage_roll
 
-    def attack(self, monster: Monster) -> int:
+    def attack(self, monster: Monster, cast: bool = True) -> int:
         """
         :return: damage generated
         """
         damage_roll = 0
-        if self.is_spell_caster:
-            cantric_spells: List[Spell] = [s for s in self.sc.learned_spells if not s.level]
-            slot_spells: List[Spell] = [s for s in self.sc.learned_spells if s.level and self.sc.spell_slots[s.level - 1] > 0]
-            castable_spells: List[Spell] = cantric_spells + slot_spells
-        if self.is_spell_caster and castable_spells:
-            # TODO modify spell_slots to [] for non casters
-            attack_spell: Spell = max(castable_spells, key=lambda s: s.level)
-            damage_roll = self.cast(attack_spell, monster)
-            if not attack_spell.is_cantrip:
-                self.update_spell_slots(casted_spell=attack_spell)
+        if cast:
+            if self.is_spell_caster:
+                cantric_spells: List[Spell] = [s for s in self.sc.learned_spells if not s.level]
+                slot_spells: List[Spell] = [s for s in self.sc.learned_spells if s.level and self.sc.spell_slots[s.level - 1] > 0]
+                castable_spells: List[Spell] = cantric_spells + slot_spells
+            if self.is_spell_caster and castable_spells:
+                # TODO modify spell_slots to [] for non casters
+                attack_spell: Spell = max(castable_spells, key=lambda s: s.level)
+                damage_roll = self.cast(attack_spell, monster)
+                if not attack_spell.is_cantrip:
+                    self.update_spell_slots(casted_spell=attack_spell)
         else:
             multi_attacks = 2 if self.level >= 5 else 3 if self.level >= 11 else 4 if self.level >= 20 else 1
             damage_multi = 0
@@ -1047,9 +1052,10 @@ class Character(Sprite):
                 if attack_roll >= monster.armor_class:
                     damage_roll = self.damage_dice.roll()
                 if damage_roll:
-                    # cprint(f'{color.GREEN}{self.name}{color.END} hits {color.RED}{monster.name}{color.END} for {damage_roll} hit points!')
+                    # cprint(f'{color.GREEN}{self.name}{color.END} hits {color.RED}{monster.name}{color.END} for {damage_roll} hit points!'
+                    attack_type: str = self.weapon.damage_type.index.replace('ing', 'es') if self.weapon else 'punches'
                     cprint(
-                        f"{color.RED}{self.name}{color.END} {self.weapon.damage_type.index.replace('ing', 'es')} {color.GREEN}{monster.name}{color.END} for {damage_roll} hit points!")
+                        f"{color.RED}{self.name}{color.END} {attack_type} {color.GREEN}{monster.name}{color.END} for {damage_roll} hit points!")
                     if any([e for e in self.conditions if e.index == 'restrained']):
                         damage_roll //= 2
                         self.hit_points -= damage_roll
