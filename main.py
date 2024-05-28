@@ -1302,7 +1302,7 @@ def restore_all_roster(roster: List[Character]):
 def cheat_function(roster: List[Character]):
     for char in roster:
         char.xp += 10000
-        char.gold = 1000
+        char.gold += 1000
         char.hit_points = char.max_hit_points
         char.status = 'OK'
 
@@ -1362,7 +1362,7 @@ if __name__ == '__main__':
     location = 'Castle'
     party: List[Character] = []
 
-    cheat_function(roster)
+    # cheat_function(roster)
     restore_all_roster(roster)
     # delete_all_potions(roster)
     # delete_armors_weapons(roster)

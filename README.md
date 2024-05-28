@@ -1,12 +1,17 @@
+<!-- TOC -->
+  * [Simulation engine system of D&D 5th Edition universe](#simulation-engine-system-of-dd-5th-edition-universe)
+      * [New Features (Staging)](#new-features-staging)
+<!-- TOC -->
+
 ## Simulation engine system of D&D 5th Edition universe
 
 Usage to run:
-  - console mode: (full DnD 5th rules with character's creation and combat simulation)
+  - [console mode](manual/manual_console_version.md): (full DnD 5th rules with character's creation and combat simulation)
     - python ./main.py (using a compatible Terminal and python version >= 3.10.0) -> best method for playing
     - python ./main_pexpect.py (inside Python IDE - emulate a pseudo Terminal using pexpect) -> preferred method for debugging (still includes some minor display bugs)
-  - Tkinter version: (simple graphical arena with basic fights and moving enemies, and limited DnD rules)
+  - [Tkinter version](manual/manual_tk_version.md): (simple graphical arena with basic fights and moving enemies, and limited DnD rules)
     - python ./dungeon_tk.py
-  - Pygame version: (more complex version using spell's casting, inventory management, melee & ranged attacks following *main.py* DnD 5th rules)
+  - [Pygame version](manual/manual_pygame_version.md): (more complex version using spell's casting, inventory management, melee & ranged attacks following *main.py* DnD 5th rules)
     - python ./dungeon_menu_pygame.py (to select a character)
     - python ./dungeon_pygame.py (for random character)
   - (under construction...) GUI mode:
