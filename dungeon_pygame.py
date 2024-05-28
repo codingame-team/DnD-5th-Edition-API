@@ -84,6 +84,19 @@ def find_path(start: tuple, end: tuple, carte: List) -> Optional[List[tuple]]:
 
     return path[::-1]
 
+def put_inlay(image: Surface, number: int):
+    # Police pour le texte
+    font = pygame.font.Font(None, 18)
+
+    # Créer la surface du texte
+    text_surface = font.render(str(number), True, WHITE)
+
+    # Définir la position du texte sur l'image (par exemple, en bas à droite)
+    text_rect = text_surface.get_rect()
+    text_rect.topleft = image.get_rect().topleft
+
+    # Ajouter le texte sur l'image
+    image.blit(text_surface, text_rect)
 
 class Level:
     level_no: int
@@ -185,8 +198,9 @@ class Game:
     ready_spell: Spell = None
     target_pos: tuple = None
 
-    def __init__(self, character: Character):
+    def __init__(self, character: Character, actions_panel=False):
         # Chargement de la carte
+        self.actions_panel = actions_panel
         self.dungeon_level = 1
         self.level = Level(1)
         self.levels = [self.level]
@@ -198,7 +212,7 @@ class Game:
         self.view_port_width = min(self.map_width * TILE_SIZE, SCREEN_WIDTH - STATS_WIDTH)
         self.view_port_height = min(self.map_height * TILE_SIZE, SCREEN_HEIGHT - ACTIONS_HEIGHT)
         self.screen_width = self.view_port_width + STATS_WIDTH
-        self.screen_height = self.view_port_height + ACTIONS_HEIGHT
+        self.screen_height = self.view_port_height + ACTIONS_HEIGHT if actions_panel else self.view_port_height
         self.action_rects = {}
         self.sprites = {}
         # Création de la fenêtre
@@ -343,6 +357,7 @@ class Game:
                 icon_y = 170 + i * 40
                 # spells_texts.append(f"L{s.level}: {str(s)}")
                 image: Surface = self.sprites[spell.id].convert_alpha()
+                put_inlay(image=image, number=spell.level)
                 # Define the transparency level (0 to 255, 0 = fully transparent, 255 = fully opaque)
                 transparency_level = 255 if self.hero.sc.spell_slots[i - 1] or spell.is_cantrip else 128
                 # Set the transparency level of the image
@@ -449,9 +464,9 @@ class Game:
         self.walls = [(x, y) for y in range(self.map_height) for x in range(self.map_width) if self.world_map[y][x] == '#']
         # Redimensionnement de l'écran
         self.view_port_width = min(self.map_width * TILE_SIZE, SCREEN_WIDTH - STATS_WIDTH)
-        self.view_port_height = min(self.map_height * TILE_SIZE, SCREEN_HEIGHT - ACTIONS_HEIGHT)
+        self.view_port_height = min(self.map_height * TILE_SIZE, SCREEN_HEIGHT - ACTIONS_HEIGHT) if self.actions_panel else self.map_height * TILE_SIZE
         self.screen_width = self.view_port_width + STATS_WIDTH
-        self.screen_height = self.view_port_height + ACTIONS_HEIGHT
+        self.screen_height = self.view_port_height + ACTIONS_HEIGHT if self.actions_panel else self.view_port_height
         # # Redimensionnement de l'écran
         # self.screen_width = TILE_SIZE * self.map_width + STATS_WIDTH
         # self.screen_height = TILE_SIZE * self.map_height + ACTIONS_HEIGHT
@@ -653,13 +668,14 @@ if __name__ == "__main__":
     # Boucle de jeu
     running = True
     while running:
-        # Gestion des événements
+        # I - Gestion des événements
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False  # Set running to False to exit the loop
                 save_character(char=game.hero, _dir=characters_dir)
                 pygame.quit()  # Quit Pygame
                 sys.exit()  # Quit the Python script
+            # I-1 Gestion des évènements souris
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 x, y = event.pos[0] // TILE_SIZE, event.pos[1] // TILE_SIZE
                 # msg = 'INSIDE' if game.in_visible_map(x, y) else 'OUTSIDE'
@@ -684,11 +700,10 @@ if __name__ == "__main__":
                             game.hero.update_spell_slots(game.ready_spell)
                         game.ready_spell = None
                         game.target_pos = None
-                    elif event.button == 1:  # Left click
-                        monsters_in_range: List[Monster] = [m for m in game.level.monsters
-                                                            if ((game.hero.weapon and game.hero.weapon.range and dist(game.hero.pos,
-                                                                                                                      m.pos) <= game.hero.weapon.range.normal // UNIT_SIZE) or mh_dist(
-                                game.hero.pos, m.pos) == 1)
+                    # Left click
+                    elif event.button == 1:
+                        monsters_in_range: List[Monster] = [m for m in game.level.monsters if ((game.hero.weapon and game.hero.weapon.range and
+                                                            dist(game.hero.pos, m.pos) <= game.hero.weapon.range.normal // UNIT_SIZE) or mh_dist(game.hero.pos, m.pos) == 1)
                                                             and in_view_range(*game.hero.pos, *m.pos, obstacles=game.level.obstacles)]
                         if monsters_in_range:
                             for monster in monsters_in_range:
@@ -705,8 +720,8 @@ if __name__ == "__main__":
                                 game.hero.x, game.hero.y = x, y
                             else:
                                 cprint('No monster in range!')
+                # Gestion des click hors de la carte d'exploration
                 else:
-                    # Gestion des click hors de la carte d'exploration
                     # Vérifier si un texte d'action a été cliqué
                     for action_text, action_rect in game.action_rects.items():
                         if action_rect.collidepoint(event.pos):
@@ -747,6 +762,7 @@ if __name__ == "__main__":
                                         pygame.draw.rect(game.screen, frame_color, (icon_x - 2, icon_y - 2, ICON_SIZE + 4, ICON_SIZE + 4), 4)
                                         pygame.draw.rect(game.screen, RED, (icon_x - 2, icon_y - 2, ICON_SIZE + 4, ICON_SIZE + 4), 4)
                                         game.ready_spell = spell
+            # I-2 Gestion des déplacements (flèches)
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:  # Quitter le jeu et revenir au menu principal avec la touche Echap
                     running = False
@@ -766,10 +782,13 @@ if __name__ == "__main__":
                     else:
                         cprint('Sorry dude! no healing potion available...')
 
-        # Ouverture des coffres à trésor (Gold + item aléatoire éventuel)
+        # II - Gestion des conditions de jeu
+
+        # II-1 Ouverture des coffres à trésor (Gold + item aléatoire éventuel)
         if any(t.pos == game.hero.pos for t in game.level.treasures):
             game.open_chest()
 
+        # II-2 Changement de niveau (upstairs, downstairs)
         match game.world_map[game.hero.y][game.hero.x]:
             case '>':
                 print(f'Hero found downstairs!')
@@ -793,17 +812,19 @@ if __name__ == "__main__":
         # if any(game.hero.check_collision(e) for e in game.level.monsters):
         #     print("Combat!")
 
+        # III - Réactualisation de l'affichage
+
         # Rendu
         game.screen.fill(WHITE)
 
-        # Dessiner la carte
+        # III-1 Dessiner la carte
         map_rect = pygame.Rect(0, 0, game.map_width * TILE_SIZE, game.map_height * TILE_SIZE)
         pygame.draw.rect(game.screen, WHITE, map_rect)
         game.draw_map()
 
         view_port_tuple = game.calculate_view_window()
 
-        # Afficher les personnages
+        # III-2 Afficher les personnages
         image: Surface = game.sprites[game.hero.id]
         game.hero.draw(game.screen, image, TILE_SIZE, *view_port_tuple)
 
@@ -811,12 +832,12 @@ if __name__ == "__main__":
             image: Surface = game.level.sprites[e.id]
             e.draw(game.screen, image, TILE_SIZE, *view_port_tuple)
 
-        # Afficher les trésors
+        # III-3 Afficher les trésors
         for t in game.level.treasures:
             image: Surface = game.level.sprites[t.id]
             t.draw(game.screen, image, TILE_SIZE, *view_port_tuple)
 
-        # Afficher ou Ramasser des items laissés au sol
+        # III-4 Afficher ou Ramasser des items laissés au sol
         for item in game.level.items:
             try:
                 image: Surface = game.level.sprites[item.id]
@@ -838,18 +859,18 @@ if __name__ == "__main__":
             except AttributeError:
                 pass
 
-        # Dessiner la feuille de stats du personnage
+        # III-5 Dessiner la feuille de stats du personnage
         game.draw_character_stats()
 
-        # Dessiner la feuille d'inventaire du personnage
+        # III-6 Dessiner la feuille d'inventaire du personnage
         game.draw_inventory()
 
-        # Dessiner le grimoire du personnage
+        # III-7 Dessiner le grimoire du personnage
         if game.hero.sc:
             game.draw_spell_book()
 
-        # Dessiner le panneau de commande d'actions
-        game.draw_action_panel()
+        # III-8 Dessiner le panneau de commande d'actions
+        # game.draw_action_panel()
 
         # Mise à jour de l'affichage
         # pygame.display.update()

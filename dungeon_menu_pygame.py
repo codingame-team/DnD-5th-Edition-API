@@ -13,7 +13,7 @@ from main import get_roster
 pygame.init()
 
 # Définir les dimensions de la fenêtre
-SCREEN_WIDTH, SCREEN_HEIGHT = 800, 600
+SCREEN_WIDTH, SCREEN_HEIGHT = 400, 300
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption('Choix du personnage')
 
@@ -25,26 +25,7 @@ RED = (255, 0, 0)
 BLUE = (0, 0, 255)
 
 # Police
-font = pygame.font.Font(None, 36)
-
-# # Classe de personnage
-# class Character:
-#     def __init__(self, name, color, health, strength):
-#         self.name = name
-#         self.color = color
-#         self.health = health
-#         self.strength = strength
-#
-#     def display_stats(self, screen, x, y):
-#         text = font.render(f"Name: {self.name}, Health: {self.health}, Strength: {self.strength}", True, self.color)
-#         screen.blit(text, (x, y))
-#
-# # Création des personnages
-# characters = [
-#     Character("Warrior", RED, 100, 20),
-#     Character("Mage", BLUE, 80, 25),
-#     Character("Archer", GREEN, 90, 15)
-# ]
+font = pygame.font.Font(None, 24)
 
 # Fonctions pour dessiner les menus
 def draw_main_menu():
@@ -59,16 +40,17 @@ def draw_main_menu():
     screen.blit(option2, (SCREEN_WIDTH // 2 - option2.get_width() // 2, 200))
 
 def draw_character_menu(roster):
+    LINEFEED = 25
     screen.fill(WHITE)
     title = font.render("=== Choose Your Character ===", True, BLACK)
-    screen.blit(title, (SCREEN_WIDTH // 2 - title.get_width() // 2, 50))
+    screen.blit(title, (SCREEN_WIDTH // 2 - title.get_width() // 2, LINEFEED))
 
     for index, character in enumerate(roster):
         option = font.render(f"{index + 1}. {character.name} (Level {character.level} {character.class_type})", True, RED)
-        screen.blit(option, (SCREEN_WIDTH // 2 - option.get_width() // 2, 150 + index * 50))
+        screen.blit(option, (SCREEN_WIDTH // 2 - option.get_width() // 2, 50 + index * LINEFEED))
 
     option2 = font.render(f"{len(roster) + 1}. Exit", True, BLACK)
-    screen.blit(option2, (SCREEN_WIDTH // 2 - option2.get_width() // 2,  150 + len(roster) * 50))
+    screen.blit(option2, (SCREEN_WIDTH // 2 - option2.get_width() // 2,  50 + len(roster) * LINEFEED))
     # back_option = font.render("4. Go back to Main Menu", True, BLACK)
     # screen.blit(back_option, (SCREEN_WIDTH // 2 - back_option.get_width() // 2, 150 + len(roster) * 50))
 
