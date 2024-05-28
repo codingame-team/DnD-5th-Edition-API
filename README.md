@@ -8,7 +8,7 @@ Usage to run:
     - python ./dungeon_tk.py
   - Pygame version: (more complex version using spell's casting, inventory management, melee & ranged attacks following *main.py* DnD 5th rules)
     - python ./dungeon_menu_pygame.py (to select a character)
-    - python ./dungeon_
+    - python ./dungeon_pygame.py (for random character)
   - (under construction...) GUI mode:
     - python /pyQT5App/wizardry.py [under construction...]
 
