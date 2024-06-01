@@ -1,30 +1,67 @@
+# Définition des constantes pour la mise en page
+# SCREEN_WIDTH, SCREEN_HEIGHT = 1920, 1080
 from __future__ import annotations
 
-import os, pygame
-import subprocess
+import os
 import sys
+import time
 from copy import copy
-from dataclasses import dataclass, field
 from random import choice, randint
 from typing import List, Optional
 
+import pygame
 from pygame import Surface
 
 from algo.brehensam import in_view_range
 from algo.lee import parcours_largeur
-from dao_classes import Weapon, Armor, HealingPotion, Character, Spell, Equipment, Monster, Treasure
+from dao_classes import Character, Level, Spell, Weapon, Armor, HealingPotion, Monster, Equipment, Treasure
 from main import get_roster, save_character
-from populate_functions import populate, request_weapon, request_armor, request_monster
+from populate_functions import populate, request_armor, request_weapon, request_monster
 from populate_rpg_functions import load_potions_collections
 from tools.common import cprint
 
+SCREEN_WIDTH, SCREEN_HEIGHT = 1280, 720
+STATS_WIDTH, ACTIONS_HEIGHT = 600, 200
+STATS_HEIGHT = 250
 
-# Fonction pour afficher du texte
-def draw_text(text, font, color, surface, x, y):
-    text_obj = font.render(text, True, color)
-    text_rect = text_obj.get_rect()
-    text_rect.topleft = (x, y)
-    surface.blit(text_obj, text_rect)
+# Paramètres de la map
+UNIT_SIZE = 5
+
+# Paramètres de l'écran
+TILE_SIZE = 32
+FPS = 60
+
+# Autres paramètres
+ICON_SIZE = 32
+
+# Colors
+BLACK = (0, 0, 0)
+WHITE = (255, 255, 255)
+GRAY = (200, 200, 200)
+BLUE = (0, 0, 255)
+RED = (255, 0, 0)
+PINK = (255, 0, 255)
+
+# Directions
+UP, DOWN, LEFT, RIGHT = (0, -1), (0, 1), (-1, 0), (1, 0)
+DIRECTIONS = [UP, DOWN, LEFT, RIGHT]
+
+ROUND_DURATION = 2  # Duration of a round in seconds
+
+
+def put_inlay(image: Surface, number: int):
+    # Police pour le texte
+    font = pygame.font.Font(None, 18)
+
+    # Créer la surface du texte
+    text_surface = font.render(str(number), True, WHITE)
+
+    # Définir la position du texte sur l'image (par exemple, en bas à droite)
+    text_rect = text_surface.get_rect()
+    text_rect.topleft = image.get_rect().topleft
+
+    # Ajouter le texte sur l'image
+    image.blit(text_surface, text_rect)
 
 
 # Définition de la fonction pour afficher une info-bulle
@@ -44,59 +81,6 @@ def draw_tooltip(description, surface, x, y):
     # Dessiner la surface d'arrière-plan sur l'écran principal
     surface.blit(tooltip_surface, (text_rect.left - 5, text_rect.top - 5))  # Décalage de 5 pixels pour centrer le texte dans le rectangle
 
-
-# Définition de la fonction pour afficher une info-bulle
-def draw_tooltip_old(description, surface, x, y):
-    font = pygame.font.Font(None, 18)
-    text = font.render(description, True, BLACK)
-    text_rect = text.get_rect()
-    text_rect.topleft = (x, y)
-    pygame.draw.rect(surface, GRAY, (text_rect.left - 5, text_rect.top - 5, text_rect.width + 10, text_rect.height + 10))
-    surface.blit(text, text_rect)
-
-
-# Fonction pour dessiner un bouton
-def draw_button(surface, rect, color, text):
-    pygame.draw.rect(surface, color, rect)
-    text_surface = font.render(text, True, BLACK)
-    text_rect = text_surface.get_rect(center=rect.center)
-    surface.blit(text_surface, text_rect)
-
-
-def mh_dist(p1: tuple, p2: tuple):
-    return abs(p1[0] - p2[0]) + abs(p1[1] - p2[1])
-
-
-def dist(p1, p2) -> float:
-    return ((p1[0] - p2[0]) ** 2 + (p1[1] - p2[1]) ** 2) ** 0.5
-
-
-def find_path(start: tuple, end: tuple, carte: List) -> Optional[List[tuple]]:
-    dist, pred = parcours_largeur(carte, *start, *end)
-
-    path: List[tuple] = []
-
-    if dist != float('inf'):
-        path.append(end)
-        while end != start:
-            end = pred[end]
-            path.append(end)
-
-    return path[::-1]
-
-def put_inlay(image: Surface, number: int):
-    # Police pour le texte
-    font = pygame.font.Font(None, 18)
-
-    # Créer la surface du texte
-    text_surface = font.render(str(number), True, WHITE)
-
-    # Définir la position du texte sur l'image (par exemple, en bas à droite)
-    text_rect = text_surface.get_rect()
-    text_rect.topleft = image.get_rect().topleft
-
-    # Ajouter le texte sur l'image
-    image.blit(text_surface, text_rect)
 
 class Level:
     level_no: int
@@ -172,11 +156,21 @@ class Level:
 
     @property
     def walkable_tiles(self):
-        return [(x, y) for y in range(self.map_height) for x in range(self.map_width) if self.world_map[y][x] == '.']
+        return [(x, y) for y in range(self.map_height) for x in range(self.map_width) if self.world_map[y][x] in ['.', '<', '>']]
 
     @property
     def obstacles(self):
         return [(x, y) for y in range(self.map_height) for x in range(self.map_width) if self.world_map[y][x] == '#']
+
+    @property
+    def carte(self) -> List[List[int]]:
+        obstacles = [*self.obstacles]  # + [(e.x, e.y) for e in enemies if e != enemy]
+        carte = [[1] * self.map_width for _ in range(self.map_height)]
+        for y in range(self.map_height):
+            for x in range(self.map_width):
+                if (x, y) in obstacles:
+                    carte[y][x] = 0
+        return carte
 
 
 class Game:
@@ -197,8 +191,10 @@ class Game:
     school_images: dict
     ready_spell: Spell = None
     target_pos: tuple = None
+    last_round_time: float = 0
 
     def __init__(self, character: Character, actions_panel=False):
+        self.last_round_time = time.time()
         # Chargement de la carte
         self.actions_panel = actions_panel
         self.dungeon_level = 1
@@ -583,8 +579,417 @@ class Game:
         view_x, view_y, view_width, view_height = self.calculate_view_window()
         return 0 <= x < view_width and 0 <= y < view_height
 
-if __name__ == "__main__":
+    @property
+    def monsters_in_view_range(self) -> List[Monster]:
+        return [m for m in self.level.monsters if in_view_range(*self.hero.pos, *m.pos, obstacles=game.level.obstacles)]
 
+
+def mh_dist(p1: tuple, p2: tuple):
+    return abs(p1[0] - p2[0]) + abs(p1[1] - p2[1])
+
+
+def dist(p1, p2) -> float:
+    return ((p1[0] - p2[0]) ** 2 + (p1[1] - p2[1]) ** 2) ** 0.5
+
+
+def find_path(start: tuple, end: tuple, carte: List, obstacles: List[tuple]) -> Optional[List[tuple]]:
+    dist, pred = parcours_largeur(carte, *start, *end, obstacles)
+
+    path: List[tuple] = []
+
+    if dist != float('inf'):
+        path.append(end)
+        while end != start:
+            end = pred[end]
+            path.append(end)
+
+    return path[::-1]
+
+
+def load_game_assets():
+    # Load tiles
+    tile_img = pygame.image.load('sprites/TilesDungeon/Tile.png')
+
+    # Load font
+    font = pygame.font.SysFont(None, 36)
+
+    # Load inventory items
+    armor_names = populate(collection_name='armors', key_name='equipment')
+    armors = [request_armor(name) for name in armor_names]
+    armors = list(filter(lambda a: a, armors))
+
+    weapon_names = populate(collection_name='weapons', key_name='equipment')
+    weapons = [request_weapon(name) for name in weapon_names]
+    weapons = list(filter(lambda w: w, weapons))
+
+    healing_potions = load_potions_collections()
+
+    return tile_img, font, armors, weapons, healing_potions
+
+
+def initialize_game(selected_character):
+    game = Game(character=selected_character)
+    return game
+
+
+# III - Réactualisation de l'affichage
+def update_display(game):
+    # Rendu
+    game.screen.fill(WHITE)
+
+    # III-1 Dessiner la carte
+    map_rect = pygame.Rect(0, 0, game.map_width * TILE_SIZE, game.map_height * TILE_SIZE)
+    pygame.draw.rect(game.screen, WHITE, map_rect)
+    game.draw_map()
+
+    view_port_tuple = game.calculate_view_window()
+
+    # III-2 Afficher les personnages
+    image: Surface = game.sprites[game.hero.id]
+    game.hero.draw(game.screen, image, TILE_SIZE, *view_port_tuple)
+
+    for e in game.level.monsters:
+        image: Surface = game.level.sprites[e.id]
+        e.draw(game.screen, image, TILE_SIZE, *view_port_tuple)
+
+    # III-3 Afficher les trésors
+    for t in game.level.treasures:
+        image: Surface = game.level.sprites[t.id]
+        t.draw(game.screen, image, TILE_SIZE, *view_port_tuple)
+
+    # III-4 Afficher ou Ramasser des items laissés au sol
+    for item in game.level.items:
+        try:
+            image: Surface = game.level.sprites[item.id]
+            item_taken: bool = False
+            if item.pos == game.hero.pos:
+                free_slots: List[int] = [i for i, item in enumerate(game.hero.inventory) if not item]
+                if free_slots:
+                    # Grab item
+                    game.remove_from_level(item)
+                    # Add item to inventory
+                    game.add_to_inv(item, image)
+                    print(f'Hero gained an item! ({item.name}) #{item.id}')
+                    item_taken = True
+                else:
+                    print(f'Cannot take item {item.name}. Inventory is full!')
+            if not item_taken:
+                image.set_colorkey(PINK)  # Set the pink color as transparent
+                item.draw(game.screen, image, TILE_SIZE, *view_port_tuple)
+        except AttributeError:
+            pass
+
+    # III-5 Dessiner la feuille de stats du personnage
+    game.draw_character_stats()
+
+    # III-6 Dessiner la feuille d'inventaire du personnage
+    game.draw_inventory()
+
+    # III-7 Dessiner le grimoire du personnage
+    if game.hero.sc:
+        game.draw_spell_book()
+
+    # Mise à jour de l'affichage
+    pygame.display.flip()
+
+
+def display_game_over(game):
+    """
+    Display the "GAME OVER" message in the Pygame window.
+    """
+    font = pygame.font.Font(None, 72)
+    text = font.render("GAME OVER", True, (255, 0, 0))
+    text_rect = pygame.Rect(0, game.view_port_height, game.screen_width, SCREEN_HEIGHT)
+    game.screen.blit(text, text_rect)
+    pygame.display.flip()
+
+    # Pause the game until the user presses a key
+    paused = True
+    while paused:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                save_character(char=game.hero, _dir=characters_dir)
+                pygame.quit()
+                sys.exit()
+            # elif event.type == pygame.KEYDOWN:
+            #     paused = False
+            #     break
+
+
+def main_game_loop(game):
+    running = True
+    last_frame_time = time.time()
+    while running:
+        # Calculate the time since the last frame
+        current_time = time.time()
+
+        # I - Gestion des événements
+        handle_events(game)
+        # II - Gestion des conditions de jeu
+        handle_game_conditions(game)
+
+        # III - Réactualisation de l'affichage
+        update_display(game)
+
+        # Limit frame rate
+        pygame.time.Clock().tick(FPS)
+
+        # Check if a new round has started
+        if game.hero.hit_points > 0:
+            if current_time - game.last_round_time >= ROUND_DURATION:
+                game.last_round_time = current_time
+                handle_combat(monsters=game.monsters_in_view_range)
+        else:
+            cprint(f'{game.hero.name} has been defeated!')
+            display_game_over(game)
+            running = False
+
+
+def handle_events(game):
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            save_character(char=game.hero, _dir=characters_dir)
+            pygame.quit()
+            sys.exit()
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            handle_mouse_events(game, event)
+        elif event.type == pygame.KEYDOWN:
+            handle_keyboard_events(game, event)
+
+
+def handle_outside_map_click(game, event):
+    # Vérifier si un texte d'action a été cliqué
+    for action_text, action_rect in game.action_rects.items():
+        if action_rect.collidepoint(event.pos):
+            print(f"Action: {action_text}")
+    # Vérifier si une case de l'inventaire a été cliquée
+    for i, item in enumerate(game.hero.inventory):
+        if item is not None:  # pp and isinstance(item, Armor | Weapon):
+            icon_x = game.view_port_width + 10 + (i % 5) * 40
+            icon_y = 200 + 70 + (i // 5) * 40
+            image: Surface = game.sprites[item.id]
+            icon_rect = image.get_rect(topleft=(icon_x, icon_y))
+            # cprint(icon_rect)
+            if icon_rect.collidepoint(event.pos):
+                if event.button == 1:  # Left mouse button
+                    if isinstance(item, (Armor, Weapon)):
+                        game.equip(item)
+                    else:
+                        game.use(item)
+                elif event.button == 3:  # Right mouse button
+                    game.drop(item, image)
+
+    # TODO: area of effect
+    if game.hero.sc and not game.ready_spell:
+        # Vérifier si un sort a été sélectionné
+        max_spell_level: int = max([s.level for s in game.hero.sc.learned_spells])
+        for i in range(max_spell_level + 2):
+            spells_by_level = [s for s in game.hero.sc.learned_spells if s.level == i]
+            for j, spell in enumerate(spells_by_level):
+                icon_x = game.view_port_width + 210 + j * 40
+                icon_y = 170 + i * 40
+                image: Surface = game.sprites[spell.id]
+                icon_rect = image.get_rect(topleft=(icon_x, icon_y))
+                if icon_rect.collidepoint(event.pos):
+                    if event.button == 1 and game.hero.can_cast(spell):  # Left mouse button
+                        cprint(f'hero pos: {game.hero.pos}')
+                        cprint(f'select target for spell <{spell.name}>,  area of effect: {spell.area_of_effect}, range: {spell.range}')
+                        frame_color = BLUE if game.hero.sc.spell_slots[i] > 0 else WHITE
+                        pygame.draw.rect(game.screen, frame_color, (icon_x - 2, icon_y - 2, ICON_SIZE + 4, ICON_SIZE + 4), 4)
+                        pygame.draw.rect(game.screen, RED, (icon_x - 2, icon_y - 2, ICON_SIZE + 4, ICON_SIZE + 4), 4)
+                        game.ready_spell = spell
+
+
+def handle_mouse_events(game, event):
+    x, y = event.pos[0] // TILE_SIZE, event.pos[1] // TILE_SIZE
+    if game.in_visible_map(x, y):
+        handle_in_map_click(game, event, x, y)
+    else:
+        handle_outside_map_click(game, event)
+
+
+def handle_in_map_click(game, event, x, y):
+    view_x, view_y, view_width, view_height = game.calculate_view_window()
+    game.target_pos = view_x + x, view_y + y
+    if event.button == 3 and game.ready_spell:
+        monsters_in_spell_range = [m for m in game.monsters_in_view_range if dist(game.hero.pos, m.pos) <= game.ready_spell.range // UNIT_SIZE]
+        handle_combat(party=[game.hero], monsters=monsters_in_spell_range, attack_spell=game.ready_spell)
+    elif event.button == 1:
+        handle_combat(party=[game.hero], monsters=game.monsters_in_view_range)
+    game.last_round_time = time.time()
+
+
+def handle_right_click_spell_attack(game):
+    monsters_in_range = [m for m in game.monsters_in_view_range if dist(game.hero.pos, m.pos) <= game.ready_spell.range // UNIT_SIZE]
+    if monsters_in_range:
+        for monster in monsters_in_range:
+            if monster.pos == game.target_pos:
+                monster.hit_points -= game.hero.cast(game.ready_spell, monster)
+                if monster.hit_points <= 0:
+                    cprint(f'{monster.name} at pos {monster.pos} is *KILLED*')
+                    game.hero.victory(monster=monster, solo_mode=True)
+                    game.level.monsters.remove(monster)
+    else:
+        cprint('No monster in range!')
+    if not game.ready_spell.is_cantrip:
+        game.hero.update_spell_slots(game.ready_spell)
+    game.ready_spell = None
+    game.target_pos = None
+
+
+def handle_left_click_action(game):
+    monsters_in_range = [m for m in game.monsters_in_view_range if dist(game.hero.pos, m.pos) <= game.hero.weapon.range.normal // UNIT_SIZE]
+    if monsters_in_range:
+        attack_monsters(game, monsters_in_range)
+    else:
+        move_char(game, char=game.hero, pos=game.target_pos)
+
+
+def attack_monsters(game, monsters):
+    for monster in monsters:
+        if monster.pos == game.target_pos:
+            monster.hit_points -= game.hero.attack(monster, cast=False)
+            if monster.hit_points <= 0:
+                cprint(f'{monster.name} at pos {monster.pos} is *KILLED*')
+                game.hero.victory(monster=monster, solo_mode=True)
+                game.level.monsters.remove(monster)
+
+
+def move_char(game: Game, char: Monster | Character, pos: tuple):
+    x, y = pos
+    if (x, y) in game.level.walkable_tiles:
+        if mh_dist(char.pos, (x, y)) <= 1:
+            char.x, char.y = x, y
+        else:
+            if isinstance(char, Character):
+                obstacles = [m.pos for m in game.level.monsters]
+            else:
+                obstacles = [m.pos for m in game.level.monsters if m != char]
+            path = find_path(start=char.pos, end=(x, y), carte=game.level.carte, obstacles=obstacles)
+            # cprint(f'path : {path}')
+            if path:
+                char.x, char.y = path[1]
+            else:
+                cprint(f'No path found for {char.name}!')
+
+
+def handle_keyboard_events(game, event):
+    if event.key == pygame.K_ESCAPE:
+        save_character(char=game.hero, _dir=characters_dir)
+        pygame.quit()
+        sys.exit()
+    elif event.key == pygame.K_UP and game.can_move(char=game.hero, dir=UP):
+        handle_combat(monsters=game.monsters_in_view_range, party=[game.hero], move_action=(game.hero.x, game.hero.y - 1))
+    elif event.key == pygame.K_DOWN and game.can_move(char=game.hero, dir=DOWN):
+        handle_combat(monsters=game.monsters_in_view_range, party=[game.hero], move_action=(game.hero.x, game.hero.y + 1))
+    elif event.key == pygame.K_LEFT and game.can_move(char=game.hero, dir=LEFT):
+        handle_combat(monsters=game.monsters_in_view_range, party=[game.hero], move_action=(game.hero.x - 1, game.hero.y))
+    elif event.key == pygame.K_RIGHT and game.can_move(char=game.hero, dir=RIGHT):
+        handle_combat(monsters=game.monsters_in_view_range, party=[game.hero], move_action=(game.hero.x + 1, game.hero.y))
+    elif event.key == pygame.K_p:
+        handle_potion_use(game)
+
+
+def handle_potion_use(game):
+    if game.hero.healing_potions:
+        potion = game.hero.choose_best_potion()
+        game.hero.drink(potion)
+        game.remove_from_inv(potion)
+    else:
+        cprint('Sorry dude! no healing potion available...')
+
+
+def handle_game_conditions(game):
+    handle_treasure_chests(game)
+    handle_level_changes(game)
+
+
+def get_initiative_order(characters):
+    """
+    Determine the initiative order of the given characters.
+
+    Args:
+        characters (list): A list of characters (either party members or monsters).
+
+    Returns:
+        list: A list of characters sorted by their initiative order.
+    """
+    initiative_rolls = [(char, randint(1, char.abilities.dex)) for char in characters]
+    initiative_rolls.sort(key=lambda x: x[1], reverse=True)
+    return [char for char, _ in initiative_rolls]
+
+
+def handle_combat(monsters: List[Monster], party=None, attack_spell: Spell = None, move_action: tuple = None):
+    """
+    Handle the combat between the party and the monsters.
+
+    Args:
+        party (list): A list of party members.
+        monsters (list): A list of monsters.
+    """
+    if party is None:
+        party = []
+    attack_order = get_initiative_order(party + monsters)
+    for char in attack_order:
+        if char in party:
+            # Handle party member's action
+            if move_action:
+                move_char(game, char, move_action)
+            elif attack_spell:
+                handle_right_click_spell_attack(game)
+            else:
+                handle_left_click_action(game)
+        else:
+            # Handle monster's attack
+            handle_monster_actions(game, char)
+
+
+def handle_monster_actions(game, monster):
+    if mh_dist(monster.pos, game.hero.pos) <= 1:
+        # Monster attacks the hero
+        game.hero.hit_points -= monster.melee_attack(game.hero)
+    else:
+        # Monster moves towards the hero
+        move_char(game, monster, game.hero.pos)
+
+
+# def handle_monster_attacks(game) -> bool:
+#     for monster in game.level.monsters:
+#         if mh_dist(monster.pos, game.hero.pos) == 1:
+#             game.hero.hit_points -= monster.melee_attack(game.hero)
+#             if game.hero.hit_points <= 0:
+#                 # Handle hero's defeat
+#                 return False
+#     return True
+
+
+def handle_treasure_chests(game):
+    if any(t.pos == game.hero.pos for t in game.level.treasures):
+        game.open_chest()
+
+
+def handle_level_changes(game):
+    match game.world_map[game.hero.y][game.hero.x]:
+        case '>':
+            print(f'Hero found downstairs!')
+            game.dungeon_level += 1
+            if game.dungeon_level > len(game.levels):
+                game.level = Level(level_no=game.dungeon_level)
+                game.levels.append(game.level)
+                game.level.load(hero=game.hero)
+            else:
+                game.level = game.levels[game.dungeon_level - 1]
+            game.update_level(dir=1)
+            game.screen = pygame.display.set_mode((game.screen_width, game.screen_height))
+        case '<':
+            print(f'Hero found upstairs!')
+            game.dungeon_level -= 1
+            game.level = game.levels[game.dungeon_level - 1]
+            game.update_level(dir=-1)
+            game.screen = pygame.display.set_mode((game.screen_width, game.screen_height))
+
+
+if __name__ == "__main__":
     path = os.path.dirname(__file__)
     abspath = os.path.abspath(path)
     characters_dir = f'{abspath}/gameState/characters'
@@ -616,271 +1021,6 @@ if __name__ == "__main__":
     # Initialisation de Pygame
     pygame.init()
 
-    # Définition des constantes pour la mise en page
-    # SCREEN_WIDTH, SCREEN_HEIGHT = 1920, 1080
-    SCREEN_WIDTH, SCREEN_HEIGHT = 1280, 720
-    STATS_WIDTH, ACTIONS_HEIGHT = 600, 200
-    STATS_HEIGHT = 250
-
-    # Paramètres de la map
-    UNIT_SIZE = 5
-
-    # Paramètres de l'écran
-    TILE_SIZE = 32
-    FPS = 60
-
-    # Autres paramètres
-    ICON_SIZE = 32
-
-    # Couleurs
-    BLACK = (0, 0, 0)
-    WHITE = (255, 255, 255)
-    GRAY = (200, 200, 200)
-    BLUE = (0, 0, 255)
-    RED = (255, 0, 0)
-    PINK = (255, 0, 255)
-
-    # Chargement des tuiles
-    tile_img = pygame.image.load('sprites/TilesDungeon/Tile.png')
-
-    UP, DOWN, LEFT, RIGHT = (0, -1), (0, 1), (-1, 0), (1, 0)
-    DIRECTIONS = [UP, DOWN, LEFT, RIGHT]
-
-    game: Game = Game(character=selected_character)
-
-    # Font
-    font = pygame.font.SysFont(None, 36)
-
-    # Title
-    # pygame.display.set_caption("RPG avec Pygame")
-
-    # Inventaire du personnage (liste d'objets)
-    # monster_names: List[str] = populate(collection_name='monsters', key_name='results')
-    # monsters: List[Monster] = [request_monster(name) for name in monster_names]
-    armor_names: List[str] = populate(collection_name='armors', key_name='equipment')
-    armors: List[Armor] = [request_armor(name) for name in armor_names]
-    weapon_names: List[str] = populate(collection_name='weapons', key_name='equipment')
-    weapons: List[Weapon] = [request_weapon(name) for name in weapon_names]
-    armors = list(filter(lambda a: a, armors))
-    weapons = list(filter(lambda w: w, weapons))
-    healing_potions: List[HealingPotion] = load_potions_collections()
-
-    # Boucle de jeu
-    running = True
-    while running:
-        # I - Gestion des événements
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False  # Set running to False to exit the loop
-                save_character(char=game.hero, _dir=characters_dir)
-                pygame.quit()  # Quit Pygame
-                sys.exit()  # Quit the Python script
-            # I-1 Gestion des évènements souris
-            elif event.type == pygame.MOUSEBUTTONDOWN:
-                x, y = event.pos[0] // TILE_SIZE, event.pos[1] // TILE_SIZE
-                # msg = 'INSIDE' if game.in_visible_map(x, y) else 'OUTSIDE'
-                # print(f'event pos = {event.pos} - (x, y) = {(x, y)} -> {msg} - event button: {event.button}')
-                if game.in_visible_map(x, y):
-                    view_x, view_y, view_width, view_height = game.calculate_view_window()
-                    game.target_pos = view_x + x, view_y + y
-                    if event.button == 3 and game.ready_spell:  # Right click
-                        monsters_in_range: List[Monster] = [m for m in game.level.monsters if dist(game.hero.pos, m.pos) <= game.ready_spell.range // UNIT_SIZE]
-                        if monsters_in_range:
-                            for monster in monsters_in_range:
-                                if monster.pos == game.target_pos:
-                                    monster.hit_points -= game.hero.cast(game.ready_spell, monster)
-                                    if monster.hit_points <= 0:
-                                        cprint(f'{monster.name} at pos {monster.pos} is *KILLED*')
-                                        game.hero.victory(monster=monster, solo_mode=True)
-                                        game.level.monsters.remove(monster)
-                                        game.level.sprites.pop(monster.id)
-                        else:
-                            cprint('No monster in range!')
-                        if not game.ready_spell.is_cantrip:
-                            game.hero.update_spell_slots(game.ready_spell)
-                        game.ready_spell = None
-                        game.target_pos = None
-                    # Left click
-                    elif event.button == 1:
-                        monsters_in_range: List[Monster] = [m for m in game.level.monsters if ((game.hero.weapon and game.hero.weapon.range and
-                                                            dist(game.hero.pos, m.pos) <= game.hero.weapon.range.normal // UNIT_SIZE) or mh_dist(game.hero.pos, m.pos) == 1)
-                                                            and in_view_range(*game.hero.pos, *m.pos, obstacles=game.level.obstacles)]
-                        if monsters_in_range:
-                            for monster in monsters_in_range:
-                                if monster.pos == game.target_pos:
-                                    monster.hit_points -= game.hero.attack(monster, cast=False)
-                                    if monster.hit_points <= 0:
-                                        cprint(f'{monster.name} at pos {monster.pos} is *KILLED*')
-                                        game.hero.victory(monster=monster, solo_mode=True)
-                                        game.level.monsters.remove(monster)
-                                        game.level.sprites.pop(monster.id)
-                        else:
-                            if (x, y) in game.level.walkable_tiles and mh_dist(game.hero.pos, (x, y)) == 1:
-                                # path = find_path(start=game.hero.pos, end=(x, y), carte=
-                                game.hero.x, game.hero.y = x, y
-                            else:
-                                cprint('No monster in range!')
-                # Gestion des click hors de la carte d'exploration
-                else:
-                    # Vérifier si un texte d'action a été cliqué
-                    for action_text, action_rect in game.action_rects.items():
-                        if action_rect.collidepoint(event.pos):
-                            print(f"Action: {action_text}")
-                    # Vérifier si une case de l'inventaire a été cliquée
-                    for i, item in enumerate(game.hero.inventory):
-                        if item is not None:  # pp and isinstance(item, Armor | Weapon):
-                            icon_x = game.view_port_width + 10 + (i % 5) * 40
-                            icon_y = 200 + 70 + (i // 5) * 40
-                            image: Surface = game.sprites[item.id]
-                            icon_rect = image.get_rect(topleft=(icon_x, icon_y))
-                            # cprint(icon_rect)
-                            if icon_rect.collidepoint(event.pos):
-                                if event.button == 1:  # Left mouse button
-                                    if isinstance(item, (Armor, Weapon)):
-                                        game.equip(item)
-                                    else:
-                                        game.use(item)
-                                elif event.button == 3:  # Right mouse button
-                                    game.drop(item, image)
-
-                    # TODO: area of effect
-                    if game.hero.sc and not game.ready_spell:
-                        # Vérifier si un sort a été sélectionné
-                        max_spell_level: int = max([s.level for s in game.hero.sc.learned_spells])
-                        for i in range(max_spell_level + 2):
-                            spells_by_level = [s for s in game.hero.sc.learned_spells if s.level == i]
-                            for j, spell in enumerate(spells_by_level):
-                                icon_x = game.view_port_width + 210 + j * 40
-                                icon_y = 170 + i * 40
-                                image: Surface = game.sprites[spell.id]
-                                icon_rect = image.get_rect(topleft=(icon_x, icon_y))
-                                if icon_rect.collidepoint(event.pos):
-                                    if event.button == 1 and game.hero.can_cast(spell):  # Left mouse button
-                                        cprint(f'hero pos: {game.hero.pos}')
-                                        cprint(f'select target for spell <{spell.name}>,  area of effect: {spell.area_of_effect}, range: {spell.range}')
-                                        frame_color = BLUE if game.hero.sc.spell_slots[i] > 0 else WHITE
-                                        pygame.draw.rect(game.screen, frame_color, (icon_x - 2, icon_y - 2, ICON_SIZE + 4, ICON_SIZE + 4), 4)
-                                        pygame.draw.rect(game.screen, RED, (icon_x - 2, icon_y - 2, ICON_SIZE + 4, ICON_SIZE + 4), 4)
-                                        game.ready_spell = spell
-            # I-2 Gestion des déplacements (flèches)
-            elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:  # Quitter le jeu et revenir au menu principal avec la touche Echap
-                    running = False
-                elif event.key == pygame.K_UP and game.can_move(char=game.hero, dir=UP):
-                    game.hero.y -= 1
-                elif event.key == pygame.K_DOWN and game.can_move(char=game.hero, dir=DOWN):
-                    game.hero.y += 1
-                elif event.key == pygame.K_LEFT and game.can_move(char=game.hero, dir=LEFT):
-                    game.hero.x -= 1
-                elif event.key == pygame.K_RIGHT and game.can_move(char=game.hero, dir=RIGHT):
-                    game.hero.x += 1
-                elif event.key == pygame.K_p:
-                    if game.hero.healing_potions:
-                        p: HealingPotion = game.hero.choose_best_potion()
-                        game.hero.drink(p)
-                        game.remove_from_inv(p)
-                    else:
-                        cprint('Sorry dude! no healing potion available...')
-
-        # II - Gestion des conditions de jeu
-
-        # II-1 Ouverture des coffres à trésor (Gold + item aléatoire éventuel)
-        if any(t.pos == game.hero.pos for t in game.level.treasures):
-            game.open_chest()
-
-        # II-2 Changement de niveau (upstairs, downstairs)
-        match game.world_map[game.hero.y][game.hero.x]:
-            case '>':
-                print(f'Hero found downstairs!')
-                game.dungeon_level += 1
-                if game.dungeon_level > len(game.levels):
-                    game.level = Level(level_no=game.dungeon_level)
-                    game.levels.append(game.level)
-                    game.level.load(hero=game.hero)
-                else:
-                    game.level = game.levels[game.dungeon_level - 1]
-                game.update_level(dir=1)
-                game.screen = pygame.display.set_mode((game.screen_width, game.screen_height))
-            case '<':
-                print(f'Hero found upstairs!')
-                game.dungeon_level -= 1
-                game.level = game.levels[game.dungeon_level - 1]
-                game.update_level(dir=-1)
-                game.screen = pygame.display.set_mode((game.screen_width, game.screen_height))
-
-        # Vérifier les collisions avec les ennemis
-        # if any(game.hero.check_collision(e) for e in game.level.monsters):
-        #     print("Combat!")
-
-        # III - Réactualisation de l'affichage
-
-        # Rendu
-        game.screen.fill(WHITE)
-
-        # III-1 Dessiner la carte
-        map_rect = pygame.Rect(0, 0, game.map_width * TILE_SIZE, game.map_height * TILE_SIZE)
-        pygame.draw.rect(game.screen, WHITE, map_rect)
-        game.draw_map()
-
-        view_port_tuple = game.calculate_view_window()
-
-        # III-2 Afficher les personnages
-        image: Surface = game.sprites[game.hero.id]
-        game.hero.draw(game.screen, image, TILE_SIZE, *view_port_tuple)
-
-        for e in game.level.monsters:
-            image: Surface = game.level.sprites[e.id]
-            e.draw(game.screen, image, TILE_SIZE, *view_port_tuple)
-
-        # III-3 Afficher les trésors
-        for t in game.level.treasures:
-            image: Surface = game.level.sprites[t.id]
-            t.draw(game.screen, image, TILE_SIZE, *view_port_tuple)
-
-        # III-4 Afficher ou Ramasser des items laissés au sol
-        for item in game.level.items:
-            try:
-                image: Surface = game.level.sprites[item.id]
-                item_taken: bool = False
-                if item.pos == game.hero.pos:
-                    free_slots: List[int] = [i for i, item in enumerate(game.hero.inventory) if not item]
-                    if free_slots:
-                        # Grab item
-                        game.remove_from_level(item)
-                        # Add item to inventory
-                        game.add_to_inv(item, image)
-                        print(f'Hero gained an item! ({item.name}) #{item.id}')
-                        item_taken = True
-                    else:
-                        print(f'Cannot take item {item.name}. Inventory is full!')
-                if not item_taken:
-                    image.set_colorkey(PINK)  # Set the pink color as transparent
-                    item.draw(game.screen, image, TILE_SIZE, *view_port_tuple)
-            except AttributeError:
-                pass
-
-        # III-5 Dessiner la feuille de stats du personnage
-        game.draw_character_stats()
-
-        # III-6 Dessiner la feuille d'inventaire du personnage
-        game.draw_inventory()
-
-        # III-7 Dessiner le grimoire du personnage
-        if game.hero.sc:
-            game.draw_spell_book()
-
-        # III-8 Dessiner le panneau de commande d'actions
-        # game.draw_action_panel()
-
-        # Mise à jour de l'affichage
-        # pygame.display.update()
-
-        # Mise à jour de l'affichage
-        pygame.display.flip()
-
-        # Limiter le nombre d'images par seconde
-        pygame.time.Clock().tick(FPS)
-
-    del game
-    # subprocess.run(['python', 'dungeon_menu_pygame.py'])  # Revenir au script principal après avoir fermé le jeu
-
+    tile_img, font, armors, weapons, healing_potions = load_game_assets()
+    game = initialize_game(selected_character)
+    main_game_loop(game)

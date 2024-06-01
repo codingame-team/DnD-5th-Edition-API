@@ -21,7 +21,7 @@ directions: List[tuple] = [(-1, 0), (0, -1), (1, 0), (0, 1)]
 
 
 # Retrouver la distance minimum entre le point (i, j) et la destination (x, y)
-def parcours_largeur(carte: List[List[int]], start_x: int, start_y: int, end_x: int, end_y: int) -> int:
+def parcours_largeur(carte: List[List[int]], start_x: int, start_y: int, end_x: int, end_y: int, obstacles: List[tuple] = None) -> int:
     width, height = len(carte[0]), len(carte)
     visited = [[False] * width for _ in range(height)]
     to_visit: deque = deque([(start_x, start_y, 0)])
@@ -29,6 +29,8 @@ def parcours_largeur(carte: List[List[int]], start_x: int, start_y: int, end_x: 
 
     pred: dict() = {}
 
+    if obstacles is None:
+        obstacles = []
     while to_visit:
         x, y, dist = to_visit.popleft()
         if (x, y) == (end_x, end_y):
@@ -40,7 +42,7 @@ def parcours_largeur(carte: List[List[int]], start_x: int, start_y: int, end_x: 
             # Si le voisin est bien sur la carte
             if 0 <= neigh_x < width and 0 <= neigh_y < height:
                 # si le voisin est accessible
-                if carte[neigh_y][neigh_x] == 1:
+                if (neigh_x, neigh_y) not in obstacles and carte[neigh_y][neigh_x] == 1:
                     # si le voisin n'a pas encore été visité
                     if not visited[neigh_y][neigh_x]:
                         visited[neigh_y][neigh_x] = True

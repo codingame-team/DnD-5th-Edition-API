@@ -1327,7 +1327,7 @@ def give_best_armors_weapons(roster: List[Character]):
             char.armor = max(char.allowed_armors, key=lambda a: int(a.armor_class['base']))
 
 if __name__ == '__main__':
-    seed(time())
+    seed(time.time())
     PAUSE_ON_RAISE_LEVEL = True
     POTION_INITIAL_PACK = 15
     MAX_ROSTER = 100 # maximum number of characters allowed in this game
