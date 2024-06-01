@@ -1,3 +1,4 @@
+from tools.common import cprint
 import os
 from typing import List
 
@@ -27,36 +28,39 @@ BLUE = (0, 0, 255)
 # Police
 font = pygame.font.Font(None, 24)
 
-# Fonctions pour dessiner les menus
-def draw_main_menu():
+# Variables pour le défilement
+scroll_offset = 0
+line_height = 25
+
+# Fonctions pour dessiner les menus et gérer les rectangles de texte
+def draw_character_menu(roster, scroll_offset):
     screen.fill(WHITE)
-    title = font.render("=== Main Menu ===", True, BLACK)
-    screen.blit(title, (SCREEN_WIDTH // 2 - title.get_width() // 2, 50))
+    # title = font.render("=== Choose Your Character ===", True, BLACK)
+    # screen.blit(title, (SCREEN_WIDTH // 2 - title.get_width() // 2, line_height))
 
-    option1 = font.render("1. Choose Character", True, BLACK)
-    screen.blit(option1, (SCREEN_WIDTH // 2 - option1.get_width() // 2, 150))
-
-    option2 = font.render("2. Exit", True, BLACK)
-    screen.blit(option2, (SCREEN_WIDTH // 2 - option2.get_width() // 2, 200))
-
-def draw_character_menu(roster):
-    LINEFEED = 25
-    screen.fill(WHITE)
-    title = font.render("=== Choose Your Character ===", True, BLACK)
-    screen.blit(title, (SCREEN_WIDTH // 2 - title.get_width() // 2, LINEFEED))
-
+    text_rects = []
     for index, character in enumerate(roster):
-        option = font.render(f"{index + 1}. {character.name} (Level {character.level} {character.class_type})", True, RED)
-        screen.blit(option, (SCREEN_WIDTH // 2 - option.get_width() // 2, 50 + index * LINEFEED))
+        y_position = line_height * 2 + (index * line_height) - scroll_offset
+        if 0 <= y_position < SCREEN_HEIGHT:
+            # option = font.render(f"{index + 1}. {character.name} (Level {character.level} {character.class_type})", True, RED)
+            option = font.render(f"{character.name} (Level {character.level} {character.class_type})", True, RED)
+            rect = option.get_rect(center=(SCREEN_WIDTH // 2, y_position))
+            screen.blit(option, rect)
+            text_rects.append(rect)
+        else:
+            text_rects.append(None)  # Placeholder for non-visible options
 
-    option2 = font.render(f"{len(roster) + 1}. Exit", True, BLACK)
-    screen.blit(option2, (SCREEN_WIDTH // 2 - option2.get_width() // 2,  50 + len(roster) * LINEFEED))
-    # back_option = font.render("4. Go back to Main Menu", True, BLACK)
-    # screen.blit(back_option, (SCREEN_WIDTH // 2 - back_option.get_width() // 2, 150 + len(roster) * 50))
+    # option2 = font.render(f"{len(roster) + 1}. Exit", True, BLACK)
+    option2 = font.render(f"Exit", True, BLACK)
+    y_position = line_height * 2 + (len(roster) * line_height) - scroll_offset
+    if 0 <= y_position < SCREEN_HEIGHT:
+        rect = option2.get_rect(center=(SCREEN_WIDTH // 2, y_position))
+        screen.blit(option2, rect)
+        text_rects.append(rect)
+    else:
+        text_rects.append(None)  # Placeholder for non-visible options
 
-def start_game_old(character_name):
-    # Lancer un autre script Python avec le nom du personnage comme argument
-    subprocess.run(['python', 'dungeon_pygame.py', character_name])
+    return text_rects
 
 def start_game(character_name):
     mp.set_start_method('spawn')  # Set the start method to 'spawn' to avoid fork issues
@@ -68,44 +72,36 @@ def run_game(character_name):
     subprocess.run(['python', 'dungeon_pygame.py', character_name])
 
 def main(roster):
+    global scroll_offset
     clock = pygame.time.Clock()
     running = True
-    in_main_menu = True
-    in_character_menu = False
     selected_character = None
 
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-            elif event.type == pygame.KEYDOWN:
-                # if in_main_menu:
-                #     if event.key == pygame.K_1:
-                #         in_main_menu = False
-                #         in_character_menu = True
-                #     elif event.key == pygame.K_2:
-                #         running = False
-                # elif in_character_menu:
-                if event.key == pygame.K_0:
-                    in_character_menu = False
-                    in_main_menu = True
-                elif pygame.K_1 <= event.key <= pygame.K_9:
-                    print(f'event key = {event.key}')
-                    index = event.key - pygame.K_1
-                    if index < len(roster):
-                        selected_character = roster[index]
-                        start_game(selected_character.name)
-                        running = False  # Ferme la boucle principale après le démarrage du jeu
+            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                mouse_pos = event.pos
+                text_rects = draw_character_menu(roster, scroll_offset)
+                for index, rect in enumerate(text_rects):
+                    if rect and rect.collidepoint(mouse_pos):
+                        if index < len(roster):
+                            selected_character = roster[index]
+                            if selected_character.get_status != 'DEAD':
+                                start_game(selected_character.name)
+                                running = False  # Ferme la boucle principale après le démarrage du jeu
+                            else:
+                                cprint(f'Cannot select character... {selected_character.name} is dead!')
+                        else:
+                            running = False  # Quitte le menu si 'Exit' est cliqué
+            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 4:  # Molette vers le haut
+                scroll_offset = max(scroll_offset - line_height, 0)
+            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 5:  # Molette vers le bas
+                max_offset = max(0, (len(roster) + 1) * line_height - SCREEN_HEIGHT + line_height * 2)
+                scroll_offset = min(scroll_offset + line_height, max_offset)
 
-        # if in_main_menu:
-        #     draw_main_menu()
-        # if in_character_menu:
-        draw_character_menu(roster)
-        # else:
-        if selected_character:
-            start_game(selected_character.name)
-            running = False  # Ferme la boucle principale après le démarrage du jeu
-            # selected_character = None
+        draw_character_menu(roster, scroll_offset)
 
         pygame.display.flip()
         clock.tick(60)
@@ -119,4 +115,3 @@ if __name__ == "__main__":
     characters_dir = f'{abspath}/gameState/characters'
     roster: List[Character] = get_roster(characters_dir)
     main(roster)
-
