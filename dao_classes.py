@@ -37,6 +37,8 @@ class Sprite:
     image_name: str
     x: int
     y: int
+    old_x: int
+    old_y: int
 
     def __repr__(self):
         return f"#{self.id} {self.image_name} ({self.x}, {self.y})"
@@ -44,6 +46,10 @@ class Sprite:
     @property
     def pos(self) -> tuple:
         return self.x, self.y
+
+    @property
+    def old_pos(self) -> tuple:
+        return self.old_x, self.old_y
 
     def __eq__(self, other: "Sprite"):
         return self.x == other.x and self.y == other.y
@@ -401,6 +407,7 @@ class PotionRarity(Enum):
     RARE = 95
     VERY_RARE = 100
 
+
 @dataclass
 class HealingPotion(Sprite):
     name: str
@@ -587,10 +594,12 @@ class Condition:
     def __copy__(self):
         return Condition(self.index, self.name, self.desc, self.dc_type, self.dc_value, self.creature)
 
+
 @dataclass
 class AreaOfEffect:
-    type: str # sphere, cube, ...
+    type: str  # sphere, cube, ...
     size: int
+
 
 @dataclass
 class Spell:
@@ -1004,7 +1013,7 @@ class Character(Sprite):
         # print(attack_spell)
         ability_modifier: int = int(self.ability_modifiers.get_value_by_index(name=self.class_type.spellcasting_ability))
         damage_dices: List[DamageDice] = spell.get_spell_damages(caster_level=self.level,
-                                                                        ability_modifier=ability_modifier)
+                                                                 ability_modifier=ability_modifier)
         damage_roll: int = 0
         for dd in damage_dices:
             damage_roll += dd.roll()

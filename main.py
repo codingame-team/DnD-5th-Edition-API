@@ -428,10 +428,10 @@ def create_new_character(roster: List[Character]) -> Character:
                      'wizard': 'wizzard'
                      }
     # sorted_roster_by_id = sorted(roster, key=lambda c: c.id)
-    free_id = max([c.id for c in roster]) + 1
+    free_id = max([c.id for c in roster]) + 1 if roster else 1
     character: Character = Character(id=free_id,
                                      image_name=f'hero_{sprites[class_type.name.lower()]}.png',
-                                     x=-1, y=-1,
+                                     x=-1, y=-1, old_x=-1, old_y=-1,
                                      race=race,
                                      subrace=subrace,
                                      class_type=class_type,
@@ -1327,7 +1327,7 @@ def give_best_armors_weapons(roster: List[Character]):
             char.armor = max(char.allowed_armors, key=lambda a: int(a.armor_class['base']))
 
 if __name__ == '__main__':
-    seed(time.time())
+    seed(time())
     PAUSE_ON_RAISE_LEVEL = True
     POTION_INITIAL_PACK = 15
     MAX_ROSTER = 100 # maximum number of characters allowed in this game

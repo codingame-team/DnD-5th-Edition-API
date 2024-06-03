@@ -150,7 +150,7 @@ class Level:
             has_item: bool = randint(1, 3) == 2
             has_item: bool = True
             t_x, t_y = choice(open_positions)
-            t: Treasure = Treasure(id=(max(self.sprites) + 1 if self.sprites else 0), x=t_x, y=t_y, image_name='treasure.png', gold=gold, has_item=has_item)
+            t: Treasure = Treasure(id=(max(self.sprites) + 1 if self.sprites else 0), x=t_x, y=t_y, old_x=t_x, old_y=t_y, image_name='treasure.png', gold=gold, has_item=has_item)
             self.treasures.append(t)
             self.sprites[t.id] = pygame.image.load(f"{sprites_dir}/{t.image_name}").convert_alpha()
 
@@ -823,7 +823,7 @@ def handle_right_click_spell_attack(game):
     monsters_in_range = [m for m in game.monsters_in_view_range if dist(game.hero.pos, m.pos) <= game.ready_spell.range // UNIT_SIZE]
     if monsters_in_range:
         for monster in monsters_in_range:
-            if monster.pos == game.target_pos:
+            if game.target_pos in (monster.pos, monster.old_pos):
                 monster.hit_points -= game.hero.cast(game.ready_spell, monster)
                 if monster.hit_points <= 0:
                     cprint(f'{monster.name} at pos {monster.pos} is *KILLED*')
@@ -838,7 +838,7 @@ def handle_right_click_spell_attack(game):
 
 
 def handle_left_click_action(game):
-    monsters_in_range = [m for m in game.monsters_in_view_range if dist(game.hero.pos, m.pos) <= game.hero.weapon.range.normal // UNIT_SIZE]
+    monsters_in_range = [m for m in game.monsters_in_view_range if game.hero.weapon and dist(game.hero.pos, m.pos) <= game.hero.weapon.range.normal // UNIT_SIZE]
     if monsters_in_range:
         attack_monsters(game, monsters_in_range)
     else:
@@ -847,7 +847,7 @@ def handle_left_click_action(game):
 
 def attack_monsters(game, monsters):
     for monster in monsters:
-        if monster.pos == game.target_pos:
+        if game.target_pos in (monster.pos, monster.old_pos):
             monster.hit_points -= game.hero.attack(monster, cast=False)
             if monster.hit_points <= 0:
                 cprint(f'{monster.name} at pos {monster.pos} is *KILLED*')
@@ -859,6 +859,7 @@ def move_char(game: Game, char: Monster | Character, pos: tuple):
     x, y = pos
     if (x, y) in game.level.walkable_tiles:
         if mh_dist(char.pos, (x, y)) <= 1:
+            char.old_x, char.old_y = char.x, char.y
             char.x, char.y = x, y
         else:
             if isinstance(char, Character):
@@ -868,6 +869,7 @@ def move_char(game: Game, char: Monster | Character, pos: tuple):
             path = find_path(start=char.pos, end=(x, y), carte=game.level.carte, obstacles=obstacles)
             # cprint(f'path : {path}')
             if path:
+                char.old_x, char.old_y = char.x, char.y
                 char.x, char.y = path[1]
             else:
                 cprint(f'No path found for {char.name}!')
@@ -931,7 +933,7 @@ def handle_combat(monsters: List[Monster], party=None, attack_spell: Spell = Non
         party = []
     attack_order = get_initiative_order(party + monsters)
     for char in attack_order:
-        if char in party:
+        if char in party and char.hit_points > 0:
             # Handle party member's action
             if move_action:
                 move_char(game, char, move_action)
@@ -940,6 +942,8 @@ def handle_combat(monsters: List[Monster], party=None, attack_spell: Spell = Non
             else:
                 handle_left_click_action(game)
         else:
+            if char.hit_points <= 0:
+                continue
             # Handle monster's attack
             handle_monster_actions(game, char)
 

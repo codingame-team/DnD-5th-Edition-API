@@ -295,8 +295,7 @@ def request_monster(index_name: str) -> Monster:
 
     return Monster(id=-1,
                    image_name=f'monster_{index_name}.png',
-                   x=-1,
-                   y=-1,
+                   x=-1, y=-1, old_x=-1, old_y=-1,
                    index=index_name,
                    name=data['name'],
                    abilities=Abilities(str=data['strength'], dex=data['dexterity'], con=data['constitution'],
@@ -385,7 +384,7 @@ def request_armor(index_name: str) -> Armor:
         image_name = load_armor_image_name(index_name)
         return Armor(id=-1,
                      image_name=image_name,
-                     x=-1, y=-1,
+                     x=-1, y=-1, old_x=-1, old_y=-1,
                      index=data['index'],
                      name=data['name'],
                      armor_class=data['armor_class'],
@@ -435,7 +434,7 @@ def request_weapon(index_name: str) -> Weapon:
             damage_dice_two_handed: DamageDice = DamageDice(data['two_handed_damage']['damage_dice'])
         return Weapon(id=-1,
                       image_name=load_weapon_image_name(index_name),
-                      x=-1, y=-1,
+                      x=-1, y=-1, old_x=-1, old_y=-1,
                       index=data['index'],
                       name=data['name'],
                       category=request_equipment_category(data['equipment_category']['index']),
@@ -645,7 +644,7 @@ def request_equipment(index_name: str) -> Optional[Equipment]:
             else:
                 return Equipment(id=-1,
                                  image_name='None.PNG',
-                                 x=-1, y=-1,
+                                 x=-1, y=-1, old_x=-1, old_y=-1,
                                  index=data['index'],
                                  name=data['name'],
                                  category=request_equipment_category(equipment_category),
