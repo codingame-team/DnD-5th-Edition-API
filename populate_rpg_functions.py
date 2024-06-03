@@ -99,19 +99,19 @@ def load_potions_collections() -> List[HealingPotion]:
     healing_potions: List[HealingPotion] = []
     for _ in range(PotionRarity.COMMON.value):
         image_name: str = load_potion_image_name('Healing')
-        potion = HealingPotion(id=-1, image_name=image_name, x=-1, y=-1, name='Healing', rarity=PotionRarity.COMMON, hit_dice='2d4', bonus=2)
+        potion = HealingPotion(id=-1, image_name=image_name, x=-1, y=-1, old_x=-1, old_y=-1, name='Healing', rarity=PotionRarity.COMMON, hit_dice='2d4', bonus=2)
         healing_potions.append(potion)
     for _ in range(PotionRarity.COMMON.value + 1, PotionRarity.UNCOMMON.value + 1):
         image_name: str = load_potion_image_name('Greater healing')
-        potion = HealingPotion(id=-1, image_name=image_name, x=-1, y=-1, name='Greater healing', rarity=PotionRarity.UNCOMMON, hit_dice='4d4', bonus=4)
+        potion = HealingPotion(id=-1, image_name=image_name, x=-1, y=-1, old_x=-1, old_y=-1, name='Greater healing', rarity=PotionRarity.UNCOMMON, hit_dice='4d4', bonus=4)
         healing_potions.append(potion)
     for _ in range(PotionRarity.UNCOMMON.value + 1, PotionRarity.RARE.value + 1):
         image_name: str = load_potion_image_name('Superior healing')
-        potion = HealingPotion(id=-1, image_name=image_name, x=-1, y=-1, name='Superior healing', rarity=PotionRarity.RARE, hit_dice='8d4', bonus=8)
+        potion = HealingPotion(id=-1, image_name=image_name, x=-1, y=-1, old_x=-1, old_y=-1, name='Superior healing', rarity=PotionRarity.RARE, hit_dice='8d4', bonus=8)
         healing_potions.append(potion)
     for _ in range(PotionRarity.RARE.value + 1, PotionRarity.VERY_RARE.value + 1):
         image_name: str = load_potion_image_name('Supreme healing')
-        potion = HealingPotion(id=-1, image_name=image_name, x=-1, y=-1, name='Supreme healing', rarity=PotionRarity.VERY_RARE, hit_dice='10d4', bonus=20)
+        potion = HealingPotion(id=-1, image_name=image_name, x=-1, y=-1, old_x=-1, old_y=-1, name='Supreme healing', rarity=PotionRarity.VERY_RARE, hit_dice='10d4', bonus=20)
         healing_potions.append(potion)
     return healing_potions
 
