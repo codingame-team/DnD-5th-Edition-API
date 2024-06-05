@@ -327,7 +327,7 @@ class Game:
         spells_texts = []
         if self.hero.is_spell_caster:
             slots: str = '/'.join(map(str, self.hero.sc.spell_slots))
-            spells_texts.append(f"Spell slots: {slots}")
+            spells_texts.append(f"Spell slots: {self.hero.sc.spell_slots[0] if self.hero.class_type.index == 'warlock' else slots}")
             # known_spells: int = len(self.hero.sc.learned_spells)
             # learned_spells: List[Spell] = [s for s in self.hero.sc.learned_spells]
             # learned_spells.sort(key=lambda s: s.level)
@@ -413,7 +413,14 @@ class Game:
                     # Vérifier si la souris survole la case
                     if pygame.Rect(icon_x, icon_y, ICON_SIZE, ICON_SIZE).collidepoint(mouse_x, mouse_y):
                         # Stocker la description de l'objet pour l'info-bulle
-                        tooltip_text = item.name
+                        if isinstance(item, Armor):
+                            tooltip_text = f"{item.name} (AC {item.armor_class['base']})"
+                        elif isinstance(item, Weapon):
+                            tooltip_text = f"{item.name} ({item.damage_dice.dice})"
+                        elif isinstance(item, HealingPotion):
+                            tooltip_text = f"{item.name} ({item.hit_dice})"
+                        else:
+                            tooltip_text = f'{item.name}'
                 except KeyError:
                     pass
             # Dessiner un cadre vide pour les cases vides
