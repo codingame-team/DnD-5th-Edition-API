@@ -373,11 +373,15 @@ class Game:
                 # Set the transparency level of the image
                 image.set_alpha(transparency_level)
                 self.screen.blit(image, (icon_x, icon_y))
+                # Test if the spell is memorized
+                if self.ready_spell and game.ready_spell == spell:
+                    # Draw a blue rectangle around the icon
+                    pygame.draw.rect(self.screen, BLUE, (icon_x - 2, icon_y - 2, ICON_SIZE + 2, ICON_SIZE + 2), 2)
                 # Vérifier si la souris survole la case
                 if pygame.Rect(icon_x, icon_y, ICON_SIZE, ICON_SIZE).collidepoint(mouse_x, mouse_y):
                     # Stocker la description de l'objet pour l'info-bulle
                     # tooltip_text = f'{spell.name}\n{spell.desc[0]}'
-                    tooltip_text = spell.name
+                    tooltip_text = f'{spell.name} ({spell.range}")'
 
         # Afficher l'info-bulle avec la description du sort
         if tooltip_text:
@@ -799,7 +803,7 @@ def handle_outside_map_click(game, event):
                     game.drop(item, image)
 
     # TODO: area of effect
-    if game.hero.sc and not game.ready_spell:
+    if game.hero.sc:# and not game.ready_spell:
         # Vérifier si un sort a été sélectionné
         max_spell_level: int = max([s.level for s in game.hero.sc.learned_spells])
         for i in range(max_spell_level + 2):
