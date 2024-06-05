@@ -22,12 +22,16 @@
   - `RIGHT CLICK` on visible monster in range of spell
 - Drink potion:
   - `P` key or `LEFT CLICK` on potion
+- Recover spell slots: *MOVE* to fountain
 - Quit Game:
   - `ESC` key
-- Rest, Gain level: *only in console game's version yet*
+- Gain level: *only in console game's version yet*
 
 # Tips
-- les sorts de niveau 0 ne consomment pas d'unité de sort (spell_slot)
-- seuls les sorts d'attaque sont disponibles dans le grimoire
+- les sorts de niveau 0 ne consomment pas d'unité de sort (*spell_slot*)
+- les fontaines permettent de recharger les unités de sorts
+- seuls les sorts d'attaque sont disponibles dans le grimoire (pour l'instant)
 - le niveau du sort est indiqué en incrustation dans l'icône du sort
 - La portée d'une arme est indiquée en face du dé de dommages (1 case = 5")
+- la portée d'un sort est affichée en survolant l'icône du sort dans le grimoire
+- les armes/armures équipés ou sort mémorisé sont entourés d'un rectangle bleu
