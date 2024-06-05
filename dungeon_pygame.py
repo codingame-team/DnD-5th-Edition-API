@@ -14,7 +14,7 @@ from pygame import Surface
 
 from algo.brehensam import in_view_range
 from algo.lee import parcours_largeur
-from dao_classes import Character, Level, Spell, Weapon, Armor, HealingPotion, Monster, Equipment, Treasure
+from dao_classes import Character, Level, Spell, Weapon, Armor, HealingPotion, Monster, Equipment, Treasure, Sprite
 from main import get_roster, save_character
 from populate_functions import populate, request_armor, request_weapon, request_monster
 from populate_rpg_functions import load_potions_collections
@@ -46,7 +46,7 @@ PINK = (255, 0, 255)
 UP, DOWN, LEFT, RIGHT = (0, -1), (0, 1), (-1, 0), (1, 0)
 DIRECTIONS = [UP, DOWN, LEFT, RIGHT]
 
-ROUND_DURATION = 2  # Duration of a round in seconds
+ROUND_DURATION = 3  # Duration of a round in seconds
 
 
 def put_inlay(image: Surface, number: int):
@@ -89,6 +89,7 @@ class Level:
     map_width: int
     monsters: List[Monster]
     treasures: dict
+    fountains: List[Sprite]
     items: List[Equipment | HealingPotion]
     sprites: dict
 
@@ -99,6 +100,7 @@ class Level:
         self.map_width = max([len(self.world_map[i]) for i in range(self.map_height)])
         self.sprites = {}
         self.items = []
+        self.fountains = []
 
     def load_maze(self, level: int) -> List:
         """
@@ -136,7 +138,17 @@ class Level:
         allowed_monster_names: list[str] = [m.name for m in monster_candidates]
 
         open_positions: List[tuple] = [(x, y) for x in range(self.map_width) for y in range(self.map_height) if self.world_map[y][x] == '.' and (x, y) != hero.pos]
-
+        # Placement des fontaines sur la carte
+        if hero.is_spell_caster:
+            # has_fountain: bool = randint(1, 3) == 2
+            has_fountain: bool = True
+            if has_fountain:
+                f_x, f_y = choice(open_positions)
+                f: Sprite = Sprite(id=(max(self.sprites) + 1 if self.sprites else 0), x=f_x, y=f_y, old_x=f_x, old_y=f_y, image_name='fountain.png')
+                self.fountains.append(f)
+                open_positions.remove((f_x, f_y))
+                self.sprites[f.id] = pygame.image.load(f"{sprites_dir}/{f.image_name}").convert_alpha()
+        # Placement des monstres sur la carte
         self.monsters = [request_monster(choice(allowed_monster_names).lower()) for _ in range(randint(1, 5))]
         for m in self.monsters:
             m.x, m.y = choice(open_positions)
@@ -144,10 +156,11 @@ class Level:
             open_positions.remove((m.x, m.y))
             self.sprites[m.id] = pygame.image.load(f"{char_sprites_dir}/{m.image_name}").convert_alpha()
 
+        #  Placement des trésors sur la carte
         self.treasures: List[Treasure] = []
         for _ in range(randint(1, 5)):
             gold: int = randint(50, 300) * self.level_no
-            has_item: bool = randint(1, 3) == 2
+            # has_item: bool = randint(1, 3) == 2
             has_item: bool = True
             t_x, t_y = choice(open_positions)
             t: Treasure = Treasure(id=(max(self.sprites) + 1 if self.sprites else 0), x=t_x, y=t_y, old_x=t_x, old_y=t_y, image_name='treasure.png', gold=gold, has_item=has_item)
@@ -221,6 +234,7 @@ class Game:
         self.sprites[self.hero.id] = pygame.image.load(f"{char_sprites_dir}/{self.hero.image_name}").convert_alpha()
         print(self.hero.name, self.hero.id, id(self.sprites[self.hero.id]))
         if self.hero.is_spell_caster:
+            # Afficher grimoire
             for s in self.hero.sc.learned_spells:
                 image = pygame.image.load(f"{spell_sprites_dir}/{s.school}.png")
                 s.id = max(self.sprites) + 1
@@ -637,12 +651,17 @@ def update_display(game):
     # Rendu
     game.screen.fill(WHITE)
 
-    # III-1 Dessiner la carte
+    # III-0 Dessiner la carte
     map_rect = pygame.Rect(0, 0, game.map_width * TILE_SIZE, game.map_height * TILE_SIZE)
     pygame.draw.rect(game.screen, WHITE, map_rect)
     game.draw_map()
 
     view_port_tuple = game.calculate_view_window()
+
+    # III-1 Afficher les fontaines de mémorisation de sorts
+    for t in game.level.fountains:
+        image: Surface = game.level.sprites[t.id]
+        t.draw(game.screen, image, TILE_SIZE, *view_port_tuple)
 
     # III-2 Afficher les personnages
     image: Surface = game.sprites[game.hero.id]
@@ -904,6 +923,7 @@ def handle_potion_use(game):
 def handle_game_conditions(game):
     handle_treasure_chests(game)
     handle_level_changes(game)
+    handle_fountains(game)
 
 
 def get_initiative_order(characters):
@@ -971,6 +991,14 @@ def handle_treasure_chests(game):
     if any(t.pos == game.hero.pos for t in game.level.treasures):
         game.open_chest()
 
+
+def handle_fountains(game):
+    if any(f.pos == game.hero.pos for f in game.level.fountains):
+        char = game.hero
+        if char.class_type.can_cast:
+            if char.sc.spell_slots != char.class_type.spell_slots[char.level]:
+                print(f'{char.name} has memorized all his spells')
+                char.sc.spell_slots = copy(char.class_type.spell_slots[char.level])
 
 def handle_level_changes(game):
     match game.world_map[game.hero.y][game.hero.x]:
