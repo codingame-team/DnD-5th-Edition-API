@@ -9,7 +9,7 @@ import multiprocessing as mp
 
 from dao_classes import Character
 from main import get_roster
-from tools.fix_char_sprites_id import raise_dead
+from tools.cheat_functions import raise_dead
 
 # Initialisation de Pygame
 pygame.init()
