@@ -9,6 +9,7 @@ import multiprocessing as mp
 
 from dao_classes import Character
 from main import get_roster
+from tools.fix_char_sprites_id import raise_dead
 
 # Initialisation de Pygame
 pygame.init()
@@ -114,4 +115,5 @@ if __name__ == "__main__":
     abspath = os.path.abspath(path)
     characters_dir = f'{abspath}/gameState/characters'
     roster: List[Character] = get_roster(characters_dir)
+    raise_dead(roster, characters_dir)
     main(roster)
