@@ -622,6 +622,9 @@ class Spell:
         # {self.allowed_classes}'
         return f'{self.name} dc: {self.dc_type} lvl: {self.level}'
 
+    def __eq__(self, other):
+        return self.index == other.index
+
     @property
     def is_cantrip(self) -> bool:
         return self.level == 0
@@ -741,18 +744,15 @@ class Character(Sprite):
     id_party: int = -1
     OUT: bool = False
 
-    def __post__init__(self):
-        self.armor = None
-
     @property
     def weapon(self) -> Optional[Weapon]:
         equipped_weapons: List[Weapon] = [item for item in self.inventory if isinstance(item, Weapon) if item.equipped]
         return equipped_weapons[0] if equipped_weapons else None
 
-    # @property
-    # def armor(self) -> Optional[Armor]:
-    #     equipped_armors: List[Armor] = [item for item in self.inventory if isinstance(item, Armor) if item.equipped]
-    #     return equipped_armors[0] if equipped_armors else request_armor('skin-armor')
+    @property
+    def armor(self) -> Optional[Armor]:
+        equipped_armors: List[Armor] = [item for item in self.inventory if isinstance(item, Armor) if item.equipped]
+        return equipped_armors[0] if equipped_armors else None
 
     @property
     def get_status(self) -> str:
@@ -828,7 +828,9 @@ class Character(Sprite):
         # return f'{self.id} {self.name} {self.class_type} {self.image_name}'
         race = self.subrace if self.subrace else self.race
         ethnic = f'ethnic: {self.ethnic} - ' if self.ethnic else ''
-        return f"{self.name} - Age: {self.age // 52} - Abilities: {self.abilities} - Ability modifiers: {self.ability_modifiers} - ({ethnic}{self.gender} {race.name} - height: {self.height} weight: {self.weight}- class: {self.class_type} - AC {self.armor_class} Damage: {self.damage_dice} - w: {self.weapon.name} a: {self.armor.name} - potions: {len(self.healing_potions)})"
+        weapon_name = 'None' if not self.weapon else self.weapon.name
+        armor_name = 'None' if not self.armor else self.armor.name
+        return f"{self.name} - Age: {self.age // 52} - Abilities: {self.abilities} - Ability modifiers: {self.ability_modifiers} - ({ethnic}{self.gender} {race.name} - height: {self.height} weight: {self.weight}- class: {self.class_type} - AC {self.armor_class} Damage: {self.damage_dice} - w: {weapon_name} a: {armor_name} - potions: {len(self.healing_potions)})"
 
     @property
     def armor_class(self):
