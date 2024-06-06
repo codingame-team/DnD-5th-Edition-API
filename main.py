@@ -1326,6 +1326,12 @@ def give_best_armors_weapons(roster: List[Character]):
         if char.allowed_armors:
             char.armor = max(char.allowed_armors, key=lambda a: int(a.armor_class['base']))
 
+
+def load_xp_levels() -> List[int]:
+    levels = read_csvfile("XP Levels-XP Levels.csv")
+    return [int(xp_needed) for xp_needed, level, master_bonus in levels]
+
+
 if __name__ == '__main__':
     seed(time())
     PAUSE_ON_RAISE_LEVEL = True
@@ -1338,10 +1344,7 @@ if __name__ == '__main__':
     characters_dir = f'{abspath}/gameState/characters'
 
     """ Load XP Levels """
-    xp_levels = []
-    levels = read_csvfile("XP Levels-XP Levels.csv")
-    for xp_needed, level, master_bonus in levels:
-        xp_levels.append(int(xp_needed))
+    xp_levels: List[int] = load_xp_levels()
 
     """ Load Monster, Armor, Weapon databases """
     monsters, armors, weapons, equipments, equipment_categories, healing_potions = load_dungeon_collections()
