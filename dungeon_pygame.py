@@ -312,7 +312,7 @@ class Game:
             # damage_dice: str = f'{self.hero.weapon.damage_dice}' if not w.damage_dice.bonus else f'{w.damage_dice.dice} + {w.damage_dice.bonus}'
             f"Attaque: {weapon.damage_dice.dice}{ranged_weapon_info}" if weapon else f"Attaque: 1d2",
             # f"Défense: {self.hero.armor.ac}",
-            f"Défense: {armor.armor_class['base']}" if armor else "Défense: 10",
+            f"Défense: {self.hero.armor_class}" if armor else "Défense: 10",
             # f"Potions: {self.hero.potions}",
             f"Gold: {self.hero.gold}",
             f"Taille: {height_meters}m{height_centimeters:2d}",
@@ -564,18 +564,29 @@ class Game:
 
     def equip(self, item):
         if isinstance(item, Armor):
-            if self.hero.used_armor:
-                if item.id == self.hero.used_armor.id:
-                    # un-equip armor
-                    item.equipped = not item.equipped
+            if item.name == 'Shield':
+                if self.hero.used_shield:
+                    if item.id == self.hero.used_shield.id:
+                        # un-equip shield
+                        item.equipped = not item.equipped
+                    else:
+                        cprint(f'Hero cannot equip <{item.name}> - Please un-equip <{self.hero.used_shield.name}> first!')
                 else:
-                    cprint(f'Hero cannot equip <{item.name}> - Please un-equip <{self.hero.used_armor.name}> first!')
+                    # equip shield
+                    item.equipped = not item.equipped
             else:
-                if self.hero.strength < item.str_minimum:
-                    cprint(f'Hero cannot equip <{item.name}> - Minimum strength required is <{item.str_minimum}>!')
+                if self.hero.used_armor:
+                    if item.id == self.hero.used_armor.id:
+                        # un-equip armor
+                        item.equipped = not item.equipped
+                    else:
+                        cprint(f'Hero cannot equip <{item.name}> - Please un-equip <{self.hero.used_armor.name}> first!')
                 else:
-                    # equip armor
-                    item.equipped = not item.equipped
+                    if self.hero.strength < item.str_minimum:
+                        cprint(f'Hero cannot equip <{item.name}> - Minimum strength required is <{item.str_minimum}>!')
+                    else:
+                        # equip armor
+                        item.equipped = not item.equipped
         elif isinstance(item, Weapon):
             if self.hero.used_weapon:
                 if item.id == self.hero.used_weapon.id:
@@ -1068,8 +1079,11 @@ if __name__ == "__main__":
         except IndexError:
             print(f"Character name <{character_name}> not found in roster")
     else:
-        print("No character name provided")
-        selected_character: Character = choice(list(filter(lambda c: c.is_spell_caster, roster)))
+        character_name = 'Brottor'
+        selected_character: Character = [c for c in roster if c.name == character_name][0]
+
+        # print("No character name provided")
+        # selected_character: Character = choice(list(filter(lambda c: c.is_spell_caster, roster)))
         # character = max(roster, key=lambda c: c.gold)
         # character = [c for c in roster if c.name == 'Balasar'][0]
         # character.inventory = [None] * 20

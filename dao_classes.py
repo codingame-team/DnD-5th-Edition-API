@@ -834,8 +834,11 @@ class Character(Sprite):
 
     @property
     def armor_class(self):
-        equipped_armors: List[Armor] = [item for item in self.inventory if isinstance(item, Armor) and item.equipped]
-        return sum([item.armor_class['base'] for item in equipped_armors]) if equipped_armors else 10
+        equipped_armors: List[Armor] = [item for item in self.inventory if isinstance(item, Armor) and item.equipped and item.name != 'Shield']
+        equipped_shields: List[Armor] = [item for item in self.inventory if isinstance(item, Armor) and item.name == 'Shield' and item.equipped]
+        ac: int = sum([item.armor_class['base'] for item in equipped_armors]) if equipped_armors else 10
+        ac += sum([item.armor_class['base'] for item in equipped_shields])
+        return ac
 
     @property
     def damage_dice(self) -> DamageDice:
@@ -845,8 +848,13 @@ class Character(Sprite):
 
     @property
     def used_armor(self) -> Optional[Armor]:
-        equipped_armors: List[Armor] = [item for item in self.inventory if isinstance(item, Armor) and item.equipped]
+        equipped_armors: List[Armor] = [item for item in self.inventory if isinstance(item, Armor) and item.equipped and item.name != 'Shield']
         return equipped_armors[0] if equipped_armors else None
+
+    @property
+    def used_shield(self) -> Optional[Armor]:
+        equipped_shields: List[Armor] = [item for item in self.inventory if isinstance(item, Armor) and item.name == 'Shield' and item.equipped]
+        return equipped_shields[0] if equipped_shields else None
 
     @property
     def used_weapon(self) -> Optional[Weapon]:
