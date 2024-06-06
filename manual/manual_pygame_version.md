@@ -34,3 +34,4 @@
 - La portée d'une arme est indiquée en face du dé de dommages (1 case = 5")
 - la portée d'un sort est affichée en survolant l'icône du sort dans le grimoire
 - les armes/armures équipés ou sort mémorisé sont entourés d'un rectangle bleu
+- Il est possible de porter un bouclier en plus d'une armure (TODO: ne pas l'autoriser si le personnage porte une arme à 2 mains)
