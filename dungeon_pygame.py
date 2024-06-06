@@ -15,8 +15,8 @@ from pygame import Surface
 from algo.brehensam import in_view_range
 from algo.lee import parcours_largeur
 from dao_classes import Character, Level, Spell, Weapon, Armor, HealingPotion, Monster, Equipment, Treasure, Sprite
-from main import get_roster, save_character
-from populate_functions import populate, request_armor, request_weapon, request_monster
+from main import get_roster, save_character, load_xp_levels
+from populate_functions import populate, request_armor, request_weapon, request_monster, request_spell
 from populate_rpg_functions import load_potions_collections
 from tools.common import cprint
 
@@ -202,9 +202,11 @@ class Game:
     levels: List[Level]
     level: Level
     school_images: dict
+    xp_levels: List[int]
     ready_spell: Spell = None
     target_pos: tuple = None
     last_round_time: float = 0
+
 
     def __init__(self, character: Character, actions_panel=False):
         self.last_round_time = time.time()
@@ -245,6 +247,8 @@ class Game:
                 self.sprites[item.id] = pygame.image.load(f"{item_sprites_dir}/{item.image_name}").convert_alpha()
         self.hero.x, self.hero.y = hero_x, hero_y
         self.level.load(hero=self.hero)
+        """ Load XP Levels """
+        self.xp_levels = load_xp_levels()
 
     # Define a method to calculate the view window
     def calculate_view_window(self):
@@ -303,7 +307,7 @@ class Game:
             f"Race: {self.hero.race.name}",
             f"Classe: {self.hero.class_type.name}",
             f"Niveau: {self.hero.level}",
-            f"XP: {self.hero.xp}",
+            f"XP: {self.hero.xp} / {self.xp_levels[self.hero.level]}",
             f"Santé: {self.hero.hit_points}/{self.hero.max_hit_points} ({self.hero.get_status})",
             # damage_dice: str = f'{self.hero.weapon.damage_dice}' if not w.damage_dice.bonus else f'{w.damage_dice.dice} + {w.damage_dice.bonus}'
             f"Attaque: {weapon.damage_dice.dice}{ranged_weapon_info}" if weapon else f"Attaque: 1d2",
@@ -701,8 +705,8 @@ def update_display(game):
                     game.add_to_inv(item, image)
                     print(f'Hero gained an item! ({item.name}) #{item.id}')
                     item_taken = True
-                else:
-                    print(f'Cannot take item {item.name}. Inventory is full!')
+                # else:
+                #     print(f'Cannot take item {item.name}. Inventory is full!')
             if not item_taken:
                 image.set_colorkey(PINK)  # Set the pink color as transparent
                 item.draw(game.screen, image, TILE_SIZE, *view_port_tuple)
@@ -1010,6 +1014,16 @@ def handle_fountains(game):
             if char.sc.spell_slots != char.class_type.spell_slots[char.level]:
                 print(f'{char.name} has memorized all his spells')
                 char.sc.spell_slots = copy(char.class_type.spell_slots[char.level])
+        if char.level < len(game.xp_levels) and char.xp > game.xp_levels[char.level]:
+            if char.class_type.can_cast:
+                spell_names: List[str] = populate(collection_name='spells', key_name='results')
+                all_spells: List[Spell] = [request_spell(name) for name in spell_names]
+                class_tome_spells = [s for s in all_spells if s is not None and char.class_type.index in s.allowed_classes]
+                char.gain_level(tome_spells=class_tome_spells)
+            else:
+                char.gain_level()
+        save_character(char, _dir=characters_dir)
+
 
 def handle_level_changes(game):
     match game.world_map[game.hero.y][game.hero.x]:
