@@ -740,7 +740,7 @@ def update_display(game):
     game.draw_inventory()
 
     # III-7 Dessiner le grimoire du personnage
-    if game.hero.sc:
+    if game.hero.sc and game.hero.sc.learned_spells:
         game.draw_spell_book()
 
     # Mise à jour de l'affichage
@@ -834,7 +834,7 @@ def handle_outside_map_click(game, event):
                     game.drop(item, image)
 
     # TODO: area of effect
-    if game.hero.sc:# and not game.ready_spell:
+    if game.hero.sc and game.hero.sc.learned_spells:# and not game.ready_spell:
         # Vérifier si un sort a été sélectionné
         max_spell_level: int = max([s.level for s in game.hero.sc.learned_spells])
         for i in range(max_spell_level + 2):
@@ -1034,7 +1034,7 @@ def handle_fountains(game):
             if char.sc.spell_slots != char.class_type.spell_slots[char.level]:
                 print(f'{char.name} has memorized all his spells')
                 char.sc.spell_slots = copy(char.class_type.spell_slots[char.level])
-        if char.level < len(game.xp_levels) and char.xp > game.xp_levels[char.level]:
+        if char.level < len(game.xp_levels) and char.xp >= game.xp_levels[char.level]:
             if char.class_type.can_cast:
                 spell_names: List[str] = populate(collection_name='spells', key_name='results')
                 all_spells: List[Spell] = [request_spell(name) for name in spell_names]
