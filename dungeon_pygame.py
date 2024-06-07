@@ -564,7 +564,7 @@ class Game:
 
     def equip(self, item):
         if isinstance(item, Armor):
-            if item.name == 'Shield':
+            if item.index == 'shield':
                 if self.hero.used_shield:
                     if item.id == self.hero.used_shield.id:
                         # un-equip shield
@@ -572,8 +572,13 @@ class Game:
                     else:
                         cprint(f'Hero cannot equip <{item.name}> - Please un-equip <{self.hero.used_shield.name}> first!')
                 else:
-                    # equip shield
-                    item.equipped = not item.equipped
+                    if self.hero.used_weapon:
+                        is_two_handed = [p for p in self.hero.used_weapon.properties if p.index == 'two-handed']
+                        if is_two_handed:
+                            cprint(f'Hero cannot equip <{item.name}> with a 2-handed weapon - Please un-equip <{self.hero.used_weapon}> first!')
+                        else:
+                            # equip shield
+                            item.equipped = not item.equipped
             else:
                 if self.hero.used_armor:
                     if item.id == self.hero.used_armor.id:
@@ -595,8 +600,12 @@ class Game:
                 else:
                     cprint(f'Hero cannot equip <{item.name}> - Please un-equip <{self.hero.used_weapon.name}> first!')
             else:
-                # equip weapon
-                item.equipped = not item.equipped
+                is_two_handed = [p for p in item.properties if p.index == 'two-handed']
+                if is_two_handed and self.hero.used_shield:
+                    cprint(f'Hero cannot equip <{item.name}> with a shield - Please un-equip <{self.hero.used_shield}> first!')
+                else:
+                    # equip weapon
+                    item.equipped = not item.equipped
 
     def use(self, item):
         if isinstance(item, HealingPotion):
