@@ -579,6 +579,9 @@ class Game:
                         else:
                             # equip shield
                             item.equipped = not item.equipped
+                    else:
+                        # equip shield
+                        item.equipped = not item.equipped
             else:
                 if self.hero.used_armor:
                     if item.id == self.hero.used_armor.id:
