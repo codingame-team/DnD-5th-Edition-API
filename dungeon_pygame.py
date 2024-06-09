@@ -14,7 +14,7 @@ from pygame import Surface
 
 from algo.brehensam import in_view_range
 from algo.lee import parcours_largeur
-from dao_classes import Character, Level, Spell, Weapon, Armor, HealingPotion, Monster, Equipment, Treasure, Sprite
+from dao_classes import Character, Level, Spell, Weapon, Armor, HealingPotion, Monster, Equipment, Treasure, Sprite, color
 from main import get_roster, save_character, load_xp_levels
 from populate_functions import populate, request_armor, request_weapon, request_monster, request_spell
 from populate_rpg_functions import load_potions_collections
@@ -130,12 +130,22 @@ class Level:
         """
         # photo_exit: PhotoImage = PhotoImage(file=f"{path}/sprites/exit.png")
 
+        # monster_names: List[str] = populate(collection_name='monsters', key_name='results')
+        # bestiary: List[Monster] = [request_monster(name) for name in monster_names]
+
         # rating = lambda m: m.cr < (hero.level / 4 if hero.level < 5 else hero.level / 2)
-        monster_names: List[str] = ['ankheg', 'baboon', 'bat', 'crab', 'ghost', 'goblin', 'harpy', 'lizard', 'mimic', 'owl', 'rat', 'skeleton', 'spider', 'wolf']
+        monster_names: List[str] = ['air-elemental', 'ankheg', 'baboon', 'bat', 'bugbear', 'chimera', 'dust-mephit', 'ettin', 'crab', 'ghost', 'gnoll', 'goblin', 'grimlock', 'hobgoblin', 'kobold', 'harpy', 'lizard', 'medusa', 'mimic', 'mummy', 'ogre', 'owl', 'poisonous-snake', 'rat', 'skeleton', 'spider', 'wolf', 'wyvern', 'zombie']
+        # monster_names = ['owl']
         monster_candidates: List[Monster] = [request_monster(name) for name in monster_names]
         monster_candidates = list(filter(None, monster_candidates))
-        monster_candidates = list(filter(lambda m: m.challenge_rating < self.level_no, monster_candidates))
-        allowed_monster_names: list[str] = [m.name for m in monster_candidates]
+        monster_candidates = list(filter(lambda m: m.challenge_rating <= self.level_no // 2, monster_candidates))
+
+        # possible_monsters = list(filter(None, bestiary))
+        # possible_monsters = list(filter(lambda m: m.challenge_rating < self.level_no, bestiary))
+        # for m in possible_monsters:
+        #     cprint(f'{color.RED}{m}{color.END}')
+
+        allowed_monster_names: list[str] = [m.index for m in monster_candidates]
 
         open_positions: List[tuple] = [(x, y) for x in range(self.map_width) for y in range(self.map_height) if self.world_map[y][x] == '.' and (x, y) != hero.pos]
         # Placement des fontaines sur la carte
@@ -149,12 +159,14 @@ class Level:
                 open_positions.remove((f_x, f_y))
                 self.sprites[f.id] = pygame.image.load(f"{sprites_dir}/{f.image_name}").convert_alpha()
         # Placement des monstres sur la carte
-        self.monsters = [request_monster(choice(allowed_monster_names).lower()) for _ in range(randint(1, 5))]
+        self.monsters = [request_monster(choice(allowed_monster_names)) for _ in range(randint(1, 5))]
         for m in self.monsters:
             m.x, m.y = choice(open_positions)
             m.id = max(self.sprites) + 1 if self.sprites else 0
             open_positions.remove((m.x, m.y))
-            self.sprites[m.id] = pygame.image.load(f"{char_sprites_dir}/{m.image_name}").convert_alpha()
+            original_image = pygame.image.load(f"{char_sprites_dir}/{m.image_name}").convert_alpha()
+            self.sprites[m.id] = pygame.transform.scale(original_image, (32, 32))
+            # self.sprites[m.id] = original_image
 
         #  Placement des trésors sur la carte
         self.treasures: List[Treasure] = []
@@ -221,9 +233,11 @@ class Game:
         self.walls = [(x, y) for y in range(self.map_height) for x in range(self.map_width) if self.world_map[y][x] == '#']
         # Redimensionnement de l'écran
         self.view_port_width = min(self.map_width * TILE_SIZE, SCREEN_WIDTH - STATS_WIDTH)
-        self.view_port_height = min(self.map_height * TILE_SIZE, SCREEN_HEIGHT - ACTIONS_HEIGHT)
+        # self.view_port_height = min(self.map_height * TILE_SIZE, SCREEN_HEIGHT - ACTIONS_HEIGHT)
+        self.view_port_height = min(self.map_height * TILE_SIZE, SCREEN_HEIGHT)
         self.screen_width = self.view_port_width + STATS_WIDTH
-        self.screen_height = self.view_port_height + ACTIONS_HEIGHT if actions_panel else self.view_port_height
+        # self.screen_height = self.view_port_height + ACTIONS_HEIGHT if actions_panel else self.view_port_height
+        self.screen_height = self.view_port_height
         self.action_rects = {}
         self.sprites = {}
         # Création de la fenêtre
@@ -489,9 +503,11 @@ class Game:
         self.walls = [(x, y) for y in range(self.map_height) for x in range(self.map_width) if self.world_map[y][x] == '#']
         # Redimensionnement de l'écran
         self.view_port_width = min(self.map_width * TILE_SIZE, SCREEN_WIDTH - STATS_WIDTH)
-        self.view_port_height = min(self.map_height * TILE_SIZE, SCREEN_HEIGHT - ACTIONS_HEIGHT) if self.actions_panel else self.map_height * TILE_SIZE
+        # self.view_port_height = min(self.map_height * TILE_SIZE, SCREEN_HEIGHT - ACTIONS_HEIGHT) if self.actions_panel else min(self.map_height * TILE_SIZE, SCREEN_HEIGHT)
+        self.view_port_height = min(self.map_height * TILE_SIZE, SCREEN_HEIGHT)
         self.screen_width = self.view_port_width + STATS_WIDTH
-        self.screen_height = self.view_port_height + ACTIONS_HEIGHT if self.actions_panel else self.view_port_height
+        # self.screen_height = self.view_port_height + ACTIONS_HEIGHT if self.actions_panel else self.view_port_height
+        self.screen_height = self.view_port_height
         # # Redimensionnement de l'écran
         # self.screen_width = TILE_SIZE * self.map_width + STATS_WIDTH
         # self.screen_height = TILE_SIZE * self.map_height + ACTIONS_HEIGHT
