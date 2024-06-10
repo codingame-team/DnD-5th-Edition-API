@@ -833,6 +833,10 @@ class Character(Sprite):
         return f"{self.name} - Age: {self.age // 52} - Abilities: {self.abilities} - Ability modifiers: {self.ability_modifiers} - ({ethnic}{self.gender} {race.name} - height: {self.height} weight: {self.weight}- class: {self.class_type} - AC {self.armor_class} Damage: {self.damage_dice} - w: {weapon_name} a: {armor_name} - potions: {len(self.healing_potions)})"
 
     @property
+    def multi_attacks(self) -> int:
+        return 1 if self.level < 5 else 2 if self.level < 11 else 3 if self.level < 20 else 4
+
+    @property
     def armor_class(self):
         equipped_armors: List[Armor] = [item for item in self.inventory if isinstance(item, Armor) and item.equipped and item.name != 'Shield']
         equipped_shields: List[Armor] = [item for item in self.inventory if isinstance(item, Armor) and item.name == 'Shield' and item.equipped]
@@ -1062,9 +1066,8 @@ class Character(Sprite):
                 if not attack_spell.is_cantrip:
                     self.update_spell_slots(casted_spell=attack_spell)
         else:
-            multi_attacks = 2 if self.level >= 5 else 3 if self.level >= 11 else 4 if self.level >= 20 else 1
             damage_multi = 0
-            for _ in range(multi_attacks):
+            for _ in range(self.multi_attacks):
                 if self.hit_points <= 0:
                     break
                 attack_roll = randint(1, 20) + self.ability_modifiers.get_value_by_index('str')
