@@ -18,7 +18,8 @@ from dao_classes import Character, Level, Spell, Weapon, Armor, HealingPotion, M
 from main import get_roster, save_character, load_xp_levels
 from populate_functions import populate, request_armor, request_weapon, request_monster, request_spell
 from populate_rpg_functions import load_potions_collections
-from tools.common import cprint
+from tools.cheat_functions import raise_dead
+from tools.common import cprint, generate_maze
 
 SCREEN_WIDTH, SCREEN_HEIGHT = 1280, 720
 STATS_WIDTH, ACTIONS_HEIGHT = 600, 200
@@ -92,17 +93,18 @@ class Level:
     fountains: List[Sprite]
     items: List[Equipment | HealingPotion]
     sprites: dict
+    cells_count: int
 
     def __init__(self, level_no: int):
         self.level_no = level_no
-        self.world_map = self.load_maze(level=level_no)
+        self.world_map, self.cells_count = self.load_maze(level=level_no)
         self.map_height = len(self.world_map)
         self.map_width = max([len(self.world_map[i]) for i in range(self.map_height)])
         self.sprites = {}
         self.items = []
         self.fountains = []
 
-    def load_maze(self, level: int) -> List:
+    def load_maze(self, level: int) -> tuple[List, int]:
         """
         Charge le labyrinthe depuis le fichier level.txt
         nom : nom du fichier contenant le labyrinthe (sans l’extension .txt)
@@ -114,13 +116,25 @@ class Level:
                 data = fic.readlines()
         except IOError:
             print("Impossible de lire le fichier {}.txt".format(level))
-            exit(1)
+            print("Génération du labyrinthe...")
+            min_value, max_value = (level - 3) * 4, (level - 3) * 8
+            width, height = randint(min_value, max_value), randint(min_value, max_value)
+            n_cells = (width * height) // 3
+            maze = generate_maze(width, height, n_cells)
+            walkable_cells = [(x, y) for y in range(height) for x in range(width) if maze[y][x] == '.']
+            stair_up_x, stair_up_y = choice(walkable_cells)
+            walkable_cells.remove((stair_up_x, stair_up_y))
+            stair_down_x, stair_down_y = choice(walkable_cells)
+            maze[stair_up_y][stair_up_x] = '<'
+            maze[stair_down_y][stair_down_x] = '>'
+            return maze, n_cells
         for i in range(len(data)):
             data[i] = data[i].strip()
         width = max([len(data[i]) for i in range(len(data))])
         for i in range(len(data)):
             data[i] = "{:{g}}".format(data[i], g=f"^{width}")
-        return data
+            walkable_cells = [(x, y) for y in range(len(data)) for x in range(len(data[0])) if data[y][x] == '.']
+        return data, len(walkable_cells)
 
     def load(self, hero: Character):
         """
@@ -159,7 +173,9 @@ class Level:
                 open_positions.remove((f_x, f_y))
                 self.sprites[f.id] = pygame.image.load(f"{sprites_dir}/{f.image_name}").convert_alpha()
         # Placement des monstres sur la carte
-        self.monsters = [request_monster(choice(allowed_monster_names)) for _ in range(randint(1, 5))]
+        # min_monsters, max_monsters = self.cells_count // 30, self.cells_count // 20
+        min_monsters, max_monsters = self.level_no, max(self.level_no, self.cells_count // 30)
+        self.monsters = [request_monster(choice(allowed_monster_names)) for _ in range(randint(min_monsters, max_monsters))]
         for m in self.monsters:
             m.x, m.y = choice(open_positions)
             m.id = max(self.sprites) + 1 if self.sprites else 0
@@ -220,12 +236,12 @@ class Game:
     last_round_time: float = 0
 
 
-    def __init__(self, character: Character, actions_panel=False):
+    def __init__(self, character: Character, actions_panel=False, start_level=1):
         self.last_round_time = time.time()
         # Chargement de la carte
         self.actions_panel = actions_panel
-        self.dungeon_level = 1
-        self.level = Level(1)
+        self.dungeon_level = start_level
+        self.level = Level(start_level)
         self.levels = [self.level]
         self.world_map = self.level.world_map
         self.map_height = self.level.map_height
@@ -324,7 +340,7 @@ class Game:
             f"XP: {self.hero.xp} / {self.xp_levels[self.hero.level]}",
             f"Santé: {self.hero.hit_points}/{self.hero.max_hit_points} ({self.hero.get_status})",
             # damage_dice: str = f'{self.hero.weapon.damage_dice}' if not w.damage_dice.bonus else f'{w.damage_dice.dice} + {w.damage_dice.bonus}'
-            f"Attaque: {weapon.damage_dice.dice}{ranged_weapon_info}" if weapon else f"Attaque: 1d2",
+            f"Attaque (x{self.hero.multi_attacks}): {weapon.damage_dice.dice}{ranged_weapon_info}" if weapon else f"Attaque: 1d2",
             # f"Défense: {self.hero.armor.ac}",
             f"Défense: {self.hero.armor_class}" if armor else "Défense: 10",
             # f"Potions: {self.hero.potions}",
@@ -649,7 +665,8 @@ class Game:
 
     @property
     def monsters_in_view_range(self) -> List[Monster]:
-        return [m for m in self.level.monsters if in_view_range(*self.hero.pos, *m.pos, obstacles=game.level.obstacles)]
+        vision_range: int = 60 // 5
+        return [m for m in self.level.monsters if mh_dist(self.hero.pos, m.pos) <= vision_range and in_view_range(*self.hero.pos, *m.pos, obstacles=self.level.obstacles)]
 
 
 def mh_dist(p1: tuple, p2: tuple):
@@ -696,6 +713,7 @@ def load_game_assets():
 
 
 def initialize_game(selected_character):
+    # game = Game(character=selected_character, start_level=5)
     game = Game(character=selected_character)
     return game
 
@@ -1080,7 +1098,7 @@ def handle_level_changes(game):
         case '<':
             print(f'Hero found upstairs!')
             game.dungeon_level -= 1
-            game.level = game.levels[game.dungeon_level - 1]
+            game.level = game.levels[game.dungeon_level - 1]# if game.dungeon_level in game.levels else Level(level_no=game.dungeon_level - 1)
             game.update_level(dir=-1)
             game.screen = pygame.display.set_mode((game.screen_width, game.screen_height))
 
@@ -1109,6 +1127,9 @@ if __name__ == "__main__":
     else:
         character_name = 'Brottor'
         selected_character: Character = [c for c in roster if c.name == character_name][0]
+        raise_dead(roster, characters_dir)
+        selected_character.hit_points = selected_character.max_hit_points
+        # selected_character.xp += 5000
 
         # print("No character name provided")
         # selected_character: Character = choice(list(filter(lambda c: c.is_spell_caster, roster)))
