@@ -498,26 +498,6 @@ class App(Tk):
 """
 
 
-def generate_maze(width: int, height: int, n_cells: int) -> List[str]:
-    """
-        Method used to generate levels with shapes of caves (walls only)
-    :param width: parameter to adjust to get nice looking caves
-    :param height: parameter to adjust to get nice looking caves
-    :param n_cells: parameter to adjust to get nice looking caves
-    :return:
-    """
-    maze: List[str] = [['#'] * width for _ in range(height)]
-    x, y = randint(1, width - 2), randint(1, height - 2)
-    maze[y][x] = '.'
-    dirs = [(-1, 0), (1, 0), (0, 1), (0, -1)]
-    while n_cells:
-        candidates = [(x + dx, y + dy) for dx, dy in dirs if 0 < x + dx < width - 1 and 0 < y + dy < height - 1]
-        x, y = choice(candidates)
-        if maze[y][x] == '#':
-            maze[y][x] = '.'
-            n_cells -= 1
-    return maze
-
 
 def request_monster_type(index_name: str) -> Optional[MonsterType]:
     try:
