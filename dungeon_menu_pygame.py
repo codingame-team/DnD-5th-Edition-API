@@ -9,7 +9,7 @@ import multiprocessing as mp
 
 from dao_classes import Character
 from main import get_roster
-from tools.cheat_functions import raise_dead
+from tools.cheat_functions import raise_dead_roster
 
 
 def start_game(character_name):
@@ -80,5 +80,5 @@ if __name__ == "__main__":
     abspath = os.path.abspath(path)
     characters_dir = f'{abspath}/gameState/characters'
     roster: List[Character] = get_roster(characters_dir)
-    raise_dead(roster, characters_dir)
+    raise_dead_roster(roster, characters_dir)
     main(roster)

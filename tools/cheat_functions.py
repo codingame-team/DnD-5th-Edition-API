@@ -115,12 +115,42 @@ def fix_duplicate_spells(roster):
                 save_character(char=character, _dir=characters_dir)
                 print(f'duplicates spells for char {character} fixed!')
 
-def raise_dead(roster, characters_dir):
+def raise_dead_roster(roster, characters_dir):
     for character in roster:
         if character.hit_points <= 0:
-            print(f'raising dead {character}')
+            print(f'raising dead {character} and restoring all hit points')
             character.status = 'OK'
-            character.hit_points = 1
+            character.hit_points = character.max_hit_points
+            save_character(char=character, _dir=characters_dir)
+        elif character.hit_points < character.max_hit_points:
+            print(f'restoring all hit points to {character}')
+            character.hit_points = character.max_hit_points
+            save_character(char=character, _dir=characters_dir)
+
+
+def raise_dead(character, characters_dir):
+    print(f'raising dead {character}')
+    character.status = 'OK'
+    character.hit_points = 1
+    save_character(char=character, _dir=characters_dir)
+
+def delete_dart(param):
+    for character in roster:
+        if character.name == param:
+            print(f'deleting dart {character}')
+            darts = [item for item in character.inventory if item and item.name == 'Dart']
+            for dart in darts:
+                character.inventory.remove(dart)
+            save_character(char=character, _dir=characters_dir)
+
+
+def delete_arrow(param):
+    for character in roster:
+        if character.name == param:
+            print(f'deleting arrow {character}')
+            arrows = [item for item in character.inventory if item and item.name == 'Arrow']
+            for arrow in arrows:
+                character.inventory.remove(arrow)
             save_character(char=character, _dir=characters_dir)
 
 if __name__ == "__main__":
@@ -130,7 +160,9 @@ if __name__ == "__main__":
     roster: List[Character] = get_roster(characters_dir)
 
     # fix_duplicate_ids_all(roster)
-    delete_inv(roster)
+    # delete_inv(roster)
+    # delete_dart('Silaqui')
+    delete_arrow('Ehput-Ki')
 
     # cure_char(name='Vadania')
     # cure_char(name='Esvele')

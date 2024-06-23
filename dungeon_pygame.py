@@ -1296,8 +1296,6 @@ if __name__ == "__main__":
     else:
         character_name = 'Brottor'
         selected_character: Character = [c for c in roster if c.name == character_name][0]
-        raise_dead(roster, characters_dir)
-        selected_character.hit_points = selected_character.max_hit_points
         # selected_character.xp += 5000
 
         # print("No character name provided")
