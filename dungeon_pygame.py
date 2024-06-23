@@ -19,7 +19,7 @@ from main import get_roster, save_character, load_xp_levels
 from populate_functions import populate, request_armor, request_weapon, request_monster, request_spell
 from populate_rpg_functions import load_potions_collections
 from tools.cheat_functions import raise_dead
-from tools.common import cprint, generate_maze
+from tools.common import cprint, generate_cave
 
 SCREEN_WIDTH, SCREEN_HEIGHT = 1280, 720
 STATS_WIDTH, ACTIONS_HEIGHT = 600, 200
@@ -94,6 +94,8 @@ class Level:
     items: List[Equipment | HealingPotion]
     sprites: dict
     cells_count: int
+    explored_tiles: set[tuple]
+    visible_tiles: set[tuple]
 
     def __init__(self, level_no: int):
         self.level_no = level_no
@@ -103,6 +105,8 @@ class Level:
         self.sprites = {}
         self.items = []
         self.fountains = []
+        self.explored_tiles = set()
+        self.visible_tiles = set()
 
     def load_maze(self, level: int) -> tuple[List, int]:
         """
@@ -120,7 +124,7 @@ class Level:
             min_value, max_value = (level - 3) * 4, (level - 3) * 8
             width, height = randint(min_value, max_value), randint(min_value, max_value)
             n_cells = (width * height) // 3
-            maze = generate_maze(width, height, n_cells)
+            maze = generate_cave(width, height, n_cells)
             walkable_cells = [(x, y) for y in range(height) for x in range(width) if maze[y][x] == '.']
             stair_up_x, stair_up_y = choice(walkable_cells)
             walkable_cells.remove((stair_up_x, stair_up_y))
@@ -142,13 +146,13 @@ class Level:
         :param level:
         :return:
         """
-        # photo_exit: PhotoImage = PhotoImage(file=f"{path}/sprites/exit.png")
-
         # monster_names: List[str] = populate(collection_name='monsters', key_name='results')
         # bestiary: List[Monster] = [request_monster(name) for name in monster_names]
 
         # rating = lambda m: m.cr < (hero.level / 4 if hero.level < 5 else hero.level / 2)
-        monster_names: List[str] = ['air-elemental', 'ankheg', 'baboon', 'bat', 'bugbear', 'chimera', 'dust-mephit', 'ettin', 'crab', 'ghost', 'gnoll', 'goblin', 'grimlock', 'hobgoblin', 'kobold', 'harpy', 'lizard', 'medusa', 'mimic', 'mummy', 'ogre', 'owl', 'poisonous-snake', 'rat', 'skeleton', 'spider', 'wolf', 'wyvern', 'zombie']
+        monster_names: List[str] = ['air-elemental', 'ankheg', 'baboon', 'bat', 'bugbear', 'chimera', 'dust-mephit', 'ettin', 'crab', 'ghost', 'gnoll', 'goblin', 'grimlock',
+                                    'hobgoblin', 'kobold', 'harpy', 'lizard', 'medusa', 'mimic', 'mummy', 'ogre', 'owl', 'poisonous-snake', 'rat', 'skeleton', 'spider', 'wolf',
+                                    'wyvern', 'young-red-dragon', 'zombie']
         # monster_names = ['owl']
         monster_candidates: List[Monster] = [request_monster(name) for name in monster_names]
         monster_candidates = list(filter(None, monster_candidates))
@@ -235,7 +239,6 @@ class Game:
     target_pos: tuple = None
     last_round_time: float = 0
 
-
     def __init__(self, character: Character, actions_panel=False, start_level=1):
         self.last_round_time = time.time()
         # Chargement de la carte
@@ -248,16 +251,15 @@ class Game:
         self.map_width = self.level.map_width
         self.walls = [(x, y) for y in range(self.map_height) for x in range(self.map_width) if self.world_map[y][x] == '#']
         # Redimensionnement de l'écran
-        self.view_port_width = min(self.map_width * TILE_SIZE, SCREEN_WIDTH - STATS_WIDTH)
-        # self.view_port_height = min(self.map_height * TILE_SIZE, SCREEN_HEIGHT - ACTIONS_HEIGHT)
-        self.view_port_height = min(self.map_height * TILE_SIZE, SCREEN_HEIGHT)
-        self.screen_width = self.view_port_width + STATS_WIDTH
-        # self.screen_height = self.view_port_height + ACTIONS_HEIGHT if actions_panel else self.view_port_height
-        self.screen_height = self.view_port_height
+        self.view_port_width = SCREEN_WIDTH - STATS_WIDTH
+        self.view_port_height = SCREEN_HEIGHT
+        self.screen_width = SCREEN_WIDTH
+        self.screen_height = SCREEN_HEIGHT
         self.action_rects = {}
         self.sprites = {}
         # Création de la fenêtre
-        self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
+        # self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
+        self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
         # Initialisation du personnage
         open_positions: List[tuple] = [(x, y) for x in range(self.map_width) for y in range(self.map_height) if self.world_map[y][x] == '.']
         hero_x, hero_y = choice(open_positions)
@@ -276,6 +278,9 @@ class Game:
             if item:
                 self.sprites[item.id] = pygame.image.load(f"{item_sprites_dir}/{item.image_name}").convert_alpha()
         self.hero.x, self.hero.y = hero_x, hero_y
+        self.level.explored_tiles.add((self.hero.x, self.hero.y))
+        self.update_visible_tiles()
+        cprint(f'{len(self.level.visible_tiles)} cases visibles')
         self.level.load(hero=self.hero)
         """ Load XP Levels """
         self.xp_levels = load_xp_levels()
@@ -286,7 +291,148 @@ class Game:
         view_height = self.view_port_height // TILE_SIZE
         viewport_x = max(0, min(self.hero.x - view_width // 2, self.map_width - view_width))
         viewport_y = max(0, min(self.hero.y - view_height // 2, self.map_height - view_height))
+        # Calculate the new view port rectangle
+        view_port_rect = pygame.Rect(viewport_x * TILE_SIZE, viewport_y * TILE_SIZE, self.view_port_width, self.view_port_height)
+        # cprint(viewport_x, viewport_y, view_width, view_height, view_port_rect)
         return viewport_x, viewport_y, view_width, view_height
+
+    def draw_mini_map_old(self):
+        """
+        Draw a mini-map on a separate surface.
+        """
+        # Set the size of the mini-map
+        mini_map_width = 300
+        mini_map_height = 200
+
+        # Create a new surface for the mini-map
+        OFFSET_X, OFFSET_Y = SCREEN_WIDTH - STATS_WIDTH + 10, 3 * (SCREEN_HEIGHT // 4) - 30
+        mini_map_rect = pygame.Rect(OFFSET_X, OFFSET_Y, mini_map_width, mini_map_height)
+
+        # Calculate the scale factor to fit the map onto the mini-map
+        scale_x = mini_map_width / self.map_width
+        scale_y = mini_map_height / self.map_height
+
+        # Draw the map tiles onto the mini-map surface
+        for y in range(self.map_height):
+            for x in range(self.map_width):
+                if (x, y) not in self.level.visible_tiles:
+                    color = BLACK
+                else:
+                    tile = self.world_map[y][x]
+                    if tile == '#':
+                        color = (128, 128, 128)  # Wall color
+                    else:
+                        color = (64, 64, 64)  # Floor color
+                pygame.draw.rect(self.screen, color, (int(OFFSET_X + x * scale_x), int(OFFSET_Y + y * scale_y), int(scale_x), int(scale_y)))
+
+        # Draw the player's position on the mini-map
+        player_x, player_y = self.hero.x, self.hero.y
+        pygame.draw.circle(self.screen, (255, 0, 0), (int(OFFSET_X + player_x * scale_x), int(OFFSET_Y + player_y * scale_y)), 5)
+
+        # Draw the treasure positions on the mini-map
+        for treasure in self.level.treasures:
+            if treasure.pos not in self.level.visible_tiles:
+                continue
+            treasure_x, treasure_y = treasure.x, treasure.y
+            pygame.draw.circle(self.screen, (255, 255, 0), (int(OFFSET_X + treasure_x * scale_x), int(OFFSET_Y + treasure_y * scale_y)), 3)
+
+    def draw_mini_map(self):
+        """
+        Draw a mini-map on a separate surface.
+        """
+        # Set the size of the mini-map
+        mini_map_width = 300
+        mini_map_height = 250
+
+        # Create a new surface for the mini-map
+        OFFSET_X, OFFSET_Y = SCREEN_WIDTH - STATS_WIDTH + 10, 3 * (SCREEN_HEIGHT // 4) - 80
+        mini_map_rect = pygame.Rect(OFFSET_X, OFFSET_Y, mini_map_width, mini_map_height)
+
+        # Calculate the scale factor to fit the map onto the mini-map
+        scale_x = mini_map_width / self.map_width
+        scale_y = mini_map_height / self.map_height
+
+        # Create a new surface for the mini-map
+        mini_map_surface = pygame.Surface((mini_map_width, mini_map_height))
+
+        # Draw the map tiles onto the mini-map surface
+        for y in range(self.map_height):
+            for x in range(self.map_width):
+                if (x, y) not in self.level.visible_tiles:
+                    color = BLACK
+                else:
+                    tile = self.world_map[y][x]
+                    if tile == '#':
+                        color = (128, 128, 128)  # Wall color
+                    else:
+                        color = (64, 64, 64)  # Floor color
+                pygame.draw.rect(mini_map_surface, color, (x * scale_x, y * scale_y, scale_x, scale_y))
+
+        # Draw the player's position on the mini-map
+        player_x, player_y = self.hero.x, self.hero.y
+        pygame.draw.circle(mini_map_surface, RED, (int(player_x * scale_x), int(player_y * scale_y)), 5)
+
+        # Draw the treasure positions on the mini-map
+        for treasure in self.level.treasures:
+            if treasure.pos not in self.level.visible_tiles:
+                continue
+            treasure_x, treasure_y = treasure.x, treasure.y
+            pygame.draw.circle(mini_map_surface, (255, 255, 0), (int(treasure_x * scale_x), int(treasure_y * scale_y)), 3)
+
+        # Blit the mini-map onto the main game screen
+        self.screen.blit(mini_map_surface, (OFFSET_X, OFFSET_Y))
+
+        return mini_map_surface
+
+    def draw_mini_map_new(self):
+        """
+        Draw a mini-map on a separate surface.
+        """
+        # Set the size of the mini-map
+        mini_map_width = 300
+        mini_map_height = 200
+
+        # Create a new surface for the mini-map
+        OFFSET_X, OFFSET_Y = SCREEN_WIDTH - STATS_WIDTH + 10, 3 * (SCREEN_HEIGHT // 4) - 30
+        mini_map_rect = pygame.Rect(OFFSET_X, OFFSET_Y, mini_map_width, mini_map_height)
+
+        # Calculate the scale factor to fit the map onto the mini-map
+        scale_x = mini_map_width / self.map_width
+        scale_y = mini_map_height / self.map_height
+
+        # Create a new surface for the mini-map
+        mini_map_surface = pygame.Surface((mini_map_width, mini_map_height))
+
+        # Draw the map tiles onto the mini-map surface
+        for y in range(self.map_height):
+            for x in range(self.map_width):
+                if (x, y) not in self.level.visible_tiles:
+                    color = BLACK
+                else:
+                    tile = self.world_map[y][x]
+                    if tile == '#':
+                        color = (128, 128, 128)  # Wall color
+                    else:
+                        color = (64, 64, 64)  # Floor color
+                tile_width = int(scale_x)
+                tile_height = int(scale_y)
+                pygame.draw.rect(mini_map_surface, color, (int(x * scale_x), int(y * scale_y), tile_width, tile_height))
+
+        # Draw the player's position on the mini-map
+        player_x, player_y = self.hero.x, self.hero.y
+        pygame.draw.circle(mini_map_surface, (255, 0, 0), (int(player_x * scale_x), int(player_y * scale_y)), 5)
+
+        # Draw the treasure positions on the mini-map
+        for treasure in self.level.treasures:
+            if treasure.pos not in self.level.visible_tiles:
+                continue
+            treasure_x, treasure_y = treasure.x, treasure.y
+            pygame.draw.circle(mini_map_surface, (255, 255, 0), (int(treasure_x * scale_x), int(treasure_y * scale_y)), 3)
+
+        # Blit the mini-map onto the main game screen
+        self.screen.blit(mini_map_surface, (OFFSET_X, OFFSET_Y))
+
+        return mini_map_surface
 
     def draw_map(self):
         photo_wall = pygame.image.load(f"{path}/sprites/TilesDungeon/Wall.png")
@@ -297,15 +443,19 @@ class Game:
         view_x, view_y, view_width, view_height = self.calculate_view_window()
 
         # Draw only the portion of the map that falls within the view window
-        for row in range(view_y, view_y + view_height):
-            for col in range(view_x, view_x + view_width):
-                tile_x, tile_y = (col - view_x) * TILE_SIZE, (row - view_y) * TILE_SIZE
-                if self.world_map[row][col] == '#':
-                    self.screen.blit(photo_wall, (tile_x, tile_y))
-                elif self.world_map[row][col] == '<':
-                    self.screen.blit(photo_upstairs, (tile_x, tile_y))
-                elif self.world_map[row][col] == '>':
-                    self.screen.blit(photo_downstairs, (tile_x, tile_y))
+        for y in range(view_y, view_y + view_height):
+            for x in range(view_x, view_x + view_width):
+                tile_x, tile_y = (x - view_x) * TILE_SIZE, (y - view_y) * TILE_SIZE
+                if (x, y) in self.level.visible_tiles:
+                    if self.world_map[y][x] == '#':
+                        self.screen.blit(photo_wall, (tile_x, tile_y))
+                    elif self.world_map[y][x] == '<':
+                        self.screen.blit(photo_upstairs, (tile_x, tile_y))
+                    elif self.world_map[y][x] == '>':
+                        self.screen.blit(photo_downstairs, (tile_x, tile_y))
+                else:
+                    # Draw a black square for unexplored and not in sight range tiles
+                    self.screen.fill(BLACK, (tile_x, tile_y, TILE_SIZE, TILE_SIZE))
 
     def feet_inches_to_m_cm(self, height_feet: int, height_inches: int):
         total_inches = height_feet * 12 + height_inches
@@ -517,22 +667,15 @@ class Game:
         self.map_height = len(self.world_map)
         self.map_width = max([len(self.world_map[i]) for i in range(self.map_height)])
         self.walls = [(x, y) for y in range(self.map_height) for x in range(self.map_width) if self.world_map[y][x] == '#']
-        # Redimensionnement de l'écran
-        self.view_port_width = min(self.map_width * TILE_SIZE, SCREEN_WIDTH - STATS_WIDTH)
-        # self.view_port_height = min(self.map_height * TILE_SIZE, SCREEN_HEIGHT - ACTIONS_HEIGHT) if self.actions_panel else min(self.map_height * TILE_SIZE, SCREEN_HEIGHT)
-        self.view_port_height = min(self.map_height * TILE_SIZE, SCREEN_HEIGHT)
-        self.screen_width = self.view_port_width + STATS_WIDTH
-        # self.screen_height = self.view_port_height + ACTIONS_HEIGHT if self.actions_panel else self.view_port_height
-        self.screen_height = self.view_port_height
-        # # Redimensionnement de l'écran
-        # self.screen_width = TILE_SIZE * self.map_width + STATS_WIDTH
-        # self.screen_height = TILE_SIZE * self.map_height + ACTIONS_HEIGHT
         # Position personnage
         stair: str = '<' if dir > 0 else '>'
         stair_pos = [(x, y) for y in range(self.map_height) for x in range(self.map_width) if self.world_map[y][x] == stair][0]
         exit_positions: List[tuple] = [(x, y) for x in range(self.map_width) for y in range(self.map_height) if
                                        self.world_map[y][x] == '.' and mh_dist((x, y), stair_pos) == 1]
         self.hero.x, self.hero.y = choice(exit_positions)
+        self.level.explored_tiles.add((self.hero.x, self.hero.y))
+        self.update_visible_tiles()
+        cprint(f'{len(self.level.visible_tiles)} cases visibles')
 
     def add_to_level(self, item, image) -> bool:
         possible_drop_locations: List[tuple] = [(x, y) for x in range(self.map_width) for y in range(self.map_height) if self.world_map[y][x] == '.'
@@ -664,9 +807,17 @@ class Game:
         return 0 <= x < view_width and 0 <= y < view_height
 
     @property
-    def monsters_in_view_range(self) -> List[Monster]:
-        vision_range: int = 60 // 5
+    def monsters_in_view_range(self, vision_range: int = 6) -> List[Monster]:
         return [m for m in self.level.monsters if mh_dist(self.hero.pos, m.pos) <= vision_range and in_view_range(*self.hero.pos, *m.pos, obstacles=self.level.obstacles)]
+
+    def update_visible_tiles(self, vision_range: int = 6):
+        view_x, view_y, view_width, view_height = self.calculate_view_window()
+        for x in range(view_x, view_x + view_width):
+            for y in range(view_y, view_y + view_height):
+                if (x, y) in self.level.visible_tiles or dist((x, y), self.hero.pos) > vision_range:
+                    continue
+                if in_view_range(*self.hero.pos, x, y, obstacles=self.level.obstacles):
+                    self.level.visible_tiles.add((x, y))
 
 
 def mh_dist(p1: tuple, p2: tuple):
@@ -721,7 +872,7 @@ def initialize_game(selected_character):
 # III - Réactualisation de l'affichage
 def update_display(game):
     # Rendu
-    game.screen.fill(WHITE)
+    game.screen.fill(BLACK)
 
     # III-0 Dessiner la carte
     map_rect = pygame.Rect(0, 0, game.map_width * TILE_SIZE, game.map_height * TILE_SIZE)
@@ -732,6 +883,8 @@ def update_display(game):
 
     # III-1 Afficher les fontaines de mémorisation de sorts
     for t in game.level.fountains:
+        if t.pos not in game.level.visible_tiles:
+            continue
         image: Surface = game.level.sprites[t.id]
         t.draw(game.screen, image, TILE_SIZE, *view_port_tuple)
 
@@ -739,18 +892,32 @@ def update_display(game):
     image: Surface = game.sprites[game.hero.id]
     game.hero.draw(game.screen, image, TILE_SIZE, *view_port_tuple)
 
-    for e in game.level.monsters:
-        image: Surface = game.level.sprites[e.id]
-        e.draw(game.screen, image, TILE_SIZE, *view_port_tuple)
+    for monster in game.level.monsters:
+        # game.screen.blit(game.sprites[monster.id], (monster.x * TILE_SIZE, monster.y * TILE_SIZE))
+        # # Create the tooltip data
+        # tooltip_data = {
+        #     "image": f"{char_sprites_dir}/{monster.image_name}",
+        #     "name": monster.name,
+        #     "description": monster.description
+        # }
+        if monster.pos not in game.level.visible_tiles:
+            continue
+        image: Surface = game.level.sprites[monster.id]
+        # big_image: Surface = pygame.transform.scale(image, (TILE_SIZE * 2, TILE_SIZE * 2))
+        monster.draw(game.screen, image, TILE_SIZE, *view_port_tuple)
 
     # III-3 Afficher les trésors
     for t in game.level.treasures:
+        if t.pos not in game.level.visible_tiles:
+            continue
         image: Surface = game.level.sprites[t.id]
         t.draw(game.screen, image, TILE_SIZE, *view_port_tuple)
 
     # III-4 Afficher ou Ramasser des items laissés au sol
     for item in game.level.items:
         try:
+            if item.pos not in game.level.visible_tiles:
+                continue
             image: Surface = game.level.sprites[item.id]
             item_taken: bool = False
             if item.pos == game.hero.pos:
@@ -779,6 +946,8 @@ def update_display(game):
     # III-7 Dessiner le grimoire du personnage
     if game.hero.sc and game.hero.sc.learned_spells:
         game.draw_spell_book()
+
+    game.draw_mini_map()
 
     # Mise à jour de l'affichage
     pygame.display.flip()
@@ -871,7 +1040,7 @@ def handle_outside_map_click(game, event):
                     game.drop(item, image)
 
     # TODO: area of effect
-    if game.hero.sc and game.hero.sc.learned_spells:# and not game.ready_spell:
+    if game.hero.sc and game.hero.sc.learned_spells:  # and not game.ready_spell:
         # Vérifier si un sort a été sélectionné
         max_spell_level: int = max([s.level for s in game.hero.sc.learned_spells])
         for i in range(max_spell_level + 2):
@@ -912,16 +1081,15 @@ def handle_in_map_click(game, event, x, y):
 
 def handle_right_click_spell_attack(game):
     monsters_in_range = [m for m in game.monsters_in_view_range if dist(game.hero.pos, m.pos) <= game.ready_spell.range // UNIT_SIZE]
-    if monsters_in_range:
-        for monster in monsters_in_range:
-            if game.target_pos in (monster.pos, monster.old_pos):
-                monster.hit_points -= game.hero.cast(game.ready_spell, monster)
-                if monster.hit_points <= 0:
-                    cprint(f'{monster.name} at pos {monster.pos} is *KILLED*')
-                    game.hero.victory(monster=monster, solo_mode=True)
-                    game.level.monsters.remove(monster)
-    else:
-        cprint('No monster in range!')
+    for monster in monsters_in_range:
+        if game.target_pos in (monster.pos, monster.old_pos):
+            monster.hit_points -= game.hero.cast(game.ready_spell, monster)
+            if monster.hit_points <= 0:
+                cprint(f'{monster.name} at pos {monster.pos} is *KILLED*')
+                game.hero.victory(monster=monster, solo_mode=True)
+                game.level.monsters.remove(monster)
+        else:
+            cprint(f'{monster.name} is out of range!')
     if not game.ready_spell.is_cantrip:
         game.hero.update_spell_slots(game.ready_spell)
     game.ready_spell = None
@@ -950,7 +1118,6 @@ def move_char(game: Game, char: Monster | Character, pos: tuple):
     x, y = pos
     if (x, y) in game.level.walkable_tiles:
         if mh_dist(char.pos, (x, y)) <= 1:
-            char.old_x, char.old_y = char.x, char.y
             char.x, char.y = x, y
         else:
             if isinstance(char, Character):
@@ -960,10 +1127,12 @@ def move_char(game: Game, char: Monster | Character, pos: tuple):
             path = find_path(start=char.pos, end=(x, y), carte=game.level.carte, obstacles=obstacles)
             # cprint(f'path : {path}')
             if path:
-                char.old_x, char.old_y = char.x, char.y
                 char.x, char.y = path[1]
             else:
                 cprint(f'No path found for {char.name}!')
+        if isinstance(char, Character):
+            game.level.explored_tiles.add(char.pos)
+            game.update_visible_tiles()
 
 
 def handle_keyboard_events(game, event):
@@ -1098,7 +1267,7 @@ def handle_level_changes(game):
         case '<':
             print(f'Hero found upstairs!')
             game.dungeon_level -= 1
-            game.level = game.levels[game.dungeon_level - 1]# if game.dungeon_level in game.levels else Level(level_no=game.dungeon_level - 1)
+            game.level = game.levels[game.dungeon_level - 1]  # if game.dungeon_level in game.levels else Level(level_no=game.dungeon_level - 1)
             game.update_level(dir=-1)
             game.screen = pygame.display.set_mode((game.screen_width, game.screen_height))
 
