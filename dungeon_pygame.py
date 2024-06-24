@@ -2,6 +2,7 @@
 # SCREEN_WIDTH, SCREEN_HEIGHT = 1920, 1080
 from __future__ import annotations
 
+import math
 import os
 import sys
 import time
@@ -19,7 +20,7 @@ from main import get_roster, save_character, load_xp_levels
 from populate_functions import populate, request_armor, request_weapon, request_monster, request_spell
 from populate_rpg_functions import load_potions_collections
 from tools.cheat_functions import raise_dead
-from tools.common import cprint, generate_cave
+from tools.common import cprint, generate_cave, generate_dungeon
 
 SCREEN_WIDTH, SCREEN_HEIGHT = 1280, 720
 STATS_WIDTH, ACTIONS_HEIGHT = 600, 200
@@ -115,16 +116,28 @@ class Level:
         Valeur de retour :
         - une liste avec les données du labyrinthe
         """
+        map_type = 'cave'
+        # map_type = 'dungeon'
         try:
-            with open(f"{path}/maze/level_{level}.txt", newline='') as fic:
+            with open(f"{path}/maze/NO_level_{level}.txt", newline='') as fic:
                 data = fic.readlines()
         except IOError:
             print("Impossible de lire le fichier {}.txt".format(level))
             print("Génération du labyrinthe...")
-            min_value, max_value = (level - 3) * 4, (level - 3) * 8
-            width, height = randint(min_value, max_value), randint(min_value, max_value)
-            n_cells = (width * height) // 3
-            maze = generate_cave(width, height, n_cells)
+            if map_type == 'cave':
+                # min_value, max_value = (level - 3) * 4, (level - 3) * 8
+                min_value, max_value = (level + 1) * 4, (level + 1) * 8
+                width, height = randint(min_value, max_value), randint(min_value, max_value)
+                n_cells = (width * height) // 3
+                maze = generate_cave(width, height, n_cells)
+            elif map_type == 'dungeon':
+                min_value, max_value = (level + 1) * 20, (level + 1) * 30
+                width, height = randint(min_value, max_value), randint(min_value, max_value)
+                num_chambers = int(math.sqrt(width * height)) // 6
+                cprint(f'num chambers: {num_chambers}')
+                maze = generate_dungeon(width, height, num_chambers, 3, 6)
+                maze = [['.' if cell else '#' for cell in row] for row in maze]
+                n_cells = sum([row.count('.') for row in maze])
             walkable_cells = [(x, y) for y in range(height) for x in range(width) if maze[y][x] == '.']
             stair_up_x, stair_up_y = choice(walkable_cells)
             walkable_cells.remove((stair_up_x, stair_up_y))
