@@ -19,8 +19,11 @@ from dao_classes import Character, Level, Spell, Weapon, Armor, HealingPotion, M
 from main import get_roster, save_character, load_xp_levels
 from populate_functions import populate, request_armor, request_weapon, request_monster, request_spell
 from populate_rpg_functions import load_potions_collections
+from tools.cell_bits_dnd import DOORSPACE
 from tools.cheat_functions import raise_dead
 from tools.common import cprint, generate_cave, generate_dungeon
+from tools.parse_json_dungeon import parse_dungeon_json
+from tools import cell_bits_dnd as cb
 
 SCREEN_WIDTH, SCREEN_HEIGHT = 1280, 720
 STATS_WIDTH, ACTIONS_HEIGHT = 600, 200
@@ -97,10 +100,11 @@ class Level:
     cells_count: int
     explored_tiles: set[tuple]
     visible_tiles: set[tuple]
+    doors: dict
 
     def __init__(self, level_no: int):
         self.level_no = level_no
-        self.world_map, self.cells_count = self.load_maze(level=level_no)
+        self.world_map, self.cells_count, self.doors = self.load_maze(level=level_no)
         self.map_height = len(self.world_map)
         self.map_width = max([len(self.world_map[i]) for i in range(self.map_height)])
         self.sprites = {}
@@ -109,7 +113,10 @@ class Level:
         self.explored_tiles = set()
         self.visible_tiles = set()
 
-    def load_maze(self, level: int) -> tuple[List, int]:
+    def is_stair(self, x, y):
+        return self.world_map[y][x] in ['<', '>']
+
+    def load_maze(self, level: int) -> tuple[List, int, dict]:
         """
         Charge le labyrinthe depuis le fichier level.txt
         nom : nom du fichier contenant le labyrinthe (sans l’extension .txt)
@@ -117,13 +124,15 @@ class Level:
         - une liste avec les données du labyrinthe
         """
         map_type = 'cave'
-        # map_type = 'dungeon'
+        map_type = 'dungeon'
+        map_type = 'dungeon.json'
         try:
             with open(f"{path}/maze/NO_level_{level}.txt", newline='') as fic:
                 data = fic.readlines()
         except IOError:
             print("Impossible de lire le fichier {}.txt".format(level))
             print("Génération du labyrinthe...")
+            doors: dict = {}
             if map_type == 'cave':
                 # min_value, max_value = (level - 3) * 4, (level - 3) * 8
                 min_value, max_value = (level + 1) * 4, (level + 1) * 8
@@ -131,12 +140,25 @@ class Level:
                 n_cells = (width * height) // 3
                 maze = generate_cave(width, height, n_cells)
             elif map_type == 'dungeon':
-                min_value, max_value = (level + 1) * 20, (level + 1) * 30
+                min_value, max_value = (level + 1) * 10, (level + 1) * 20
                 width, height = randint(min_value, max_value), randint(min_value, max_value)
                 num_chambers = int(math.sqrt(width * height)) // 6
                 cprint(f'num chambers: {num_chambers}')
-                maze = generate_dungeon(width, height, num_chambers, 3, 6)
+                maze = generate_dungeon(width, height, num_chambers, 3, 10)
                 maze = [['.' if cell else '#' for cell in row] for row in maze]
+                n_cells = sum([row.count('.') for row in maze])
+            else:
+                json_filename = 'The Shrine of Awesome Necromancy 01.json'
+                # json_filename = 'The Chambers of Profane Ruin 01.json'
+                # json_filename = 'dungeon.json'
+                dungeon = parse_dungeon_json(json_filename)
+                cells = dungeon['cell'] if 'cell' in dungeon else dungeon['cells']
+                maze = [['.' if cell & cb.OPENSPACE else '#' for cell in row] for row in cells]
+                width, height = len(maze[0]), len(maze)
+                if 'door' in dungeon:
+                    doors = {(door['col'], door['row']): False for door in dungeon['door']}
+                else:
+                    doors = {(x, y): False for x in range(width) for y in range(height) if cells[y][x] & DOORSPACE}
                 n_cells = sum([row.count('.') for row in maze])
             walkable_cells = [(x, y) for y in range(height) for x in range(width) if maze[y][x] == '.']
             stair_up_x, stair_up_y = choice(walkable_cells)
@@ -144,7 +166,7 @@ class Level:
             stair_down_x, stair_down_y = choice(walkable_cells)
             maze[stair_up_y][stair_up_x] = '<'
             maze[stair_down_y][stair_down_x] = '>'
-            return maze, n_cells
+            return maze, n_cells, doors
         for i in range(len(data)):
             data[i] = data[i].strip()
         width = max([len(data[i]) for i in range(len(data))])
@@ -214,15 +236,17 @@ class Level:
 
     @property
     def walkable_tiles(self):
-        return [(x, y) for y in range(self.map_height) for x in range(self.map_width) if self.world_map[y][x] in ['.', '<', '>']]
+        closed_doors: List[tuple] = [pos for pos, is_open in self.doors.items() if not is_open]
+        return [(x, y) for y in range(self.map_height) for x in range(self.map_width) if self.world_map[y][x] in ['.', '<', '>'] and (x, y) not in closed_doors]
 
     @property
     def obstacles(self):
-        return [(x, y) for y in range(self.map_height) for x in range(self.map_width) if self.world_map[y][x] == '#']
+        closed_doors: List[tuple] = [pos for pos, is_open in self.doors.items() if not is_open]
+        return [(x, y) for y in range(self.map_height) for x in range(self.map_width) if self.world_map[y][x] == '#' or (x, y) in closed_doors]
 
     @property
     def carte(self) -> List[List[int]]:
-        obstacles = [*self.obstacles]  # + [(e.x, e.y) for e in enemies if e != enemy]
+        obstacles = [*self.obstacles] # + [(e.x, e.y) for e in enemies if e != enemy]
         carte = [[1] * self.map_width for _ in range(self.map_height)]
         for y in range(self.map_height):
             for x in range(self.map_width):
@@ -377,6 +401,8 @@ class Game:
                     tile = self.world_map[y][x]
                     if tile == '#':
                         color = (128, 128, 128)  # Wall color
+                    elif tile in ('<', '>'):
+                        color = (0, 0, 255)  # Stairs color
                     else:
                         color = (64, 64, 64)  # Floor color
                 pygame.draw.rect(mini_map_surface, color, (x * scale_x, y * scale_y, scale_x, scale_y))
@@ -387,7 +413,7 @@ class Game:
 
         # Draw the treasure positions on the mini-map
         for treasure in self.level.treasures:
-            if treasure.pos not in self.level.visible_tiles:
+            if treasure.pos not in self.level.explored_tiles:
                 continue
             treasure_x, treasure_y = treasure.x, treasure.y
             pygame.draw.circle(mini_map_surface, (255, 255, 0), (int(treasure_x * scale_x), int(treasure_y * scale_y)), 3)
@@ -451,6 +477,8 @@ class Game:
         photo_wall = pygame.image.load(f"{path}/sprites/TilesDungeon/Wall.png")
         photo_downstairs = pygame.image.load(f"{path}/sprites/DownStairs.png")
         photo_upstairs = pygame.image.load(f"{path}/sprites/UpStairs.png")
+        photo_door_closed = pygame.image.load(f"{path}/sprites/door_closed.png")
+        photo_door_open = pygame.image.load(f"{path}/sprites/door_open.png")
 
         # Calculate the view window
         view_x, view_y, view_width, view_height = self.calculate_view_window()
@@ -466,6 +494,10 @@ class Game:
                         self.screen.blit(photo_upstairs, (tile_x, tile_y))
                     elif self.world_map[y][x] == '>':
                         self.screen.blit(photo_downstairs, (tile_x, tile_y))
+                    elif (x, y) in self.level.doors:
+                        # Draw a door tile
+                        photo_door = photo_door_open if self.level.doors[(x, y)] else photo_door_closed
+                        self.screen.blit(photo_door, (tile_x, tile_y))
                 else:
                     # Draw a black square for unexplored and not in sight range tiles
                     self.screen.fill(BLACK, (tile_x, tile_y, TILE_SIZE, TILE_SIZE))
@@ -672,7 +704,7 @@ class Game:
     def can_move(self, char: Character | Monster, dir: tuple) -> bool:
         dx, dy = dir
         x, y = char.x + dx, char.y + dy
-        return 0 <= x < self.map_width and 0 <= y < self.map_height and self.world_map[y][x] != '#'
+        return 0 <= x < self.map_width and 0 <= y < self.map_height and (x, y) not in self.level.obstacles
 
     def update_level(self, dir: int):
         # Chargement de la carte
@@ -823,7 +855,8 @@ class Game:
     def monsters_in_view_range(self, vision_range: int = 6) -> List[Monster]:
         return [m for m in self.level.monsters if mh_dist(self.hero.pos, m.pos) <= vision_range and in_view_range(*self.hero.pos, *m.pos, obstacles=self.level.obstacles)]
 
-    def update_visible_tiles(self, vision_range: int = 6):
+    def update_visible_tiles(self, vision_range: int = 10):
+        # self.level.visible_tiles = set()
         view_x, view_y, view_width, view_height = self.calculate_view_window()
         for x in range(view_x, view_x + view_width):
             for y in range(view_y, view_y + view_height):
@@ -1163,7 +1196,20 @@ def handle_keyboard_events(game, event):
         handle_combat(monsters=game.monsters_in_view_range, party=[game.hero], move_action=(game.hero.x + 1, game.hero.y))
     elif event.key == pygame.K_p:
         handle_potion_use(game)
-
+    elif event.key == pygame.K_o:
+        closed_doors = [door_pos for door_pos, door_open in game.level.doors.items() if mh_dist(door_pos, game.hero.pos) == 1 and not door_open]
+        if closed_doors:
+            door_pos = closed_doors[0]
+            game.level.doors[door_pos] = not game.level.doors[door_pos]
+        else:
+            cprint('No closed door found!')
+    elif event.key == pygame.K_c:
+        open_doors = [door_pos for door_pos, door_open in game.level.doors.items() if mh_dist(door_pos, game.hero.pos) == 1 and door_open]
+        if open_doors:
+            door_pos = open_doors[0]
+            game.level.doors[door_pos] = not game.level.doors[door_pos]
+        else:
+            cprint('No open door found!')
 
 def handle_potion_use(game):
     if game.hero.healing_potions:
@@ -1210,7 +1256,10 @@ def handle_combat(monsters: List[Monster], party=None, attack_spell: Spell = Non
         if char in party and char.hit_points > 0:
             # Handle party member's action
             if move_action:
-                move_char(game, char, move_action)
+                if move_action not in game.level.obstacles:
+                    move_char(game, char, move_action)
+                else:
+                    cprint(f'Path is blocked!')
             elif attack_spell:
                 handle_right_click_spell_attack(game)
             else:
