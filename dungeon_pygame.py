@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import math
 import os
+import pickle
+import re
 import sys
 import time
 from copy import copy
@@ -14,12 +16,12 @@ import pygame
 from pygame import Surface
 
 from algo.brehensam import in_view_range
-from algo.lee import parcours_largeur
+from algo.lee import parcours_largeur, parcours_a_star
 from dao_classes import Character, Level, Spell, Weapon, Armor, HealingPotion, Monster, Equipment, Treasure, Sprite, color
 from main import get_roster, save_character, load_xp_levels
 from populate_functions import populate, request_armor, request_weapon, request_monster, request_spell
 from populate_rpg_functions import load_potions_collections
-from tools.cell_bits_dnd import DOORSPACE
+from tools.cell_bits_dnd import DOORSPACE, TRAPPED, STAIR_UP, STAIR_DN
 from tools.cheat_functions import raise_dead
 from tools.common import cprint, generate_cave, generate_dungeon
 from tools.parse_json_dungeon import parse_dungeon_json
@@ -96,27 +98,27 @@ class Level:
     treasures: dict
     fountains: List[Sprite]
     items: List[Equipment | HealingPotion]
-    sprites: dict
     cells_count: int
     explored_tiles: set[tuple]
     visible_tiles: set[tuple]
     doors: dict
+    fullname: str
 
-    def __init__(self, level_no: int):
+    def __init__(self, level_no: int, name: str = ''):
         self.level_no = level_no
-        self.world_map, self.cells_count, self.doors = self.load_maze(level=level_no)
+        self.world_map, self.cells_count, self.doors, self.fullname = self.load_maze(level=level_no)
         self.map_height = len(self.world_map)
         self.map_width = max([len(self.world_map[i]) for i in range(self.map_height)])
-        self.sprites = {}
         self.items = []
         self.fountains = []
         self.explored_tiles = set()
         self.visible_tiles = set()
+        self.fullname = name
 
     def is_stair(self, x, y):
         return self.world_map[y][x] in ['<', '>']
 
-    def load_maze(self, level: int) -> tuple[List, int, dict]:
+    def load_maze(self, level: int) -> tuple[List, int, dict, str]:
         """
         Charge le labyrinthe depuis le fichier level.txt
         nom : nom du fichier contenant le labyrinthe (sans l’extension .txt)
@@ -126,54 +128,74 @@ class Level:
         map_type = 'cave'
         map_type = 'dungeon'
         map_type = 'dungeon.json'
-        try:
-            with open(f"{path}/maze/NO_level_{level}.txt", newline='') as fic:
-                data = fic.readlines()
-        except IOError:
-            print("Impossible de lire le fichier {}.txt".format(level))
-            print("Génération du labyrinthe...")
-            doors: dict = {}
-            if map_type == 'cave':
-                # min_value, max_value = (level - 3) * 4, (level - 3) * 8
-                min_value, max_value = (level + 1) * 4, (level + 1) * 8
-                width, height = randint(min_value, max_value), randint(min_value, max_value)
-                n_cells = (width * height) // 3
-                maze = generate_cave(width, height, n_cells)
-            elif map_type == 'dungeon':
-                min_value, max_value = (level + 1) * 10, (level + 1) * 20
-                width, height = randint(min_value, max_value), randint(min_value, max_value)
-                num_chambers = int(math.sqrt(width * height)) // 6
-                cprint(f'num chambers: {num_chambers}')
-                maze = generate_dungeon(width, height, num_chambers, 3, 10)
-                maze = [['.' if cell else '#' for cell in row] for row in maze]
-                n_cells = sum([row.count('.') for row in maze])
+        level_fullname: str = ''
+        doors: dict = {}
+        stair_up: tuple = None
+        stair_down: tuple = None
+        if map_type == 'cave':
+            # min_value, max_value = (level - 3) * 4, (level - 3) * 8
+            min_value, max_value = (level + 1) * 4, (level + 1) * 8
+            width, height = randint(min_value, max_value), randint(min_value, max_value)
+            n_cells = (width * height) // 3
+            maze = generate_cave(width, height, n_cells)
+        elif map_type == 'dungeon':
+            min_value, max_value = (level + 1) * 10, (level + 1) * 20
+            width, height = randint(min_value, max_value), randint(min_value, max_value)
+            num_chambers = int(math.sqrt(width * height)) // 6
+            cprint(f'num chambers: {num_chambers}')
+            maze = generate_dungeon(width, height, num_chambers, 3, 10)
+            maze = [['.' if cell else '#' for cell in row] for row in maze]
+            n_cells = sum([row.count('.') for row in maze])
+        else:
+            abs_path = os.path.abspath(os.path.dirname(__file__))
+            abs_project_path = os.path.abspath(os.path.join(abs_path, os.pardir))
+            dungeon_levels = [f for f in os.listdir(os.path.join(abs_path, 'maze')) if f.endswith(f"{level:02}.json")]
+            json_filename = choice(dungeon_levels)
+            pattern = r' \d+\.json'
+            level_fullname = re.sub(pattern, '', json_filename)
+            # json_filename = 'dungeon.json' # generated by perl script (room+corridors without extras)
+            dungeon = parse_dungeon_json(json_filename)
+            cells = dungeon['cell'] if 'cell' in dungeon else dungeon['cells']
+            maze = [['.' if cell & cb.OPENSPACE else '#' for cell in row] for row in cells]
+            width, height = len(maze[0]), len(maze)
+            if 'door' in dungeon:
+                doors = {(door['col'], door['row']): False for door in dungeon['door']}
             else:
-                json_filename = 'The Shrine of Awesome Necromancy 01.json'
-                # json_filename = 'The Chambers of Profane Ruin 01.json'
-                # json_filename = 'dungeon.json'
-                dungeon = parse_dungeon_json(json_filename)
-                cells = dungeon['cell'] if 'cell' in dungeon else dungeon['cells']
-                maze = [['.' if cell & cb.OPENSPACE else '#' for cell in row] for row in cells]
-                width, height = len(maze[0]), len(maze)
-                if 'door' in dungeon:
-                    doors = {(door['col'], door['row']): False for door in dungeon['door']}
-                else:
-                    doors = {(x, y): False for x in range(width) for y in range(height) if cells[y][x] & DOORSPACE}
-                n_cells = sum([row.count('.') for row in maze])
+                doors = {(x, y): False for x in range(width) for y in range(height) if cells[y][x] & DOORSPACE}
+            door_traps = [(x, y) for x in range(width) for y in range(height) if cells[y][x] & TRAPPED]
+            stair_up = [(x, y) for x in range(width) for y in range(height) if cells[y][x] & STAIR_UP][0]
+            stair_down = [(x, y) for x in range(width) for y in range(height) if cells[y][x] & STAIR_DN][0]
+            corridor_features = dungeon['corridor_features'] if 'corridor_features' in dungeon else {}
+            corridor_events: dict = {}
+            if corridor_features:
+                for feature_label, feature_detail in corridor_features.items():
+                    for mark in feature_detail['marks']:
+                        x, y = mark['col'], mark['row']
+                        corridor_events[(x, y)] = feature_detail['detail']
+            room_traps: dict = {}
+            room_door_traps: dict = {}
+            for i, room in enumerate(dungeon['rooms']):
+                if room:
+                    if 'contents' in room and 'detail' in room['contents'] and 'trap' in room['contents']['detail']:
+                        room_traps[i] = room['contents']['detail']['trap']
+                    if 'doors' in room:
+                        for _dir, door_lst in room['doors'].items():
+                            for door in door_lst:
+                                if 'trap' in door:
+                                    x, y = door['col'], door['row']
+                                    room_door_traps[(x, y)] = door['trap']
+            n_cells = sum([row.count('.') for row in maze])
+        if not stair_up and not stair_down:
             walkable_cells = [(x, y) for y in range(height) for x in range(width) if maze[y][x] == '.']
-            stair_up_x, stair_up_y = choice(walkable_cells)
-            walkable_cells.remove((stair_up_x, stair_up_y))
-            stair_down_x, stair_down_y = choice(walkable_cells)
-            maze[stair_up_y][stair_up_x] = '<'
-            maze[stair_down_y][stair_down_x] = '>'
-            return maze, n_cells, doors
-        for i in range(len(data)):
-            data[i] = data[i].strip()
-        width = max([len(data[i]) for i in range(len(data))])
-        for i in range(len(data)):
-            data[i] = "{:{g}}".format(data[i], g=f"^{width}")
-            walkable_cells = [(x, y) for y in range(len(data)) for x in range(len(data[0])) if data[y][x] == '.']
-        return data, len(walkable_cells)
+            stair_up = choice(walkable_cells)
+            walkable_cells.remove(stair_up)
+            stair_down = choice(walkable_cells)
+        if level > 1:
+            maze[stair_up[1]][stair_up[0]] = '<'
+        if level < 10:
+            maze[stair_down[1]][stair_down[0]] = '>'
+        return maze, n_cells, doors, level_fullname
+
 
     def load(self, hero: Character):
         """
@@ -202,26 +224,19 @@ class Level:
 
         open_positions: List[tuple] = [(x, y) for x in range(self.map_width) for y in range(self.map_height) if self.world_map[y][x] == '.' and (x, y) != hero.pos]
         # Placement des fontaines sur la carte
-        if hero.is_spell_caster:
-            # has_fountain: bool = randint(1, 3) == 2
-            has_fountain: bool = True
-            if has_fountain:
-                f_x, f_y = choice(open_positions)
-                f: Sprite = Sprite(id=(max(self.sprites) + 1 if self.sprites else 0), x=f_x, y=f_y, old_x=f_x, old_y=f_y, image_name='fountain.png')
-                self.fountains.append(f)
-                open_positions.remove((f_x, f_y))
-                self.sprites[f.id] = pygame.image.load(f"{sprites_dir}/{f.image_name}").convert_alpha()
+        # has_fountain: bool = randint(1, 3) == 2
+        # has_fountain: bool = True
+        f_x, f_y = choice(open_positions)
+        f: Sprite = Sprite(id=-1, x=f_x, y=f_y, old_x=f_x, old_y=f_y, image_name='fountain.png')
+        self.fountains.append(f)
+        open_positions.remove((f_x, f_y))
         # Placement des monstres sur la carte
         # min_monsters, max_monsters = self.cells_count // 30, self.cells_count // 20
         min_monsters, max_monsters = self.level_no, max(self.level_no, self.cells_count // 30)
         self.monsters = [request_monster(choice(allowed_monster_names)) for _ in range(randint(min_monsters, max_monsters))]
         for m in self.monsters:
             m.x, m.y = choice(open_positions)
-            m.id = max(self.sprites) + 1 if self.sprites else 0
             open_positions.remove((m.x, m.y))
-            original_image = pygame.image.load(f"{char_sprites_dir}/{m.image_name}").convert_alpha()
-            self.sprites[m.id] = pygame.transform.scale(original_image, (32, 32))
-            # self.sprites[m.id] = original_image
 
         #  Placement des trésors sur la carte
         self.treasures: List[Treasure] = []
@@ -230,9 +245,8 @@ class Level:
             # has_item: bool = randint(1, 3) == 2
             has_item: bool = True
             t_x, t_y = choice(open_positions)
-            t: Treasure = Treasure(id=(max(self.sprites) + 1 if self.sprites else 0), x=t_x, y=t_y, old_x=t_x, old_y=t_y, image_name='treasure.png', gold=gold, has_item=has_item)
+            t: Treasure = Treasure(id=-1, x=t_x, y=t_y, old_x=t_x, old_y=t_y, image_name='treasure.png', gold=gold, has_item=has_item)
             self.treasures.append(t)
-            self.sprites[t.id] = pygame.image.load(f"{sprites_dir}/{t.image_name}").convert_alpha()
 
     @property
     def walkable_tiles(self):
@@ -256,7 +270,6 @@ class Level:
 
 
 class Game:
-    screen: Surface
     world_map: List[List[int]]
     map_width: int
     map_height: int
@@ -267,7 +280,6 @@ class Game:
     hero: Character
     dungeon_level: int
     action_rects: dict
-    sprites: dict
     levels: List[Level]
     level: Level
     school_images: dict
@@ -293,27 +305,13 @@ class Game:
         self.screen_width = SCREEN_WIDTH
         self.screen_height = SCREEN_HEIGHT
         self.action_rects = {}
-        self.sprites = {}
         # Création de la fenêtre
         # self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
-        self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
         # Initialisation du personnage
         open_positions: List[tuple] = [(x, y) for x in range(self.map_width) for y in range(self.map_height) if self.world_map[y][x] == '.']
         hero_x, hero_y = choice(open_positions)
         open_positions.remove((hero_x, hero_y))
         self.hero = character
-        self.sprites[self.hero.id] = pygame.image.load(f"{char_sprites_dir}/{self.hero.image_name}").convert_alpha()
-        print(self.hero.name, self.hero.id, id(self.sprites[self.hero.id]))
-        if self.hero.is_spell_caster:
-            # Afficher grimoire
-            for s in self.hero.sc.learned_spells:
-                image = pygame.image.load(f"{spell_sprites_dir}/{s.school}.png")
-                s.id = max(self.sprites) + 1
-                self.sprites[s.id] = pygame.transform.scale(image, (ICON_SIZE, ICON_SIZE))  # Resize the image
-                print(s.name, s.id, id(self.sprites[s.id]))
-        for item in self.hero.inventory:
-            if item:
-                self.sprites[item.id] = pygame.image.load(f"{item_sprites_dir}/{item.image_name}").convert_alpha()
         self.hero.x, self.hero.y = hero_x, hero_y
         self.level.explored_tiles.add((self.hero.x, self.hero.y))
         self.update_visible_tiles()
@@ -360,18 +358,18 @@ class Game:
                         color = (128, 128, 128)  # Wall color
                     else:
                         color = (64, 64, 64)  # Floor color
-                pygame.draw.rect(self.screen, color, (int(OFFSET_X + x * scale_x), int(OFFSET_Y + y * scale_y), int(scale_x), int(scale_y)))
+                pygame.draw.rect(screen, color, (int(OFFSET_X + x * scale_x), int(OFFSET_Y + y * scale_y), int(scale_x), int(scale_y)))
 
         # Draw the player's position on the mini-map
         player_x, player_y = self.hero.x, self.hero.y
-        pygame.draw.circle(self.screen, (255, 0, 0), (int(OFFSET_X + player_x * scale_x), int(OFFSET_Y + player_y * scale_y)), 5)
+        pygame.draw.circle(screen, (255, 0, 0), (int(OFFSET_X + player_x * scale_x), int(OFFSET_Y + player_y * scale_y)), 5)
 
         # Draw the treasure positions on the mini-map
         for treasure in self.level.treasures:
             if treasure.pos not in self.level.visible_tiles:
                 continue
             treasure_x, treasure_y = treasure.x, treasure.y
-            pygame.draw.circle(self.screen, (255, 255, 0), (int(OFFSET_X + treasure_x * scale_x), int(OFFSET_Y + treasure_y * scale_y)), 3)
+            pygame.draw.circle(screen, (255, 255, 0), (int(OFFSET_X + treasure_x * scale_x), int(OFFSET_Y + treasure_y * scale_y)), 3)
 
     def draw_mini_map(self):
         """
@@ -419,7 +417,7 @@ class Game:
             pygame.draw.circle(mini_map_surface, (255, 255, 0), (int(treasure_x * scale_x), int(treasure_y * scale_y)), 3)
 
         # Blit the mini-map onto the main game screen
-        self.screen.blit(mini_map_surface, (OFFSET_X, OFFSET_Y))
+        screen.blit(mini_map_surface, (OFFSET_X, OFFSET_Y))
 
         return mini_map_surface
 
@@ -469,7 +467,7 @@ class Game:
             pygame.draw.circle(mini_map_surface, (255, 255, 0), (int(treasure_x * scale_x), int(treasure_y * scale_y)), 3)
 
         # Blit the mini-map onto the main game screen
-        self.screen.blit(mini_map_surface, (OFFSET_X, OFFSET_Y))
+        screen.blit(mini_map_surface, (OFFSET_X, OFFSET_Y))
 
         return mini_map_surface
 
@@ -477,8 +475,8 @@ class Game:
         photo_wall = pygame.image.load(f"{path}/sprites/TilesDungeon/Wall.png")
         photo_downstairs = pygame.image.load(f"{path}/sprites/DownStairs.png")
         photo_upstairs = pygame.image.load(f"{path}/sprites/UpStairs.png")
-        photo_door_closed = pygame.image.load(f"{path}/sprites/door_closed.png")
-        photo_door_open = pygame.image.load(f"{path}/sprites/door_open.png")
+        photo_door_closed = pygame.image.load(f"{path}/sprites/door_closed_2.png")
+        photo_door_open = pygame.image.load(f"{path}/sprites/door_open_2.png")
 
         # Calculate the view window
         view_x, view_y, view_width, view_height = self.calculate_view_window()
@@ -489,18 +487,18 @@ class Game:
                 tile_x, tile_y = (x - view_x) * TILE_SIZE, (y - view_y) * TILE_SIZE
                 if (x, y) in self.level.visible_tiles:
                     if self.world_map[y][x] == '#':
-                        self.screen.blit(photo_wall, (tile_x, tile_y))
+                        screen.blit(photo_wall, (tile_x, tile_y))
                     elif self.world_map[y][x] == '<':
-                        self.screen.blit(photo_upstairs, (tile_x, tile_y))
+                        screen.blit(photo_upstairs, (tile_x, tile_y))
                     elif self.world_map[y][x] == '>':
-                        self.screen.blit(photo_downstairs, (tile_x, tile_y))
+                        screen.blit(photo_downstairs, (tile_x, tile_y))
                     elif (x, y) in self.level.doors:
                         # Draw a door tile
                         photo_door = photo_door_open if self.level.doors[(x, y)] else photo_door_closed
-                        self.screen.blit(photo_door, (tile_x, tile_y))
+                        screen.blit(photo_door, (tile_x, tile_y))
                 else:
                     # Draw a black square for unexplored and not in sight range tiles
-                    self.screen.fill(BLACK, (tile_x, tile_y, TILE_SIZE, TILE_SIZE))
+                    screen.fill(BLACK, (tile_x, tile_y, TILE_SIZE, TILE_SIZE))
 
     def feet_inches_to_m_cm(self, height_feet: int, height_inches: int):
         total_inches = height_feet * 12 + height_inches
@@ -511,9 +509,9 @@ class Game:
     # Fonction pour dessiner la feuille de stats du personnage
     def draw_character_stats(self):
         stats_rect = pygame.Rect(self.view_port_width, 0, STATS_WIDTH, self.view_port_height)
-        pygame.draw.rect(self.screen, GRAY, stats_rect)
+        pygame.draw.rect(screen, GRAY, stats_rect)
         font = pygame.font.Font(None, 20)
-        pygame.display.set_caption(f"Dungeon Level: {self.dungeon_level}")
+        pygame.display.set_caption(f"Dungeon Level: {self.dungeon_level} ({self.level.fullname})")
         height_feet, height_inches = map(int, self.hero.height.split("'"))
         height_meters, height_centimeters = map(round, self.feet_inches_to_m_cm(height_feet, height_inches))
         weapon: Weapon = None
@@ -566,17 +564,17 @@ class Game:
             text_surface = font.render(text, True, (0, 0, 0))
             text_rect = text_surface.get_rect()
             text_rect.topleft = (stats_rect[0] + 20, stats_rect[1] + 20 + i * 20)  # Ajuster la position en fonction de la marge
-            self.screen.blit(text_surface, text_rect)
+            screen.blit(text_surface, text_rect)
         for i, text in enumerate(abilities_texts):
             text_surface = font.render(text, True, (0, 0, 0))
             text_rect = text_surface.get_rect()
             text_rect.topleft = (stats_rect[0] + 210, stats_rect[1] + 20 + i * 20)  # Ajuster la position en fonction de la marge
-            self.screen.blit(text_surface, text_rect)
+            screen.blit(text_surface, text_rect)
         for i, text in enumerate(spells_texts):
             text_surface = font.render(text, True, (0, 0, 0))
             text_rect = text_surface.get_rect()
             text_rect.topleft = (stats_rect[0] + 210, stats_rect[1] + 150 + i * 20)  # Ajuster la position en fonction de la marge
-            self.screen.blit(text_surface, text_rect)
+            screen.blit(text_surface, text_rect)
 
     def draw_spell_book(self):
         # Obtenir les coordonnées de la souris
@@ -595,17 +593,17 @@ class Game:
                 # icon_y = 204 + 70 + i * 40
                 icon_y = 170 + i * 40
                 # spells_texts.append(f"L{s.level}: {str(s)}")
-                image: Surface = self.sprites[spell.id].convert_alpha()
+                image: Surface = sprites[spell.id].convert_alpha()
                 put_inlay(image=image, number=spell.level)
                 # Define the transparency level (0 to 255, 0 = fully transparent, 255 = fully opaque)
                 transparency_level = 255 if self.hero.sc.spell_slots[i - 1] or spell.is_cantrip else 128
                 # Set the transparency level of the image
                 image.set_alpha(transparency_level)
-                self.screen.blit(image, (icon_x, icon_y))
+                screen.blit(image, (icon_x, icon_y))
                 # Test if the spell is memorized
                 if self.ready_spell and game.ready_spell == spell:
                     # Draw a blue rectangle around the icon
-                    pygame.draw.rect(self.screen, BLUE, (icon_x - 2, icon_y - 2, ICON_SIZE + 2, ICON_SIZE + 2), 2)
+                    pygame.draw.rect(screen, BLUE, (icon_x - 2, icon_y - 2, ICON_SIZE + 2, ICON_SIZE + 2), 2)
                 # Vérifier si la souris survole la case
                 if pygame.Rect(icon_x, icon_y, ICON_SIZE, ICON_SIZE).collidepoint(mouse_x, mouse_y):
                     # Stocker la description de l'objet pour l'info-bulle
@@ -614,7 +612,7 @@ class Game:
 
         # Afficher l'info-bulle avec la description du sort
         if tooltip_text:
-            draw_tooltip(tooltip_text, self.screen, mouse_x + 10, mouse_y)
+            draw_tooltip(tooltip_text, screen, mouse_x + 10, mouse_y)
 
     def draw_inventory(self):
         # # Afficher le titre de l'inventaire
@@ -634,11 +632,11 @@ class Game:
             # Afficher l'icône de l'objet s'il y en a un dans la case
             if item is not None:
                 try:
-                    image: Surface = self.sprites[item.id]
+                    image: Surface = sprites[item.id]
                     image.set_colorkey(PINK)
-                    self.screen.blit(image, (icon_x, icon_y))
+                    screen.blit(image, (icon_x, icon_y))
                     frame_color: tuple = BLUE if isinstance(item, Armor | Weapon) and item.equipped else WHITE
-                    pygame.draw.rect(self.screen, frame_color, (icon_x, icon_y, ICON_SIZE, ICON_SIZE), 2)
+                    pygame.draw.rect(screen, frame_color, (icon_x, icon_y, ICON_SIZE, ICON_SIZE), 2)
                     # Vérifier si la souris survole la case
                     if pygame.Rect(icon_x, icon_y, ICON_SIZE, ICON_SIZE).collidepoint(mouse_x, mouse_y):
                         # Stocker la description de l'objet pour l'info-bulle
@@ -654,11 +652,11 @@ class Game:
                     pass
             # Dessiner un cadre vide pour les cases vides
             else:
-                pygame.draw.rect(self.screen, GRAY, (icon_x, icon_y, ICON_SIZE, ICON_SIZE), 2)
+                pygame.draw.rect(screen, GRAY, (icon_x, icon_y, ICON_SIZE, ICON_SIZE), 2)
 
         # Afficher l'info-bulle avec la description de l'objet
         if tooltip_text:
-            draw_tooltip(tooltip_text, self.screen, mouse_x + 10, mouse_y)
+            draw_tooltip(tooltip_text, screen, mouse_x + 10, mouse_y)
 
     # Fonction pour dessiner le panneau de commande d'actions
     def draw_action_panel(self):
@@ -670,7 +668,7 @@ class Game:
         # actions_rect = pygame.Rect(0, self.map_height * TILE_SIZE, self.screen_width, ACTIONS_HEIGHT)
         actions_rect = pygame.Rect(0, self.view_port_height, self.screen_width, ACTIONS_HEIGHT)
         left, top, width, height = actions_rect
-        pygame.draw.rect(self.screen, (200, 200, 200), actions_rect)
+        pygame.draw.rect(screen, (200, 200, 200), actions_rect)
         # left, top, width, height = MAP_HEIGHT, 0, STATS_WIDTH, 300
         # pygame.draw.rect(screen, (200, 200, 200), (left, top, width, height))  # Fond du panneau d'actions
         font = pygame.font.Font(None, 24)
@@ -695,8 +693,8 @@ class Game:
             rect = pygame.Rect(left + margin_x, top + i * action_height + margin_y,
                                width - 2 * margin_x, action_height - 2 * margin_y)
             # Dessiner le rectangle avec des coins arrondis autour du texte avec marges intérieures
-            pygame.draw.rect(self.screen, BLACK, rect, 1, border_radius=4)
-            self.screen.blit(text_surface, text_rect)
+            pygame.draw.rect(screen, BLACK, rect, 1, border_radius=4)
+            screen.blit(text_surface, text_rect)
 
             # Enregistrer les zones rectangulaires de chaque texte d'action
             self.action_rects[action_text] = rect
@@ -729,8 +727,8 @@ class Game:
             print(f'Unable to drop item {item.name} here. Please move away')
             return False
         item.x, item.y = min(possible_drop_locations, key=lambda p: mh_dist(p, self.hero.pos))
-        item.id = max(self.level.sprites) + 1 if self.level.sprites else 0
-        self.level.sprites[item.id] = image
+        item.id = max(level_sprites) + 1 if level_sprites else 0
+        level_sprites[item.id] = image
         self.level.items.append(item)
         print(f'{item.name} dropped to ({item.pos})!')
         return True
@@ -738,26 +736,26 @@ class Game:
     def remove_from_level(self, item):
         p_idx: int = self.level.items.index(item)
         self.level.items[p_idx] = None
-        del self.level.sprites[item.id]
+        del level_sprites[item.id]
 
     def remove_from_inv(self, item):
         p_idx: int = self.hero.inventory.index(item)
         self.hero.inventory[p_idx] = None
-        del self.sprites[item.id]
+        del sprites[item.id]
 
     def add_to_inv(self, item: Equipment, image: Surface):
         free_slots: List[int] = [i for i, item in enumerate(self.hero.inventory) if not item]
         next_slot: int = min(free_slots)
         item.x, item.y = -1, -1
-        item.id = max(self.sprites) + 1 if self.sprites else 0
+        item.id = max(sprites) + 1 if sprites else 0
         self.hero.inventory[next_slot] = item
-        self.sprites[item.id] = image
+        sprites[item.id] = image
 
     def open_chest(self):
         print(f'Hero gained a treasure!')
         t: Treasure = [t for t in self.level.treasures if t.pos == self.hero.pos][0]
         self.level.treasures.remove(t)
-        del self.level.sprites[t.id]
+        del level_sprites[t.id]
         self.hero.gold += t.gold
         if t.has_item:
             match randint(1, 3):
@@ -852,7 +850,7 @@ class Game:
         return 0 <= x < view_width and 0 <= y < view_height
 
     @property
-    def monsters_in_view_range(self, vision_range: int = 6) -> List[Monster]:
+    def monsters_in_view_range(self, vision_range: int = 10) -> List[Monster]:
         return [m for m in self.level.monsters if mh_dist(self.hero.pos, m.pos) <= vision_range and in_view_range(*self.hero.pos, *m.pos, obstacles=self.level.obstacles)]
 
     def update_visible_tiles(self, vision_range: int = 10):
@@ -875,7 +873,7 @@ def dist(p1, p2) -> float:
 
 
 def find_path(start: tuple, end: tuple, carte: List, obstacles: List[tuple]) -> Optional[List[tuple]]:
-    dist, pred = parcours_largeur(carte, *start, *end, obstacles)
+    dist, pred = parcours_a_star(carte, *start, *end, obstacles)
 
     path: List[tuple] = []
 
@@ -908,21 +906,32 @@ def load_game_assets():
 
     return tile_img, font, armors, weapons, healing_potions
 
+def save_character_gamestate(char: Character, _dir: str, gamestate: Game):
+    with open(f'{_dir}/{char.name}_gamestate.dmp', 'wb') as f1:
+        pickle.dump(gamestate, f1)
+
+def load_character_gamestate(char_name: str, _dir: str) -> Game:
+    with open(f'{_dir}/{char_name}_gamestate.dmp', 'rb') as f1:
+        return pickle.load(f1)
 
 def initialize_game(selected_character):
     # game = Game(character=selected_character, start_level=5)
-    game = Game(character=selected_character)
+    try:
+        game: Game = load_character_gamestate(selected_character.name, gamestate_dir)
+    except FileNotFoundError:
+        # Create a new game
+        game = Game(character=selected_character)
     return game
 
 
 # III - Réactualisation de l'affichage
 def update_display(game):
     # Rendu
-    game.screen.fill(BLACK)
+    screen.fill(BLACK)
 
     # III-0 Dessiner la carte
     map_rect = pygame.Rect(0, 0, game.map_width * TILE_SIZE, game.map_height * TILE_SIZE)
-    pygame.draw.rect(game.screen, WHITE, map_rect)
+    pygame.draw.rect(screen, WHITE, map_rect)
     game.draw_map()
 
     view_port_tuple = game.calculate_view_window()
@@ -931,15 +940,15 @@ def update_display(game):
     for t in game.level.fountains:
         if t.pos not in game.level.visible_tiles:
             continue
-        image: Surface = game.level.sprites[t.id]
-        t.draw(game.screen, image, TILE_SIZE, *view_port_tuple)
+        image: Surface = level_sprites[t.id]
+        t.draw(screen, image, TILE_SIZE, *view_port_tuple)
 
     # III-2 Afficher les personnages
-    image: Surface = game.sprites[game.hero.id]
-    game.hero.draw(game.screen, image, TILE_SIZE, *view_port_tuple)
+    image: Surface = sprites[game.hero.id]
+    game.hero.draw(screen, image, TILE_SIZE, *view_port_tuple)
 
     for monster in game.level.monsters:
-        # game.screen.blit(game.sprites[monster.id], (monster.x * TILE_SIZE, monster.y * TILE_SIZE))
+        # screen.blit(game.sprites[monster.id], (monster.x * TILE_SIZE, monster.y * TILE_SIZE))
         # # Create the tooltip data
         # tooltip_data = {
         #     "image": f"{char_sprites_dir}/{monster.image_name}",
@@ -948,23 +957,23 @@ def update_display(game):
         # }
         if monster.pos not in game.level.visible_tiles:
             continue
-        image: Surface = game.level.sprites[monster.id]
+        image: Surface = level_sprites[monster.id]
         # big_image: Surface = pygame.transform.scale(image, (TILE_SIZE * 2, TILE_SIZE * 2))
-        monster.draw(game.screen, image, TILE_SIZE, *view_port_tuple)
+        monster.draw(screen, image, TILE_SIZE, *view_port_tuple)
 
     # III-3 Afficher les trésors
     for t in game.level.treasures:
         if t.pos not in game.level.visible_tiles:
             continue
-        image: Surface = game.level.sprites[t.id]
-        t.draw(game.screen, image, TILE_SIZE, *view_port_tuple)
+        image: Surface = level_sprites[t.id]
+        t.draw(screen, image, TILE_SIZE, *view_port_tuple)
 
     # III-4 Afficher ou Ramasser des items laissés au sol
     for item in game.level.items:
         try:
             if item.pos not in game.level.visible_tiles:
                 continue
-            image: Surface = game.level.sprites[item.id]
+            image: Surface = level_sprites[item.id]
             item_taken: bool = False
             if item.pos == game.hero.pos:
                 free_slots: List[int] = [i for i, item in enumerate(game.hero.inventory) if not item]
@@ -979,7 +988,7 @@ def update_display(game):
                 #     print(f'Cannot take item {item.name}. Inventory is full!')
             if not item_taken:
                 image.set_colorkey(PINK)  # Set the pink color as transparent
-                item.draw(game.screen, image, TILE_SIZE, *view_port_tuple)
+                item.draw(screen, image, TILE_SIZE, *view_port_tuple)
         except AttributeError:
             pass
 
@@ -1005,8 +1014,8 @@ def display_game_over(game):
     """
     font = pygame.font.Font(None, 72)
     text = font.render("GAME OVER", True, (255, 0, 0))
-    text_rect = pygame.Rect(0, game.view_port_height, game.screen_width, SCREEN_HEIGHT)
-    game.screen.blit(text, text_rect)
+    text_rect = pygame.Rect(0, game.view_port_height, SCREEN_WIDTH, SCREEN_HEIGHT)
+    screen.blit(text, text_rect)
     pygame.display.flip()
 
     # Pause the game until the user presses a key
@@ -1055,6 +1064,7 @@ def handle_events(game):
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             save_character(char=game.hero, _dir=characters_dir)
+            save_character_gamestate(char=game.hero, _dir=gamestate_dir, gamestate=game)
             pygame.quit()
             sys.exit()
         elif event.type == pygame.MOUSEBUTTONDOWN:
@@ -1073,7 +1083,7 @@ def handle_outside_map_click(game, event):
         if item is not None:  # pp and isinstance(item, Armor | Weapon):
             icon_x = game.view_port_width + 10 + (i % 5) * 40
             icon_y = 200 + 70 + (i // 5) * 40
-            image: Surface = game.sprites[item.id]
+            image: Surface = sprites[item.id]
             icon_rect = image.get_rect(topleft=(icon_x, icon_y))
             # cprint(icon_rect)
             if icon_rect.collidepoint(event.pos):
@@ -1094,15 +1104,15 @@ def handle_outside_map_click(game, event):
             for j, spell in enumerate(spells_by_level):
                 icon_x = game.view_port_width + 210 + j * 40
                 icon_y = 170 + i * 40
-                image: Surface = game.sprites[spell.id]
+                image: Surface = sprites[spell.id]
                 icon_rect = image.get_rect(topleft=(icon_x, icon_y))
                 if icon_rect.collidepoint(event.pos):
                     if event.button == 1 and game.hero.can_cast(spell):  # Left mouse button
                         cprint(f'hero pos: {game.hero.pos}')
                         cprint(f'select target for spell <{spell.name}>,  area of effect: {spell.area_of_effect}, range: {spell.range}')
                         frame_color = BLUE if game.hero.sc.spell_slots[i] > 0 else WHITE
-                        pygame.draw.rect(game.screen, frame_color, (icon_x - 2, icon_y - 2, ICON_SIZE + 4, ICON_SIZE + 4), 4)
-                        pygame.draw.rect(game.screen, RED, (icon_x - 2, icon_y - 2, ICON_SIZE + 4, ICON_SIZE + 4), 4)
+                        pygame.draw.rect(screen, frame_color, (icon_x - 2, icon_y - 2, ICON_SIZE + 4, ICON_SIZE + 4), 4)
+                        pygame.draw.rect(screen, RED, (icon_x - 2, icon_y - 2, ICON_SIZE + 4, ICON_SIZE + 4), 4)
                         game.ready_spell = spell
 
 
@@ -1314,6 +1324,8 @@ def handle_fountains(game):
 
 
 def handle_level_changes(game):
+    global screen
+    global level_sprites
     match game.world_map[game.hero.y][game.hero.x]:
         case '>':
             print(f'Hero found downstairs!')
@@ -1325,19 +1337,56 @@ def handle_level_changes(game):
             else:
                 game.level = game.levels[game.dungeon_level - 1]
             game.update_level(dir=1)
-            game.screen = pygame.display.set_mode((game.screen_width, game.screen_height))
+            screen = pygame.display.set_mode((game.screen_width, game.screen_height))
+            level_sprites = load_level_sprites(game.level)
         case '<':
             print(f'Hero found upstairs!')
             game.dungeon_level -= 1
             game.level = game.levels[game.dungeon_level - 1]  # if game.dungeon_level in game.levels else Level(level_no=game.dungeon_level - 1)
             game.update_level(dir=-1)
-            game.screen = pygame.display.set_mode((game.screen_width, game.screen_height))
+            screen = pygame.display.set_mode((game.screen_width, game.screen_height))
+            level_sprites = load_level_sprites(game.level)
+
+def load_sprites(hero: Character) -> dict[int, pygame.Surface]:
+    sprites: dict[int, pygame.Surface] = {hero.id: pygame.image.load(f"{char_sprites_dir}/{game.hero.image_name}").convert_alpha()}
+    print(hero.name, game.hero.id, id(sprites[hero.id]))
+    if hero.is_spell_caster:
+        # Afficher grimoire
+        for s in hero.sc.learned_spells:
+            image = pygame.image.load(f"{spell_sprites_dir}/{s.school}.png")
+            s.id = max(sprites) + 1
+            sprites[s.id] = pygame.transform.scale(image, (ICON_SIZE, ICON_SIZE))  # Resize the image
+            print(s.name, s.id, id(sprites[s.id]))
+    for item in hero.inventory:
+        if item:
+            sprites[item.id] = pygame.image.load(f"{item_sprites_dir}/{item.image_name}").convert_alpha()
+    return sprites
+
+
+def load_level_sprites(level: Level):
+    sprites = {}
+    # Chargement du sprite de la fontaine
+    f = level.fountains[0]
+    # f.id = max(sprites) + 1
+    f.id = 1
+    sprites[f.id] = pygame.image.load(f"{sprites_dir}/{f.image_name}").convert_alpha()
+    # Chargement des sprites de monstres
+    for m in level.monsters:
+        m.id = max(sprites) + 1 if sprites else 0
+        original_image = pygame.image.load(f"{char_sprites_dir}/{m.image_name}").convert_alpha()
+        sprites[m.id] = pygame.transform.scale(original_image, (32, 32))
+    # Chargement des sprites de trésors
+    for t in level.treasures:
+        t.id = max(sprites) + 1 if sprites else 0
+        sprites[t.id] = pygame.image.load(f"{sprites_dir}/{t.image_name}").convert_alpha()
+    return sprites
 
 
 if __name__ == "__main__":
     path = os.path.dirname(__file__)
     abspath = os.path.abspath(path)
     characters_dir = f'{abspath}/gameState/characters'
+    gamestate_dir = f'{abspath}/gameState/pygame'
     sprites_dir = f"{path}/sprites"
     char_sprites_dir = f"{sprites_dir}/rpgcharacterspack"
     item_sprites_dir = f"{sprites_dir}/Items"
@@ -1369,7 +1418,14 @@ if __name__ == "__main__":
 
     # Initialisation de Pygame
     pygame.init()
+    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
+    # Chargement des assets
     tile_img, font, armors, weapons, healing_potions = load_game_assets()
+
+    # Chargement du jeu en cours
     game = initialize_game(selected_character)
+    sprites: dict = load_sprites(hero=selected_character)
+    level_sprites: dict = load_level_sprites(game.levels[0])
+
     main_game_loop(game)
