@@ -1,4 +1,5 @@
 """ Needs to separate presentation layer from data layer """
+import glob
 import math
 import os
 import sys
@@ -9,7 +10,6 @@ from random import randint, choice
 from time import time
 from typing import List
 import numpy as np
-from matplotlib import pyplot as plt
 
 from tools.dungeon_perl import create_dungeon
 from tools import cell_bits_dnd as cb
@@ -124,6 +124,7 @@ def draw_character_menu(screen, roster, scroll_offset, line_height, font):
 
     return text_rects
 
+
 # Cave generation algorithm
 def generate_cave(width: int, height: int, n_cells: int) -> List[str]:
     """
@@ -145,17 +146,19 @@ def generate_cave(width: int, height: int, n_cells: int) -> List[str]:
             n_cells -= 1
     return maze
 
+
 # Dungeon generation algorithm (First Draft
 def create_grid(width, height):
     return np.zeros((height, width), dtype=int)
+
 
 def place_chambers(grid, grid_width, grid_height, num_chambers, min_size, max_size):
     chambers = []
     for _ in range(num_chambers):
         w, h = randint(min_size, max_size), randint(min_size, max_size)
-        x, y = randint(1, grid_width-w-1), randint(1, grid_height-h-1)
+        x, y = randint(1, grid_width - w - 1), randint(1, grid_height - h - 1)
         chambers.append((x, y, w, h))
-        grid[y:y+h, x:x+w] = 1
+        grid[y:y + h, x:x + w] = 1
     return chambers
 
 
@@ -224,6 +227,7 @@ def connect_chambers_new(grid, chambers):
             else:
                 grid[y1, x1] = 1
 
+
 def generate_dungeon(width: int, height: int, num_chambers: int, chamber_min_size: int, chamber_max_size: int):
     # Create grid
     grid = create_grid(width, height)
@@ -239,10 +243,24 @@ def generate_dungeon(width: int, height: int, num_chambers: int, chamber_min_siz
 
     return grid
 
+
 # Officiel DnD 5th edition dungeon generation algorithm (https://donjon.bin.sh/code/dungeon/)
 def generate_dnd_dungeon(options: dict) -> dict:
     dungeon = create_dungeon(options)
     return dungeon
+
+
+def find_json_dungeon_files(directory: str, level: int):
+    # Utilisation de glob pour trouver tous les fichiers correspondants
+    pattern = os.path.join(directory, f"{level:02}.json")
+    files = glob.glob(pattern)
+
+    # Filtrer pour s'assurer que le fichier se termine bien par 'x.png' où x est entre 01 et 99
+    valid_files = [f for f in files if f.endswith('.json') and f[-6:-4].isdigit() and 1 <= int(f[-6:-4]) <= 99]
+
+    return valid_files
+
+
 
 if __name__ == '__main__':
     level = 1
