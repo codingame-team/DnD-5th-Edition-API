@@ -186,6 +186,7 @@ class Level:
                                     room_door_traps[(x, y)] = door['trap']
             n_cells = sum([row.count('.') for row in maze])
         if not stair_up and not stair_down:
+            cprint(f'no stair defined in dungeon!')
             walkable_cells = [(x, y) for y in range(height) for x in range(width) if maze[y][x] == '.']
             stair_up = choice(walkable_cells)
             walkable_cells.remove(stair_up)
@@ -401,6 +402,8 @@ class Game:
                         color = (128, 128, 128)  # Wall color
                     elif tile in ('<', '>'):
                         color = (0, 0, 255)  # Stairs color
+                    elif any(f.pos == (x, y) for f in self.level.fountains):
+                        color = (0, 255, 0)  # Fountain color
                     else:
                         color = (64, 64, 64)  # Floor color
                 pygame.draw.rect(mini_map_surface, color, (x * scale_x, y * scale_y, scale_x, scale_y))
@@ -908,10 +911,12 @@ def load_game_assets():
 
 def save_character_gamestate(char: Character, _dir: str, gamestate: Game):
     with open(f'{_dir}/{char.name}_gamestate.dmp', 'wb') as f1:
+        print(f'Saving {char.name} gamestate...')
         pickle.dump(gamestate, f1)
 
 def load_character_gamestate(char_name: str, _dir: str) -> Game:
     with open(f'{_dir}/{char_name}_gamestate.dmp', 'rb') as f1:
+        print(f'Loading {char_name} gamestate...')
         return pickle.load(f1)
 
 def initialize_game(selected_character):
@@ -1063,8 +1068,8 @@ def main_game_loop(game):
 def handle_events(game):
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            save_character(char=game.hero, _dir=characters_dir)
-            save_character_gamestate(char=game.hero, _dir=gamestate_dir, gamestate=game)
+            # save_character(char=game.hero, _dir=characters_dir)
+            # save_character_gamestate(char=game.hero, _dir=gamestate_dir, gamestate=game)
             pygame.quit()
             sys.exit()
         elif event.type == pygame.MOUSEBUTTONDOWN:
@@ -1193,9 +1198,14 @@ def move_char(game: Game, char: Monster | Character, pos: tuple):
 
 def handle_keyboard_events(game, event):
     if event.key == pygame.K_ESCAPE:
-        save_character(char=game.hero, _dir=characters_dir)
+        # save_character(char=game.hero, _dir=characters_dir)
+        # save_character_gamestate(char=game.hero, _dir=gamestate_dir, gamestate=game)
         pygame.quit()
         sys.exit()
+    elif event.key == pygame.K_s:
+        save_character(char=game.hero, _dir=characters_dir)
+        save_character_gamestate(char=game.hero, _dir=gamestate_dir, gamestate=game)
+        print("Character saved!")
     elif event.key == pygame.K_UP and game.can_move(char=game.hero, dir=UP):
         handle_combat(monsters=game.monsters_in_view_range, party=[game.hero], move_action=(game.hero.x, game.hero.y - 1))
     elif event.key == pygame.K_DOWN and game.can_move(char=game.hero, dir=DOWN):
@@ -1348,38 +1358,44 @@ def handle_level_changes(game):
             level_sprites = load_level_sprites(game.level)
 
 def load_sprites(hero: Character) -> dict[int, pygame.Surface]:
-    sprites: dict[int, pygame.Surface] = {hero.id: pygame.image.load(f"{char_sprites_dir}/{game.hero.image_name}").convert_alpha()}
-    print(hero.name, game.hero.id, id(sprites[hero.id]))
+    hero.id = 1
+    s: dict[int, pygame.Surface] = {hero.id: pygame.image.load(f"{char_sprites_dir}/{game.hero.image_name}").convert_alpha()}
+    # print(hero.name, game.hero.id, id(sprites[hero.id]))
     if hero.is_spell_caster:
         # Afficher grimoire
-        for s in hero.sc.learned_spells:
-            image = pygame.image.load(f"{spell_sprites_dir}/{s.school}.png")
-            s.id = max(sprites) + 1
-            sprites[s.id] = pygame.transform.scale(image, (ICON_SIZE, ICON_SIZE))  # Resize the image
-            print(s.name, s.id, id(sprites[s.id]))
-    for item in hero.inventory:
+        for spell in hero.sc.learned_spells:
+            image = pygame.image.load(f"{spell_sprites_dir}/{spell.school}.png")
+            spell.id = max(s) + 1 if s else 1
+            s[spell.id] = pygame.transform.scale(image, (ICON_SIZE, ICON_SIZE))  # Resize the image
+            print(spell.name, spell.id, id(s[spell.id]))
+    for i, item in enumerate(hero.inventory):
         if item:
-            sprites[item.id] = pygame.image.load(f"{item_sprites_dir}/{item.image_name}").convert_alpha()
-    return sprites
+            item.id = max(s) + 1 if s else 1
+            s[item.id] = pygame.image.load(f"{item_sprites_dir}/{item.image_name}").convert_alpha()
+            print(item.name, item.id, id(s[item.id]))
+    return s
 
 
 def load_level_sprites(level: Level):
-    sprites = {}
+    s = {}
     # Chargement du sprite de la fontaine
     f = level.fountains[0]
-    # f.id = max(sprites) + 1
     f.id = 1
-    sprites[f.id] = pygame.image.load(f"{sprites_dir}/{f.image_name}").convert_alpha()
+    s[f.id] = pygame.image.load(f"{sprites_dir}/{f.image_name}").convert_alpha()
     # Chargement des sprites de monstres
     for m in level.monsters:
-        m.id = max(sprites) + 1 if sprites else 0
+        m.id = max(s) + 1 if s else 1
         original_image = pygame.image.load(f"{char_sprites_dir}/{m.image_name}").convert_alpha()
-        sprites[m.id] = pygame.transform.scale(original_image, (32, 32))
+        s[m.id] = pygame.transform.scale(original_image, (32, 32))
     # Chargement des sprites de trésors
     for t in level.treasures:
-        t.id = max(sprites) + 1 if sprites else 0
-        sprites[t.id] = pygame.image.load(f"{sprites_dir}/{t.image_name}").convert_alpha()
-    return sprites
+        t.id = max(s) + 1 if s else 1
+        s[t.id] = pygame.image.load(f"{sprites_dir}/{t.image_name}").convert_alpha()
+    for item in level.items:
+        if item:
+            item.id = max(s) + 1 if s else 1
+            s[item.id] = pygame.image.load(f"{item_sprites_dir}/{item.image_name}").convert_alpha()
+    return s
 
 
 if __name__ == "__main__":
@@ -1406,6 +1422,8 @@ if __name__ == "__main__":
             print(f"Character name <{character_name}> not found in roster")
     else:
         character_name = 'Brottor'
+        # character_name = 'Ehput-Ki'
+        # character_name = 'Vola'
         selected_character: Character = [c for c in roster if c.name == character_name][0]
         # selected_character.xp += 5000
 
@@ -1425,7 +1443,9 @@ if __name__ == "__main__":
 
     # Chargement du jeu en cours
     game = initialize_game(selected_character)
+    print(f'dungeon Level: {game.level.level_no} - name = {game.level.fullname}')
+    print(f'Hero: #{game.hero.id} {game.hero.name} - {game.hero.race} - {game.hero.class_type.name}')
+    level_sprites: dict = load_level_sprites(game.level)
     sprites: dict = load_sprites(hero=selected_character)
-    level_sprites: dict = load_level_sprites(game.levels[0])
 
     main_game_loop(game)
