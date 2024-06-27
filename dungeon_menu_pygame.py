@@ -1,3 +1,4 @@
+from dungeon_pygame import Game, load_character_gamestate, save_character_gamestate
 from tools.common import cprint, SCREEN_WIDTH, SCREEN_HEIGHT, draw_character_menu
 import os
 from typing import List
@@ -8,7 +9,7 @@ import subprocess
 import multiprocessing as mp
 
 from dao_classes import Character
-from main import get_roster
+from main import get_roster, save_character
 from tools.cheat_functions import raise_dead_roster
 
 
@@ -60,6 +61,28 @@ def main(roster):
     pygame.quit()
     sys.exit()
 
+def reset_ids_all(gamestates):
+    for game in gamestates:
+        character = game.hero
+        print('-----------------------------------')
+        print(f'resetting ids for {character.name} - ID = {character.id}')
+        print('-----------------------------------')
+        if character.sc and character.can_cast:
+            for s in character.sc.learned_spells:
+                s.id = -1
+                print(f'resetting spell id for {character.name}')
+        if len(character.inventory) > 20:
+            print('-----------------------------------')
+            print(f'inventory too long for {character.name}')
+            print('-----------------------------------')
+            character.inventory = [None] * 20
+        else:
+            for item in character.inventory:
+                    if item:
+                        item.id = -1
+                        print(f'resetting item id for {character.name}')
+        save_character_gamestate(char=character, _dir=gamestate_dir, gamestate=game)
+        save_character(char=character, _dir=characters_dir)
 
 if __name__ == "__main__":
     # Initialisation de Pygame
@@ -80,5 +103,10 @@ if __name__ == "__main__":
     abspath = os.path.abspath(path)
     characters_dir = f'{abspath}/gameState/characters'
     roster: List[Character] = get_roster(characters_dir)
+    # Reset all sprites id
+    # gamestate_dir = f'{abspath}/gameState/pygame'
+    # gamestates: List[Game] = [load_character_gamestate(char.name, gamestate_dir) for char in roster]
+    # reset_ids_all(gamestates)
+    # exit()
     raise_dead_roster(roster, characters_dir)
     main(roster)
