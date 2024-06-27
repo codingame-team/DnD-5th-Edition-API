@@ -20,11 +20,16 @@
 - Attaques: (&#8505; attaques des monstres désactivées)
   - `LEFT CLICK` on visible monster in range of weapon
   - `RIGHT CLICK` on visible monster in range of spell
+- Doors:
+  - Open door: `O` key
+  - Close door: `C` key
 - Drink potion:
   - `P` key or `LEFT CLICK` on potion
+- Save current game & character state:
+  - `S` key
 - Recover spell slots/gain level: *MOVE* to fountain
-- Quit Game:
-  - `ESC` key
+- Quit Game (without saving current game):
+  - `ESC` key or `event_close` window
 
 # Tips
 - les sorts de niveau 0 ne consomment pas d'unité de sort (*spell_slot*)
@@ -33,5 +38,5 @@
 - le niveau du sort est indiqué en incrustation dans l'icône du sort
 - La portée d'une arme est indiquée en face du dé de dommages (1 case = 5")
 - la portée d'un sort est affichée en survolant l'icône du sort dans le grimoire
-- les armes/armures équipés ou sort mémorisé sont entourés d'un rectangle bleu
-- Il est possible de porter un bouclier en plus d'une armure (TODO: ne pas l'autoriser si le personnage porte une arme à 2 mains)
+- les armes/armures équipés ou sort mémorisés sont entourés d'un rectangle bleu
+- Il est possible de porter un bouclier en plus d'une armure (sauf si le personnage porte une arme à 2 mains)
