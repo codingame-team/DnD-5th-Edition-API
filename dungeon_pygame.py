@@ -9,6 +9,7 @@ import re
 import sys
 import time
 from copy import copy
+from dataclasses import dataclass
 from random import choice, randint
 from typing import List, Optional
 
@@ -33,6 +34,7 @@ STATS_HEIGHT = 250
 
 # Paramètres de la map
 UNIT_SIZE = 5
+JSON_UNIT_SIZE = 10
 
 # Paramètres de l'écran
 TILE_SIZE = 32
@@ -88,6 +90,36 @@ def draw_tooltip(description, surface, x, y):
     # Dessiner la surface d'arrière-plan sur l'écran principal
     surface.blit(tooltip_surface, (text_rect.left - 5, text_rect.top - 5))  # Décalage de 5 pixels pour centrer le texte dans le rectangle
 
+@dataclass
+class Room:
+    id: int
+    inhabited: bool
+    features: str
+    # treasure: Optional[Treasure]
+    x: int
+    y: int
+    w: int
+    h: int
+    monsters: List[Monster]
+
+    def __repr__(self):
+        x, y, X, Y = self.x, self.y, self.x + self.w // JSON_UNIT_SIZE - 1, self.y + self.h // JSON_UNIT_SIZE - 1
+        desc: str = f'Room #{self.id} - start: {(x, y)} - end: {(X, Y)} - area: {self.area}\n'
+        if self.features:
+            desc += f'Features: {self.features}\n' if self.features else 'Nothing special in this room'
+        if self.monsters:
+            desc += f'{len(self.monsters)} monsters: {[monster.name for monster in self.monsters]}\n'
+        return desc
+
+    @property
+    def inner_positions(self):
+        return [(x, y) for x in range(self.x, self.x + self.w // JSON_UNIT_SIZE - 1)
+            for y in range(self.y, self.y + self.h // JSON_UNIT_SIZE - 1)]
+
+    @property
+    def area(self):
+        return self.w * self.h
+
 
 class Level:
     level_no: int
@@ -103,22 +135,28 @@ class Level:
     visible_tiles: set[tuple]
     doors: dict
     fullname: str
+    rooms: List[Room]
 
     def __init__(self, level_no: int, name: str = ''):
         self.level_no = level_no
-        self.world_map, self.cells_count, self.doors, self.fullname = self.load_maze(level=level_no)
+        self.world_map, self.cells_count, self.doors, self.fullname, self.rooms = self.load_maze(level=level_no)
         self.map_height = len(self.world_map)
         self.map_width = max([len(self.world_map[i]) for i in range(self.map_height)])
         self.items = []
         self.fountains = []
         self.explored_tiles = set()
         self.visible_tiles = set()
-        self.fullname = name
+
+    def room_at(self, pos: tuple) -> Optional[Room]:
+        for room in self.rooms:
+            if room and pos in room.inner_positions:
+                return room
+        return None
 
     def is_stair(self, x, y):
         return self.world_map[y][x] in ['<', '>']
 
-    def load_maze(self, level: int) -> tuple[List, int, dict, str]:
+    def load_maze(self, level: int) -> tuple[List, int, dict, str, dict]:
         """
         Charge le labyrinthe depuis le fichier level.txt
         nom : nom du fichier contenant le labyrinthe (sans l’extension .txt)
@@ -174,16 +212,28 @@ class Level:
                         corridor_events[(x, y)] = feature_detail['detail']
             room_traps: dict = {}
             room_door_traps: dict = {}
+            rooms: List[Room] = []
             for i, room in enumerate(dungeon['rooms']):
                 if room:
-                    if 'contents' in room and 'detail' in room['contents'] and 'trap' in room['contents']['detail']:
-                        room_traps[i] = room['contents']['detail']['trap']
+                    inhabited: bool = False
+                    room_features: str = ''
+                    if 'contents' in room:
+                        print(room)
+                        if 'detail' in room['contents']:
+                            details = room['contents']['detail']
+                            if 'trap' in details:
+                                room_traps[i] = details['trap']
+                            if 'room_features' in details:
+                                room_features = details['room_features']
+                            inhabited: bool = True
                     if 'doors' in room:
                         for _dir, door_lst in room['doors'].items():
                             for door in door_lst:
                                 if 'trap' in door:
                                     x, y = door['col'], door['row']
                                     room_door_traps[(x, y)] = door['trap']
+                    room = Room(id=room['id'], inhabited=inhabited, features=room_features, monsters=[], x=room['col'], y=room['row'], w=room['width'], h=room['height'])
+                    rooms.append(room)
             n_cells = sum([row.count('.') for row in maze])
         if not stair_up and not stair_down:
             cprint(f'no stair defined in dungeon!')
@@ -195,7 +245,7 @@ class Level:
             maze[stair_up[1]][stair_up[0]] = '<'
         if level < 10:
             maze[stair_down[1]][stair_down[0]] = '>'
-        return maze, n_cells, doors, level_fullname
+        return maze, n_cells, doors, level_fullname, rooms
 
 
     def load(self, hero: Character):
@@ -214,7 +264,8 @@ class Level:
         # monster_names = ['owl']
         monster_candidates: List[Monster] = [request_monster(name) for name in monster_names]
         monster_candidates = list(filter(None, monster_candidates))
-        monster_candidates = list(filter(lambda m: m.challenge_rating <= self.level_no // 2, monster_candidates))
+        # monster_candidates = list(filter(lambda m: m.challenge_rating <= self.level_no // 2, monster_candidates))
+        monster_candidates = list(filter(lambda m: m.challenge_rating <= self.level_no / 4, monster_candidates))
 
         # possible_monsters = list(filter(None, bestiary))
         # possible_monsters = list(filter(lambda m: m.challenge_rating < self.level_no, bestiary))
@@ -231,23 +282,51 @@ class Level:
         f: Sprite = Sprite(id=-1, x=f_x, y=f_y, old_x=f_x, old_y=f_y, image_name='fountain.png')
         self.fountains.append(f)
         open_positions.remove((f_x, f_y))
-        # Placement des monstres sur la carte
-        # min_monsters, max_monsters = self.cells_count // 30, self.cells_count // 20
-        min_monsters, max_monsters = self.level_no, max(self.level_no, self.cells_count // 30)
-        self.monsters = [request_monster(choice(allowed_monster_names)) for _ in range(randint(min_monsters, max_monsters))]
-        for m in self.monsters:
-            m.x, m.y = choice(open_positions)
-            open_positions.remove((m.x, m.y))
 
-        #  Placement des trésors sur la carte
+        # # Placement des monstres sur la carte
+        # # min_monsters, max_monsters = self.cells_count // 30, self.cells_count // 20
+        # min_monsters, max_monsters = self.level_no, max(self.level_no, self.cells_count // 30)
+        # self.monsters = [request_monster(choice(allowed_monster_names)) for _ in range(randint(min_monsters, max_monsters))]
+        # for m in self.monsters:
+        #     m.x, m.y = choice(open_positions)
+        #     open_positions.remove((m.x, m.y))
+
+        # #  Placement des trésors sur la carte
+        # for _ in range(randint(1, 5)):
+        #     gold: int = randint(50, 300) * self.level_no
+        #     # has_item: bool = randint(1, 3) == 2
+        #     has_item: bool = True
+        #     t_x, t_y = choice(open_positions)
+        #     t: Treasure = Treasure(id=-1, x=t_x, y=t_y, old_x=t_x, old_y=t_y, image_name='treasure.png', gold=gold, has_item=has_item)
+        #     self.treasures.append(t)
+
         self.treasures: List[Treasure] = []
-        for _ in range(randint(1, 5)):
-            gold: int = randint(50, 300) * self.level_no
-            # has_item: bool = randint(1, 3) == 2
-            has_item: bool = True
-            t_x, t_y = choice(open_positions)
-            t: Treasure = Treasure(id=-1, x=t_x, y=t_y, old_x=t_x, old_y=t_y, image_name='treasure.png', gold=gold, has_item=has_item)
-            self.treasures.append(t)
+        self.monsters: List[Monster] = []
+        for room in self.rooms:
+            if room and room.inhabited:
+                room_positions = [(x, y) for x, y in room.inner_positions if (x, y) in open_positions]
+                print(f'room {room.id}: {len(room_positions)} positions - area: {room.area}')
+                gold: int = randint(50, 300) * self.level_no
+                has_item: bool = randint(1, 3) == 2
+                t_x, t_y = choice(room_positions)
+                t: Treasure = Treasure(id=-1, x=t_x, y=t_y, old_x=t_x, old_y=t_y, image_name='treasure.png', gold=gold, has_item=has_item)
+                self.treasures.append(t)
+                cr_total: int = 0
+                monster_room_candidates = list(filter(lambda m: m.challenge_rating <= self.level_no / 4, monster_candidates))
+                max_monster = 5
+                i = 0
+                room.monsters = []
+                while cr_total < self.level_no / 4 and monster_room_candidates and room_positions and i < max_monster:
+                    monster_type: Monster = choice(monster_room_candidates)
+                    m: Monster = request_monster(monster_type.index)
+                    m.x, m.y = choice(room_positions)
+                    cr_total += m.challenge_rating
+                    room_positions.remove((m.x, m.y))
+                    self.monsters.append(m)
+                    room.monsters.append(m)
+                    remaining_cr = self.level_no / 4 - cr_total
+                    monster_room_candidates = list(filter(lambda m: m.challenge_rating <= remaining_cr, monster_candidates))
+                    i += 1
 
     @property
     def walkable_tiles(self):
@@ -285,9 +364,9 @@ class Game:
     level: Level
     school_images: dict
     xp_levels: List[int]
+    last_round_time: float
     ready_spell: Spell = None
     target_pos: tuple = None
-    last_round_time: float = 0
 
     def __init__(self, character: Character, actions_panel=False, start_level=1):
         self.last_round_time = time.time()
@@ -724,6 +803,7 @@ class Game:
         cprint(f'{len(self.level.visible_tiles)} cases visibles')
 
     def add_to_level(self, item, image) -> bool:
+        global level_sprites
         possible_drop_locations: List[tuple] = [(x, y) for x in range(self.map_width) for y in range(self.map_height) if self.world_map[y][x] == '.'
                                                 and 0 < mh_dist((x, y), self.hero.pos) <= 2 and item not in self.level.items + self.level.monsters]
         if not possible_drop_locations:
@@ -737,16 +817,19 @@ class Game:
         return True
 
     def remove_from_level(self, item):
+        global level_sprites
         p_idx: int = self.level.items.index(item)
         self.level.items[p_idx] = None
         del level_sprites[item.id]
 
     def remove_from_inv(self, item):
+        global sprites
         p_idx: int = self.hero.inventory.index(item)
         self.hero.inventory[p_idx] = None
         del sprites[item.id]
 
     def add_to_inv(self, item: Equipment, image: Surface):
+        global sprites
         free_slots: List[int] = [i for i, item in enumerate(self.hero.inventory) if not item]
         next_slot: int = min(free_slots)
         item.x, item.y = -1, -1
@@ -755,6 +838,7 @@ class Game:
         sprites[item.id] = image
 
     def open_chest(self):
+        global level_sprites
         print(f'Hero gained a treasure!')
         t: Treasure = [t for t in self.level.treasures if t.pos == self.hero.pos][0]
         self.level.treasures.remove(t)
@@ -1038,7 +1122,8 @@ def display_game_over(game):
 
 def main_game_loop(game):
     running = True
-    last_frame_time = time.time()
+    game.last_round_time = time.time()
+    round_no: int = 1
     while running:
         # Calculate the time since the last frame
         current_time = time.time()
@@ -1057,6 +1142,8 @@ def main_game_loop(game):
         # Check if a new round has started
         if game.hero.hit_points > 0:
             if current_time - game.last_round_time >= ROUND_DURATION:
+                round_no += 1
+                # print(f'Round #{round_no}')
                 game.last_round_time = current_time
                 handle_combat(monsters=game.monsters_in_view_range)
         else:
@@ -1173,7 +1260,12 @@ def attack_monsters(game, monsters):
                 cprint(f'{monster.name} at pos {monster.pos} is *KILLED*')
                 game.hero.victory(monster=monster, solo_mode=True)
                 game.level.monsters.remove(monster)
-
+                room: Optional[Room] = game.level.room_at(monster.pos)
+                if room and monster in room.monsters:
+                    # remove monster from room
+                    room.monsters.remove(monster)
+                else:
+                    cprint(f'Could not find room for monster at {monster.pos}!')
 
 def move_char(game: Game, char: Monster | Character, pos: tuple):
     x, y = pos
@@ -1206,6 +1298,16 @@ def handle_keyboard_events(game, event):
         save_character(char=game.hero, _dir=characters_dir)
         save_character_gamestate(char=game.hero, _dir=gamestate_dir, gamestate=game)
         print("Character saved!")
+    elif event.key == pygame.K_h:
+        room: Optional[Room] = game.level.room_at(game.hero.pos)
+        msg: str = f'lurking in room {room}' if room else 'wandering in a corridor'
+        cprint(f'{game.hero.name} located at {game.hero.pos} *{msg}*')
+    elif event.key == pygame.K_i:
+        room: Optional[Room] = game.level.room_at(game.hero.pos)
+        if room:
+            print(room)
+        else:
+            print('No room found!')
     elif event.key == pygame.K_UP and game.can_move(char=game.hero, dir=UP):
         handle_combat(monsters=game.monsters_in_view_range, party=[game.hero], move_action=(game.hero.x, game.hero.y - 1))
     elif event.key == pygame.K_DOWN and game.can_move(char=game.hero, dir=DOWN):
@@ -1367,12 +1469,12 @@ def load_sprites(hero: Character) -> dict[int, pygame.Surface]:
             image = pygame.image.load(f"{spell_sprites_dir}/{spell.school}.png")
             spell.id = max(s) + 1 if s else 1
             s[spell.id] = pygame.transform.scale(image, (ICON_SIZE, ICON_SIZE))  # Resize the image
-            print(spell.name, spell.id, id(s[spell.id]))
+            # print(spell.name, spell.id, id(s[spell.id]))
     for i, item in enumerate(hero.inventory):
         if item:
             item.id = max(s) + 1 if s else 1
             s[item.id] = pygame.image.load(f"{item_sprites_dir}/{item.image_name}").convert_alpha()
-            print(item.name, item.id, id(s[item.id]))
+            # print(item.name, item.id, id(s[item.id]))
     return s
 
 
@@ -1424,6 +1526,7 @@ if __name__ == "__main__":
         character_name = 'Brottor'
         # character_name = 'Ehput-Ki'
         # character_name = 'Vola'
+        character_name = 'Kansif'
         selected_character: Character = [c for c in roster if c.name == character_name][0]
         # selected_character.xp += 5000
 
