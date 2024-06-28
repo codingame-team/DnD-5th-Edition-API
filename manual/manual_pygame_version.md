@@ -17,12 +17,16 @@
 - Memorisation Sort: `LEFT CLICK` sur sort
 - Equip weapon/armor: `LEFT CLICK` on item in char's inventory
 - Drop weapon/armor: `RIGHT CLICK` on non-equipped item in char's inventory
-- Attaques: (&#8505; attaques des monstres désactivées)
+- Attaques: (&#8505; attaque et déplacement des monstres réactivées)
   - `LEFT CLICK` on visible monster in range of weapon
   - `RIGHT CLICK` on visible monster in range of spell
 - Doors:
   - Open door: `O` key
   - Close door: `C` key
+- Rooms & Corridors:
+  - Inspect: `I` key
+- Character:
+  - Gather position/status of hero: `H` key
 - Drink potion:
   - `P` key or `LEFT CLICK` on potion
 - Save current game & character state:
