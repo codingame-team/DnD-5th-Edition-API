@@ -113,8 +113,8 @@ class Room:
 
     @property
     def inner_positions(self):
-        return [(x, y) for x in range(self.x, self.x + self.w // JSON_UNIT_SIZE - 1)
-            for y in range(self.y, self.y + self.h // JSON_UNIT_SIZE - 1)]
+        return [(x, y) for x in range(self.x, self.x + self.w // JSON_UNIT_SIZE)
+            for y in range(self.y, self.y + self.h // JSON_UNIT_SIZE)]
 
     @property
     def area(self):
@@ -136,10 +136,11 @@ class Level:
     doors: dict
     fullname: str
     rooms: List[Room]
+    start_pos: tuple
 
     def __init__(self, level_no: int, name: str = ''):
         self.level_no = level_no
-        self.world_map, self.cells_count, self.doors, self.fullname, self.rooms = self.load_maze(level=level_no)
+        self.world_map, self.cells_count, self.doors, self.fullname, self.rooms, self.start_pos = self.load_maze(level=level_no)
         self.map_height = len(self.world_map)
         self.map_width = max([len(self.world_map[i]) for i in range(self.map_height)])
         self.items = []
@@ -156,12 +157,12 @@ class Level:
     def is_stair(self, x, y):
         return self.world_map[y][x] in ['<', '>']
 
-    def load_maze(self, level: int) -> tuple[List, int, dict, str, dict]:
+    def load_maze(self, level: int) -> tuple[List, int, dict, str, dict, tuple]:
         """
         Charge le labyrinthe depuis le fichier level.txt
         nom : nom du fichier contenant le labyrinthe (sans l’extension .txt)
         Valeur de retour :
-        - une liste avec les données du labyrinthe
+        - un tuple avec les données du labyrinthe (maze, n_cells, doors, level_fullname, rooms, hero_start_pos)
         """
         map_type = 'cave'
         map_type = 'dungeon'
@@ -218,7 +219,7 @@ class Level:
                     inhabited: bool = False
                     room_features: str = ''
                     if 'contents' in room:
-                        print(room)
+                        # print(room)
                         if 'detail' in room['contents']:
                             details = room['contents']['detail']
                             if 'trap' in details:
@@ -241,11 +242,14 @@ class Level:
             stair_up = choice(walkable_cells)
             walkable_cells.remove(stair_up)
             stair_down = choice(walkable_cells)
+        hero_start_pos: Optional[tuple] = None
         if level > 1:
             maze[stair_up[1]][stair_up[0]] = '<'
+        else:
+            hero_start_pos: tuple = stair_up
         if level < 10:
             maze[stair_down[1]][stair_down[0]] = '>'
-        return maze, n_cells, doors, level_fullname, rooms
+        return maze, n_cells, doors, level_fullname, rooms, hero_start_pos
 
 
     def load(self, hero: Character):
@@ -305,9 +309,10 @@ class Level:
         for room in self.rooms:
             if room and room.inhabited:
                 room_positions = [(x, y) for x, y in room.inner_positions if (x, y) in open_positions]
-                print(f'room {room.id}: {len(room_positions)} positions - area: {room.area}')
+                # print(f'room {room.id}: {len(room_positions)} positions - area: {room.area}')
                 gold: int = randint(50, 300) * self.level_no
                 has_item: bool = randint(1, 3) == 2
+                # print(room)
                 t_x, t_y = choice(room_positions)
                 t: Treasure = Treasure(id=-1, x=t_x, y=t_y, old_x=t_x, old_y=t_y, image_name='treasure.png', gold=gold, has_item=has_item)
                 self.treasures.append(t)
@@ -389,13 +394,14 @@ class Game:
         # self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
         # Initialisation du personnage
         open_positions: List[tuple] = [(x, y) for x in range(self.map_width) for y in range(self.map_height) if self.world_map[y][x] == '.']
-        hero_x, hero_y = choice(open_positions)
+        # hero_x, hero_y = choice(open_positions)
+        hero_x, hero_y = self.level.start_pos
         open_positions.remove((hero_x, hero_y))
         self.hero = character
         self.hero.x, self.hero.y = hero_x, hero_y
         self.level.explored_tiles.add((self.hero.x, self.hero.y))
         self.update_visible_tiles()
-        cprint(f'{len(self.level.visible_tiles)} cases visibles')
+        # cprint(f'{len(self.level.visible_tiles)} cases visibles')
         self.level.load(hero=self.hero)
         """ Load XP Levels """
         self.xp_levels = load_xp_levels()
@@ -998,19 +1004,18 @@ def save_character_gamestate(char: Character, _dir: str, gamestate: Game):
         print(f'Saving {char.name} gamestate...')
         pickle.dump(gamestate, f1)
 
-def load_character_gamestate(char_name: str, _dir: str) -> Game:
-    with open(f'{_dir}/{char_name}_gamestate.dmp', 'rb') as f1:
+def load_character_gamestate(char_name: str, _dir: str) -> Optional[Game]:
+    gs_filename = f'{_dir}/{char_name}_gamestate.dmp'
+    if not os.path.exists(gs_filename):
+        return None
+    with open(gs_filename, 'rb') as f1:
         print(f'Loading {char_name} gamestate...')
         return pickle.load(f1)
 
-def initialize_game(selected_character):
+def initialize_game(selected_character) -> Game:
     # game = Game(character=selected_character, start_level=5)
-    try:
-        game: Game = load_character_gamestate(selected_character.name, gamestate_dir)
-    except FileNotFoundError:
-        # Create a new game
-        game = Game(character=selected_character)
-    return game
+    saved_game: Game = load_character_gamestate(selected_character.name, gamestate_dir)
+    return saved_game if saved_game else Game(character=selected_character)
 
 
 # III - Réactualisation de l'affichage
@@ -1300,7 +1305,7 @@ def handle_keyboard_events(game, event):
         print("Character saved!")
     elif event.key == pygame.K_h:
         room: Optional[Room] = game.level.room_at(game.hero.pos)
-        msg: str = f'lurking in room {room}' if room else 'wandering in a corridor'
+        msg: str = f'lurking in room {room.id}' if room else 'wandering in a corridor'
         cprint(f'{game.hero.name} located at {game.hero.pos} *{msg}*')
     elif event.key == pygame.K_i:
         room: Optional[Room] = game.level.room_at(game.hero.pos)
@@ -1326,10 +1331,15 @@ def handle_keyboard_events(game, event):
         else:
             cprint('No closed door found!')
     elif event.key == pygame.K_c:
-        open_doors = [door_pos for door_pos, door_open in game.level.doors.items() if mh_dist(door_pos, game.hero.pos) == 1 and door_open]
+        open_doors = [door_pos for door_pos, door_open in game.level.doors.items() if mh_dist(door_pos, game.hero.pos) <= 1 and door_open]
         if open_doors:
             door_pos = open_doors[0]
-            game.level.doors[door_pos] = not game.level.doors[door_pos]
+            if any(door_pos == m.pos for m in game.level.monsters):
+                cprint('Cannot close door with a monster in it!')
+            elif door_pos == game.hero.pos:
+                cprint('Cannot close door with the hero in it!')
+            else:
+                game.level.doors[door_pos] = not game.level.doors[door_pos]
         else:
             cprint('No open door found!')
 
