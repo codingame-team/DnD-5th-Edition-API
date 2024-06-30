@@ -310,6 +310,192 @@ def request_monster(index_name: str) -> Monster:
                    sc=spell_caster,
                    sa=special_abilities)  # if can_attack else None
 
+def get_special_monster_actions(name: str):
+    actions: List[Action] = []
+    if name == "Orc Eye of Gruumsh":
+        damage_type: DamageType = request_damage_type(index_name='piercing')
+        # Ranged attack
+        # damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='2d8', bonus=3))]
+        # action = Action(name='Spear', desc='', type=ActionType.RANGED,
+        #        attack_bonus=5,
+        #        multi_attack=None, damages=damages)
+        # actions.append(action)
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='1d6', bonus=3)),
+                                 Damage(type=damage_type, dd=DamageDice(dice='1d8'))]
+        action = Action(name='Spear', desc='', type=ActionType.MELEE,
+               attack_bonus=5,
+               multi_attack=None, damages=damages)
+        actions.append(action)
+    elif name == "Ogre Bolt Launcher":
+        damage_type: DamageType = request_damage_type(index_name='bludgeoning')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='2d4', bonus=4))]
+        action = Action(name='Fist', desc='', type=ActionType.MELEE,
+               attack_bonus=6,
+               multi_attack=None, damages=damages)
+        actions.append(action)
+        # Ranged attack
+        # damage_type: DamageType = request_damage_type(index_name='piercing')
+        # damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='3d10', bonus=1))]
+        # range = '120/480 ft'
+        # action = Action(name='Bolt Launcher', desc='', type=ActionType.RANGED,
+        #        attack_bonus=3,
+        #        multi_attack=None, damages=damages)
+        # actions.append(action)
+    elif name == "Ogre Battering Ram":
+        damage_type: DamageType = request_damage_type(index_name='bludgeoning')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='2d10', bonus=4))]
+        action = Action(name='Bash', desc='', type=ActionType.MELEE,
+               attack_bonus=6,
+               multi_attack=None, damages=damages)
+        actions.append(action)
+    elif name == "Hobgoblin Captain":
+        # Multi Attack
+        damage_type: DamageType = request_damage_type(index_name='slashing')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='2d6', bonus=2))]
+        multi_attack_action = Action(name='Greatsword', desc='', type=ActionType.MELEE,
+               attack_bonus=4,
+               multi_attack=None, damages=damages)
+        action = Action(name='Multiattack', desc='', type=ActionType.MELEE,
+               attack_bonus=None,
+               multi_attack=[multi_attack_action] * 2, damages=None)
+        actions.append(action)
+        # Single Attacks
+        damage_type: DamageType = request_damage_type(index_name='piercing')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='1d6', bonus=2))]
+        action = Action(name='Javelin', desc='', type=ActionType.MELEE,
+               attack_bonus=4,
+               multi_attack=None, damages=damages)
+        actions.append(action)
+        # Ranged attack
+        # damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='1d6', bonus=2))]
+        # range = '30/120 ft'
+        # action = Action(name='Javelin', desc='', type=ActionType.RANGED,
+        #        attack_bonus=4,
+        #        multi_attack=None, damages=damages)
+        # actions.append(action)
+    elif name == 'piercer':
+        damage_type: DamageType = request_damage_type(index_name='piercing')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice=f'{randint(1, 6)}d6', bonus=0))]
+        action = Action(name='Drop', desc='', type=ActionType.MELEE,
+               attack_bonus=3,
+               multi_attack=None, damages=damages)
+        actions.append(action)
+    elif name == "Illusionist Wizard":
+        # Multiple attack
+        damage_type: DamageType = request_damage_type(index_name='psychic')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='2d10', bonus=3))]
+        multi_attack_action = Action(name='Arcane Burst', desc='', type=ActionType.MELEE,
+               attack_bonus=5,
+               multi_attack=None, damages=damages)
+        action = Action(name='Multiattack', desc='', type=ActionType.MELEE,
+               attack_bonus=None,
+               multi_attack=[multi_attack_action] * 2, damages=None)
+        actions.append(action)
+        # Ranged attack
+        # range = '120 ft'
+        # action = Action(name='Multiattack', desc='', type=ActionType.RANGED,
+        #        attack_bonus=None,
+        #        multi_attack=[multi_attack_action] * 2, damages=None)
+        # actions.append(action)
+        # Spell casting
+        # The illusionist casts one of the following spells, using Intelligence as the spellcasting ability (spell save {@dc 13})
+        # caster_level = special_ability['spellcasting']['level']
+        # dc_type = 'int'
+        # dc_value = 13
+        # ability_modifier = special_ability['spellcasting']['modifier']
+        # slots = [s for s in special_ability['spellcasting']['slots'].values()]
+        # spells: List[Spell] = []
+        # for spell_dict in special_ability['spellcasting']['spells']:
+        #     spell_index_name: str = spell_dict['url'].split('/')[3]
+        #     spell = request_spell(spell_index_name)
+        #     if spell is None:
+        #         continue
+        #     spells.append(spell)
+        #     spell_caster: SpellCaster = SpellCaster(level=caster_level,
+        #                                             spell_slots=slots,
+        #                                             learned_spells=spells,
+        #                                             dc_type=dc_type,
+        #                                             dc_value=dc_value + ability_modifier,
+        #                                             ability_modifier=ability_modifier)
+    elif name == "Goblin Boss":
+        # Multi Attack
+        # The goblin makes two attacks with its scimitar. The second attack has disadvantage.
+        damage_type: DamageType = request_damage_type(index_name='slashing')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='1d6', bonus=2))]
+        multi_attack_action_1 = Action(name='Scimitar', desc='', type=ActionType.MELEE,
+               attack_bonus=4,
+               multi_attack=None, damages=damages)
+        multi_attack_action_2 = Action(name='Scimitar', desc='', type=ActionType.MELEE,
+               attack_bonus=3,
+               multi_attack=None, damages=damages)
+        action = Action(name='Multiattack', desc='', type=ActionType.MELEE,
+               attack_bonus=None,
+               multi_attack=[multi_attack_action_1, multi_attack_action_2], damages=None)
+        actions.append(action)
+        # Single Attacks
+        damage_type: DamageType = request_damage_type(index_name='piercing')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='1d6', bonus=2))]
+        action = Action(name='Javelin', desc='', type=ActionType.MELEE,
+               attack_bonus=4,
+               multi_attack=None, damages=damages)
+        actions.append(action)
+        # Ranged attack
+        # damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='1d6', bonus=2))]
+        # range = '30/120 ft'
+        # action = Action(name='Javelin', desc='', type=ActionType.RANGED,
+        #        attack_bonus=4,
+        #        multi_attack=None, damages=damages)
+        # actions.append(action)
+    return actions
+
+def request_monster_other(name: str) -> Optional[Monster]:
+    """
+    Send a request to local database for a monster's characteristic
+    :param monster_name: name of the monster
+    :return: Monster object
+    """
+    with open(f"{path}/maze/other_monsters/bestiary-sublist-data.json", "r") as f:
+        list_data = json.loads(f.read())
+        monster_data = [monster for monster in list_data if monster['name'] == name]
+        if not monster_data:
+            return None
+        data = monster_data[0]
+
+        proficiencies: List[Proficiency] = []
+        actions: List[Action] = get_special_monster_actions(name)
+        spell_caster: Optional[SpellCaster] = None
+        special_abilities: List[SpecialAbility] = []
+        ac: int = data['_fAc'][0]
+        hit_dice = data['hp']['formula']
+        dice, bonus = hit_dice.split(' + ') if '+' in hit_dice else hit_dice, 0
+        hit_dice = DamageDice(dice=dice, bonus=int(bonus))
+        # https://tomedunn.github.io/the-finished-book/monsters/calculating-monster-xp/
+        # multi_attacks: List[Action] = [a for m in actions for a in m.multi_attack if m.multi_attack]
+        single_attacks: List[Action] = [a for a in actions if not a.multi_attack]
+        # attacks = single_attacks + multi_attacks
+        damages: List[int] = [damage.dd.avg for a in single_attacks for damage in a.damages]
+        # effective_attack_bonus
+        ab: float = sum([a.attack_bonus for a in single_attacks]) / len(single_attacks)
+        # average damage per round assuming all attacks hit
+        dpr: float = sum(damages) / len(damages)
+        xp: float = 5 * int(data['hp']['average']) * dpr * (ac + ab - 2) / (4 * 13)
+        return Monster(id=-1,
+                       image_name=f'monster_enemy.png',
+                       x=-1, y=-1, old_x=-1, old_y=-1,
+                       index=name.lower().replace(' ', '-'),
+                       name=data['name'],
+                       abilities=Abilities(str=data['str'], dex=data['dex'], con=data['con'],
+                                           int=data['int'], wis=data['wis'], cha=data['cha']),
+                       proficiencies=proficiencies,
+                       armor_class=ac,
+                       hit_points=hit_dice.roll(),
+                       hit_dice=data['hp']['formula'],
+                       xp=int(xp),
+                       challenge_rating=data['cr'],
+                       actions=actions,
+                       sc=spell_caster,
+                       sa=special_abilities)  # if can_attack else None
+
 
 def request_spell(index_name: str) -> Spell:
     """
@@ -321,8 +507,6 @@ def request_spell(index_name: str) -> Spell:
         data = json.loads(f.read())
 
     allowed_classes: List[str] = [c['index'] for c in data['classes']]
-
-
 
     damage_type: DamageType = None
     damage_at_slot_level: dict() = None

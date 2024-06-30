@@ -1151,6 +1151,11 @@ class DamageDice:
                 dice_count, damage_dice = map(int, self.dice.split('d'))
                 return sum([randint(1, damage_dice) for _ in range(dice_count)])
 
+    @property
+    def avg(self) -> int:
+        dice_count, roll_dice = map(int, self.dice.split('d'))
+        return self.bonus + dice_count * roll_dice // 2
+
     def score(self, success_type: str = 'None') -> int:
         dice_count, roll_dice = map(int, self.dice.split('d'))
         factor: int = 1 if success_type in ('none', 'None') else 0.5
