@@ -8,7 +8,7 @@ import tty
 from enum import Enum
 from random import randint, choice
 from time import time
-from typing import List
+from typing import List, re
 import numpy as np
 
 from tools.dungeon_perl import create_dungeon
@@ -249,16 +249,15 @@ def generate_dnd_dungeon(options: dict) -> dict:
     dungeon = create_dungeon(options)
     return dungeon
 
+def parse_monster_record(record: str) -> dict:
+    pattern = r"(?:(\d+) x )?(\w+)"
+    matches = re.findall(pattern, record)
 
-def find_json_dungeon_files(directory: str, level: int):
-    # Utilisation de glob pour trouver tous les fichiers correspondants
-    pattern = os.path.join(directory, f"{level:02}.json")
-    files = glob.glob(pattern)
-
-    # Filtrer pour s'assurer que le fichier se termine bien par 'x.png' où x est entre 01 et 99
-    valid_files = [f for f in files if f.endswith('.json') and f[-6:-4].isdigit() and 1 <= int(f[-6:-4]) <= 99]
-
-    return valid_files
+    monsters = {}
+    for match in matches:
+        if match[1] != 'and':
+            monsters[match[1]] = match[0] if match[0] else 1
+    return monsters
 
 
 
