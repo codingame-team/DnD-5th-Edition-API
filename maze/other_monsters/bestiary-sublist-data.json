@@ -1,0 +1,2321 @@
+[
+	{
+		"name": "Orc Eye of Gruumsh",
+		"source": "MM",
+		"page": 247,
+		"otherSources": [
+			{
+				"source": "PotA"
+			},
+			{
+				"source": "SKT"
+			},
+			{
+				"source": "TftYP"
+			},
+			{
+				"source": "EGW"
+			},
+			{
+				"source": "IDRotF"
+			}
+		],
+		"size": [
+			"M"
+		],
+		"type": {
+			"type": "humanoid",
+			"tags": [
+				"orc"
+			]
+		},
+		"alignment": [
+			"C",
+			"E"
+		],
+		"ac": [
+			{
+				"ac": 16,
+				"from": [
+					"{@item ring mail|phb}",
+					"{@item shield|phb}"
+				]
+			}
+		],
+		"hp": {
+			"average": 45,
+			"formula": "6d8 + 18"
+		},
+		"speed": {
+			"walk": 30
+		},
+		"str": 16,
+		"dex": 12,
+		"con": 17,
+		"int": 9,
+		"wis": 13,
+		"cha": 12,
+		"skill": {
+			"intimidation": "+3",
+			"religion": "+1"
+		},
+		"senses": [
+			"darkvision 60 ft."
+		],
+		"passive": 11,
+		"languages": [
+			"Common",
+			"Orc"
+		],
+		"cr": "2",
+		"spellcasting": [
+			{
+				"name": "Spellcasting",
+				"type": "spellcasting",
+				"headerEntries": [
+					"The orc is a 3rd-level spellcaster. Its spellcasting ability is Wisdom (spell save {@dc 11}, {@hit 3} to hit with spell attacks). The orc has the following cleric spells prepared:"
+				],
+				"spells": {
+					"0": {
+						"spells": [
+							"{@spell guidance}",
+							"{@spell resistance}",
+							"{@spell thaumaturgy}"
+						]
+					},
+					"1": {
+						"slots": 4,
+						"spells": [
+							"{@spell bless}",
+							"{@spell command}"
+						]
+					},
+					"2": {
+						"slots": 2,
+						"spells": [
+							"{@spell augury}",
+							"{@spell spiritual weapon} (spear)"
+						]
+					}
+				},
+				"ability": "wis"
+			}
+		],
+		"trait": [
+			{
+				"name": "Aggressive",
+				"entries": [
+					"As a bonus action, the orc can move up to its speed toward a hostile creature that it can see."
+				]
+			},
+			{
+				"name": "Gruumsh's Fury",
+				"entries": [
+					"The orc deals an extra 4 ({@dice 1d8}) damage when it hits with a weapon attack (included in the attacks)."
+				]
+			}
+		],
+		"action": [
+			{
+				"name": "Spear",
+				"entries": [
+					"{@atk mw,rw} {@hit 5} to hit, reach 5 ft. or range 20/60 ft., one target. {@h}11 ({@dice 1d6 + 3} plus {@dice 1d8}) piercing damage, or 12 ({@damage 2d8 + 3}) piercing damage if used with two hands to make a melee attack."
+				]
+			}
+		],
+		"environment": [
+			"underdark",
+			"mountain",
+			"grassland",
+			"forest",
+			"swamp",
+			"hill",
+			"arctic"
+		],
+		"soundClip": {
+			"type": "internal",
+			"path": "bestiary/orc-eye-of-gruumsh.mp3"
+		},
+		"attachedItems": [
+			"spear|phb"
+		],
+		"traitTags": [
+			"Aggressive"
+		],
+		"senseTags": [
+			"D"
+		],
+		"languageTags": [
+			"C",
+			"O"
+		],
+		"damageTags": [
+			"P"
+		],
+		"damageTagsSpell": [
+			"O"
+		],
+		"spellcastingTags": [
+			"CC"
+		],
+		"miscTags": [
+			"MLW",
+			"MW",
+			"RW",
+			"THW"
+		],
+		"savingThrowForcedSpell": [
+			"wisdom"
+		],
+		"hasToken": true,
+		"hasFluff": true,
+		"hasFluffImages": true,
+		"__prop": "monster",
+		"_fSpeedType": [
+			"walk"
+		],
+		"_fSpeed": 30,
+		"_fAc": [
+			16
+		],
+		"_fHp": 45,
+		"_fAlign": [
+			"C",
+			"E"
+		],
+		"_fEnvironment": [
+			"underdark",
+			"mountain",
+			"grassland",
+			"forest",
+			"swamp",
+			"hill",
+			"arctic"
+		],
+		"_fVuln": [],
+		"_fRes": [],
+		"_fImm": [],
+		"_fCondImm": [],
+		"_fSave": [],
+		"_fSkill": [
+			"intimidation",
+			"religion"
+		],
+		"_fSources": [
+			"MM",
+			{
+				"item": "PotA",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "SKT",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "TftYP",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "EGW",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "IDRotF",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			}
+		],
+		"_fPassive": 11,
+		"_fStr": 16,
+		"_fDex": 12,
+		"_fCon": 17,
+		"_fInt": 9,
+		"_fWis": 13,
+		"_fCha": 12,
+		"_fMisc": [
+			"MLW",
+			"MW",
+			"RW",
+			"THW",
+			"AC from Item(s)",
+			"Spellcaster",
+			"Spellcaster, Wisdom",
+			"Has Token",
+			"Has Info",
+			"Has Images"
+		],
+		"_fSpellSlotLevels": [
+			1,
+			2
+		],
+		"_fSpellsKnown": [
+			"guidance|phb",
+			"resistance|phb",
+			"thaumaturgy|phb",
+			"bless|phb",
+			"command|phb",
+			"augury|phb",
+			"spiritual weapon|phb"
+		],
+		"_fLanguageTags": [
+			"C",
+			"O"
+		],
+		"_fEquipment": [
+			"spear|phb",
+			"ring mail|phb",
+			"shield|phb"
+		],
+		"_pTypes": {
+			"types": [
+				"humanoid"
+			],
+			"tags": [
+				"orc"
+			],
+			"asText": "Humanoid (Orc)",
+			"asTextShort": "Humanoid (Orc)",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "2",
+		"_fCr": [
+			"2"
+		]
+	},
+	{
+		"name": "Ogre Bolt Launcher",
+		"source": "MPMM",
+		"page": 200,
+		"otherSources": [
+			{
+				"source": "MTF",
+				"page": 220
+			}
+		],
+		"size": [
+			"L"
+		],
+		"type": "giant",
+		"alignment": [
+			"C",
+			"E"
+		],
+		"alignmentPrefix": "Typically ",
+		"ac": [
+			{
+				"ac": 13,
+				"from": [
+					"{@item hide armor|phb}"
+				]
+			}
+		],
+		"hp": {
+			"average": 59,
+			"formula": "7d10 + 21"
+		},
+		"speed": {
+			"walk": 40
+		},
+		"str": 19,
+		"dex": 12,
+		"con": 16,
+		"int": 5,
+		"wis": 7,
+		"cha": 7,
+		"senses": [
+			"darkvision 60 ft."
+		],
+		"passive": 8,
+		"languages": [
+			"Common",
+			"Giant"
+		],
+		"cr": "2",
+		"action": [
+			{
+				"name": "Fist",
+				"entries": [
+					"{@atk mw} {@hit 6} to hit, reach 5 ft., one target. {@h}9 ({@damage 2d4 + 4}) bludgeoning damage."
+				]
+			},
+			{
+				"name": "Bolt Launcher",
+				"entries": [
+					"{@atk rw} {@hit 3} to hit, range 120/480 ft., one target. {@h}17 ({@damage 3d10 + 1}) piercing damage."
+				]
+			}
+		],
+		"environment": [
+			"grassland",
+			"hill",
+			"mountain"
+		],
+		"soundClip": {
+			"type": "internal",
+			"path": "bestiary/ogre-bolt-launcher.mp3"
+		},
+		"senseTags": [
+			"D"
+		],
+		"languageTags": [
+			"C",
+			"GI"
+		],
+		"damageTags": [
+			"B",
+			"P"
+		],
+		"miscTags": [
+			"MW",
+			"RW"
+		],
+		"hasToken": true,
+		"hasFluff": true,
+		"__prop": "monster",
+		"_fSpeedType": [
+			"walk"
+		],
+		"_fSpeed": 40,
+		"_fAc": [
+			13
+		],
+		"_fHp": 59,
+		"_fAlign": [
+			"C",
+			"E"
+		],
+		"_fEnvironment": [
+			"grassland",
+			"hill",
+			"mountain"
+		],
+		"_fVuln": [],
+		"_fRes": [],
+		"_fImm": [],
+		"_fCondImm": [],
+		"_fSave": [],
+		"_fSkill": [],
+		"_fSources": [
+			"MPMM",
+			{
+				"item": "MTF",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			}
+		],
+		"_fPassive": 8,
+		"_fStr": 19,
+		"_fDex": 12,
+		"_fCon": 16,
+		"_fInt": 5,
+		"_fWis": 7,
+		"_fCha": 7,
+		"_fMisc": [
+			"MW",
+			"RW",
+			"AC from Item(s)",
+			"Has Token",
+			"Has Info"
+		],
+		"_fLanguageTags": [
+			"C",
+			"GI"
+		],
+		"_fEquipment": [
+			"hide armor|phb"
+		],
+		"_pTypes": {
+			"types": [
+				"giant"
+			],
+			"tags": [],
+			"asText": "Giant",
+			"asTextShort": "Giant",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "2",
+		"_fCr": [
+			"2"
+		]
+	},
+	{
+		"name": "Ogre Battering Ram",
+		"source": "MPMM",
+		"page": 200,
+		"otherSources": [
+			{
+				"source": "MTF",
+				"page": 220
+			}
+		],
+		"size": [
+			"L"
+		],
+		"type": "giant",
+		"alignment": [
+			"C",
+			"E"
+		],
+		"alignmentPrefix": "Typically ",
+		"ac": [
+			{
+				"ac": 11,
+				"from": [
+					"{@item hide armor|phb}"
+				]
+			}
+		],
+		"hp": {
+			"average": 76,
+			"formula": "9d10 + 27"
+		},
+		"speed": {
+			"walk": 40
+		},
+		"str": 19,
+		"dex": 8,
+		"con": 16,
+		"int": 5,
+		"wis": 7,
+		"cha": 7,
+		"senses": [
+			"darkvision 60 ft."
+		],
+		"passive": 8,
+		"languages": [
+			"Common",
+			"Giant"
+		],
+		"cr": "4",
+		"trait": [
+			{
+				"name": "Siege Monster",
+				"entries": [
+					"The ogre deals double damage to objects and structures."
+				]
+			}
+		],
+		"action": [
+			{
+				"name": "Multiattack",
+				"entries": [
+					"The ogre makes two Bash attacks."
+				]
+			},
+			{
+				"name": "Bash",
+				"entries": [
+					"{@atk mw} {@hit 6} to hit, reach 5 ft., one target. {@h}15 ({@damage 2d10 + 4}) bludgeoning damage, and the ogre can push the target 5 feet away if the target is Huge or smaller."
+				]
+			}
+		],
+		"reaction": [
+			{
+				"name": "Block the Path",
+				"entries": [
+					"When a creature enters a space within 5 feet of the ogre, the ogre makes a Bash attack against that creature. If the attack hits, the target's speed is reduced to 0 until the start of the ogre's next turn."
+				]
+			}
+		],
+		"environment": [
+			"grassland",
+			"hill",
+			"mountain"
+		],
+		"soundClip": {
+			"type": "internal",
+			"path": "bestiary/ogre-battering-ram.mp3"
+		},
+		"traitTags": [
+			"Siege Monster"
+		],
+		"senseTags": [
+			"D"
+		],
+		"actionTags": [
+			"Multiattack"
+		],
+		"languageTags": [
+			"C",
+			"GI"
+		],
+		"damageTags": [
+			"B"
+		],
+		"miscTags": [
+			"MW"
+		],
+		"hasToken": true,
+		"hasFluff": true,
+		"hasFluffImages": true,
+		"__prop": "monster",
+		"_fSpeedType": [
+			"walk"
+		],
+		"_fSpeed": 40,
+		"_fAc": [
+			11
+		],
+		"_fHp": 76,
+		"_fAlign": [
+			"C",
+			"E"
+		],
+		"_fEnvironment": [
+			"grassland",
+			"hill",
+			"mountain"
+		],
+		"_fVuln": [],
+		"_fRes": [],
+		"_fImm": [],
+		"_fCondImm": [],
+		"_fSave": [],
+		"_fSkill": [],
+		"_fSources": [
+			"MPMM",
+			{
+				"item": "MTF",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			}
+		],
+		"_fPassive": 8,
+		"_fStr": 19,
+		"_fDex": 8,
+		"_fCon": 16,
+		"_fInt": 5,
+		"_fWis": 7,
+		"_fCha": 7,
+		"_fMisc": [
+			"MW",
+			"AC from Item(s)",
+			"Reactions",
+			"Has Token",
+			"Has Info",
+			"Has Images"
+		],
+		"_fLanguageTags": [
+			"C",
+			"GI"
+		],
+		"_fEquipment": [
+			"hide armor|phb"
+		],
+		"_pTypes": {
+			"types": [
+				"giant"
+			],
+			"tags": [],
+			"asText": "Giant",
+			"asTextShort": "Giant",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "4",
+		"_fCr": [
+			"4"
+		]
+	},
+	{
+		"name": "Hobgoblin Captain",
+		"source": "MM",
+		"page": 186,
+		"otherSources": [
+			{
+				"source": "HotDQ"
+			},
+			{
+				"source": "PotA"
+			},
+			{
+				"source": "SKT"
+			},
+			{
+				"source": "WDMM"
+			},
+			{
+				"source": "BGDIA"
+			},
+			{
+				"source": "DSotDQ"
+			}
+		],
+		"size": [
+			"M"
+		],
+		"type": {
+			"type": "humanoid",
+			"tags": [
+				"goblinoid"
+			]
+		},
+		"alignment": [
+			"L",
+			"E"
+		],
+		"ac": [
+			{
+				"ac": 17,
+				"from": [
+					"{@item half plate armor|phb}"
+				]
+			}
+		],
+		"hp": {
+			"average": 39,
+			"formula": "6d8 + 12"
+		},
+		"speed": {
+			"walk": 30
+		},
+		"str": 15,
+		"dex": 14,
+		"con": 14,
+		"int": 12,
+		"wis": 10,
+		"cha": 13,
+		"senses": [
+			"darkvision 60 ft."
+		],
+		"passive": 10,
+		"languages": [
+			"Common",
+			"Goblin"
+		],
+		"cr": "3",
+		"trait": [
+			{
+				"name": "Martial Advantage",
+				"entries": [
+					"Once per turn, the hobgoblin can deal an extra 10 ({@dice 3d6}) damage to a creature it hits with a weapon attack if that creature is within 5 feet of an ally of the hobgoblin that isn't {@condition incapacitated}."
+				]
+			}
+		],
+		"action": [
+			{
+				"name": "Multiattack",
+				"entries": [
+					"The hobgoblin makes two greatsword attacks."
+				]
+			},
+			{
+				"name": "Greatsword",
+				"entries": [
+					"{@atk mw} {@hit 4} to hit, reach 5 ft., one target. {@h}9 ({@damage 2d6 + 2}) slashing damage."
+				]
+			},
+			{
+				"name": "Javelin",
+				"entries": [
+					"{@atk mw,rw} {@hit 4} to hit, reach 5 ft. or range 30/120 ft., one target. {@h}5 ({@damage 1d6 + 2}) piercing damage."
+				]
+			},
+			{
+				"name": "Leadership (Recharges after a Short or Long Rest)",
+				"entries": [
+					"For 1 minute, the hobgoblin can utter a special command or warning whenever a nonhostile creature that it can see within 30 feet of it makes an attack roll or a saving throw. The creature can add a {@dice d4} to its roll provided it can hear and understand the hobgoblin. A creature can benefit from only one Leadership die at a time. This effect ends if the hobgoblin is {@condition incapacitated}."
+				]
+			}
+		],
+		"environment": [
+			"underdark",
+			"grassland",
+			"forest",
+			"hill",
+			"desert"
+		],
+		"soundClip": {
+			"type": "internal",
+			"path": "bestiary/hobgoblin-captain.mp3"
+		},
+		"attachedItems": [
+			"greatsword|phb",
+			"javelin|phb"
+		],
+		"senseTags": [
+			"D"
+		],
+		"actionTags": [
+			"Multiattack"
+		],
+		"languageTags": [
+			"C",
+			"GO"
+		],
+		"damageTags": [
+			"P",
+			"S"
+		],
+		"miscTags": [
+			"MLW",
+			"MW",
+			"RW",
+			"THW"
+		],
+		"hasToken": true,
+		"hasFluff": true,
+		"hasFluffImages": true,
+		"__prop": "monster",
+		"_fSpeedType": [
+			"walk"
+		],
+		"_fSpeed": 30,
+		"_fAc": [
+			17
+		],
+		"_fHp": 39,
+		"_fAlign": [
+			"L",
+			"E"
+		],
+		"_fEnvironment": [
+			"underdark",
+			"grassland",
+			"forest",
+			"hill",
+			"desert"
+		],
+		"_fVuln": [],
+		"_fRes": [],
+		"_fImm": [],
+		"_fCondImm": [],
+		"_fSave": [],
+		"_fSkill": [],
+		"_fSources": [
+			"MM",
+			{
+				"item": "HotDQ",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "PotA",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "SKT",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "WDMM",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "BGDIA",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "DSotDQ",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			}
+		],
+		"_fPassive": 10,
+		"_fStr": 15,
+		"_fDex": 14,
+		"_fCon": 14,
+		"_fInt": 12,
+		"_fWis": 10,
+		"_fCha": 13,
+		"_fMisc": [
+			"MLW",
+			"MW",
+			"RW",
+			"THW",
+			"AC from Item(s)",
+			"Has Token",
+			"Has Info",
+			"Has Images"
+		],
+		"_fLanguageTags": [
+			"C",
+			"GO"
+		],
+		"_fEquipment": [
+			"greatsword|phb",
+			"javelin|phb",
+			"half plate armor|phb"
+		],
+		"_pTypes": {
+			"types": [
+				"humanoid"
+			],
+			"tags": [
+				"goblinoid"
+			],
+			"asText": "Humanoid (Goblinoid)",
+			"asTextShort": "Humanoid (Goblinoid)",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "3",
+		"_fCr": [
+			"3"
+		]
+	},
+	{
+		"name": "Piercer",
+		"source": "MM",
+		"page": 252,
+		"otherSources": [
+			{
+				"source": "PotA"
+			},
+			{
+				"source": "SKT"
+			},
+			{
+				"source": "TftYP"
+			},
+			{
+				"source": "WDMM"
+			},
+			{
+				"source": "IDRotF"
+			},
+			{
+				"source": "ToFW"
+			}
+		],
+		"size": [
+			"M"
+		],
+		"type": "monstrosity",
+		"alignment": [
+			"U"
+		],
+		"ac": [
+			{
+				"ac": 15,
+				"from": [
+					"natural armor"
+				]
+			}
+		],
+		"hp": {
+			"average": 22,
+			"formula": "3d8 + 9"
+		},
+		"speed": {
+			"walk": 5,
+			"climb": 5
+		},
+		"str": 10,
+		"dex": 13,
+		"con": 16,
+		"int": 1,
+		"wis": 7,
+		"cha": 3,
+		"skill": {
+			"stealth": "+5"
+		},
+		"senses": [
+			"blindsight 30 ft.",
+			"darkvision 60 ft."
+		],
+		"passive": 8,
+		"cr": "1/2",
+		"trait": [
+			{
+				"name": "False Appearance",
+				"entries": [
+					"While the piercer remains motionless on the ceiling, it is indistinguishable from a normal stalactite."
+				]
+			},
+			{
+				"name": "Spider Climb",
+				"entries": [
+					"The piercer can climb difficult surfaces, including upside down on ceilings, without needing to make an ability check."
+				]
+			}
+		],
+		"action": [
+			{
+				"name": "Drop",
+				"entries": [
+					"{@atk mw} {@hit 3} to hit, one creature directly underneath the piercer. {@h}3 ({@damage 1d6}) piercing damage per 10 feet fallen, up to 21 ({@dice 6d6}). Miss: The piercer takes half the normal falling damage for the distance fallen."
+				]
+			}
+		],
+		"environment": [
+			"underdark"
+		],
+		"soundClip": {
+			"type": "internal",
+			"path": "bestiary/piercer.mp3"
+		},
+		"traitTags": [
+			"False Appearance",
+			"Spider Climb"
+		],
+		"senseTags": [
+			"B",
+			"D"
+		],
+		"damageTags": [
+			"P"
+		],
+		"miscTags": [
+			"MW"
+		],
+		"hasToken": true,
+		"hasFluff": true,
+		"hasFluffImages": true,
+		"__prop": "monster",
+		"_fSpeedType": [
+			"walk",
+			"climb"
+		],
+		"_fSpeed": 5,
+		"_fAc": [
+			15
+		],
+		"_fHp": 22,
+		"_fAlign": [
+			"U"
+		],
+		"_fEnvironment": [
+			"underdark"
+		],
+		"_fVuln": [],
+		"_fRes": [],
+		"_fImm": [],
+		"_fCondImm": [],
+		"_fSave": [],
+		"_fSkill": [
+			"stealth"
+		],
+		"_fSources": [
+			"MM",
+			{
+				"item": "PotA",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "SKT",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "TftYP",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "WDMM",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "IDRotF",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "ToFW",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			}
+		],
+		"_fPassive": 8,
+		"_fStr": 10,
+		"_fDex": 13,
+		"_fCon": 16,
+		"_fInt": 1,
+		"_fWis": 7,
+		"_fCha": 3,
+		"_fMisc": [
+			"MW",
+			"AC from Natural Armor",
+			"Has Token",
+			"Has Info",
+			"Has Images"
+		],
+		"_fLanguageTags": [
+			"None"
+		],
+		"_fEquipment": [],
+		"_pTypes": {
+			"types": [
+				"monstrosity"
+			],
+			"tags": [],
+			"asText": "Monstrosity",
+			"asTextShort": "Monstrosity",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "1/2",
+		"_fCr": [
+			"1/2"
+		]
+	},
+	{
+		"name": "Illusionist",
+		"source": "MPMM",
+		"page": 263,
+		"otherSources": [
+			{
+				"source": "VGM",
+				"page": 214
+			}
+		],
+		"size": [
+			"M"
+		],
+		"type": {
+			"type": "humanoid"
+		},
+		"alignment": [
+			"A"
+		],
+		"ac": [
+			12,
+			{
+				"ac": 15,
+				"condition": "with {@spell mage armor}",
+				"braces": true
+			}
+		],
+		"hp": {
+			"average": 44,
+			"formula": "8d8 + 8"
+		},
+		"speed": {
+			"walk": 30
+		},
+		"str": 9,
+		"dex": 14,
+		"con": 13,
+		"int": 16,
+		"wis": 11,
+		"cha": 12,
+		"save": {
+			"int": "+5",
+			"wis": "+2"
+		},
+		"skill": {
+			"arcana": "+5",
+			"history": "+5"
+		},
+		"passive": 10,
+		"languages": [
+			"any four languages"
+		],
+		"cr": "3",
+		"spellcasting": [
+			{
+				"name": "Spellcasting",
+				"type": "spellcasting",
+				"headerEntries": [
+					"The illusionist casts one of the following spells, using Intelligence as the spellcasting ability (spell save {@dc 13}):"
+				],
+				"will": [
+					"{@spell dancing lights}",
+					"{@spell mage hand}",
+					"{@spell minor illusion}"
+				],
+				"daily": {
+					"2e": [
+						"{@spell disguise self}",
+						"{@spell invisibility}",
+						"{@spell mage armor}",
+						"{@spell major image}",
+						"{@spell phantasmal force}",
+						"{@spell phantom steed}"
+					]
+				},
+				"ability": "int",
+				"displayAs": "action"
+			}
+		],
+		"action": [
+			{
+				"name": "Multiattack",
+				"entries": [
+					"The illusionist makes two Arcane Burst attacks."
+				]
+			},
+			{
+				"name": "Arcane Burst",
+				"entries": [
+					"{@atk ms,rs} {@hit 5} to hit, reach 5 ft. or range 120 ft., one target. {@h}14 ({@damage 2d10 + 3}) psychic damage."
+				]
+			}
+		],
+		"bonus": [
+			{
+				"name": "Displacement {@recharge 5}",
+				"entries": [
+					"The illusionist projects an illusion that makes the illusionist appear to be standing in a place a few inches from its actual location, causing any creature to have disadvantage on attack rolls against the illusionist. The effect lasts for 1 minute, and it ends early if the illusionist takes damage, if it is {@condition incapacitated}, or if its speed becomes 0."
+				]
+			}
+		],
+		"environment": [
+			"urban"
+		],
+		"soundClip": {
+			"type": "internal",
+			"path": "bestiary/illusionist.mp3"
+		},
+		"actionTags": [
+			"Multiattack"
+		],
+		"languageTags": [
+			"X"
+		],
+		"damageTags": [
+			"Y"
+		],
+		"damageTagsSpell": [
+			"Y"
+		],
+		"spellcastingTags": [
+			"O"
+		],
+		"conditionInflictSpell": [
+			"invisible"
+		],
+		"savingThrowForcedSpell": [
+			"intelligence"
+		],
+		"hasToken": true,
+		"hasFluff": true,
+		"hasFluffImages": true,
+		"__prop": "monster",
+		"_fSpeedType": [
+			"walk"
+		],
+		"_fSpeed": 30,
+		"_fAc": [
+			12,
+			15
+		],
+		"_fHp": 44,
+		"_fAlign": [
+			"A"
+		],
+		"_fEnvironment": [
+			"urban"
+		],
+		"_fVuln": [],
+		"_fRes": [],
+		"_fImm": [],
+		"_fCondImm": [],
+		"_fSave": [
+			"int",
+			"wis"
+		],
+		"_fSkill": [
+			"arcana",
+			"history"
+		],
+		"_fSources": [
+			"MPMM",
+			{
+				"item": "VGM",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			}
+		],
+		"_fPassive": 10,
+		"_fStr": 9,
+		"_fDex": 14,
+		"_fCon": 13,
+		"_fInt": 16,
+		"_fWis": 11,
+		"_fCha": 12,
+		"_fMisc": [
+			"Spellcaster",
+			"Spellcaster, Intelligence",
+			"Bonus Actions",
+			"Has Token",
+			"Has Info",
+			"Has Images",
+			"Has Recharge"
+		],
+		"_fSpellsKnown": [
+			"dancing lights|phb",
+			"mage hand|phb",
+			"minor illusion|phb",
+			"disguise self|phb",
+			"invisibility|phb",
+			"mage armor|phb",
+			"major image|phb",
+			"phantasmal force|phb",
+			"phantom steed|phb"
+		],
+		"_fLanguageTags": [
+			"X"
+		],
+		"_fEquipment": [],
+		"_pTypes": {
+			"types": [
+				"humanoid"
+			],
+			"tags": [],
+			"asText": "Humanoid",
+			"asTextShort": "Humanoid",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "3",
+		"_fCr": [
+			"3"
+		]
+	},
+	{
+		"name": "Goblin Boss",
+		"source": "MM",
+		"page": 166,
+		"otherSources": [
+			{
+				"source": "SKT"
+			},
+			{
+				"source": "ToA"
+			},
+			{
+				"source": "WDMM"
+			},
+			{
+				"source": "GoS"
+			},
+			{
+				"source": "BGDIA"
+			},
+			{
+				"source": "IDRotF"
+			},
+			{
+				"source": "TCE"
+			},
+			{
+				"source": "WBtW"
+			},
+			{
+				"source": "KftGV"
+			},
+			{
+				"source": "PaBTSO"
+			}
+		],
+		"size": [
+			"S"
+		],
+		"type": {
+			"type": "humanoid",
+			"tags": [
+				"goblinoid"
+			]
+		},
+		"alignment": [
+			"N",
+			"E"
+		],
+		"ac": [
+			{
+				"ac": 17,
+				"from": [
+					"{@item chain shirt|phb}",
+					"{@item shield|phb}"
+				]
+			}
+		],
+		"hp": {
+			"average": 21,
+			"formula": "6d6"
+		},
+		"speed": {
+			"walk": 30
+		},
+		"str": 10,
+		"dex": 14,
+		"con": 10,
+		"int": 10,
+		"wis": 8,
+		"cha": 10,
+		"skill": {
+			"stealth": "+6"
+		},
+		"senses": [
+			"darkvision 60 ft."
+		],
+		"passive": 9,
+		"languages": [
+			"Common",
+			"Goblin"
+		],
+		"cr": "1",
+		"trait": [
+			{
+				"name": "Nimble Escape",
+				"entries": [
+					"The goblin can take the Disengage or Hide action as a bonus action on each of its turns."
+				]
+			}
+		],
+		"action": [
+			{
+				"name": "Multiattack",
+				"entries": [
+					"The goblin makes two attacks with its scimitar. The second attack has disadvantage."
+				]
+			},
+			{
+				"name": "Scimitar",
+				"entries": [
+					"{@atk mw} {@hit 4} to hit, reach 5 ft., one target. {@h}5 ({@damage 1d6 + 2}) slashing damage."
+				]
+			},
+			{
+				"name": "Javelin",
+				"entries": [
+					"{@atk mw,rw} {@hit 2} to hit, reach 5 ft. or range 30/120 ft., one target. {@h}3 ({@damage 1d6}) piercing damage."
+				]
+			}
+		],
+		"reaction": [
+			{
+				"name": "Redirect Attack",
+				"entries": [
+					"When a creature the goblin can see targets it with an attack, the goblin chooses another goblin within 5 feet of it. The two goblins swap places, and the chosen goblin becomes the target instead."
+				]
+			}
+		],
+		"environment": [
+			"forest",
+			"grassland",
+			"hill",
+			"underdark"
+		],
+		"soundClip": {
+			"type": "internal",
+			"path": "bestiary/goblin-boss.mp3"
+		},
+		"attachedItems": [
+			"javelin|phb",
+			"scimitar|phb"
+		],
+		"senseTags": [
+			"D"
+		],
+		"actionTags": [
+			"Multiattack"
+		],
+		"languageTags": [
+			"C",
+			"GO"
+		],
+		"damageTags": [
+			"P",
+			"S"
+		],
+		"miscTags": [
+			"MLW",
+			"MW",
+			"RW",
+			"THW"
+		],
+		"hasToken": true,
+		"hasFluff": true,
+		"hasFluffImages": true,
+		"__prop": "monster",
+		"_fSpeedType": [
+			"walk"
+		],
+		"_fSpeed": 30,
+		"_fAc": [
+			17
+		],
+		"_fHp": 21,
+		"_fAlign": [
+			"N",
+			"E",
+			"NX"
+		],
+		"_fEnvironment": [
+			"forest",
+			"grassland",
+			"hill",
+			"underdark"
+		],
+		"_fVuln": [],
+		"_fRes": [],
+		"_fImm": [],
+		"_fCondImm": [],
+		"_fSave": [],
+		"_fSkill": [
+			"stealth"
+		],
+		"_fSources": [
+			"MM",
+			{
+				"item": "SKT",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "ToA",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "WDMM",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "GoS",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "BGDIA",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "IDRotF",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "TCE",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "WBtW",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "KftGV",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "PaBTSO",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			}
+		],
+		"_fPassive": 9,
+		"_fStr": 10,
+		"_fDex": 14,
+		"_fCon": 10,
+		"_fInt": 10,
+		"_fWis": 8,
+		"_fCha": 10,
+		"_fMisc": [
+			"MLW",
+			"MW",
+			"RW",
+			"THW",
+			"AC from Item(s)",
+			"Reactions",
+			"Has Token",
+			"Has Info",
+			"Has Images"
+		],
+		"_fLanguageTags": [
+			"C",
+			"GO"
+		],
+		"_fEquipment": [
+			"javelin|phb",
+			"scimitar|phb",
+			"chain shirt|phb",
+			"shield|phb"
+		],
+		"_pTypes": {
+			"types": [
+				"humanoid"
+			],
+			"tags": [
+				"goblinoid"
+			],
+			"asText": "Humanoid (Goblinoid)",
+			"asTextShort": "Humanoid (Goblinoid)",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "1",
+		"_fCr": [
+			"1"
+		]
+	},
+	{
+		"name": "Xvart",
+		"source": "MPMM",
+		"page": 267,
+		"otherSources": [
+			{
+				"source": "VGM",
+				"page": 200
+			}
+		],
+		"size": [
+			"S"
+		],
+		"type": "monstrosity",
+		"alignment": [
+			"C",
+			"E"
+		],
+		"alignmentPrefix": "Typically ",
+		"ac": [
+			{
+				"ac": 13,
+				"from": [
+					"{@item leather armor|PHB}"
+				]
+			}
+		],
+		"hp": {
+			"average": 7,
+			"formula": "2d6"
+		},
+		"speed": {
+			"walk": 30
+		},
+		"str": 8,
+		"dex": 14,
+		"con": 10,
+		"int": 8,
+		"wis": 7,
+		"cha": 7,
+		"skill": {
+			"stealth": "+4"
+		},
+		"senses": [
+			"darkvision 30 ft."
+		],
+		"passive": 8,
+		"languages": [
+			"Abyssal"
+		],
+		"cr": "1/8",
+		"trait": [
+			{
+				"name": "Raxivort's Tongue",
+				"entries": [
+					"The xvart can communicate with ordinary {@creature bat|mm|bats} and {@creature rat|mm|rats}, as well as {@creature giant bat|mm|giant bats} and {@creature giant rat|mm|giant rats}."
+				]
+			}
+		],
+		"action": [
+			{
+				"name": "Shortsword",
+				"entries": [
+					"{@atk mw} {@hit 4} to hit, reach 5 ft., one target. {@h}5 ({@dice 1d6 + 2}) piercing damage. If at least one of the xvart's allies is within 5 feet of the target, the xvart can push the target 5 feet if the target is a Medium or smaller creature."
+				]
+			},
+			{
+				"name": "Sling",
+				"entries": [
+					"{@atk rw} {@hit 4} to hit, range 30/120 ft., one target. {@h}4 ({@damage 1d4 + 2}) bludgeoning damage."
+				]
+			}
+		],
+		"bonus": [
+			{
+				"name": "Low Cunning",
+				"entries": [
+					"The xvart takes the {@action Disengage} action."
+				]
+			}
+		],
+		"environment": [
+			"hill",
+			"underdark"
+		],
+		"soundClip": {
+			"type": "internal",
+			"path": "bestiary/xvart.mp3"
+		},
+		"attachedItems": [
+			"shortsword|phb",
+			"sling|phb"
+		],
+		"senseTags": [
+			"D"
+		],
+		"languageTags": [
+			"AB"
+		],
+		"damageTags": [
+			"P"
+		],
+		"miscTags": [
+			"MLW",
+			"MW",
+			"RNG",
+			"RW"
+		],
+		"hasToken": true,
+		"hasFluff": true,
+		"hasFluffImages": true,
+		"__prop": "monster",
+		"_pTypes": {
+			"types": [
+				"monstrosity"
+			],
+			"tags": [],
+			"asText": "Monstrosity",
+			"asTextShort": "Monstrosity",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "1/8",
+		"_fCr": [
+			"1/8"
+		],
+		"_fSpeedType": [
+			"walk"
+		],
+		"_fSpeed": 30,
+		"_fAc": [
+			13
+		],
+		"_fHp": 7,
+		"_fAlign": [
+			"C",
+			"E"
+		],
+		"_fEnvironment": [
+			"hill",
+			"underdark"
+		],
+		"_fVuln": [],
+		"_fRes": [],
+		"_fImm": [],
+		"_fCondImm": [],
+		"_fSave": [],
+		"_fSkill": [
+			"stealth"
+		],
+		"_fSources": [
+			"MPMM",
+			{
+				"item": "VGM",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			}
+		],
+		"_fPassive": 8,
+		"_fStr": 8,
+		"_fDex": 14,
+		"_fCon": 10,
+		"_fInt": 8,
+		"_fWis": 7,
+		"_fCha": 7,
+		"_fMisc": [
+			"MLW",
+			"MW",
+			"RNG",
+			"RW",
+			"AC from Item(s)",
+			"Bonus Actions",
+			"Has Token",
+			"Has Info",
+			"Has Images"
+		],
+		"_fLanguageTags": [
+			"AB"
+		],
+		"_fEquipment": [
+			"shortsword|phb",
+			"sling|phb",
+			"leather armor|phb"
+		]
+	},
+	{
+		"name": "Kobold Inventor",
+		"source": "MPMM",
+		"page": 164,
+		"otherSources": [
+			{
+				"source": "VGM",
+				"page": 166
+			}
+		],
+		"size": [
+			"S"
+		],
+		"type": "humanoid",
+		"alignment": [
+			"A"
+		],
+		"ac": [
+			12
+		],
+		"hp": {
+			"average": 13,
+			"formula": "3d6 + 3"
+		},
+		"speed": {
+			"walk": 30
+		},
+		"str": 7,
+		"dex": 15,
+		"con": 12,
+		"int": 14,
+		"wis": 10,
+		"cha": 8,
+		"senses": [
+			"darkvision 60 ft."
+		],
+		"passive": 10,
+		"languages": [
+			"Common",
+			"Draconic"
+		],
+		"cr": "1/4",
+		"trait": [
+			{
+				"name": "Pack Tactics",
+				"entries": [
+					"The kobold has advantage on an attack roll against a creature if at least one of the kobold's allies is within 5 feet of the creature and the ally isn't {@condition incapacitated}."
+				]
+			},
+			{
+				"name": "Sunlight Sensitivity",
+				"entries": [
+					"While in sunlight, the kobold has disadvantage on attack rolls, as well as on Wisdom ({@skill Perception}) checks that rely on sight."
+				]
+			}
+		],
+		"action": [
+			{
+				"name": "Dagger",
+				"entries": [
+					"{@atk mw,rw} {@hit 4} to hit, reach 5 ft. or range 20/60 ft., one target. {@h}4 ({@damage 1d4 + 2}) piercing damage."
+				]
+			},
+			{
+				"name": "Sling",
+				"entries": [
+					"{@atk rw} {@hit 4} to hit, range 30/120 ft., one target. {@h}4 ({@damage 1d4 + 2}) bludgeoning damage."
+				]
+			},
+			{
+				"name": "Weapon Invention",
+				"entries": [
+					"The kobold uses one of the following options (choose one or roll a {@dice d8}); the kobold can use each one no more than once per day:",
+					{
+						"type": "list",
+						"style": "list-hang-notitle",
+						"items": [
+							{
+								"name": "1: Acid",
+								"entries": [
+									"The kobold hurls a {@item acid (vial)|PHB|flask of acid}. {@atk rw} {@hit 4} to hit, range 5/20 ft., one target. {@h}7 ({@damage 2d6}) acid damage."
+								],
+								"type": "item"
+							},
+							{
+								"name": "2: Alchemist's Fire",
+								"entries": [
+									"The kobold throws a {@item Alchemist's Fire (flask)|PHB|flask of alchemist's fire}. {@atk rw} {@hit 4} to hit, range 5/20 ft., one target. {@h}2 ({@damage 1d4}) fire damage at the start of each of the target's turns. The target can end this damage by using its action to make a {@dc 10} Dexterity check to extinguish the flames."
+								],
+								"type": "item"
+							},
+							{
+								"name": "3: Basket of Centipedes",
+								"entries": [
+									"The kobold throws a small basket into a 5-foot-square space within 20 feet of it. A {@creature Swarm of Centipedes||swarm of insects (centipedes)} with 11 hit points emerges from the basket and rolls initiative. At the end of each of the swarm's turns, there's a {@chance 50|50 percent} chance that the swarm disperses."
+								],
+								"type": "item"
+							},
+							{
+								"name": "4: Green Slime Pot",
+								"entries": [
+									"The kobold throws a clay pot full of green slime at the target, and it breaks open on impact. {@atk rw} {@hit 4} to hit, range 5/20 ft., one target. {@h}5 ({@damage 1d10}) acid damage, and the target is covered in slime until a creature uses its action to scrape or wash the slime off. A target covered in the slime takes 5 ({@damage 1d10}) acid damage at the start of each of its turns."
+								],
+								"type": "item"
+							},
+							{
+								"name": "5: Rot Grub Pot",
+								"entries": [
+									"The kobold throws a clay pot into a 5-foot-square space within 20 feet of it, and it breaks open on impact. A {@creature swarm of rot grubs|MPMM} (in this book) emerges from the shattered pot and remains a hazard in that square."
+								],
+								"type": "item"
+							},
+							{
+								"name": "6: Scorpion on a Stick",
+								"entries": [
+									"The kobold makes a melee attack with a {@creature scorpion} tied to the end of a 5-foot-long pole. {@atk mw} {@hit 4} to hit, reach 5 ft., one target. {@h}1 piercing damage, and the target must make a {@dc 9} Constitution saving throw, taking 4 ({@damage 1d8}) poison damage on a failed save, or half as much damage on a successful one."
+								],
+								"type": "item"
+							},
+							{
+								"name": "7: Skunk in a Cage",
+								"entries": [
+									"The kobold releases a skunk into an unoccupied space within 5 feet of it. The skunk has a walking speed of 20 feet, AC 10, 1 hit point, and no effective attacks. It rolls initiative and, on its turn, uses its action to spray musk at a random creature within 5 feet of it. The target must succeed on a {@dc 9} Constitution saving throw, or it retches and is {@condition incapacitated} for 1 minute. The target can repeat the saving throw at the end of each of its turns, ending the effect on itself on a success. A creature that doesn't need to breathe or is immune to poison automatically succeeds on the saving throw. Once the skunk has sprayed its musk, it can't do so again until it finishes a short or long rest."
+								],
+								"type": "item"
+							},
+							{
+								"name": "8: Wasp Nest in a Bag",
+								"entries": [
+									"The kobold throws a small bag into a 5-foot-square space within 20 feet of it. A {@creature Swarm of Wasps||swarm of insects (wasps)} with 11 hit points emerges from the bag and rolls initiative. At the end of each of the swarm's turns, there's a {@chance 50|50 percent} chance that the swarm disperses."
+								],
+								"type": "item"
+							}
+						]
+					}
+				]
+			}
+		],
+		"environment": [
+			"forest",
+			"hill",
+			"mountain",
+			"underdark",
+			"urban"
+		],
+		"soundClip": {
+			"type": "internal",
+			"path": "bestiary/kobold-inventor.mp3"
+		},
+		"attachedItems": [
+			"dagger|phb",
+			"sling|phb"
+		],
+		"traitTags": [
+			"Pack Tactics",
+			"Sunlight Sensitivity"
+		],
+		"senseTags": [
+			"D"
+		],
+		"languageTags": [
+			"C",
+			"DR"
+		],
+		"damageTags": [
+			"A",
+			"B",
+			"F",
+			"I",
+			"P"
+		],
+		"miscTags": [
+			"MLW",
+			"MW",
+			"RNG",
+			"RW",
+			"THW"
+		],
+		"conditionInflict": [
+			"incapacitated"
+		],
+		"savingThrowForced": [
+			"constitution"
+		],
+		"hasToken": true,
+		"hasFluff": true,
+		"hasFluffImages": true,
+		"__prop": "monster",
+		"_pTypes": {
+			"types": [
+				"humanoid"
+			],
+			"tags": [],
+			"asText": "Humanoid",
+			"asTextShort": "Humanoid",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "1/4",
+		"_fCr": [
+			"1/4"
+		],
+		"_fSpeedType": [
+			"walk"
+		],
+		"_fSpeed": 30,
+		"_fAc": [
+			12
+		],
+		"_fHp": 13,
+		"_fAlign": [
+			"A"
+		],
+		"_fEnvironment": [
+			"forest",
+			"hill",
+			"mountain",
+			"underdark",
+			"urban"
+		],
+		"_fVuln": [],
+		"_fRes": [],
+		"_fImm": [],
+		"_fCondImm": [],
+		"_fSave": [],
+		"_fSkill": [],
+		"_fSources": [
+			"MPMM",
+			{
+				"item": "VGM",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			}
+		],
+		"_fPassive": 10,
+		"_fStr": 7,
+		"_fDex": 15,
+		"_fCon": 12,
+		"_fInt": 14,
+		"_fWis": 10,
+		"_fCha": 8,
+		"_fMisc": [
+			"MLW",
+			"MW",
+			"RNG",
+			"RW",
+			"THW",
+			"Has Token",
+			"Has Info",
+			"Has Images"
+		],
+		"_fLanguageTags": [
+			"C",
+			"DR"
+		],
+		"_fEquipment": [
+			"dagger|phb",
+			"sling|phb"
+		]
+	},
+	{
+		"name": "Half-Ogre",
+		"source": "MM",
+		"page": 238,
+		"otherSources": [
+			{
+				"source": "PotA"
+			},
+			{
+				"source": "SKT"
+			},
+			{
+				"source": "WDH"
+			},
+			{
+				"source": "BGDIA"
+			},
+			{
+				"source": "ERLW"
+			},
+			{
+				"source": "IDRotF"
+			},
+			{
+				"source": "DSotDQ"
+			}
+		],
+		"size": [
+			"L"
+		],
+		"type": "giant",
+		"alignment": [
+			"C",
+			"G",
+			"NY",
+			"E"
+		],
+		"ac": [
+			{
+				"ac": 12,
+				"from": [
+					"{@item hide armor|phb}"
+				]
+			}
+		],
+		"hp": {
+			"average": 30,
+			"formula": "4d10 + 8"
+		},
+		"speed": {
+			"walk": 30
+		},
+		"str": 17,
+		"dex": 10,
+		"con": 14,
+		"int": 7,
+		"wis": 9,
+		"cha": 10,
+		"senses": [
+			"darkvision 60 ft."
+		],
+		"passive": 9,
+		"languages": [
+			"Common",
+			"Giant"
+		],
+		"cr": "1",
+		"action": [
+			{
+				"name": "Battleaxe",
+				"entries": [
+					"{@atk mw} {@hit 5} to hit, reach 5 ft., one target. {@h}12 ({@damage 2d8 + 3}) slashing damage, or 14 ({@damage 2d10 + 3}) slashing damage if used with two hands."
+				]
+			},
+			{
+				"name": "Javelin",
+				"entries": [
+					"{@atk mw,rw} {@hit 5} to hit, reach 5 ft. or range 30/120 ft., one target. {@h}10 ({@damage 2d6 + 3}) piercing damage."
+				]
+			}
+		],
+		"environment": [
+			"arctic",
+			"desert",
+			"forest",
+			"hill",
+			"mountain",
+			"underdark",
+			"urban"
+		],
+		"soundClip": {
+			"type": "internal",
+			"path": "bestiary/half-ogre.mp3"
+		},
+		"attachedItems": [
+			"battleaxe|phb",
+			"javelin|phb"
+		],
+		"senseTags": [
+			"D"
+		],
+		"languageTags": [
+			"C",
+			"GI"
+		],
+		"damageTags": [
+			"P",
+			"S"
+		],
+		"miscTags": [
+			"MLW",
+			"MW",
+			"RW",
+			"THW"
+		],
+		"hasToken": true,
+		"hasFluff": true,
+		"hasFluffImages": true,
+		"__prop": "monster",
+		"_pTypes": {
+			"types": [
+				"giant"
+			],
+			"tags": [],
+			"asText": "Giant",
+			"asTextShort": "Giant",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "1",
+		"_fCr": [
+			"1"
+		],
+		"_fSpeedType": [
+			"walk"
+		],
+		"_fSpeed": 30,
+		"_fAc": [
+			12
+		],
+		"_fHp": 30,
+		"_fAlign": [
+			"C",
+			"G",
+			"NY",
+			"E"
+		],
+		"_fEnvironment": [
+			"arctic",
+			"desert",
+			"forest",
+			"hill",
+			"mountain",
+			"underdark",
+			"urban"
+		],
+		"_fVuln": [],
+		"_fRes": [],
+		"_fImm": [],
+		"_fCondImm": [],
+		"_fSave": [],
+		"_fSkill": [],
+		"_fSources": [
+			"MM",
+			{
+				"item": "PotA",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "SKT",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "WDH",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "BGDIA",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "ERLW",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "IDRotF",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "DSotDQ",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			}
+		],
+		"_fPassive": 9,
+		"_fStr": 17,
+		"_fDex": 10,
+		"_fCon": 14,
+		"_fInt": 7,
+		"_fWis": 9,
+		"_fCha": 10,
+		"_fMisc": [
+			"MLW",
+			"MW",
+			"RW",
+			"THW",
+			"AC from Item(s)",
+			"Has Token",
+			"Has Info",
+			"Has Images"
+		],
+		"_fLanguageTags": [
+			"C",
+			"GI"
+		],
+		"_fEquipment": [
+			"battleaxe|phb",
+			"javelin|phb",
+			"hide armor|phb"
+		]
+	}
+]
