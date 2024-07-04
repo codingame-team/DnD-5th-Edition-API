@@ -462,6 +462,9 @@ def save_character(char: Character, _dir: str):
     with open(f'{_dir}/{char.name}.dmp', 'wb') as f1:
         pickle.dump(char, f1)
 
+def load_character(char_name: str, _dir: str) -> Character:
+    with open(f'{_dir}/{char_name}.dmp', 'rb') as f1:
+        return pickle.load(f1)
 
 def get_roster(characters_dir: str) -> List[Character]:
     roster: List[Character] = []
