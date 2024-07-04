@@ -99,8 +99,9 @@ class Monster(Sprite):
 
     @property
     def level(self) -> int:
-        dice_count, roll_dice = map(int, self.hit_dice.split('d'))
-        return dice_count * roll_dice
+        hit_dice, bonus = self.hit_dice.split(' + ') if '+' in self.hit_dice else (self.hit_dice, '0')
+        dice_count, roll_dice = map(int, hit_dice.split('d'))
+        return dice_count * roll_dice + int(bonus)
 
     def __copy__(self):
         return Monster(self.name, self.abilities, self.proficiencies, self.armor_class, self.hit_points, self.hit_dice,
@@ -414,6 +415,7 @@ class HealingPotion(Sprite):
     hit_dice: str
     bonus: int
     rarity: PotionRarity
+    cost: int
 
     def __copy__(self):
         # Create a shallow copy of the object
@@ -422,6 +424,7 @@ class HealingPotion(Sprite):
         result.__dict__.update(self.__dict__)
         # For each attribute that should be deep-copied, use copy.copy
         result.rarity = copy(self.rarity)
+        result.cost = copy(self.cost)
         return result
 
     @property
@@ -755,8 +758,8 @@ class Character(Sprite):
         return equipped_armors[0] if equipped_armors else None
 
     @property
-    def get_status(self) -> str:
-        return 'DEAD' if self.hit_points <= 0 else 'OK'
+    def is_dead(self) -> bool:
+        return self.hit_points <= 0
 
     def can_equip(self, eq: Equipment) -> bool:
         return (eq.category.index == 'armor' and eq in self.allowed_armors) or (eq.category.index == 'armor' and eq in self.allowed_weapons)
