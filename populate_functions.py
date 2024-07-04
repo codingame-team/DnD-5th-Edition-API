@@ -380,7 +380,7 @@ def get_special_monster_actions(name: str):
                attack_bonus=3,
                multi_attack=None, damages=damages)
         actions.append(action)
-    elif name == "Illusionist Wizard":
+    elif name == "Illusionist":
         # Multiple attack
         damage_type: DamageType = request_damage_type(index_name='psychic')
         damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='2d10', bonus=3))]
@@ -446,6 +446,56 @@ def get_special_monster_actions(name: str):
         #        attack_bonus=4,
         #        multi_attack=None, damages=damages)
         # actions.append(action)
+    elif name == "Xvart":
+        # Single Attacks
+        damage_type: DamageType = request_damage_type(index_name='piercing')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='1d6', bonus=2))]
+        action = Action(name='Shortsword', desc='', type=ActionType.MELEE,
+               attack_bonus=4,
+               multi_attack=None, damages=damages)
+        actions.append(action)
+        # Ranged attack
+        # damage_type: DamageType = request_damage_type(index_name='bludgeoning')
+        # damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='1d4', bonus=2))]
+        # range = '30/120 ft'
+        # action = Action(name='v', desc='', type=ActionType.RANGED,
+        #        attack_bonus=4,
+        #        multi_attack=None, damages=damages)
+        # actions.append(action)
+    elif name == "Kobold Inventor":
+        # Single Attacks
+        damage_type: DamageType = request_damage_type(index_name='piercing')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='1d4', bonus=2))]
+        action = Action(name='Shortsword', desc='', type=ActionType.MELEE,
+               attack_bonus=4,
+               multi_attack=None, damages=damages)
+        actions.append(action)
+        # Ranged attack
+        # damage_type: DamageType = request_damage_type(index_name='bludgeoning')
+        # damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='1d4', bonus=2))]
+        # range = '30/120 ft'
+        # action = Action(name='v', desc='', type=ActionType.RANGED,
+        #        attack_bonus=4,
+        #        multi_attack=None, damages=damages)
+        # actions.append(action)
+        # "Weapon Invention"
+        # "The kobold uses one of the following options (choose one or roll a {@dice d8}); the kobold can use each one no more than once per day:"
+    elif name == "Half-ogre":
+        # Single Attacks
+        damage_type: DamageType = request_damage_type(index_name='piercing')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='2d8', bonus=3))]
+        action = Action(name='Battleaxe', desc='', type=ActionType.MELEE,
+               attack_bonus=5,
+               multi_attack=None, damages=damages)
+        actions.append(action)
+        # Ranged attack
+        # damage_type: DamageType = request_damage_type(index_name='bludgeoning')
+        # damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='2d6', bonus=3))]
+        # range = '30/120 ft'
+        # action = Action(name='v', desc='', type=ActionType.RANGED,
+        #        attack_bonus=5,
+        #        multi_attack=None, damages=damages)
+        # actions.append(action)
     return actions
 
 def request_monster_other(name: str) -> Optional[Monster]:
@@ -456,7 +506,7 @@ def request_monster_other(name: str) -> Optional[Monster]:
     """
     with open(f"{path}/maze/other_monsters/bestiary-sublist-data.json", "r") as f:
         list_data = json.loads(f.read())
-        monster_data = [monster for monster in list_data if monster['name'] == name]
+        monster_data = [monster for monster in list_data if monster['name'].lower() == name.lower() ]
         if not monster_data:
             return None
         data = monster_data[0]
@@ -466,19 +516,25 @@ def request_monster_other(name: str) -> Optional[Monster]:
         spell_caster: Optional[SpellCaster] = None
         special_abilities: List[SpecialAbility] = []
         ac: int = data['_fAc'][0]
-        hit_dice = data['hp']['formula']
-        dice, bonus = hit_dice.split(' + ') if '+' in hit_dice else hit_dice, 0
-        hit_dice = DamageDice(dice=dice, bonus=int(bonus))
+        hit_dice: str = data['hp']['formula']
+        dice, bonus = hit_dice.split(' + ') if '+' in hit_dice else [hit_dice, 0]
+        hit_dice: DamageDice = DamageDice(dice=dice, bonus=int(bonus))
         # https://tomedunn.github.io/the-finished-book/monsters/calculating-monster-xp/
         # multi_attacks: List[Action] = [a for m in actions for a in m.multi_attack if m.multi_attack]
         single_attacks: List[Action] = [a for a in actions if not a.multi_attack]
-        # attacks = single_attacks + multi_attacks
-        damages: List[int] = [damage.dd.avg for a in single_attacks for damage in a.damages]
+        print(name)
+        multi_attacks: List[Action] = []
+        # if any(a.multi_attack for a in actions):
+        multi_attacks = [m for a in actions if a.multi_attack for m in a.multi_attack]
+        attacks = single_attacks + multi_attacks
+        damages: List[int] = [damage.dd.avg for a in attacks for damage in a.damages]
         # effective_attack_bonus
-        ab: float = sum([a.attack_bonus for a in single_attacks]) / len(single_attacks)
+        # attack_bonus_list: List[int] = [a.attack_bonus for a in single_attacks if not a.multi_attack] + [m.attack_bonus for a in actions for m in a.multi_attack if a.multi_attack]
+        ab: float = sum([a.attack_bonus for a in attacks]) / len(attacks)
         # average damage per round assuming all attacks hit
         dpr: float = sum(damages) / len(damages)
         xp: float = 5 * int(data['hp']['average']) * dpr * (ac + ab - 2) / (4 * 13)
+        print(f'{name}: {xp} XP')
         return Monster(id=-1,
                        image_name=f'monster_enemy.png',
                        x=-1, y=-1, old_x=-1, old_y=-1,
