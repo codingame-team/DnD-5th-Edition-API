@@ -8,7 +8,7 @@ import tty
 from enum import Enum
 from random import randint, choice
 from time import time
-from typing import List, re
+from typing import List
 import numpy as np
 
 from tools.dungeon_perl import create_dungeon
@@ -89,40 +89,6 @@ def exit_message(message: str = None):
         k = get_key()
         if k == 'return':
             break
-
-
-# Fonctions pour dessiner les menus et gérer les rectangles de texte
-def draw_character_menu(screen, roster, scroll_offset, line_height, font):
-    screen.fill(WHITE)
-    # title = font.render("=== Choose Your Character ===", True, BLACK)
-    # screen.blit(title, (SCREEN_WIDTH // 2 - title.get_width() // 2, line_height))
-
-    text_rects = []
-    for index, character in enumerate(roster):
-        y_position = line_height * 2 + (index * line_height) - scroll_offset
-        if 0 <= y_position < SCREEN_HEIGHT:
-            # option = font.render(f"{index + 1}. {character.name} (Level {character.level} {character.class_type})", True, RED)
-            if hasattr(character, 'class_type'):
-                option = font.render(f"{character.name} (Level {character.level} {character.class_type})", True, RED)
-            else:
-                option = font.render(f"{character.name} (CR {character.level})", True, RED)
-            rect = option.get_rect(center=(SCREEN_WIDTH // 2, y_position))
-            screen.blit(option, rect)
-            text_rects.append(rect)
-        else:
-            text_rects.append(None)  # Placeholder for non-visible options
-
-    # option2 = font.render(f"{len(roster) + 1}. Exit", True, BLACK)
-    option2 = font.render(f"Exit", True, BLACK)
-    y_position = line_height * 2 + (len(roster) * line_height) - scroll_offset
-    if 0 <= y_position < SCREEN_HEIGHT:
-        rect = option2.get_rect(center=(SCREEN_WIDTH // 2, y_position))
-        screen.blit(option2, rect)
-        text_rects.append(rect)
-    else:
-        text_rects.append(None)  # Placeholder for non-visible options
-
-    return text_rects
 
 
 # Cave generation algorithm
@@ -258,6 +224,8 @@ def parse_monster_record(record: str) -> dict:
         if match[1] != 'and':
             monsters[match[1]] = match[0] if match[0] else 1
     return monsters
+
+
 
 
 
