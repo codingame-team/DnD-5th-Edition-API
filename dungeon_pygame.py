@@ -1354,6 +1354,7 @@ def move_char(game: Game, char: Monster | Character, pos: tuple):
     # print(game.round_no)
     if not pos:
         return
+    char.old_x, char.old_y = char.x, char.y
     x, y = pos
     if (x, y) in game.level.walkable_tiles:
         if mh_dist(char.pos, (x, y)) <= 1:
