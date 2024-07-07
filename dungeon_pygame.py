@@ -140,6 +140,7 @@ class Level:
     fullname: str
     rooms: List[Room]
     start_pos: tuple
+    wandering_monsters: List[dict] = []
 
     def __init__(self, level_no: int, name: str = ''):
         self.level_no = level_no
@@ -209,6 +210,7 @@ class Level:
             door_traps = [(x, y) for x in range(width) for y in range(height) if cells[y][x] & TRAPPED]
             stair_up = [(x, y) for x in range(width) for y in range(height) if cells[y][x] & STAIR_UP][0]
             stair_down = [(x, y) for x in range(width) for y in range(height) if cells[y][x] & STAIR_DN][0]
+            # Parse corridor events
             corridor_features = dungeon['corridor_features'] if 'corridor_features' in dungeon else {}
             corridor_events: dict = {}
             if corridor_features:
@@ -216,6 +218,15 @@ class Level:
                     for mark in feature_detail['marks']:
                         x, y = mark['col'], mark['row']
                         corridor_events[(x, y)] = feature_detail['detail']
+            # Parse wandering monsters
+            for monsters_detail in dungeon['wandering_monsters'].values():
+                monsters_dict = get_monster_counts(text=monsters_detail)
+                monsters: List[str] = []
+                for monster_name, monster_count in monsters_dict.items():
+                    for _ in range(monster_count):
+                        monsters.append(monster_name)
+                self.wandering_monsters += [monsters]
+            # Parse room events
             room_traps: dict = {}
             room_door_traps: dict = {}
             rooms: List[Room] = []
@@ -283,12 +294,12 @@ class Level:
         # bestiary: List[Monster] = [request_monster(name) for name in monster_names]
 
         # rating = lambda m: m.cr < (hero.level / 4 if hero.level < 5 else hero.level / 2)
-        monster_names: List[str] = ['air-elemental', 'ankheg', 'baboon', 'bat', 'bugbear', 'chimera', 'dust-mephit', 'ettin', 'crab', 'ghost', 'gnoll', 'goblin', 'grimlock',
-                                    'hobgoblin', 'kobold', 'harpy', 'lizard', 'medusa', 'mimic', 'mummy', 'ogre', 'owl', 'poisonous-snake', 'rat', 'skeleton', 'spider', 'wolf',
-                                    'wyvern', 'young-red-dragon', 'zombie']
-        monster_candidates: List[Monster] = [request_monster(name) for name in monster_names]
-        monster_candidates = list(filter(None, monster_candidates))
-        monster_candidates = list(filter(lambda m: m.challenge_rating <= self.level_no / 4, monster_candidates))
+        # monster_names: List[str] = ['air-elemental', 'ankheg', 'baboon', 'bat', 'bugbear', 'chimera', 'dust-mephit', 'ettin', 'crab', 'ghost', 'gnoll', 'goblin', 'grimlock',
+        #                             'hobgoblin', 'kobold', 'harpy', 'lizard', 'medusa', 'mimic', 'mummy', 'ogre', 'owl', 'poisonous-snake', 'rat', 'skeleton', 'spider', 'wolf',
+        #                             'wyvern', 'young-red-dragon', 'zombie']
+        # monster_candidates: List[Monster] = [request_monster(name) for name in monster_names]
+        # monster_candidates = list(filter(None, monster_candidates))
+        # monster_candidates = list(filter(lambda m: m.challenge_rating <= self.level_no / 4, monster_candidates))
 
         open_positions: List[tuple] = [(x, y) for x in range(self.map_width) for y in range(self.map_height) if
                                        self.world_map[y][x] == '.' and (x, y) != hero.pos and (x, y) not in self.doors]
@@ -375,6 +386,8 @@ class Game:
     last_round_time: float
     ready_spell: Spell = None
     target_pos: tuple = None
+    round_no: int = 0
+    last_combat_round: int = 0
 
     def __init__(self, char_name: str, actions_panel=False, start_level=1):
         self.last_round_time = time.time()
@@ -842,7 +855,7 @@ class Game:
         self.hero.inventory[next_slot] = item
         sprites[item.id] = image
 
-    def open_chest(self, sprites, level_sprites):
+    def open_chest(self, sprites, level_sprites, potions: List[HealingPotion], item_sprites_dir):
         print(f'Hero gained a treasure!')
         t: Treasure = [t for t in self.level.treasures if t.pos == self.hero.pos][0]
         self.level.treasures.remove(t)
@@ -855,12 +868,12 @@ class Game:
         if t.has_item:
             match randint(1, 3):
                 case 1:
-                    item: HealingPotion = copy(choice(healing_potions)) # work on a copy to avoid sprite id colliding...
+                    item: HealingPotion = copy(choice(potions)) # work on a copy to avoid sprite id colliding...
                 case 2:
                     if self.hero.allowed_armors:
                         item: Armor = request_armor(index_name=choice(self.hero.allowed_armors).index)
                     else:
-                        item: HealingPotion = copy(choice(healing_potions))  # work on a copy to avoid sprite id colliding...
+                        item: HealingPotion = copy(choice(potions))  # work on a copy to avoid sprite id colliding...
                 case 3:
                     item: Weapon = request_weapon(index_name=choice(self.hero.allowed_weapons).index)
                     # item: Weapon = request_weapon('halberd')
@@ -947,6 +960,11 @@ class Game:
     @property
     def monsters_in_view_range(self, vision_range: int = 10) -> List[Monster]:
         return [m for m in self.level.monsters if mh_dist(self.hero.pos, m.pos) <= vision_range and in_view_range(*self.hero.pos, *m.pos, obstacles=self.level.obstacles)]
+
+    @property
+    def cells_in_view_range_from_hero(self, vision_range: int = 10) -> List[tuple]:
+        return [(x, y) for x in range(self.level.map_width) for y in range(self.level.map_height) if mh_dist(self.hero.pos, (x, y)) <= vision_range
+                and (x, y) not in self.level.obstacles and in_view_range(*self.hero.pos, x, y, obstacles=self.level.obstacles)]
 
     def update_visible_tiles(self, vision_range: int = 10):
         # self.level.visible_tiles = set()
@@ -1130,7 +1148,35 @@ def display_game_over(game):
             #     break
 
 
+def create_wandering_monsters(game) -> List[Monster]:
+    # Random encounter
+    new_monsters_list: List[str] = choice(game.level.wandering_monsters)
+    new_monsters: List[Monster] = []
+    for monster_name in new_monsters_list:
+        try:
+            monster = request_monster(monster_name.lower().replace(' ', '-'))
+            new_monsters.append(monster)
+        except FileNotFoundError:
+            monster = request_monster_other(monster_name)
+            if monster:
+                new_monsters.append(monster)
+            else:
+                cprint(f'unknown monster {Color.RED}{monster_name}{Color.END}!')
+    # game.last_combat_round = game.round_no
+    # Place monsters
+    # reachable_cells = [pos for pos in game.level.visible_tiles if pos not in game.level.obstacles]
+    in_view_range_cells: List[tuple] = game.cells_in_view_range_from_hero
+    todo_monsters = [*new_monsters]
+    in_view_range_cells.sort(key=lambda c: mh_dist(c, game.hero.pos))
+    while in_view_range_cells and todo_monsters:
+        cell = in_view_range_cells.pop()
+        monster = todo_monsters.pop()
+        monster.x, monster.y = cell
+    return new_monsters
+
+
 def main_game_loop(game):
+    global level_sprites
     running = True
     game.last_round_time = time.time()
     round_no: int = 1
@@ -1138,8 +1184,9 @@ def main_game_loop(game):
         # Calculate the time since the last frame
         current_time = time.time()
 
-        # I - Gestion des événements
+        # I - Gestion des actions utilisateur (évènements clavier/souris)
         handle_events(game)
+
         # II - Gestion des conditions de jeu
         handle_game_conditions(game)
 
@@ -1152,10 +1199,24 @@ def main_game_loop(game):
         # Check if a new round has started
         if game.hero.hit_points > 0:
             if current_time - game.last_round_time >= ROUND_DURATION:
-                round_no += 1
+                game.round_no += 1
                 # print(f'Round #{round_no}')
                 game.last_round_time = current_time
-                handle_combat(monsters=game.monsters_in_view_range)
+                # Check if there are monster in range
+                monsters_in_range = game.monsters_in_view_range
+                if monsters_in_range:
+                    handle_combat(game=game, monsters=monsters_in_range)
+                else:
+                    # Gestion des rencontres aléatoires
+                    if game.round_no > game.last_combat_round + 10:
+                        roll_dice = randint(1, 20)
+                        if roll_dice >= 18:
+                            new_monsters = create_wandering_monsters(game)
+                            game.level.monsters += new_monsters
+                            print(f'{len(new_monsters)} new monsters appears! Enjoy :-)')
+                            update_level_sprites(monsters=new_monsters, sprites=level_sprites)
+                        # else:
+                        #     print(f'no wandering monsters detected this time (roll: {roll_dice})...')
         else:
             cprint(f'{game.hero.name} has been defeated!')
             display_game_over(game)
@@ -1231,9 +1292,9 @@ def handle_in_map_click(game, event, x, y):
     game.target_pos = view_x + x, view_y + y
     if event.button == 3 and game.ready_spell:
         monsters_in_spell_range = [m for m in game.monsters_in_view_range if dist(game.hero.pos, m.pos) <= game.ready_spell.range // UNIT_SIZE]
-        handle_combat(party=[game.hero], monsters=monsters_in_spell_range, attack_spell=game.ready_spell)
+        handle_combat(game=game, monsters=monsters_in_spell_range, attack_spell=game.ready_spell)
     elif event.button == 1:
-        handle_combat(party=[game.hero], monsters=game.monsters_in_view_range)
+        handle_combat(game=game, monsters=game.monsters_in_view_range)
     game.last_round_time = time.time()
 
 
@@ -1290,6 +1351,9 @@ def display_room_info(game: Game, pos: tuple, room_no: int) -> int:
 
 def move_char(game: Game, char: Monster | Character, pos: tuple):
     global room_no
+    # print(game.round_no)
+    if not pos:
+        return
     x, y = pos
     if (x, y) in game.level.walkable_tiles:
         if mh_dist(char.pos, (x, y)) <= 1:
@@ -1310,7 +1374,6 @@ def move_char(game: Game, char: Monster | Character, pos: tuple):
         if isinstance(char, Character):
             game.level.explored_tiles.add(char.pos)
             game.update_visible_tiles()
-
 
 def handle_keyboard_events(game, event):
     if event.key == pygame.K_ESCAPE:
@@ -1333,13 +1396,13 @@ def handle_keyboard_events(game, event):
         else:
             print('No room found!')
     elif event.key == pygame.K_UP and game.can_move(char=game.hero, dir=UP):
-        handle_combat(monsters=game.monsters_in_view_range, party=[game.hero], move_action=(game.hero.x, game.hero.y - 1))
+        handle_combat(game=game, monsters=game.monsters_in_view_range, move_position=(game.hero.x, game.hero.y - 1))
     elif event.key == pygame.K_DOWN and game.can_move(char=game.hero, dir=DOWN):
-        handle_combat(monsters=game.monsters_in_view_range, party=[game.hero], move_action=(game.hero.x, game.hero.y + 1))
+        handle_combat(game=game, monsters=game.monsters_in_view_range, move_position=(game.hero.x, game.hero.y + 1))
     elif event.key == pygame.K_LEFT and game.can_move(char=game.hero, dir=LEFT):
-        handle_combat(monsters=game.monsters_in_view_range, party=[game.hero], move_action=(game.hero.x - 1, game.hero.y))
+        handle_combat(game=game, monsters=game.monsters_in_view_range, move_position=(game.hero.x - 1, game.hero.y))
     elif event.key == pygame.K_RIGHT and game.can_move(char=game.hero, dir=RIGHT):
-        handle_combat(monsters=game.monsters_in_view_range, party=[game.hero], move_action=(game.hero.x + 1, game.hero.y))
+        handle_combat(game=game, monsters=game.monsters_in_view_range, move_position=(game.hero.x + 1, game.hero.y))
     elif event.key == pygame.K_p:
         handle_potion_use(game)
     elif event.key == pygame.K_o:
@@ -1373,7 +1436,7 @@ def handle_potion_use(game):
 
 
 def handle_game_conditions(game):
-    handle_treasure_chests(game)
+    handle_treasure_chests(game=game)
     handle_level_changes(game)
     handle_fountains(game)
 
@@ -1392,36 +1455,100 @@ def get_initiative_order(characters):
     initiative_rolls.sort(key=lambda x: x[1], reverse=True)
     return [char for char, _ in initiative_rolls]
 
+# def handle_combat_new(game: Game, monsters: List[Monster], attack_spell: Spell = None, move_position: tuple = None) -> None:
+#     """
+#     Handle the combat against the monsters.
+#
+#     Args:
+#         game (Game): The game instance.
+#         monsters (List[Monster]): A list of monsters to combat.
+#         attack_spell (Spell, optional): The spell to use for attack. Defaults to None.
+#         move_position (tuple, optional): The position to move to. Defaults to None.
+#     """
+#     attack_order = get_initiative_order([game.hero] + monsters)
+#     for char in attack_order:
+#         if isinstance(char, Character):
+#             handle_character_action(game, char, attack_spell, move_position)
+#         else:
+#             handle_monster_action(game, char)
+#
+# def handle_character_action(game: Game, character: Character, attack_spell: Spell, move_position: tuple) -> None:
+#     """
+#     Handle the character's action during combat.
+#
+#     Args:
+#         game (Game): The game instance.
+#         character (Character): The character performing the action.
+#         attack_spell (Spell, optional): The spell to use for attack. Defaults to None.
+#         move_position (tuple, optional): The position to move to. Defaults to None.
+#     """
+#     if character.hit_points > 0:
+#         if move_position:
+#             handle_move_action(game, character, move_position)
+#         elif attack_spell:
+#             handle_right_click_spell_attack(game)
+#         else:
+#             handle_left_click_action(game)
+#
+# def handle_move_action(game: Game, character: Character, move_position: tuple) -> None:
+#     """
+#     Handle the character's move action during combat.
+#
+#     Args:
+#         game (Game): The game instance.
+#         character (Character): The character performing the move action.
+#         move_position (tuple): The position to move to.
+#     """
+#     if move_position not in game.level.obstacles:
+#         move_char(game, character, move_position)
+#     else:
+#         cprint(f'Path is blocked!')
+#
+# def handle_monster_action(game: Game, monster: Monster) -> None:
+#     """
+#     Handle the monster's action during combat.
+#
+#     Args:
+#         game (Game): The game instance.
+#         monster (Monster): The monster performing the action.
+#     """
+#     if monster.hit_points > 0:
+#         handle_monster_actions(game, monster)
+#         game.last_combat_round = game.round_no
 
-def handle_combat(monsters: List[Monster], party=None, attack_spell: Spell = None, move_action: tuple = None):
-    """
-    Handle the combat between the party and the monsters.
 
-    Args:
-        party (list): A list of party members.
-        monsters (list): A list of monsters.
+def handle_combat(game: Game, monsters: List[Monster], attack_spell: Spell = None, move_position: tuple = None):
     """
-    if party is None:
-        party = []
-    attack_order = get_initiative_order(party + monsters)
+        Handle the combat against the monsters.
+    :param game:
+    :param monsters:
+    :param attack_spell:
+    :param move_position:
+    :return:
+    """
+    attack_order = get_initiative_order([game.hero] + monsters)
     for char in attack_order:
-        if char in party and char.hit_points > 0:
-            # Handle party member's action
-            if move_action:
-                if move_action not in game.level.obstacles:
-                    move_char(game, char, move_action)
+        if isinstance(char, Character):
+            if char.hit_points > 0:
+                # Handle party member's action
+                if move_position:
+                    if move_position not in game.level.obstacles:
+                        move_char(game=game, char=game.hero, pos=move_position)
+                    else:
+                        cprint(f'Path is blocked!')
+                elif attack_spell:
+                    handle_right_click_spell_attack(game)
                 else:
-                    cprint(f'Path is blocked!')
-            elif attack_spell:
-                handle_right_click_spell_attack(game)
+                    handle_left_click_action(game)
             else:
-                handle_left_click_action(game)
+                break
         else:
             if char.hit_points <= 0:
                 continue
             # Handle monster's attack
             handle_monster_actions(game, char)
-
+            game.last_combat_round = game.round_no
+    game.round_no += 1
 
 def handle_monster_actions(game, monster):
     if mh_dist(monster.pos, game.hero.pos) <= 1:
@@ -1429,7 +1556,7 @@ def handle_monster_actions(game, monster):
         game.hero.hit_points -= monster.melee_attack(game.hero)
     else:
         # Monster moves towards the hero
-        move_char(game, monster, game.hero.pos)
+        move_char(game=game, char=monster, pos=game.hero.pos)
 
 
 # def handle_monster_attacks(game) -> bool:
@@ -1444,7 +1571,7 @@ def handle_monster_actions(game, monster):
 
 def handle_treasure_chests(game):
     if any(t.pos == game.hero.pos for t in game.level.treasures):
-        game.open_chest(sprites, level_sprites)
+        game.open_chest(sprites, level_sprites, potions=healing_potions, item_sprites_dir=item_sprites_dir)
 
 
 def handle_fountains(game):
@@ -1480,17 +1607,17 @@ def handle_level_changes(game):
                 game.level = game.levels[game.dungeon_level - 1]
             game.update_level(dir=1)
             screen = pygame.display.set_mode((game.screen_width, game.screen_height))
-            level_sprites = load_level_sprites(game.level)
+            level_sprites = create_level_sprites(game.level)
         case '<':
             print(f'Hero found upstairs!')
             game.dungeon_level -= 1
             game.level = game.levels[game.dungeon_level - 1]  # if game.dungeon_level in game.levels else Level(level_no=game.dungeon_level - 1)
             game.update_level(dir=-1)
             screen = pygame.display.set_mode((game.screen_width, game.screen_height))
-            level_sprites = load_level_sprites(game.level)
+            level_sprites = create_level_sprites(game.level)
 
 
-def load_sprites(hero: Character) -> dict[int, pygame.Surface]:
+def create_sprites(hero: Character) -> dict[int, pygame.Surface]:
     hero.id = 1
     s: dict[int, pygame.Surface] = {hero.id: pygame.image.load(f"{char_sprites_dir}/{game.hero.image_name}").convert_alpha()}
     # print(hero.name, game.hero.id, id(sprites[hero.id]))
@@ -1508,8 +1635,16 @@ def load_sprites(hero: Character) -> dict[int, pygame.Surface]:
             # print(item.name, item.id, id(s[item.id]))
     return s
 
+def update_level_sprites(monsters: List[Monster], sprites: dict[int, pygame.Surface]):
+    for m in monsters:
+        m.id = max(sprites) + 1 if sprites else 1
+        try:
+            original_image = pygame.image.load(f"{char_sprites_dir}/{m.image_name}").convert_alpha()
+        except FileNotFoundError:
+            original_image = pygame.image.load(f"{sprites_dir}/enemy.png").convert_alpha()
+        sprites[m.id] = pygame.transform.scale(original_image, (32, 32))
 
-def load_level_sprites(level: Level):
+def create_level_sprites(level: Level) -> dict[int, pygame.Surface]:
     s = {}
     # Chargement du sprite de la fontaine
     f = level.fountains[0]
@@ -1561,7 +1696,7 @@ if __name__ == "__main__":
     game = initialize_game(character_name)
     print(f'dungeon Level: {game.level.level_no} - name = {game.level.fullname}')
     print(f'Hero: #{game.hero.id} {game.hero.name} - {game.hero.race} - {game.hero.class_type.name}')
-    level_sprites: dict = load_level_sprites(game.level)
-    sprites: dict = load_sprites(hero=game.hero)
+    level_sprites: dict = create_level_sprites(game.level)
+    sprites: dict = create_sprites(hero=game.hero)
 
     main_game_loop(game)
