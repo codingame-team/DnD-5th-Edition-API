@@ -1106,7 +1106,7 @@
 		]
 	},
 	{
-		"name": "Illusionist",
+		"name": "Illusionist Wizard",
 		"source": "MPMM",
 		"page": 263,
 		"otherSources": [
@@ -1442,10 +1442,10 @@
 			}
 		],
 		"environment": [
-			"forest",
+			"underdark",
 			"grassland",
-			"hill",
-			"underdark"
+			"forest",
+			"hill"
 		],
 		"soundClip": {
 			"type": "internal",
@@ -1493,10 +1493,10 @@
 			"NX"
 		],
 		"_fEnvironment": [
-			"forest",
+			"underdark",
 			"grassland",
-			"hill",
-			"underdark"
+			"forest",
+			"hill"
 		],
 		"_fVuln": [],
 		"_fRes": [],
@@ -1737,21 +1737,6 @@
 		"hasFluff": true,
 		"hasFluffImages": true,
 		"__prop": "monster",
-		"_pTypes": {
-			"types": [
-				"monstrosity"
-			],
-			"tags": [],
-			"asText": "Monstrosity",
-			"asTextShort": "Monstrosity",
-			"typeSidekick": null,
-			"tagsSidekick": [],
-			"asTextSidekick": null
-		},
-		"_pCr": "1/8",
-		"_fCr": [
-			"1/8"
-		],
 		"_fSpeedType": [
 			"walk"
 		],
@@ -1811,6 +1796,21 @@
 			"shortsword|phb",
 			"sling|phb",
 			"leather armor|phb"
+		],
+		"_pTypes": {
+			"types": [
+				"monstrosity"
+			],
+			"tags": [],
+			"asText": "Monstrosity",
+			"asTextShort": "Monstrosity",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "1/8",
+		"_fCr": [
+			"1/8"
 		]
 	},
 	{
@@ -2001,21 +2001,6 @@
 		"hasFluff": true,
 		"hasFluffImages": true,
 		"__prop": "monster",
-		"_pTypes": {
-			"types": [
-				"humanoid"
-			],
-			"tags": [],
-			"asText": "Humanoid",
-			"asTextShort": "Humanoid",
-			"typeSidekick": null,
-			"tagsSidekick": [],
-			"asTextSidekick": null
-		},
-		"_pCr": "1/4",
-		"_fCr": [
-			"1/4"
-		],
 		"_fSpeedType": [
 			"walk"
 		],
@@ -2074,10 +2059,25 @@
 		"_fEquipment": [
 			"dagger|phb",
 			"sling|phb"
+		],
+		"_pTypes": {
+			"types": [
+				"humanoid"
+			],
+			"tags": [],
+			"asText": "Humanoid",
+			"asTextShort": "Humanoid",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "1/4",
+		"_fCr": [
+			"1/4"
 		]
 	},
 	{
-		"name": "Half-Ogre",
+		"name": "Half-Ogre (Ogrillon)",
 		"source": "MM",
 		"page": 238,
 		"otherSources": [
@@ -2158,13 +2158,13 @@
 			}
 		],
 		"environment": [
-			"arctic",
-			"desert",
+			"underdark",
+			"mountain",
 			"forest",
 			"hill",
-			"mountain",
-			"underdark",
-			"urban"
+			"urban",
+			"desert",
+			"arctic"
 		],
 		"soundClip": {
 			"type": "internal",
@@ -2195,21 +2195,6 @@
 		"hasFluff": true,
 		"hasFluffImages": true,
 		"__prop": "monster",
-		"_pTypes": {
-			"types": [
-				"giant"
-			],
-			"tags": [],
-			"asText": "Giant",
-			"asTextShort": "Giant",
-			"typeSidekick": null,
-			"tagsSidekick": [],
-			"asTextSidekick": null
-		},
-		"_pCr": "1",
-		"_fCr": [
-			"1"
-		],
 		"_fSpeedType": [
 			"walk"
 		],
@@ -2225,13 +2210,13 @@
 			"E"
 		],
 		"_fEnvironment": [
-			"arctic",
-			"desert",
+			"underdark",
+			"mountain",
 			"forest",
 			"hill",
-			"mountain",
-			"underdark",
-			"urban"
+			"urban",
+			"desert",
+			"arctic"
 		],
 		"_fVuln": [],
 		"_fRes": [],
@@ -2316,6 +2301,1628 @@
 			"battleaxe|phb",
 			"javelin|phb",
 			"hide armor|phb"
+		],
+		"_pTypes": {
+			"types": [
+				"giant"
+			],
+			"tags": [],
+			"asText": "Giant",
+			"asTextShort": "Giant",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "1",
+		"_fCr": [
+			"1"
+		]
+	},
+	{
+		"name": "Water Weird",
+		"source": "MM",
+		"page": 299,
+		"otherSources": [
+			{
+				"source": "PotA"
+			},
+			{
+				"source": "TftYP"
+			},
+			{
+				"source": "DIP"
+			},
+			{
+				"source": "SLW"
+			},
+			{
+				"source": "MOT"
+			},
+			{
+				"source": "IDRotF"
+			},
+			{
+				"source": "CM"
+			},
+			{
+				"source": "JttRC"
+			},
+			{
+				"source": "DSotDQ"
+			},
+			{
+				"source": "PaBTSO"
+			},
+			{
+				"source": "LK"
+			},
+			{
+				"source": "VEoR"
+			}
+		],
+		"size": [
+			"L"
+		],
+		"type": "elemental",
+		"alignment": [
+			"N"
+		],
+		"ac": [
+			13
+		],
+		"hp": {
+			"average": 58,
+			"formula": "9d10 + 9"
+		},
+		"speed": {
+			"walk": 0,
+			"swim": 60
+		},
+		"str": 17,
+		"dex": 16,
+		"con": 13,
+		"int": 11,
+		"wis": 10,
+		"cha": 10,
+		"senses": [
+			"blindsight 30 ft."
+		],
+		"passive": 10,
+		"resist": [
+			"fire",
+			{
+				"resist": [
+					"bludgeoning",
+					"piercing",
+					"slashing"
+				],
+				"note": "from nonmagical attacks",
+				"cond": true
+			}
+		],
+		"immune": [
+			"poison"
+		],
+		"conditionImmune": [
+			"exhaustion",
+			"grappled",
+			"paralyzed",
+			"poisoned",
+			"restrained",
+			"prone",
+			"unconscious"
+		],
+		"languages": [
+			"understands Aquan but doesn't speak"
+		],
+		"cr": "3",
+		"trait": [
+			{
+				"name": "Invisible in Water",
+				"entries": [
+					"The water weird is {@condition invisible} while fully immersed in water."
+				]
+			},
+			{
+				"name": "Water Bound",
+				"entries": [
+					"The water weird dies if it leaves the water to which it is bound or if that water is destroyed."
+				]
+			}
+		],
+		"action": [
+			{
+				"name": "Constrict",
+				"entries": [
+					"{@atk mw} {@hit 5} to hit, reach 10 ft., one creature. {@h}13 ({@damage 3d6 + 3}) bludgeoning damage. If the target is Medium or smaller, it is {@condition grappled} (escape {@dc 13}) and pulled 5 feet toward the water weird. Until this grapple ends, the target is {@condition restrained}, the water weird tries to drown it, and the water weird can't constrict another target."
+				]
+			}
+		],
+		"environment": [
+			"underdark",
+			"urban"
+		],
+		"soundClip": {
+			"type": "internal",
+			"path": "bestiary/water-weird.mp3"
+		},
+		"senseTags": [
+			"B"
+		],
+		"languageTags": [
+			"AQ"
+		],
+		"damageTags": [
+			"B"
+		],
+		"miscTags": [
+			"MW",
+			"RCH"
+		],
+		"conditionInflict": [
+			"grappled",
+			"invisible",
+			"restrained"
+		],
+		"hasToken": true,
+		"hasFluff": true,
+		"hasFluffImages": true,
+		"__prop": "monster",
+		"_fSpeedType": [
+			"swim"
+		],
+		"_fSpeed": 60,
+		"_fAc": [
+			13
+		],
+		"_fHp": 58,
+		"_fAlign": [
+			"N",
+			"NY"
+		],
+		"_fEnvironment": [
+			"underdark",
+			"urban"
+		],
+		"_fVuln": [],
+		"_fRes": [
+			"fire",
+			"bludgeoning (Conditional)",
+			"piercing (Conditional)",
+			"slashing (Conditional)"
+		],
+		"_fImm": [
+			"poison"
+		],
+		"_fCondImm": [
+			"exhaustion",
+			"grappled",
+			"paralyzed",
+			"poisoned",
+			"restrained",
+			"prone",
+			"unconscious"
+		],
+		"_fSave": [],
+		"_fSkill": [],
+		"_fSources": [
+			"MM",
+			{
+				"item": "PotA",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "TftYP",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "DIP",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "SLW",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "MOT",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "IDRotF",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "CM",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "JttRC",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "DSotDQ",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "PaBTSO",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "LK",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true,
+				"btnMini": {}
+			},
+			{
+				"item": "VEoR",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			}
+		],
+		"_fPassive": 10,
+		"_fStr": 17,
+		"_fDex": 16,
+		"_fCon": 13,
+		"_fInt": 11,
+		"_fWis": 10,
+		"_fCha": 10,
+		"_fMisc": [
+			"MW",
+			"RCH",
+			"Has Token",
+			"Has Info",
+			"Has Images"
+		],
+		"_fLanguageTags": [
+			"AQ"
+		],
+		"_fEquipment": [],
+		"_pTypes": {
+			"types": [
+				"elemental"
+			],
+			"tags": [],
+			"asText": "Elemental",
+			"asTextShort": "Elemental",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "3",
+		"_fCr": [
+			"3"
+		]
+	},
+	{
+		"name": "Apprentice Wizard",
+		"source": "MPMM",
+		"page": 259,
+		"otherSources": [
+			{
+				"source": "VGM",
+				"page": 209
+			},
+			{
+				"source": "SjA"
+			}
+		],
+		"size": [
+			"M"
+		],
+		"type": {
+			"type": "humanoid"
+		},
+		"alignment": [
+			"A"
+		],
+		"ac": [
+			10,
+			{
+				"ac": 13,
+				"condition": "with {@spell mage armor}",
+				"braces": true
+			}
+		],
+		"hp": {
+			"average": 13,
+			"formula": "3d8"
+		},
+		"speed": {
+			"walk": 30
+		},
+		"str": 10,
+		"dex": 10,
+		"con": 10,
+		"int": 14,
+		"wis": 10,
+		"cha": 11,
+		"skill": {
+			"arcana": "+4",
+			"history": "+4"
+		},
+		"passive": 10,
+		"languages": [
+			"any one language (usually Common)"
+		],
+		"cr": "1/4",
+		"spellcasting": [
+			{
+				"name": "Spellcasting",
+				"type": "spellcasting",
+				"headerEntries": [
+					"The apprentice casts one of the following spells, using Intelligence as the spellcasting ability (spell save {@dc 12})"
+				],
+				"will": [
+					"{@spell mage hand}",
+					"{@spell prestidigitation}"
+				],
+				"daily": {
+					"1e": [
+						"{@spell burning hands}",
+						"{@spell disguise self}",
+						"{@spell mage armor}"
+					]
+				},
+				"ability": "int",
+				"displayAs": "action"
+			}
+		],
+		"action": [
+			{
+				"name": "Arcane Burst",
+				"entries": [
+					"{@atk ms,rs} {@hit 4} to hit, reach 5 ft. or range 120 ft., one target. {@h}7 ({@damage 1d10 + 2}) force damage."
+				]
+			}
+		],
+		"environment": [
+			"urban"
+		],
+		"soundClip": {
+			"type": "internal",
+			"path": "bestiary/apprentice-wizard.mp3"
+		},
+		"languageTags": [
+			"C",
+			"X"
+		],
+		"damageTags": [
+			"O"
+		],
+		"damageTagsSpell": [
+			"F"
+		],
+		"spellcastingTags": [
+			"O"
+		],
+		"savingThrowForcedSpell": [
+			"dexterity"
+		],
+		"hasToken": true,
+		"hasFluff": true,
+		"hasFluffImages": true,
+		"__prop": "monster",
+		"_fSpeedType": [
+			"walk"
+		],
+		"_fSpeed": 30,
+		"_fAc": [
+			10,
+			13
+		],
+		"_fHp": 13,
+		"_fAlign": [
+			"A"
+		],
+		"_fEnvironment": [
+			"urban"
+		],
+		"_fVuln": [],
+		"_fRes": [],
+		"_fImm": [],
+		"_fCondImm": [],
+		"_fSave": [],
+		"_fSkill": [
+			"arcana",
+			"history"
+		],
+		"_fSources": [
+			"MPMM",
+			{
+				"item": "VGM",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "SjA",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			}
+		],
+		"_fPassive": 10,
+		"_fStr": 10,
+		"_fDex": 10,
+		"_fCon": 10,
+		"_fInt": 14,
+		"_fWis": 10,
+		"_fCha": 11,
+		"_fMisc": [
+			"Spellcaster",
+			"Spellcaster, Intelligence",
+			"Has Token",
+			"Has Info",
+			"Has Images"
+		],
+		"_fSpellsKnown": [
+			"mage hand|phb",
+			"prestidigitation|phb",
+			"burning hands|phb",
+			"disguise self|phb",
+			"mage armor|phb"
+		],
+		"_fLanguageTags": [
+			"C",
+			"X"
+		],
+		"_fEquipment": [],
+		"_pTypes": {
+			"types": [
+				"humanoid"
+			],
+			"tags": [],
+			"asText": "Humanoid",
+			"asTextShort": "Humanoid",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "1/4",
+		"_fCr": [
+			"1/4"
+		]
+	},
+	{
+		"name": "Orc War Chief",
+		"source": "MM",
+		"page": 246,
+		"otherSources": [
+			{
+				"source": "SKT"
+			},
+			{
+				"source": "ToA"
+			},
+			{
+				"source": "WDMM"
+			},
+			{
+				"source": "GoS"
+			},
+			{
+				"source": "IDRotF"
+			},
+			{
+				"source": "WBtW"
+			},
+			{
+				"source": "CRCotN"
+			}
+		],
+		"size": [
+			"M"
+		],
+		"type": {
+			"type": "humanoid",
+			"tags": [
+				"orc"
+			]
+		},
+		"alignment": [
+			"C",
+			"E"
+		],
+		"ac": [
+			{
+				"ac": 16,
+				"from": [
+					"{@item chain mail|phb}"
+				]
+			}
+		],
+		"hp": {
+			"average": 93,
+			"formula": "11d8 + 44"
+		},
+		"speed": {
+			"walk": 30
+		},
+		"str": 18,
+		"dex": 12,
+		"con": 18,
+		"int": 11,
+		"wis": 11,
+		"cha": 16,
+		"save": {
+			"str": "+6",
+			"con": "+6",
+			"wis": "+2"
+		},
+		"skill": {
+			"intimidation": "+5"
+		},
+		"senses": [
+			"darkvision 60 ft."
+		],
+		"passive": 10,
+		"languages": [
+			"Common",
+			"Orc"
+		],
+		"cr": "4",
+		"trait": [
+			{
+				"name": "Aggressive",
+				"entries": [
+					"As a bonus action, the orc can move up to its speed toward a hostile creature that it can see."
+				]
+			},
+			{
+				"name": "Gruumsh's Fury",
+				"entries": [
+					"The orc deals an extra 4 ({@dice 1d8}) damage when it hits with a weapon attack (included in the attacks)."
+				]
+			}
+		],
+		"action": [
+			{
+				"name": "Multiattack",
+				"entries": [
+					"The orc makes two attacks with its greataxe or its spear."
+				]
+			},
+			{
+				"name": "Greataxe",
+				"entries": [
+					"{@atk mw} {@hit 6} to hit, reach 5 ft., one target. {@h}15 ({@damage 1d12 + 4} plus {@damage 1d8}) slashing damage."
+				]
+			},
+			{
+				"name": "Spear",
+				"entries": [
+					"{@atk mw,rw} {@hit 6} to hit, reach 5 ft. or range 20/60 ft., one target. {@h}12 ({@damage 1d6 + 4} plus {@damage 1d8}) piercing damage, or 13 ({@damage 2d8 + 4}) piercing damage if used with two hands to make a melee attack."
+				]
+			},
+			{
+				"name": "Battle Cry (1/Day)",
+				"entries": [
+					"Each creature of the war chief's choice that is within 30 feet of it, can hear it, and not already affected by Battle Cry gain advantage on attack rolls until the start of the war chief's next turn. The war chief can then make one attack as a bonus action."
+				]
+			}
+		],
+		"environment": [
+			"underdark",
+			"mountain",
+			"grassland",
+			"forest",
+			"swamp",
+			"hill",
+			"arctic"
+		],
+		"soundClip": {
+			"type": "internal",
+			"path": "bestiary/orc-war-chief.mp3"
+		},
+		"attachedItems": [
+			"greataxe|phb",
+			"spear|phb"
+		],
+		"traitTags": [
+			"Aggressive"
+		],
+		"senseTags": [
+			"D"
+		],
+		"actionTags": [
+			"Multiattack"
+		],
+		"languageTags": [
+			"C",
+			"O"
+		],
+		"damageTags": [
+			"P"
+		],
+		"miscTags": [
+			"MLW",
+			"MW",
+			"RW",
+			"THW"
+		],
+		"hasToken": true,
+		"hasFluff": true,
+		"hasFluffImages": true,
+		"__prop": "monster",
+		"_fSpeedType": [
+			"walk"
+		],
+		"_fSpeed": 30,
+		"_fAc": [
+			16
+		],
+		"_fHp": 93,
+		"_fAlign": [
+			"C",
+			"E"
+		],
+		"_fEnvironment": [
+			"underdark",
+			"mountain",
+			"grassland",
+			"forest",
+			"swamp",
+			"hill",
+			"arctic"
+		],
+		"_fVuln": [],
+		"_fRes": [],
+		"_fImm": [],
+		"_fCondImm": [],
+		"_fSave": [
+			"str",
+			"con",
+			"wis"
+		],
+		"_fSkill": [
+			"intimidation"
+		],
+		"_fSources": [
+			"MM",
+			{
+				"item": "SKT",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "ToA",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "WDMM",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "GoS",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "IDRotF",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "WBtW",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "CRCotN",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			}
+		],
+		"_fPassive": 10,
+		"_fStr": 18,
+		"_fDex": 12,
+		"_fCon": 18,
+		"_fInt": 11,
+		"_fWis": 11,
+		"_fCha": 16,
+		"_fMisc": [
+			"MLW",
+			"MW",
+			"RW",
+			"THW",
+			"AC from Item(s)",
+			"Has Token",
+			"Has Info",
+			"Has Images"
+		],
+		"_fLanguageTags": [
+			"C",
+			"O"
+		],
+		"_fEquipment": [
+			"greataxe|phb",
+			"spear|phb",
+			"chain mail|phb"
+		],
+		"_pTypes": {
+			"types": [
+				"humanoid"
+			],
+			"tags": [
+				"orc"
+			],
+			"asText": "Humanoid (Orc)",
+			"asTextShort": "Humanoid (Orc)",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "4",
+		"_fCr": [
+			"4"
+		]
+	},
+	{
+		"name": "Deathlock",
+		"source": "MPMM",
+		"page": 86,
+		"otherSources": [
+			{
+				"source": "MTF",
+				"page": 128
+			},
+			{
+				"source": "AATM"
+			},
+			{
+				"source": "BMT"
+			}
+		],
+		"size": [
+			"M"
+		],
+		"type": {
+			"type": "undead",
+			"tags": [
+				"warlock"
+			]
+		},
+		"alignment": [
+			"N",
+			"E"
+		],
+		"alignmentPrefix": "Typically ",
+		"ac": [
+			12
+		],
+		"hp": {
+			"average": 36,
+			"formula": "8d8"
+		},
+		"speed": {
+			"walk": 30
+		},
+		"str": 11,
+		"dex": 15,
+		"con": 10,
+		"int": 14,
+		"wis": 12,
+		"cha": 16,
+		"save": {
+			"int": "+4",
+			"cha": "+5"
+		},
+		"skill": {
+			"arcana": "+4",
+			"history": "+4"
+		},
+		"senses": [
+			"darkvision 60 ft."
+		],
+		"passive": 11,
+		"resist": [
+			"necrotic",
+			{
+				"resist": [
+					"bludgeoning",
+					"piercing",
+					"slashing"
+				],
+				"note": "from nonmagical attacks that aren't silvered",
+				"cond": true
+			}
+		],
+		"immune": [
+			"poison"
+		],
+		"conditionImmune": [
+			"exhaustion",
+			"poisoned"
+		],
+		"languages": [
+			"the languages it knew in life"
+		],
+		"cr": "4",
+		"spellcasting": [
+			{
+				"name": "Spellcasting",
+				"type": "spellcasting",
+				"headerEntries": [
+					"The deathlock casts one of the following spells, using Charisma as the spellcasting ability (spell save {@dc 13}):"
+				],
+				"will": [
+					"{@spell detect magic}",
+					"{@spell disguise self}",
+					"{@spell mage armor}",
+					"{@spell mage hand}"
+				],
+				"daily": {
+					"1e": [
+						"{@spell dispel magic}",
+						"{@spell hunger of Hadar}",
+						"{@spell invisibility}",
+						"{@spell spider climb}"
+					]
+				},
+				"ability": "cha",
+				"displayAs": "action"
+			}
+		],
+		"trait": [
+			{
+				"name": "Turn Resistance",
+				"entries": [
+					"The deathlock has advantage on saving throws against any effect that turns Undead."
+				]
+			},
+			{
+				"name": "Unusual Nature",
+				"entries": [
+					"The deathlock doesn't require air, food, drink, or sleep."
+				]
+			}
+		],
+		"action": [
+			{
+				"name": "Multiattack",
+				"entries": [
+					"The deathlock makes two Deathly Claw or Grave Bolt attacks."
+				]
+			},
+			{
+				"name": "Deathly Claw",
+				"entries": [
+					"{@atk mw} {@hit 4} to hit, reach 5 ft., one target. {@h}9 ({@damage 2d6 + 2}) necrotic damage."
+				]
+			},
+			{
+				"name": "Grave Bolt",
+				"entries": [
+					"{@atk rs} {@hit 5} to hit, range 120 ft., one target. {@h}14 ({@damage 2d10 + 3}) necrotic damage."
+				]
+			}
+		],
+		"environment": [
+			"urban"
+		],
+		"soundClip": {
+			"type": "internal",
+			"path": "bestiary/deathlock.mp3"
+		},
+		"traitTags": [
+			"Turn Resistance",
+			"Unusual Nature"
+		],
+		"senseTags": [
+			"D"
+		],
+		"actionTags": [
+			"Multiattack"
+		],
+		"languageTags": [
+			"LF"
+		],
+		"damageTags": [
+			"N"
+		],
+		"damageTagsSpell": [
+			"A",
+			"C"
+		],
+		"spellcastingTags": [
+			"O"
+		],
+		"miscTags": [
+			"MW"
+		],
+		"conditionInflictSpell": [
+			"blinded",
+			"invisible"
+		],
+		"savingThrowForcedSpell": [
+			"dexterity"
+		],
+		"hasToken": true,
+		"hasFluff": true,
+		"hasFluffImages": true,
+		"__prop": "monster",
+		"_fSpeedType": [
+			"walk"
+		],
+		"_fSpeed": 30,
+		"_fAc": [
+			12
+		],
+		"_fHp": 36,
+		"_fAlign": [
+			"N",
+			"E",
+			"NX"
+		],
+		"_fEnvironment": [
+			"urban"
+		],
+		"_fVuln": [],
+		"_fRes": [
+			"necrotic",
+			"bludgeoning (Conditional)",
+			"piercing (Conditional)",
+			"slashing (Conditional)"
+		],
+		"_fImm": [
+			"poison"
+		],
+		"_fCondImm": [
+			"exhaustion",
+			"poisoned"
+		],
+		"_fSave": [
+			"int",
+			"cha"
+		],
+		"_fSkill": [
+			"arcana",
+			"history"
+		],
+		"_fSources": [
+			"MPMM",
+			{
+				"item": "MTF",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "AATM",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "BMT",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			}
+		],
+		"_fPassive": 11,
+		"_fStr": 11,
+		"_fDex": 15,
+		"_fCon": 10,
+		"_fInt": 14,
+		"_fWis": 12,
+		"_fCha": 16,
+		"_fMisc": [
+			"MW",
+			"Spellcaster",
+			"Spellcaster, Charisma",
+			"Has Token",
+			"Has Info",
+			"Has Images"
+		],
+		"_fSpellsKnown": [
+			"detect magic|phb",
+			"disguise self|phb",
+			"mage armor|phb",
+			"mage hand|phb",
+			"dispel magic|phb",
+			"hunger of hadar|phb",
+			"invisibility|phb",
+			"spider climb|phb"
+		],
+		"_fLanguageTags": [
+			"LF"
+		],
+		"_fEquipment": [],
+		"_pTypes": {
+			"types": [
+				"undead"
+			],
+			"tags": [
+				"warlock"
+			],
+			"asText": "Undead (Warlock)",
+			"asTextShort": "Undead (Warlock)",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "4",
+		"_fCr": [
+			"4"
+		]
+	},
+	{
+		"name": "Allip",
+		"source": "MPMM",
+		"page": 45,
+		"otherSources": [
+			{
+				"source": "MTF",
+				"page": 116
+			}
+		],
+		"size": [
+			"M"
+		],
+		"type": "undead",
+		"alignment": [
+			"N",
+			"E"
+		],
+		"alignmentPrefix": "Typically ",
+		"ac": [
+			13
+		],
+		"hp": {
+			"average": 40,
+			"formula": "9d8"
+		},
+		"speed": {
+			"walk": 0,
+			"fly": {
+				"number": 40,
+				"condition": "(hover)"
+			},
+			"canHover": true
+		},
+		"str": 6,
+		"dex": 17,
+		"con": 10,
+		"int": 17,
+		"wis": 15,
+		"cha": 16,
+		"save": {
+			"int": "+6",
+			"wis": "+5"
+		},
+		"skill": {
+			"perception": "+5",
+			"stealth": "+6"
+		},
+		"senses": [
+			"darkvision 60 ft."
+		],
+		"passive": 15,
+		"resist": [
+			"acid",
+			"fire",
+			"lightning",
+			"thunder",
+			{
+				"resist": [
+					"bludgeoning",
+					"piercing",
+					"slashing"
+				],
+				"note": "from nonmagical attacks",
+				"cond": true
+			}
+		],
+		"immune": [
+			"cold",
+			"necrotic",
+			"poison"
+		],
+		"conditionImmune": [
+			"charmed",
+			"exhaustion",
+			"frightened",
+			"grappled",
+			"paralyzed",
+			"petrified",
+			"poisoned",
+			"prone",
+			"restrained"
+		],
+		"languages": [
+			"the languages it knew in life"
+		],
+		"cr": "5",
+		"trait": [
+			{
+				"name": "Incorporeal Movement",
+				"entries": [
+					"The allip can move through other creatures and objects as if they were {@quickref difficult terrain||3}. It takes 5 ({@damage 1d10}) force damage if it ends its turn inside an object."
+				]
+			},
+			{
+				"name": "Unusual Nature",
+				"entries": [
+					"The allip doesn't require air, food, drink, or sleep."
+				]
+			}
+		],
+		"action": [
+			{
+				"name": "Maddening Touch",
+				"entries": [
+					"{@atk ms} {@hit 6} to hit, reach 5 ft., one target. {@h}17 ({@damage 4d6 + 3}) psychic damage."
+				]
+			},
+			{
+				"name": "Howling Babble {@recharge}",
+				"entries": [
+					"Each creature within 30 feet of the allip that can hear it must make a {@dc 14} Wisdom saving throw. On a failed save, a target takes 12 ({@damage 2d8 + 3}) psychic damage, and it is {@condition stunned} until the end of its next turn. On a successful save, it takes half as much damage and isn't {@condition stunned}. Constructs and Undead are immune to this effect."
+				]
+			},
+			{
+				"name": "Whispers of Compulsion",
+				"entries": [
+					"The allip chooses up to three creatures it can see within 60 feet of it. Each target must succeed on a {@dc 14} Wisdom saving throw, or it takes 12 ({@damage 2d8 + 3}) psychic damage and must use its reaction to make a melee weapon attack against one creature of the allip's choice that the allip can see. Constructs and Undead are immune to this effect."
+				]
+			}
+		],
+		"environment": [
+			"swamp",
+			"urban"
+		],
+		"soundClip": {
+			"type": "internal",
+			"path": "bestiary/allip.mp3"
+		},
+		"traitTags": [
+			"Incorporeal Movement",
+			"Unusual Nature"
+		],
+		"senseTags": [
+			"D"
+		],
+		"languageTags": [
+			"LF"
+		],
+		"damageTags": [
+			"O",
+			"Y"
+		],
+		"miscTags": [
+			"AOE"
+		],
+		"conditionInflict": [
+			"stunned"
+		],
+		"savingThrowForced": [
+			"wisdom"
+		],
+		"hasToken": true,
+		"hasFluff": true,
+		"hasFluffImages": true,
+		"__prop": "monster",
+		"_fSpeedType": [
+			"fly",
+			"canHover",
+			"hover"
+		],
+		"_fSpeed": 40,
+		"_fAc": [
+			13
+		],
+		"_fHp": 40,
+		"_fAlign": [
+			"N",
+			"E",
+			"NX"
+		],
+		"_fEnvironment": [
+			"swamp",
+			"urban"
+		],
+		"_fVuln": [],
+		"_fRes": [
+			"acid",
+			"fire",
+			"lightning",
+			"thunder",
+			"bludgeoning (Conditional)",
+			"piercing (Conditional)",
+			"slashing (Conditional)"
+		],
+		"_fImm": [
+			"cold",
+			"necrotic",
+			"poison"
+		],
+		"_fCondImm": [
+			"charmed",
+			"exhaustion",
+			"frightened",
+			"grappled",
+			"paralyzed",
+			"petrified",
+			"poisoned",
+			"prone",
+			"restrained"
+		],
+		"_fSave": [
+			"int",
+			"wis"
+		],
+		"_fSkill": [
+			"perception",
+			"stealth"
+		],
+		"_fSources": [
+			"MPMM",
+			{
+				"item": "MTF",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			}
+		],
+		"_fPassive": 15,
+		"_fStr": 6,
+		"_fDex": 17,
+		"_fCon": 10,
+		"_fInt": 17,
+		"_fWis": 15,
+		"_fCha": 16,
+		"_fMisc": [
+			"AOE",
+			"Has Token",
+			"Has Info",
+			"Has Images",
+			"Has Recharge"
+		],
+		"_fLanguageTags": [
+			"LF"
+		],
+		"_fEquipment": [],
+		"_pTypes": {
+			"types": [
+				"undead"
+			],
+			"tags": [],
+			"asText": "Undead",
+			"asTextShort": "Undead",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "5",
+		"_fCr": [
+			"5"
+		]
+	},
+	{
+		"name": "Orog",
+		"source": "MM",
+		"page": 247,
+		"otherSources": [
+			{
+				"source": "PotA"
+			},
+			{
+				"source": "SKT"
+			},
+			{
+				"source": "TftYP"
+			},
+			{
+				"source": "WDH"
+			},
+			{
+				"source": "WDMM"
+			},
+			{
+				"source": "GoS"
+			},
+			{
+				"source": "EGW"
+			}
+		],
+		"size": [
+			"M"
+		],
+		"type": {
+			"type": "humanoid",
+			"tags": [
+				"orc"
+			]
+		},
+		"alignment": [
+			"C",
+			"E"
+		],
+		"ac": [
+			{
+				"ac": 18,
+				"from": [
+					"{@item plate armor|phb}"
+				]
+			}
+		],
+		"hp": {
+			"average": 42,
+			"formula": "5d8 + 20"
+		},
+		"speed": {
+			"walk": 30
+		},
+		"str": 18,
+		"dex": 12,
+		"con": 18,
+		"int": 12,
+		"wis": 11,
+		"cha": 12,
+		"skill": {
+			"intimidation": "+5",
+			"survival": "+2"
+		},
+		"senses": [
+			"darkvision 60 ft."
+		],
+		"passive": 10,
+		"languages": [
+			"Common",
+			"Orc"
+		],
+		"cr": "2",
+		"trait": [
+			{
+				"name": "Aggressive",
+				"entries": [
+					"As a bonus action, the orog can move up to its speed toward a hostile creature that it can see."
+				]
+			}
+		],
+		"action": [
+			{
+				"name": "Multiattack",
+				"entries": [
+					"The orog makes two greataxe attacks."
+				]
+			},
+			{
+				"name": "Greataxe",
+				"entries": [
+					"{@atk mw} {@hit 6} to hit, reach 5 ft., one target. {@h}10 ({@damage 1d12 + 4}) slashing damage."
+				]
+			},
+			{
+				"name": "Javelin",
+				"entries": [
+					"{@atk mw,rw} {@hit 6} to hit, reach 5 ft. or range 30/120 ft., one target. {@h}7 ({@damage 1d6 + 4}) piercing damage."
+				]
+			}
+		],
+		"environment": [
+			"underdark",
+			"mountain",
+			"grassland",
+			"forest",
+			"hill",
+			"arctic"
+		],
+		"soundClip": {
+			"type": "internal",
+			"path": "bestiary/orog.mp3"
+		},
+		"attachedItems": [
+			"greataxe|phb",
+			"javelin|phb"
+		],
+		"traitTags": [
+			"Aggressive"
+		],
+		"senseTags": [
+			"D"
+		],
+		"actionTags": [
+			"Multiattack"
+		],
+		"languageTags": [
+			"C",
+			"O"
+		],
+		"damageTags": [
+			"P",
+			"S"
+		],
+		"miscTags": [
+			"MLW",
+			"MW",
+			"RW",
+			"THW"
+		],
+		"hasToken": true,
+		"hasFluff": true,
+		"hasFluffImages": true,
+		"__prop": "monster",
+		"_fSpeedType": [
+			"walk"
+		],
+		"_fSpeed": 30,
+		"_fAc": [
+			18
+		],
+		"_fHp": 42,
+		"_fAlign": [
+			"C",
+			"E"
+		],
+		"_fEnvironment": [
+			"underdark",
+			"mountain",
+			"grassland",
+			"forest",
+			"hill",
+			"arctic"
+		],
+		"_fVuln": [],
+		"_fRes": [],
+		"_fImm": [],
+		"_fCondImm": [],
+		"_fSave": [],
+		"_fSkill": [
+			"intimidation",
+			"survival"
+		],
+		"_fSources": [
+			"MM",
+			{
+				"item": "PotA",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "SKT",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "TftYP",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "WDH",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "WDMM",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "GoS",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "EGW",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			}
+		],
+		"_fPassive": 10,
+		"_fStr": 18,
+		"_fDex": 12,
+		"_fCon": 18,
+		"_fInt": 12,
+		"_fWis": 11,
+		"_fCha": 12,
+		"_fMisc": [
+			"MLW",
+			"MW",
+			"RW",
+			"THW",
+			"AC from Item(s)",
+			"Has Token",
+			"Has Info",
+			"Has Images"
+		],
+		"_fLanguageTags": [
+			"C",
+			"O"
+		],
+		"_fEquipment": [
+			"greataxe|phb",
+			"javelin|phb",
+			"plate armor|phb"
+		],
+		"_pTypes": {
+			"types": [
+				"humanoid"
+			],
+			"tags": [
+				"orc"
+			],
+			"asText": "Humanoid (Orc)",
+			"asTextShort": "Humanoid (Orc)",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "2",
+		"_fCr": [
+			"2"
 		]
 	}
 ]

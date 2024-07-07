@@ -5,6 +5,7 @@ import json
 import os
 from copy import deepcopy
 from logging import debug
+from random import randint
 from typing import List, Tuple, Optional
 import re
 
@@ -310,8 +311,10 @@ def request_monster(index_name: str) -> Monster:
                    sc=spell_caster,
                    sa=special_abilities)  # if can_attack else None
 
-def get_special_monster_actions(name: str):
+def get_special_monster_actions(name: str) -> tuple[List[Action], List[SpecialAbility], SpellCaster]:
     actions: List[Action] = []
+    special_abilities: List[SpecialAbility] = []
+    spell_caster: SpellCaster = None
     if name == "Orc Eye of Gruumsh":
         damage_type: DamageType = request_damage_type(index_name='piercing')
         # Ranged attack
@@ -373,7 +376,7 @@ def get_special_monster_actions(name: str):
         #        attack_bonus=4,
         #        multi_attack=None, damages=damages)
         # actions.append(action)
-    elif name == 'piercer':
+    elif name == 'Piercer':
         damage_type: DamageType = request_damage_type(index_name='piercing')
         damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice=f'{randint(1, 6)}d6', bonus=0))]
         action = Action(name='Drop', desc='', type=ActionType.MELEE,
@@ -496,7 +499,117 @@ def get_special_monster_actions(name: str):
         #        attack_bonus=5,
         #        multi_attack=None, damages=damages)
         # actions.append(action)
-    return actions
+    elif name == "Water Weird":
+        # TODO: implement condition restrain
+        # Single Attacks
+        # "If the target is Medium or smaller, it is {@condition grappled} (escape {@dc 13}) and pulled 5 feet toward the water weird. Until this grapple ends, the target is {@condition restrained}, the water weird tries to drown it, and the water weird can't constrict another target."
+        damage_type: DamageType = request_damage_type(index_name='bludgeoning')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='3d6', bonus=3))]
+        action = Action(name='Constrict', desc='', type=ActionType.MELEE,
+               attack_bonus=5,
+               multi_attack=None, damages=damages)
+        actions.append(action)
+    elif name == "Apprentice Wizard":
+        # TODO: implement spell attacks
+        # Multiple attack
+        damage_type: DamageType = request_damage_type(index_name='psychic')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='2d10', bonus=3))]
+        multi_attack_action = Action(name='Arcane Burst', desc='', type=ActionType.MELEE,
+               attack_bonus=5,
+               multi_attack=None, damages=damages)
+        action = Action(name='Multiattack', desc='', type=ActionType.MELEE,
+               attack_bonus=None,
+               multi_attack=[multi_attack_action] * 2, damages=None)
+        actions.append(action)
+    elif name == "Orc War Chief":
+        # Multiple attack
+        # "The orc makes two attacks with its greataxe or its spear."
+        # Great Axe * 2
+        damage_type: DamageType = request_damage_type(index_name='slashing')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='1d12', bonus=4)),
+                                 Damage(type=damage_type, dd=DamageDice(dice='1d8', bonus=4))]
+        multi_attack_action = Action(name='Greataxe', desc='', type=ActionType.MELEE,
+               attack_bonus=6,
+               multi_attack=None, damages=damages)
+        action = Action(name='Multiattack', desc='', type=ActionType.MELEE,
+               attack_bonus=None,
+               multi_attack=[multi_attack_action] * 2, damages=None)
+        actions.append(action)
+        # Spear * 2
+        damage_type: DamageType = request_damage_type(index_name='piercing')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='1d6', bonus=4))]
+        multi_attack_action = Action(name='Spear', desc='', type=ActionType.MELEE,
+               attack_bonus=6,
+               multi_attack=None, damages=damages)
+        action = Action(name='Multiattack', desc='', type=ActionType.MELEE,
+               attack_bonus=None,
+               multi_attack=[multi_attack_action] * 2, damages=None)
+        actions.append(action)
+    elif name == "Deathlock":
+        # TODO implement spell casting
+        # Multiple attack
+        # "The deathlock makes two Deathly Claw or Grave Bolt attacks."
+        # Deathly Claw * 2
+        damage_type: DamageType = request_damage_type(index_name='necrotic')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='2d6', bonus=2))]
+        multi_attack_action = Action(name='Deathly Claw', desc='', type=ActionType.MELEE,
+               attack_bonus=4,
+               multi_attack=None, damages=damages)
+        action = Action(name='Multiattack', desc='', type=ActionType.MELEE,
+               attack_bonus=None,
+               multi_attack=[multi_attack_action] * 2, damages=None)
+        actions.append(action)
+        # Grave Bolt * 2
+        damage_type: DamageType = request_damage_type(index_name='necrotic')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='2d10', bonus=3))]
+        multi_attack_action = Action(name='Grave Bolt', desc='', type=ActionType.RANGED,
+               attack_bonus=5,
+               multi_attack=None, damages=damages)
+        action = Action(name='Multiattack', desc='', type=ActionType.RANGED,
+               attack_bonus=None,
+               multi_attack=[multi_attack_action] * 2, damages=None)
+        actions.append(action)
+    elif name == "Allip":
+        # Single attacks
+        damage_type: DamageType = request_damage_type(index_name='psychic')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='4d6', bonus=3))]
+        action = Action(name='Maddening Touch', desc='', type=ActionType.MELEE,
+               attack_bonus=6,
+               multi_attack=None, damages=damages)
+        actions.append(action)
+        # Special attacks
+        # N.B.: "Whispers of Compulsion" effective only with a party
+        damage_type: DamageType = request_damage_type(index_name='psychic')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='2d8', bonus=3))]
+        # TODO: implement condition stunned
+        sa: SpecialAbility = SpecialAbility(name='Howling Babble',
+                                                desc='',
+                                                damages=damages,
+                                                dc_type='wis',
+                                                dc_value=14,
+                                                dc_success='half',
+                                                recharge_on_roll=1)
+        special_abilities.append(sa)
+    elif name == 'Orog':
+        # Single attacks
+        damage_type: DamageType = request_damage_type(index_name='psychic')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='1d6', bonus=4))]
+        action = Action(name='Javelin', desc='', type=ActionType.MELEE,
+               attack_bonus=6,
+               multi_attack=None, damages=damages)
+        actions.append(action)
+        # Multiple attack
+        # "The orog makes two greataxe attacks."
+        damage_type: DamageType = request_damage_type(index_name='slashing')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='1d12', bonus=4))]
+        multi_attack_action = Action(name='Greataxe', desc='', type=ActionType.MELEE,
+               attack_bonus=6,
+               multi_attack=None, damages=damages)
+        action = Action(name='Multiattack', desc='', type=ActionType.MELEE,
+               attack_bonus=None,
+               multi_attack=[multi_attack_action] * 2, damages=None)
+        actions.append(action)
+    return actions, special_abilities, spell_caster
 
 def request_monster_other(name: str) -> Optional[Monster]:
     """
@@ -512,9 +625,7 @@ def request_monster_other(name: str) -> Optional[Monster]:
         data = monster_data[0]
 
         proficiencies: List[Proficiency] = []
-        actions: List[Action] = get_special_monster_actions(name)
-        spell_caster: Optional[SpellCaster] = None
-        special_abilities: List[SpecialAbility] = []
+        actions, special_abilities, spell_caster = get_special_monster_actions(name)
         ac: int = data['_fAc'][0]
         hit_dice: str = data['hp']['formula']
         dice, bonus = hit_dice.split(' + ') if '+' in hit_dice else [hit_dice, 0]
@@ -522,7 +633,7 @@ def request_monster_other(name: str) -> Optional[Monster]:
         # https://tomedunn.github.io/the-finished-book/monsters/calculating-monster-xp/
         # multi_attacks: List[Action] = [a for m in actions for a in m.multi_attack if m.multi_attack]
         single_attacks: List[Action] = [a for a in actions if not a.multi_attack]
-        print(name)
+        # print(name)
         multi_attacks: List[Action] = []
         # if any(a.multi_attack for a in actions):
         multi_attacks = [m for a in actions if a.multi_attack for m in a.multi_attack]
@@ -530,7 +641,10 @@ def request_monster_other(name: str) -> Optional[Monster]:
         damages: List[int] = [damage.dd.avg for a in attacks for damage in a.damages]
         # effective_attack_bonus
         # attack_bonus_list: List[int] = [a.attack_bonus for a in single_attacks if not a.multi_attack] + [m.attack_bonus for a in actions for m in a.multi_attack if a.multi_attack]
-        ab: float = sum([a.attack_bonus for a in attacks]) / len(attacks)
+        try:
+            ab: float = sum([a.attack_bonus for a in attacks]) / len(attacks)
+        except ZeroDivisionError:
+            print(f'Error: {name}')
         # average damage per round assuming all attacks hit
         dpr: float = sum(damages) / len(damages)
         xp: float = 5 * int(data['hp']['average']) * dpr * (ac + ab - 2) / (4 * 13)
