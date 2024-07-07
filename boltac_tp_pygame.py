@@ -100,7 +100,10 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 # save_character(hero, characters_dir)
-                save_character_gamestate(hero, gamestate_dir, saved_game)
+                if saved_game:
+                    save_character_gamestate(hero, gamestate_dir, saved_game)
+                else:
+                    save_character(hero, characters_dir)
                 running = False
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 mouse_pos = event.pos
@@ -252,7 +255,7 @@ if __name__ == "__main__":
     try:
         # hero: Character = load_character(character_name, characters_dir)
         saved_game: Game = load_character_gamestate(character_name, gamestate_dir)
-        hero: Character = saved_game.hero
+        hero: Character = saved_game.hero if saved_game else load_character(character_name, characters_dir)
         hero.gold = 10000
         weapons: List[Weapon] = sorted(hero.allowed_weapons, key=lambda w: cost(w))
         armors: List[Armor] = sorted(hero.allowed_armors, key=lambda a: cost(a))
