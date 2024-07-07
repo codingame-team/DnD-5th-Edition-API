@@ -678,6 +678,9 @@ def request_spell(index_name: str) -> Spell:
 
     allowed_classes: List[str] = [c['index'] for c in data['classes']]
 
+    if 'heal_at_slot_level' in data:
+        pass
+
     damage_type: DamageType = None
     damage_at_slot_level: dict() = None
     damage_at_character_level: dict() = None
