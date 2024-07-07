@@ -11,8 +11,10 @@ def get_monster_counts(text):
     # pattern = r"(?:(\d+) x )?(\w+(?: \w+)*)"
     pattern = r"(?:(\d+) x )?([\w-]+(?: [\w-]+)*)" # To include -
 
+    print(text)
     # Split the text on "and"
-    parts = text.split(';')[0].split(" and ")
+    parts = text.split(';')[0]
+    parts = parts.split(' and ') if 'and' in parts else [parts]
 
     monster_counts = {}
     for part in parts:
@@ -72,8 +74,10 @@ def extract_hit_dice_and_damage(text):
 if __name__ == '__main__':
     text = '2 x Orc and 1 x Half-ogre'
     text = "Ogre Bolt Launcher (cr 2, motm 200, mtf 220) and 2 x Ogre (cr 2, mm 237); deadly, 1350 xp, trying to lure the party into an ambush"
+    text = "Goblin (cr 1/4, mm 166); hard, 50 xp, consumed by disease and madness"
     monsters = get_monster_counts(text)
-    # print(monsters)
+    print(monsters)
+
 
     bestiary: List[str] = []
 
