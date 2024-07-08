@@ -609,6 +609,152 @@ def get_special_monster_actions(name: str) -> tuple[List[Action], List[SpecialAb
                attack_bonus=None,
                multi_attack=[multi_attack_action] * 2, damages=None)
         actions.append(action)
+    elif name == 'Warlock of the Great Old One':
+        # Multiple attack
+        # "The warlock makes two Dagger attacks."
+        damage_type: DamageType = request_damage_type(index_name='piercing')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='1d4', bonus=3))]
+        damage_type: DamageType = request_damage_type(index_name='psychic')
+        damages += [Damage(type=damage_type, dd=DamageDice(dice='3d6', bonus=3))]
+        multi_attack_action = Action(name='Dagger', desc='', type=ActionType.MELEE,
+               attack_bonus=6,
+               multi_attack=None, damages=damages)
+        action = Action(name='Multiattack', desc='', type=ActionType.MELEE,
+               attack_bonus=None,
+               multi_attack=[multi_attack_action] * 2, damages=None)
+        actions.append(action)
+        # Special attacks
+        damage_type: DamageType = request_damage_type(index_name='psychic')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='2d8', bonus=0))]
+        # TODO: implement condition frightened and area of effect
+        # "The warlock opens a momentary extraplanar rift within 60 feet of it.
+        # The rift is a scream-filled, 20-foot cube. Each creature in that area must make a {@dc 15} Wisdom saving throw.
+        # On a failed save, a creature takes 9 ({@damage 2d8}) psychic damage and is {@condition frightened} of the warlock until the start of the warlock's next turn.
+        # On a successful save, a creature takes half as much damage and isn't {@condition frightened}."
+        sa: SpecialAbility = SpecialAbility(name='Howling Void',
+                                                desc='',
+                                                damages=damages,
+                                                dc_type='wis',
+                                                dc_value=15,
+                                                dc_success='half',
+                                                recharge_on_roll=1)
+        special_abilities.append(sa)
+    elif name == "Star Spawn Grue":
+        # Single Attacks
+        # TODO ???
+        # The target must succeed on a {@dc 10} Wisdom saving throw or attack rolls against it have advantage until the start of the grue's next turn."
+        damage_type: DamageType = request_damage_type(index_name='piercing')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='2d4', bonus=1))]
+        action = Action(name='Confounding Bite', desc='', type=ActionType.MELEE,
+               attack_bonus=3,
+               multi_attack=None, damages=damages)
+        actions.append(action)
+    elif name == "Star Spawn Mangler":
+        # Multiple attack
+        # "The mangler makes two Claw attacks."
+        damage_type: DamageType = request_damage_type(index_name='slashing')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='1d8', bonus=4))]
+        damage_type: DamageType = request_damage_type(index_name='psychic')
+        damages += [Damage(type=damage_type, dd=DamageDice(dice='2d6', bonus=0))]
+        multi_attack_action = Action(name='Claw', desc='', type=ActionType.MELEE,
+               attack_bonus=7,
+               multi_attack=None, damages=damages)
+        action = Action(name='Multiattack', desc='', type=ActionType.MELEE,
+               attack_bonus=None,
+               multi_attack=[multi_attack_action] * 2, damages=None)
+        actions.append(action)
+        # Special attacks
+        damage_type: DamageType = request_damage_type(index_name='psychic')
+        # TODO implements multiple attacks in sa (and not multiple damages)
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='2d8', bonus=0))] * 6
+        sa: SpecialAbility = SpecialAbility(name='Howling Void',
+                                                desc='',
+                                                damages=damages,
+                                                dc_type='wis',
+                                                dc_value=15,
+                                                dc_success='half',
+                                                recharge_on_roll=5)
+        special_abilities.append(sa)
+    elif name == "Adult Oblex":
+        # Multiple attack
+        # "The oblex makes two pseudopod attacks, and it uses Eat Memories."
+        damage_type: DamageType = request_damage_type(index_name='bludgeoning')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='2d6', bonus=4))]
+        damage_type: DamageType = request_damage_type(index_name='psychic')
+        damages += [Damage(type=damage_type, dd=DamageDice(dice='2d6', bonus=0))]
+        multi_attack_action = Action(name='Pseudopod', desc='', type=ActionType.MELEE,
+               attack_bonus=7,
+               multi_attack=None, damages=damages)
+        action = Action(name='Multiattack', desc='', type=ActionType.MELEE,
+               attack_bonus=None,
+               multi_attack=[multi_attack_action] * 2, damages=None)
+        actions.append(action)
+        # Special attacks
+        damage_type: DamageType = request_damage_type(index_name='psychic')
+        # TODO implements memory drained effect
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='4d8', bonus=0))]
+        sa: SpecialAbility = SpecialAbility(name='Eat Memories',
+                                                desc='',
+                                                damages=damages,
+                                                dc_type='wis',
+                                                dc_value=15,
+                                                dc_success='half',
+                                                recharge_on_roll=1)
+        special_abilities.append(sa)
+    elif name == 'Vampiric Mist':
+        # Special attacks
+        damage_type: DamageType = request_damage_type(index_name='necrotic')
+        # TODO implements life drain effect
+        # "The mist touches one creature in its space.
+        # The target must succeed on a {@dc 13} Constitution saving throw (Undead and Constructs automatically succeed),
+        # or it takes 10 ({@damage 2d6 + 3}) necrotic damage, the mist regains 10 hit points,
+        # and the target's hit point maximum is reduced by an amount equal to the necrotic damage taken.
+        # This reduction lasts until the target finishes a long rest.
+        # The target dies if its hit point maximum is reduced to 0."
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='2d6', bonus=3))]
+        sa: SpecialAbility = SpecialAbility(name='Life Drain',
+                                                desc='',
+                                                damages=damages,
+                                                dc_type='wis',
+                                                dc_value=13,
+                                                dc_success='half',
+                                                recharge_on_roll=1)
+        special_abilities.append(sa)
+    elif name == 'Spawn of Kyuss':
+        # Multiple attack
+        # "The spawn of Kyuss makes two Claw attacks, and it uses Burrowing Worm."
+        damage_type: DamageType = request_damage_type(index_name='slashing')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='1d6', bonus=3))]
+        damage_type: DamageType = request_damage_type(index_name='necrotic')
+        damages += [Damage(type=damage_type, dd=DamageDice(dice='2d6', bonus=0))]
+        multi_attack_action = Action(name='Claw', desc='', type=ActionType.MELEE,
+               attack_bonus=6,
+               multi_attack=None, damages=damages)
+        action = Action(name='Multiattack', desc='', type=ActionType.MELEE,
+               attack_bonus=None,
+               multi_attack=[multi_attack_action] * 2, damages=None)
+        actions.append(action)
+        # Special attacks
+        damage_type: DamageType = request_damage_type(index_name='necrotic')
+        # TODO implements Burrowing Worm effect (curse effect)
+        # "A worm launches from the spawn of Kyuss at one Humanoid that the spawn can see within 10 feet of it.
+        # The worm latches onto the target's skin unless the target succeeds on a {@dc 11} Dexterity saving throw.
+        # The worm is a Tiny Undead with AC 6, 1 hit point, a 2 (-4) in every ability score, and a speed of 1 foot.
+        # While on the target's skin, the worm can be killed by normal means or scraped off using an action (the spawn can use Burrowing Worm to launch a scraped-off worm at a Humanoid it can see within 10 feet of the worm).
+        # Otherwise, the worm burrows under the target's skin at the end of the target's next turn, dealing 1 piercing damage to it.
+        # At the end of each of its turns thereafter, the target takes 7 ({@damage 2d6}) necrotic damage per worm infesting it (maximum of {@damage 10d6}), and if it drops to 0 hit points, it dies and then rises 10 minutes later as a spawn of Kyuss.
+        # If a worm-infested target is targeted by an effect that cures disease or removes a curse, all the worms infesting it wither away."
+
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='2d6', bonus=3))]
+        sa: SpecialAbility = SpecialAbility(name='Burrowing Worm',
+                                                desc='',
+                                                damages=damages,
+                                                dc_type='dex',
+                                                dc_value=11,
+                                                dc_success='half',
+                                                recharge_on_roll=1)
+        special_abilities.append(sa)
+
     return actions, special_abilities, spell_caster
 
 def request_monster_other(name: str) -> Optional[Monster]:
@@ -637,12 +783,12 @@ def request_monster_other(name: str) -> Optional[Monster]:
         multi_attacks: List[Action] = []
         # if any(a.multi_attack for a in actions):
         multi_attacks = [m for a in actions if a.multi_attack for m in a.multi_attack]
-        attacks = single_attacks + multi_attacks
+        attacks = single_attacks + multi_attacks + special_abilities
         damages: List[int] = [damage.dd.avg for a in attacks for damage in a.damages]
         # effective_attack_bonus
         # attack_bonus_list: List[int] = [a.attack_bonus for a in single_attacks if not a.multi_attack] + [m.attack_bonus for a in actions for m in a.multi_attack if a.multi_attack]
         try:
-            ab: float = sum([a.attack_bonus for a in attacks]) / len(attacks)
+            ab: float = sum([a.attack_bonus for a in attacks if hasattr(a, 'attack_bonus')]) / len(attacks) if attacks else 0.0
         except ZeroDivisionError:
             print(f'Error: {name}')
         # average damage per round assuming all attacks hit
