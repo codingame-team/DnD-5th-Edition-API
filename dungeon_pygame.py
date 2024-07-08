@@ -163,7 +163,7 @@ class Level:
     def is_stair(self, x, y):
         return self.world_map[y][x] in ['<', '>']
 
-    def load_maze(self, level: int) -> tuple[list[str] | list[list[str]], int, dict, str, list[Room], tuple | None]:
+    def load_maze(self, level: int, MAX_LEVELS=12) -> tuple[list[str] | list[list[str]], int, dict, str, list[Room], tuple | None]:
         """
         Charge le labyrinthe depuis le fichier level.txt
         nom : nom du fichier contenant le labyrinthe (sans l’extension .txt)
@@ -280,7 +280,7 @@ class Level:
             maze[stair_up[1]][stair_up[0]] = '<'
         else:
             hero_start_pos: tuple = stair_up
-        if level < 10:
+        if level < MAX_LEVELS:
             maze[stair_down[1]][stair_down[0]] = '>'
         return maze, n_cells, doors, level_fullname, rooms, hero_start_pos
 
@@ -1695,6 +1695,11 @@ if __name__ == "__main__":
 
     # Chargement du jeu en cours
     game = initialize_game(character_name)
+    if not any((x, y) for y in range(game.map_height) for x in range(game.map_width) if game.world_map[y][x] == '>'):
+        print('No downstairs found! Creating one')
+        x, y = choice(game.level.walkable_tiles)
+        game.level.world_map[y][x] = '>'
+
     print(f'dungeon Level: {game.level.level_no} - name = {game.level.fullname}')
     print(f'Hero: #{game.hero.id} {game.hero.name} - {game.hero.race} - {game.hero.class_type.name}')
     level_sprites: dict = create_level_sprites(game.level)
