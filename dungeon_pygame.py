@@ -18,7 +18,7 @@ from pygame import Surface
 
 from algo.brehensam import in_view_range
 from algo.lee import parcours_largeur, parcours_a_star
-from dao_classes import Character, Level, Spell, Weapon, Armor, HealingPotion, Monster, Equipment, Treasure, Sprite
+from dao_classes import Character, Level, Spell, Weapon, Armor, HealingPotion, Monster, Equipment, Treasure, Sprite, SpecialAbility, color
 from main import get_roster, save_character, load_xp_levels, load_character
 from populate_functions import populate, request_armor, request_weapon, request_monster, request_spell, request_monster_other
 from populate_rpg_functions import load_potions_collections
@@ -1552,7 +1552,14 @@ def handle_combat(game: Game, monsters: List[Monster], attack_spell: Spell = Non
     game.round_no += 1
 
 def handle_monster_actions(game, monster):
-    if mh_dist(monster.pos, game.hero.pos) <= 1:
+    available_special_attacks: List[SpecialAbility] = list(filter(lambda a: a.ready and a.area_of_effect.size >= UNIT_SIZE * dist(game.hero.pos, monster.pos), monster.sa))
+    if available_special_attacks:
+        special_attack: SpecialAbility = max(available_special_attacks, key=lambda a: sum([damage.dd.score(success_type=a.dc_success) for damage in a.damages]))
+        # cprint(special_attack)
+        cprint(f'{color.GREEN}{monster.name}{color.END} launches ** {special_attack.name.upper()} ** on {game.hero.name}!')
+        # cprint('target chars: ' + '/'.join([c.name for c in target_chars]))
+        game.hero.hit_points -= monster.special_attack(game.hero, special_attack)
+    elif mh_dist(monster.pos, game.hero.pos) <= 1:
         # Monster attacks the hero
         game.hero.hit_points -= monster.melee_attack(game.hero)
     else:
@@ -1598,17 +1605,20 @@ def handle_level_changes(game):
     global level_sprites
     match game.world_map[game.hero.y][game.hero.x]:
         case '>':
-            print(f'Hero found downstairs!')
-            game.dungeon_level += 1
-            if game.dungeon_level > len(game.levels):
-                game.level = Level(level_no=game.dungeon_level)
-                game.levels.append(game.level)
-                game.level.load(hero=game.hero)
+            if game.level.level_no == 12:
+                print('You have reached the end of the dungeon!')
             else:
-                game.level = game.levels[game.dungeon_level - 1]
-            game.update_level(dir=1)
-            screen = pygame.display.set_mode((game.screen_width, game.screen_height))
-            level_sprites = create_level_sprites(game.level)
+                print(f'Hero found downstairs!')
+                game.dungeon_level += 1
+                if game.dungeon_level > len(game.levels):
+                    game.level = Level(level_no=game.dungeon_level)
+                    game.levels.append(game.level)
+                    game.level.load(hero=game.hero)
+                else:
+                    game.level = game.levels[game.dungeon_level - 1]
+                game.update_level(dir=1)
+                screen = pygame.display.set_mode((game.screen_width, game.screen_height))
+                level_sprites = create_level_sprites(game.level)
         case '<':
             print(f'Hero found upstairs!')
             game.dungeon_level -= 1
