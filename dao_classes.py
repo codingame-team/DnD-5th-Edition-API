@@ -682,6 +682,7 @@ class SpecialAbility:
     dc_success: str
     recharge_on_roll: Optional[int]
     range: RangeType = None
+    area_of_effect: Optional[AreaOfEffect] = None
     ready: int = True
     effects: List[Condition] = None
     targets_count: int = 6
