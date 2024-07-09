@@ -581,6 +581,7 @@ def get_special_monster_actions(name: str) -> tuple[List[Action], List[SpecialAb
         # N.B.: "Whispers of Compulsion" effective only with a party
         damage_type: DamageType = request_damage_type(index_name='psychic')
         damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='2d8', bonus=3))]
+        area_of_effect: AreaOfEffect = AreaOfEffect(type='sphere', size=30)
         # TODO: implement condition stunned
         sa: SpecialAbility = SpecialAbility(name='Howling Babble',
                                                 desc='',
@@ -588,7 +589,8 @@ def get_special_monster_actions(name: str) -> tuple[List[Action], List[SpecialAb
                                                 dc_type='wis',
                                                 dc_value=14,
                                                 dc_success='half',
-                                                recharge_on_roll=1)
+                                                recharge_on_roll=1,
+                                                area_of_effect=area_of_effect)
         special_abilities.append(sa)
     elif name == 'Orog':
         # Single attacks
@@ -631,13 +633,15 @@ def get_special_monster_actions(name: str) -> tuple[List[Action], List[SpecialAb
         # The rift is a scream-filled, 20-foot cube. Each creature in that area must make a {@dc 15} Wisdom saving throw.
         # On a failed save, a creature takes 9 ({@damage 2d8}) psychic damage and is {@condition frightened} of the warlock until the start of the warlock's next turn.
         # On a successful save, a creature takes half as much damage and isn't {@condition frightened}."
+        area_of_effect: AreaOfEffect = AreaOfEffect(type='cube', size=20)
         sa: SpecialAbility = SpecialAbility(name='Howling Void',
                                                 desc='',
                                                 damages=damages,
                                                 dc_type='wis',
                                                 dc_value=15,
                                                 dc_success='half',
-                                                recharge_on_roll=1)
+                                                recharge_on_roll=1,
+                                                area_of_effect=area_of_effect)
         special_abilities.append(sa)
     elif name == "Star Spawn Grue":
         # Single Attacks
@@ -667,13 +671,15 @@ def get_special_monster_actions(name: str) -> tuple[List[Action], List[SpecialAb
         damage_type: DamageType = request_damage_type(index_name='psychic')
         # TODO implements multiple attacks in sa (and not multiple damages)
         damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='2d8', bonus=0))] * 6
+        area_of_effect: AreaOfEffect = AreaOfEffect(type='cube', size=5)
         sa: SpecialAbility = SpecialAbility(name='Howling Void',
                                                 desc='',
                                                 damages=damages,
                                                 dc_type='wis',
                                                 dc_value=15,
                                                 dc_success='half',
-                                                recharge_on_roll=5)
+                                                recharge_on_roll=5,
+                                                area_of_effect=area_of_effect)
         special_abilities.append(sa)
     elif name == "Adult Oblex":
         # Multiple attack
@@ -693,13 +699,15 @@ def get_special_monster_actions(name: str) -> tuple[List[Action], List[SpecialAb
         damage_type: DamageType = request_damage_type(index_name='psychic')
         # TODO implements memory drained effect
         damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='4d8', bonus=0))]
+        area_of_effect: AreaOfEffect = AreaOfEffect(type='cube', size=5)
         sa: SpecialAbility = SpecialAbility(name='Eat Memories',
                                                 desc='',
                                                 damages=damages,
                                                 dc_type='wis',
                                                 dc_value=15,
                                                 dc_success='half',
-                                                recharge_on_roll=1)
+                                                recharge_on_roll=1,
+                                                area_of_effect=area_of_effect)
         special_abilities.append(sa)
     elif name == 'Vampiric Mist':
         # Special attacks
@@ -712,13 +720,15 @@ def get_special_monster_actions(name: str) -> tuple[List[Action], List[SpecialAb
         # This reduction lasts until the target finishes a long rest.
         # The target dies if its hit point maximum is reduced to 0."
         damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='2d6', bonus=3))]
+        area_of_effect: AreaOfEffect = AreaOfEffect(type='cube', size=5)
         sa: SpecialAbility = SpecialAbility(name='Life Drain',
                                                 desc='',
                                                 damages=damages,
                                                 dc_type='wis',
                                                 dc_value=13,
                                                 dc_success='half',
-                                                recharge_on_roll=1)
+                                                recharge_on_roll=1,
+                                                area_of_effect=area_of_effect)
         special_abilities.append(sa)
     elif name == 'Spawn of Kyuss':
         # Multiple attack
