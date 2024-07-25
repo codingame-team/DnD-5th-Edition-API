@@ -1205,6 +1205,10 @@ def main_game_loop(game):
                 # Check if there are monster in range
                 monsters_in_range = game.monsters_in_view_range
                 if monsters_in_range:
+                    # Reset attack mode for monster not in view range
+                    for monster in game.level.monsters:
+                        if monster not in monsters_in_range:
+                            monster.attack_round = 0
                     handle_combat(game=game, monsters=monsters_in_range)
                 else:
                     # Gestion des rencontres aléatoires
@@ -1234,7 +1238,6 @@ def handle_events(game):
             handle_mouse_events(game, event)
         elif event.type == pygame.KEYDOWN:
             handle_keyboard_events(game, event)
-
 
 def handle_outside_map_click(game, event):
     # Vérifier si un texte d'action a été cliqué
@@ -1355,17 +1358,17 @@ def move_char(game: Game, char: Monster | Character, pos: tuple):
     if not pos:
         return
     char.old_x, char.old_y = char.x, char.y
-    x, y = pos
-    if (x, y) in game.level.walkable_tiles:
-        if mh_dist(char.pos, (x, y)) <= 1:
-            char.x, char.y = x, y
+    game.target_pos = None
+    if pos in game.level.walkable_tiles:
+        if mh_dist(char.pos, pos) <= 1:
+            char.x, char.y = pos
             room_no = display_room_info(game, char.pos, room_no)
         else:
             if isinstance(char, Character):
                 obstacles = [m.pos for m in game.level.monsters]
             else:
                 obstacles = [m.pos for m in game.level.monsters if m != char]
-            path = find_path(start=char.pos, end=(x, y), carte=game.level.carte, obstacles=obstacles)
+            path = find_path(start=char.pos, end=pos, carte=game.level.carte, obstacles=obstacles)
             # cprint(f'path : {path}')
             if path:
                 char.x, char.y = path[1]
@@ -1544,27 +1547,55 @@ def handle_combat(game: Game, monsters: List[Monster], attack_spell: Spell = Non
             else:
                 break
         else:
-            if char.hit_points <= 0:
+            if char.hit_points <= 0 and not any(a.can_use_after_death(char) for a in char.sa):
                 continue
             # Handle monster's attack
             handle_monster_actions(game, char)
             game.last_combat_round = game.round_no
     game.round_no += 1
 
-def handle_monster_actions(game, monster):
+def handle_monster_actions(game: Game, monster: Monster):
+    # print(monster.name)
+    # Precalculate ready spells & special attacks
+    available_spells: List[Spell] = []
+    if monster.can_cast:
+        cantric_spells: List[Spell] = [s for s in monster.sc.learned_spells if not s.level]
+        slot_spells: List[Spell] = [s for s in monster.sc.learned_spells if s.level and monster.sc.spell_slots[s.level - 1] > 0]
+        castable_spells: List[Spell] = cantric_spells + slot_spells
+        available_spells = list(filter(lambda s: s.area_of_effect.size >= UNIT_SIZE * dist(game.hero.pos, monster.pos), castable_spells))
+    # Check recharge status
+    if monster.sa and monster.attack_round > 0:  # ou 1? (à vérifier)
+        for special_attack in monster.sa:
+            # print(special_attack)
+            if special_attack.recharge_on_roll:
+                special_attack.ready = special_attack.recharge_success
     available_special_attacks: List[SpecialAbility] = list(filter(lambda a: a.ready and a.area_of_effect.size >= UNIT_SIZE * dist(game.hero.pos, monster.pos), monster.sa))
-    if available_special_attacks:
-        special_attack: SpecialAbility = max(available_special_attacks, key=lambda a: sum([damage.dd.score(success_type=a.dc_success) for damage in a.damages]))
-        # cprint(special_attack)
+
+    monster.attack_round += 1
+    # Some monsters may have special attack after death
+    after_death_special_attacks = list(filter(lambda a: a.can_use_after_death(monster), available_special_attacks))
+    if monster.hit_points <= 0 and after_death_special_attacks:
+        print("death", monster.name, after_death_special_attacks)
+        special_attack: SpecialAbility = max(after_death_special_attacks, key=lambda a: sum([damage.dd.score(success_type=a.dc_success) for damage in a.damages]))
         cprint(f'{color.GREEN}{monster.name}{color.END} launches ** {special_attack.name.upper()} ** on {game.hero.name}!')
-        # cprint('target chars: ' + '/'.join([c.name for c in target_chars]))
         game.hero.hit_points -= monster.special_attack(game.hero, special_attack)
-    elif mh_dist(monster.pos, game.hero.pos) <= 1:
-        # Monster attacks the hero
-        game.hero.hit_points -= monster.melee_attack(game.hero)
     else:
-        # Monster moves towards the hero
-        move_char(game=game, char=monster, pos=game.hero.pos)
+        available_special_attacks = list(filter(lambda a: not a.can_use_after_death(monster), available_special_attacks))
+        if monster.can_cast and available_spells:
+            attack_spell: Spell = max(available_spells, key=lambda s: s.level)
+            game.hero.hit_points -= monster.spell_attack(game.hero, attack_spell)
+        elif available_special_attacks:
+            special_attack: SpecialAbility = max(available_special_attacks, key=lambda a: sum([damage.dd.score(success_type=a.dc_success) for damage in a.damages]))
+            # cprint(special_attack)
+            cprint(f'{color.GREEN}{monster.name}{color.END} launches ** {special_attack.name.upper()} ** on {game.hero.name}!')
+            # cprint('target chars: ' + '/'.join([c.name for c in target_chars]))
+            game.hero.hit_points -= monster.special_attack(game.hero, special_attack)
+        elif mh_dist(monster.pos, game.hero.pos) <= 1:
+            # Monster attacks the hero
+            game.hero.hit_points -= monster.melee_attack(game.hero)
+        else:
+            # Monster moves towards the hero
+            move_char(game=game, char=monster, pos=game.hero.pos)
 
 
 # def handle_monster_attacks(game) -> bool:
@@ -1608,8 +1639,14 @@ def handle_level_changes(game):
             if game.level.level_no == 12:
                 print('You have reached the end of the dungeon!')
             else:
-                print(f'Hero found downstairs!')
+                print(f'Hero found downstairs! going to Level {game.dungeon_level + 1}')
                 game.dungeon_level += 1
+                # print(game.dungeon_level)
+                # if game.dungeon_level == 8:
+                #     # Debug Level 8
+                #     game.level = Level(level_no=game.dungeon_level)
+                #     game.levels[game.dungeon_level-1] = game.level
+                #     game.level.load(hero=game.hero)
                 if game.dungeon_level > len(game.levels):
                     game.level = Level(level_no=game.dungeon_level)
                     game.levels.append(game.level)
