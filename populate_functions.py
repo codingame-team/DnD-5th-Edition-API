@@ -184,20 +184,50 @@ def request_monster(index_name: str) -> Monster:
     dc: int = None
     ability_modifier: int = 0
     spell_caster: SpellCaster = None
+    special_abilities: List[SpecialAbility] = []
     if "special_abilities" in data:
         for special_ability in data['special_abilities']:
+            action_name: str = special_ability['name']
             if special_ability['name'] == 'Spellcasting':
-                caster_level = special_ability['spellcasting']['level']
-                dc_type = special_ability['spellcasting']['ability']['index']
-                dc_value = special_ability['spellcasting']['dc']
-                ability_modifier = special_ability['spellcasting']['modifier']
-                slots = [s for s in special_ability['spellcasting']['slots'].values()]
-                for spell_dict in special_ability['spellcasting']['spells']:
+                ability: dict = special_ability['spellcasting']
+                caster_level = ability['level']
+                dc_type = ability['ability']['index']
+                dc_value = ability['dc']
+                ability_modifier = ability['modifier']
+                slots = [s for s in ability['slots'].values()]
+                for spell_dict in ability['spells']:
                     spell_index_name: str = spell_dict['url'].split('/')[3]
                     spell = request_spell(spell_index_name)
                     if spell is None:
                         continue
                     spells.append(spell)
+            elif 'damage' in special_ability:
+                damages: List[Damage] = []
+                for damage in special_ability['damage']:
+                    if "damage_type" in damage:
+                        can_attack = True
+                        damage_type: DamageType = request_damage_type(index_name=damage['damage_type']['index'])
+                        if '+' in damage['damage_dice']:
+                            damage_dice, bonus = damage['damage_dice'].split('+')
+                            bonus = int(bonus)
+                        elif '-' in damage['damage_dice']:
+                            damage_dice, bonus = damage['damage_dice'].split('-')
+                            bonus = -int(bonus)
+                        else:
+                            damage_dice, bonus = damage['damage_dice'], 0
+                        damages.append(Damage(type=damage_type, dd=DamageDice(damage_dice, bonus)))
+                # TODO: parse range in
+                desc: str = special_ability['desc']
+                area_of_effect: AreaOfEffect = AreaOfEffect(type='sphere', size=15)
+                if damages:
+                    special_abilities.append(SpecialAbility(name=action_name,
+                                                            desc=special_ability['desc'],
+                                                            damages=damages,
+                                                            dc_type=special_ability['dc']['dc_type']['index'],
+                                                            dc_value=special_ability['dc']['dc_value'],
+                                                            dc_success=special_ability['dc']['success_type'],
+                                                            recharge_on_roll=None,
+                                                            area_of_effect=area_of_effect))
         if spells:
             can_attack = True
             spell_caster: SpellCaster = SpellCaster(level=caster_level,
@@ -208,7 +238,6 @@ def request_monster(index_name: str) -> Monster:
                                                     ability_modifier=ability_modifier)
 
     actions: List[Action] = []
-    special_abilities: List[SpecialAbility] = []
 
     if "actions" in data:
         # Melee attacks
@@ -270,17 +299,27 @@ def request_monster(index_name: str) -> Monster:
                         damages.append(Damage(type=damage_type, dd=DamageDice(damage_dice, bonus)))
                 # print(index_name)
                 recharge_on_roll: int = None
+                action_name: str = action['name']
                 if "usage" in action:
                     if action['usage'].get('type') == 'recharge on roll':
                         recharge_on_roll = action['usage']['min_value']
+                elif 'Recharge' in action_name:
+                    pattern = r"Recharge (\d+)"
+                    match = re.search(pattern, action_name)
+                    if match:
+                        action_name = action_name.split('(')[0].strip()
+                        recharge_on_roll = int(match.group(1))
+
+                area_of_effect: AreaOfEffect = AreaOfEffect(type='sphere', size=5)
                 if damages:
-                    special_abilities.append(SpecialAbility(name=action['name'],
+                    special_abilities.append(SpecialAbility(name=action_name,
                                                             desc=action['desc'],
                                                             damages=damages,
                                                             dc_type=action['dc']['dc_type']['index'],
                                                             dc_value=action['dc']['dc_value'],
                                                             dc_success=action['dc']['success_type'],
-                                                            recharge_on_roll=recharge_on_roll))
+                                                            recharge_on_roll=recharge_on_roll,
+                                                            area_of_effect=area_of_effect))
 
     # TODO Check if there are other special abilities that we did not cover...
     if not actions:
@@ -315,6 +354,7 @@ def get_special_monster_actions(name: str) -> tuple[List[Action], List[SpecialAb
     actions: List[Action] = []
     special_abilities: List[SpecialAbility] = []
     spell_caster: SpellCaster = None
+    print(name)
     if name == "Orc Eye of Gruumsh":
         damage_type: DamageType = request_damage_type(index_name='piercing')
         # Ranged attack
@@ -864,9 +904,11 @@ def request_spell(index_name: str) -> Spell:
 
         # print(index_name)
         range = int(data['range'].split()[0]) if 'feet' in data['range'] else 5
-        area_of_effect: Optional[AreaOfEffect] = None
         if 'area_of_effect' in data:
             area_of_effect = AreaOfEffect(type=data['area_of_effect']['type'], size=data['area_of_effect']['size'])
+        else:
+            area_of_effect = AreaOfEffect(type='sphere', size=range)
+        print(index_name, area_of_effect)
         school: str = data['school']['index']
 
         return Spell(index=data['index'],
