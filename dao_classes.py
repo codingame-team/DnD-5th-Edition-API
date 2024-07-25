@@ -82,6 +82,7 @@ class Monster(Sprite):
     actions: List[Action]
     sc: SpellCaster | None
     sa: List[SpecialAbility] | None
+    attack_round: int = 0
 
     def __repr__(self):
         return f"#{self.id} {self.name} (AC {self.armor_class} HD: {self.hit_dice} CR: {self.challenge_rating})"
@@ -683,9 +684,12 @@ class SpecialAbility:
     recharge_on_roll: Optional[int]
     range: RangeType = None
     area_of_effect: Optional[AreaOfEffect] = None
-    ready: int = True
+    ready: bool = True
     effects: List[Condition] = None
     targets_count: int = 6
+
+    def can_use_after_death(self, monster: Monster) -> bool:
+        return monster.index == 'magma-mephit' and self.name == 'Death Burst'
 
     def __repr__(self):
         return f'{self.name} dc: {self.dc_type} damages: {self.damages}'
