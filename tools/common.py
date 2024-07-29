@@ -225,8 +225,12 @@ def parse_monster_record(record: str) -> dict:
             monsters[match[1]] = match[0] if match[0] else 1
     return monsters
 
-
-
+def parse_challenge_rating(cr_str: str):
+    if '/' in cr_str:
+        num, denom = map(int, cr_str.split('/'))
+        return num / denom
+    else:
+        return int(cr_str)
 
 
 if __name__ == '__main__':
