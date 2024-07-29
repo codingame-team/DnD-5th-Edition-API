@@ -1,19 +1,20 @@
 import os
 import sys
+from collections import Counter, OrderedDict
 
 import pygame
 
-from dao_classes import Character
+from dao_classes import Character, Monster
 from dungeon_pygame import Game, load_character_gamestate, WHITE, RED
 
 
-def draw_monster_kills(screen, font, monster_kills):
+def draw_monster_kills(screen, font, monster_kills, crs):
     index: int = 0
     text_rects = []
     for monster_name, count in monster_kills.items():
         y_position = line_height * 2 + (index * line_height) - scroll_offset
         if 0 <= y_position < SCREEN_HEIGHT:
-            option = font.render(f"{monster_name} : {count}", True, RED)
+            option = font.render(f"{monster_name} (cr {crs[monster_name]}) : {count}", True, RED)
             rect = option.get_rect(topleft=(20, y_position))
             screen.blit(option, rect)
             text_rects.append(rect)
@@ -22,17 +23,24 @@ def draw_monster_kills(screen, font, monster_kills):
         index += 1
     return text_rects
 
+
 def main(game: Game):
     global scroll_offset
     clock = pygame.time.Clock()
     running = True
 
-    monster_kills: dict = {}
-    for m in game.kills:
-        if m.name in monster_kills:
-            monster_kills[m.name] += 1
-        else:
-            monster_kills[m.name] = 1
+    crs = dict([(m.name, m.challenge_rating) for m in game.kills])
+    monster_kills = dict(Counter(m.name for m in game.kills))
+    monster_kills = dict(sorted(monster_kills.items(), key=lambda x: crs.get(x[0]), reverse=True))
+
+    # monster_kills = Counter(game.kills)
+    # monster_kills: dict = {}
+    # for m in game.kills:
+    #     if m in monster_kills:
+    #         monster_kills[m.name] += 1
+    #     else:
+    #         monster_kills[m.name] = 1
+    # monster_kills = dict(sorted(monster_kills.items(), key=lambda x: x[0].challenge_rating, reverse=True))
 
     while running:
         for event in pygame.event.get():
@@ -44,7 +52,7 @@ def main(game: Game):
                 max_offset = max(0, (len(monster_kills) + 1) * line_height - SCREEN_HEIGHT + line_height * 2)
                 scroll_offset = min(scroll_offset + line_height, max_offset)
         screen.fill(WHITE)
-        draw_monster_kills(screen, font, monster_kills)
+        draw_monster_kills(screen, font, monster_kills, crs)
 
         pygame.display.flip()
         clock.tick(60)
@@ -70,7 +78,7 @@ if __name__ == "__main__":
     characters_dir = f'{abspath}/gameState/characters'
     gamestate_dir = f'{abspath}/gameState/pygame'
 
-    character_name: str = sys.argv[1] if len(sys.argv) > 1 else 'Brottor'
+    character_name: str = sys.argv[1] if len(sys.argv) > 1 else 'Vola'
 
     try:
         pygame.display.set_caption(f"Monster kills by {character_name}")
