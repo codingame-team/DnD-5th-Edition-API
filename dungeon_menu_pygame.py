@@ -14,16 +14,19 @@ from tools.common import cprint, SCREEN_WIDTH, SCREEN_HEIGHT, BLACK, RED, WHITE
 
 
 class LT(Enum):
-    DUNGEON = 1
-    BOLTAC = 2
+    DUNGEON = 0
+    BOLTAC = 1
+    MONSTER_KILLS = 2
 
 
 def go_to_location(character_name: str, location: LT):
     mp.set_start_method('spawn')  # Set the start method to 'spawn' to avoid fork issues
-    target = explore_dungeon if location == LT.DUNGEON else shop_to_boltac
+    target = explore_dungeon if location == LT.DUNGEON else shop_to_boltac if location == LT.BOLTAC else monster_kills
     proc = mp.Process(target=target, args=(character_name,))
     proc.start()
 
+def monster_kills(character_name):
+    subprocess.run(['python', 'monster_kills_pygame.py', character_name])
 
 def shop_to_boltac(character_name):
     subprocess.run(['python', 'boltac_tp_pygame.py', character_name])
@@ -87,10 +90,7 @@ def draw_character_menu(screen, roster, scroll_offset, line_height, font):
     return text_rects
 
 
-def draw_radio_buttons(screen, font, selected_option):
-    options = ["Explore Dungeon", "Shop to Boltac"]
-    radio_button_positions = [(SCREEN_WIDTH - 330, 60), (SCREEN_WIDTH - 330, 100)]
-
+def draw_radio_buttons(screen, font, selected_option, options, radio_button_positions):
     for i, option in enumerate(options):
         pos = radio_button_positions[i]
         pygame.draw.circle(screen, (0, 0, 0), pos, 7, 1)  # Draw the outer circle
@@ -104,7 +104,9 @@ def main(roster):
     global scroll_offset
     clock = pygame.time.Clock()
     running = True
-    selected_option = 0  # 0 for Explore Dungeon, 1 for Shop to Boltac
+    selected_option = 0  # 0 for Explore Dungeon, 1 for Shop to Boltac, 2 for Monster kills
+    options = ["Explore Dungeon", "Shop to Boltac", "Monster kills"]
+    radio_button_positions = [(SCREEN_WIDTH - 330, 60 + 40 * i) for i in range(len(options))]
 
     while running:
         for event in pygame.event.get():
@@ -115,7 +117,7 @@ def main(roster):
                 text_rects = draw_character_menu(screen, roster, scroll_offset, line_height, font)
 
                 # Check radio button clicks
-                for i, pos in enumerate([(SCREEN_WIDTH - 330, 60), (SCREEN_WIDTH - 330, 100)]):
+                for i, pos in enumerate(radio_button_positions):
                     if (pos[0] - 10 < mouse_pos[0] < pos[0] + 10) and (pos[1] - 10 < mouse_pos[1] < pos[1] + 10):
                         selected_option = i
 
@@ -124,7 +126,7 @@ def main(roster):
                         if index < len(roster):
                             selected_character = roster[index]
                             if not selected_character.is_dead:
-                                go_to_location(selected_character.name, LT.DUNGEON if selected_option == 0 else LT.BOLTAC)
+                                go_to_location(selected_character.name, LT(selected_option))
                                 running = False  # Close the main loop after starting the game
                             else:
                                 cprint(f'Cannot select character... {selected_character.name} is dead!')
@@ -138,7 +140,7 @@ def main(roster):
 
         screen.fill(WHITE)
         draw_character_menu(screen, roster, scroll_offset, line_height, font)
-        draw_radio_buttons(screen, font, selected_option)
+        draw_radio_buttons(screen, font, selected_option, options, radio_button_positions)
 
         pygame.display.flip()
         clock.tick(60)

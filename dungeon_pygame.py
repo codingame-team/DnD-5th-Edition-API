@@ -388,6 +388,7 @@ class Game:
     target_pos: tuple = None
     round_no: int = 0
     last_combat_round: int = 0
+    kills: List[Monster] = []
 
     def __init__(self, char_name: str, actions_panel=False, start_level=1):
         self.last_round_time = time.time()
@@ -634,7 +635,7 @@ class Game:
             f"Race: {self.hero.race.name}",
             f"Classe: {self.hero.class_type.name}",
             f"Niveau: {self.hero.level}",
-            f"XP: {self.hero.xp} / {self.xp_levels[self.hero.level]}",
+            f"XP: {self.hero.xp} / {self.xp_levels[self.hero.level] if self.hero.level < 20 else self.xp_levels[self.hero.level - 1]}",
             f"Santé: {self.hero.hit_points}/{self.hero.max_hit_points} ({self.hero.status if not self.hero.is_dead else 'DEAD'})",
             # damage_dice: str = f'{self.hero.weapon.damage_dice}' if not w.damage_dice.bonus else f'{w.damage_dice.dice} + {w.damage_dice.bonus}'
             f"Attaque (x{self.hero.multi_attacks}): {weapon.damage_dice.dice}{ranged_weapon_info}" if weapon else f"Attaque: 1d2",
@@ -1548,6 +1549,11 @@ def handle_combat(game: Game, monsters: List[Monster], attack_spell: Spell = Non
                 break
         else:
             if char.hit_points <= 0 and not any(a.can_use_after_death(char) for a in char.sa):
+                if isinstance(char, Monster):
+                    if game.kills:
+                        game.kills.append(char)
+                    else:
+                        game.kills = [char]
                 continue
             # Handle monster's attack
             handle_monster_actions(game, char)
