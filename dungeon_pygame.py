@@ -1563,7 +1563,7 @@ def handle_monster_actions(game: Game, monster: Monster):
     # print(monster.name)
     # Precalculate ready spells & special attacks
     available_spells: List[Spell] = []
-    range = mh_dist(game.hero.pos, monster.pos)
+    range = mh_dist(game.hero.pos, monster.pos) * UNIT_SIZE
     if monster.can_cast:
         cantric_spells: List[Spell] = [s for s in monster.sc.learned_spells if not s.level]
         slot_spells: List[Spell] = [s for s in monster.sc.learned_spells if s.level and monster.sc.spell_slots[s.level - 1] > 0]
@@ -1601,7 +1601,7 @@ def handle_monster_actions(game: Game, monster: Monster):
             # Monster attacks the hero
             game.hero.hit_points -= monster.attack(character=game.hero, actions=melee_attacks, distance=range)
         else:
-            ranged_attacks: List[Action] = list(filter(lambda a: a.type in [ActionType.RANGED, ActionType.MIXED] and UNIT_SIZE * range <= a.long_range, monster.actions))
+            ranged_attacks: List[Action] = list(filter(lambda a: a.type in [ActionType.RANGED, ActionType.MIXED] and range <= a.long_range, monster.actions))
             if ranged_attacks:
                 game.hero.hit_points -= monster.attack(character=game.hero, actions=ranged_attacks, distance=range)
             else:
