@@ -14,6 +14,7 @@ from dao_classes import CategoryType, DamageDice, Monster, Armor, RangeType, Spe
     Trait, EquipmentCategory, \
     Abilities, Action, Damage, ActionType, DamageType, Spell, ProfType, Condition, Inventory, AreaOfEffect
 from populate_rpg_functions import load_armor_image_name, load_weapon_image_name
+from tools.common import parse_challenge_rating
 
 """ CSV loads """
 
@@ -243,8 +244,17 @@ def request_monster(index_name: str) -> Monster:
         # Melee attacks
         for action in data['actions']:
             # print(f"{data['name']} - action = {action}")
-            if action['name'] != 'Multiattack' and "damage" in action and re.search("(Weapon|Melee).*Attack",
-                                                                                    action['desc']):
+            if action['name'] != 'Multiattack' and "damage" in action:
+                min_range = max_range = 5
+                is_melee_attack = re.search("Melee.*Attack", action['desc'])
+                is_ranged_attack = re.search("Ranged.*Attack", action['desc'])
+                if is_ranged_attack:
+                    # desc = "Ranged Weapon Attack: +7 to hit, range 150/600 ft., one target. Hit: 7 (1d8 + 3) piercing damage plus 13 (3d8) poison damage, and the target must succeed on a DC 14 Constitution saving throw or be poisoned. The poison lasts until it is removed by the lesser restoration spell or similar magic."
+                    range_pattern = r"range\s+(\d+)/(\d+)\s*ft\."
+                    match = re.search(range_pattern, action['desc'])
+                    if match:
+                        min_range = int(match.group(1))
+                        max_range = int(match.group(2))
                 damages: List[Damage] = []
                 for damage in action['damage']:
                     # print(f'damage = {damage}')
@@ -253,7 +263,8 @@ def request_monster(index_name: str) -> Monster:
                         damages.append(Damage(type=damage_type, dd=DamageDice(damage['damage_dice'])))
                 if damages:
                     can_attack = True
-                    actions.append(Action(name=action['name'], desc=action['desc'], type=ActionType.MELEE,
+                    action_type = ActionType.MIXED if is_melee_attack and is_ranged_attack else ActionType.MELEE if is_melee_attack else ActionType.RANGED
+                    actions.append(Action(name=action['name'], desc=action['desc'], type=action_type, normal_range=min_range, long_range=max_range,
                                           attack_bonus=action.get('attack_bonus'),
                                           multi_attack=None, damages=damages))
         # Multiattacks
@@ -857,7 +868,7 @@ def request_monster_other(name: str) -> Optional[Monster]:
                        hit_points=hit_dice.roll(),
                        hit_dice=data['hp']['formula'],
                        xp=int(xp),
-                       challenge_rating=data['cr'],
+                       challenge_rating=parse_challenge_rating(data['cr']),
                        actions=actions,
                        sc=spell_caster,
                        sa=special_abilities)  # if can_attack else None
