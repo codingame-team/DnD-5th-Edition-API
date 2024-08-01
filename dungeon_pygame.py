@@ -18,7 +18,7 @@ from pygame import Surface
 
 from algo.brehensam import in_view_range
 from algo.lee import parcours_largeur, parcours_a_star
-from dao_classes import Character, Level, Spell, Weapon, Armor, HealingPotion, Monster, Equipment, Treasure, Sprite, SpecialAbility, color
+from dao_classes import Character, Level, Spell, Weapon, Armor, HealingPotion, Monster, Equipment, Treasure, Sprite, SpecialAbility, color, ActionType, Action
 from main import get_roster, save_character, load_xp_levels, load_character
 from populate_functions import populate, request_armor, request_weapon, request_monster, request_spell, request_monster_other
 from populate_rpg_functions import load_potions_collections
@@ -1310,6 +1310,7 @@ def handle_right_click_spell_attack(game):
             if monster.hit_points <= 0:
                 cprint(f'{monster.name} at pos {monster.pos} is *KILLED*')
                 game.hero.victory(monster=monster, solo_mode=True)
+                game.kills.append(monster)
                 game.level.monsters.remove(monster)
                 room: Optional[Room] = game.level.room_at(monster.pos)
                 if room and monster in room.monsters:
@@ -1338,6 +1339,7 @@ def attack_monsters(game, monsters):
             if monster.hit_points <= 0:
                 cprint(f'{monster.name} at pos {monster.pos} is *KILLED*')
                 game.hero.victory(monster=monster, solo_mode=True)
+                game.kills.append(monster)
                 game.level.monsters.remove(monster)
                 rooms: List[Room] = [r for r in game.level.rooms if monster in r.monsters]
                 if rooms:
@@ -1550,10 +1552,7 @@ def handle_combat(game: Game, monsters: List[Monster], attack_spell: Spell = Non
         else:
             if char.hit_points <= 0 and not any(a.can_use_after_death(char) for a in char.sa):
                 if isinstance(char, Monster):
-                    if game.kills:
-                        game.kills.append(char)
-                    else:
-                        game.kills = [char]
+                    game.kills.append(char)
                 continue
             # Handle monster's attack
             handle_monster_actions(game, char)
@@ -1564,18 +1563,19 @@ def handle_monster_actions(game: Game, monster: Monster):
     # print(monster.name)
     # Precalculate ready spells & special attacks
     available_spells: List[Spell] = []
+    range = mh_dist(game.hero.pos, monster.pos)
     if monster.can_cast:
         cantric_spells: List[Spell] = [s for s in monster.sc.learned_spells if not s.level]
         slot_spells: List[Spell] = [s for s in monster.sc.learned_spells if s.level and monster.sc.spell_slots[s.level - 1] > 0]
         castable_spells: List[Spell] = cantric_spells + slot_spells
-        available_spells = list(filter(lambda s: s.area_of_effect.size >= UNIT_SIZE * dist(game.hero.pos, monster.pos), castable_spells))
+        available_spells = list(filter(lambda s: s.area_of_effect.size >= UNIT_SIZE * range, castable_spells))
     # Check recharge status
     if monster.sa and monster.attack_round > 0:  # ou 1? (à vérifier)
         for special_attack in monster.sa:
             # print(special_attack)
             if special_attack.recharge_on_roll:
                 special_attack.ready = special_attack.recharge_success
-    available_special_attacks: List[SpecialAbility] = list(filter(lambda a: a.ready and a.area_of_effect.size >= UNIT_SIZE * dist(game.hero.pos, monster.pos), monster.sa))
+    available_special_attacks: List[SpecialAbility] = list(filter(lambda a: a.ready and a.area_of_effect.size >= UNIT_SIZE * range, monster.sa))
 
     monster.attack_round += 1
     # Some monsters may have special attack after death
@@ -1597,11 +1597,16 @@ def handle_monster_actions(game: Game, monster: Monster):
             # cprint('target chars: ' + '/'.join([c.name for c in target_chars]))
             game.hero.hit_points -= monster.special_attack(game.hero, special_attack)
         elif mh_dist(monster.pos, game.hero.pos) <= 1:
+            melee_attacks: List[Action] = list(filter(lambda a: a.type == ActionType.MELEE, monster.actions))
             # Monster attacks the hero
-            game.hero.hit_points -= monster.melee_attack(game.hero)
+            game.hero.hit_points -= monster.attack(character=game.hero, actions=melee_attacks, distance=range)
         else:
-            # Monster moves towards the hero
-            move_char(game=game, char=monster, pos=game.hero.pos)
+            ranged_attacks: List[Action] = list(filter(lambda a: a.type in [ActionType.RANGED, ActionType.MIXED] and UNIT_SIZE * range <= a.long_range, monster.actions))
+            if ranged_attacks:
+                game.hero.hit_points -= monster.attack(character=game.hero, actions=ranged_attacks, distance=range)
+            else:
+                # Monster moves towards the hero
+                move_char(game=game, char=monster, pos=game.hero.pos)
 
 
 # def handle_monster_attacks(game) -> bool:
@@ -1737,7 +1742,7 @@ if __name__ == "__main__":
     room_no: int = 0  # memorize last visited room number
 
     # Récupération du personnage choisi par l'utilisateur
-    character_name = sys.argv[1] if len(sys.argv) > 1 else 'Brottor'
+    character_name = sys.argv[1] if len(sys.argv) > 1 else 'Flavilar'
 
     # Initialisation de Pygame
     pygame.init()
