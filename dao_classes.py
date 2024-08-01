@@ -201,7 +201,7 @@ class Monster(Sprite):
                     attack_roll = randint(1, 20) + attack.attack_bonus if attack.attack_bonus else randint(1, 20)
                 else:
                     # https://roll20.net/compendium/dnd5e/Ability%20Scores?expansion=0#toc_2
-                    if distance <= attack.normal_range / UNIT_SIZE:
+                    if distance <= attack.normal_range:
                         attack_roll = randint(1, 20) + attack.attack_bonus if attack.attack_bonus else randint(1, 20)
                     else:
                         attack_rolls = []
