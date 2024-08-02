@@ -174,6 +174,7 @@ def request_monster(index_name: str) -> Monster:
     :param index_name: name of the monster
     :return: Monster object
     """
+    # print(index_name)
     with open(f"{path}/data/monsters/{index_name}.json", "r") as f:
         data = json.loads(f.read())
 
@@ -220,13 +221,19 @@ def request_monster(index_name: str) -> Monster:
                 # TODO: parse range in
                 desc: str = special_ability['desc']
                 area_of_effect: AreaOfEffect = AreaOfEffect(type='sphere', size=15)
+                if 'dc' in special_ability:
+                    dc_type = special_ability['dc']['dc_type']['index']
+                    dc_value = special_ability['dc']['dc_value']
+                    dc_success = special_ability['dc']['success_type']
+                else:
+                    dc_type = dc_success = dc_value = None
                 if damages:
                     special_abilities.append(SpecialAbility(name=action_name,
                                                             desc=special_ability['desc'],
                                                             damages=damages,
-                                                            dc_type=special_ability['dc']['dc_type']['index'],
-                                                            dc_value=special_ability['dc']['dc_value'],
-                                                            dc_success=special_ability['dc']['success_type'],
+                                                            dc_type=dc_type,
+                                                            dc_value=dc_value,
+                                                            dc_success=dc_success,
                                                             recharge_on_roll=None,
                                                             area_of_effect=area_of_effect))
         if spells:
