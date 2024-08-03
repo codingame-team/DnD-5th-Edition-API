@@ -25,6 +25,8 @@ GREEN = (0, 255, 0)
 RED = (255, 0, 0)
 BLUE = (0, 0, 255)
 
+UNIT_SIZE = 5
+MAX_LEVELS = 13
 
 class Color:
     PURPLE = '\033[95m'
