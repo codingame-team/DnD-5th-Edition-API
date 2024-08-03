@@ -22,3 +22,10 @@
 | Adult Oblex                  | Ooze                 |  5  |    1   |
 | Vampiric Mist                | Undead               |  3  |    1   |
 | Spawn of Kyuss               | Undead               |  5  |    1   |
+| Hobgoblin Warlord            | Humanoid (Goblinoid) |  6  |    1   |
+| Duergar Mind Master          | Humanoid (Dwarf)     |  2  |    1   |
+| Duergar Screamer             | Construct (Dwarf)    |  3  |    1   |
+| Duergar Kavalrachni          | Humanoid (Dwarf)     |  2  |    1   |
+| Female Steeder               | Monstrosity          |  1  |    1   |
+| Succubus                     | Fiend (Shapechanger) |  4  |    1   |
+| Incubus                      | Fiend (Shapechanger) |  4  |    1   |
