@@ -1234,7 +1234,7 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
                                         cprint(f'{char.name} is ** KILLED **!')
                         else:
                             char: Character = choice(melee_chars)
-                            char.hit_points -= attacker.melee_attack(char)
+                            char.hit_points -= attacker.attack(char)
                             if char.hit_points <= 0:
                                 alive_chars.remove(char)
                                 char.status = 'DEAD'
