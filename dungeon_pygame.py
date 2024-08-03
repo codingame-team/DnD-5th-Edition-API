@@ -23,7 +23,7 @@ from main import get_roster, save_character, load_xp_levels, load_character
 from populate_functions import populate, request_armor, request_weapon, request_monster, request_spell, request_monster_other
 from populate_rpg_functions import load_potions_collections
 from tools.cell_bits_dnd import DOORSPACE, TRAPPED, STAIR_UP, STAIR_DN
-from tools.common import cprint, generate_cave, generate_dungeon, Color
+from tools.common import cprint, generate_cave, generate_dungeon, Color, MAX_LEVELS
 from tools.parse_json_dungeon import parse_dungeon_json
 from tools import cell_bits_dnd as cb
 from tools.parsing_json_monsters import get_monster_counts
@@ -1308,7 +1308,7 @@ def handle_right_click_spell_attack(game):
         if game.target_pos in (monster.pos, monster.old_pos):
             monster.hit_points -= game.hero.cast(game.ready_spell, monster)
             if monster.hit_points <= 0:
-                cprint(f'{monster.name} at pos {monster.pos} is *KILLED*')
+                # cprint(f'{monster.name} at pos {monster.pos} is *KILLED*')
                 game.hero.victory(monster=monster, solo_mode=True)
                 game.kills.append(monster)
                 game.level.monsters.remove(monster)
@@ -1337,7 +1337,7 @@ def attack_monsters(game, monsters):
         if game.target_pos in (monster.pos, monster.old_pos):
             monster.hit_points -= game.hero.attack(monster, cast=False)
             if monster.hit_points <= 0:
-                cprint(f'{monster.name} at pos {monster.pos} is *KILLED*')
+                # cprint(f'{monster.name} at pos {monster.pos} is *KILLED*')
                 game.hero.victory(monster=monster, solo_mode=True)
                 game.kills.append(monster)
                 game.level.monsters.remove(monster)
@@ -1647,7 +1647,7 @@ def handle_level_changes(game):
     global level_sprites
     match game.world_map[game.hero.y][game.hero.x]:
         case '>':
-            if game.level.level_no == 12:
+            if game.level.level_no == MAX_LEVELS:
                 print('You have reached the end of the dungeon!')
             else:
                 print(f'Hero found downstairs! going to Level {game.dungeon_level + 1}')
