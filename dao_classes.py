@@ -10,7 +10,7 @@ from random import randint, choice
 import pygame
 from pygame import Surface, SurfaceType
 
-from tools.common import cprint, mh_dist, UNIT_SIZE
+from tools.common import cprint, UNIT_SIZE
 
 """ Needs to separate presentation layer from data layer """
 
@@ -198,18 +198,14 @@ class Monster(Sprite):
                 attacks: List[Action] = [action]
             for attack in attacks:
                 if attack.type == ActionType.MELEE:
-                    attack_roll = randint(1, 20) + attack.attack_bonus if attack.attack_bonus else randint(1, 20)
+                    attack_roll = randint(1, 20) + attack.attack_bonus
                 else:
+                    disadvantage: bool = True if distance <= attack.normal_range else False
                     # https://roll20.net/compendium/dnd5e/Ability%20Scores?expansion=0#toc_2
-                    if distance <= attack.normal_range:
-                        attack_roll = randint(1, 20) + attack.attack_bonus if attack.attack_bonus else randint(1, 20)
+                    if not disadvantage:
+                        attack_roll = randint(1, 20) + attack.attack_bonus
                     else:
-                        attack_rolls = []
-                        for _ in range(2):
-                            # Simulate two attacks for ranged attacks
-                            attack_roll = randint(1, 20) + attack.attack_bonus if attack.attack_bonus else randint(1, 20)
-                            attack_rolls.append(attack_roll)
-                        attack_roll = min(attack_rolls)
+                        attack_roll = min([randint(1, 20) + attack.attack_bonus for _ in range(2)])
                 if attack_roll >= character.armor_class:
                     if attack.damages:
                         for damage in attack.damages:
@@ -739,12 +735,13 @@ class Action:
     name: str
     desc: str
     type: ActionType
-    attack_bonus: int | None
-    multi_attack: List[Action] | None  # used for MELEE and RANGED attacks
-    damages: List[Damage] | None
+    damages: List[Damage] = None
     effects: List[Condition] = None
+    multi_attack: List[Action|SpecialAbility] = None  # used for MELEE and RANGED attacks
+    attack_bonus: int = 0
     normal_range: int = 5
-    long_range: int = 5
+    long_range: float = 5
+    disadvantage: bool = False
 
 
 @dataclass
