@@ -2358,6 +2358,9 @@
 			},
 			{
 				"source": "VEoR"
+			},
+			{
+				"source": "QftIS"
 			}
 		],
 		"size": [
@@ -2587,6 +2590,13 @@
 			},
 			{
 				"item": "VEoR",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "QftIS",
 				"isIgnoreRed": true,
 				"rendered": null,
 				"searchText": null,
@@ -4097,21 +4107,6 @@
 		"hasFluff": true,
 		"hasFluffImages": true,
 		"__prop": "monster",
-		"_pTypes": {
-			"types": [
-				"humanoid"
-			],
-			"tags": [],
-			"asText": "Humanoid",
-			"asTextShort": "Humanoid",
-			"typeSidekick": null,
-			"tagsSidekick": [],
-			"asTextSidekick": null
-		},
-		"_pCr": "6",
-		"_fCr": [
-			"6"
-		],
 		"_fSpeedType": [
 			"walk"
 		],
@@ -4199,6 +4194,21 @@
 		],
 		"_fEquipment": [
 			"dagger|phb"
+		],
+		"_pTypes": {
+			"types": [
+				"humanoid"
+			],
+			"tags": [],
+			"asText": "Humanoid",
+			"asTextShort": "Humanoid",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "6",
+		"_fCr": [
+			"6"
 		]
 	},
 	{
@@ -4293,21 +4303,6 @@
 		"hasFluff": true,
 		"hasFluffImages": true,
 		"__prop": "monster",
-		"_pTypes": {
-			"types": [
-				"aberration"
-			],
-			"tags": [],
-			"asText": "Aberration",
-			"asTextShort": "Aberration",
-			"typeSidekick": null,
-			"tagsSidekick": [],
-			"asTextSidekick": null
-		},
-		"_pCr": "1/4",
-		"_fCr": [
-			"1/4"
-		],
 		"_fSpeedType": [
 			"walk"
 		],
@@ -4366,7 +4361,22 @@
 		"_fLanguageTags": [
 			"DS"
 		],
-		"_fEquipment": []
+		"_fEquipment": [],
+		"_pTypes": {
+			"types": [
+				"aberration"
+			],
+			"tags": [],
+			"asText": "Aberration",
+			"asTextShort": "Aberration",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "1/4",
+		"_fCr": [
+			"1/4"
+		]
 	},
 	{
 		"name": "Star Spawn Mangler",
@@ -4497,21 +4507,6 @@
 		"hasFluff": true,
 		"hasFluffImages": true,
 		"__prop": "monster",
-		"_pTypes": {
-			"types": [
-				"aberration"
-			],
-			"tags": [],
-			"asText": "Aberration",
-			"asTextShort": "Aberration",
-			"typeSidekick": null,
-			"tagsSidekick": [],
-			"asTextSidekick": null
-		},
-		"_pCr": "5",
-		"_fCr": [
-			"5"
-		],
 		"_fSpeedType": [
 			"walk",
 			"climb"
@@ -4582,7 +4577,22 @@
 		"_fLanguageTags": [
 			"DS"
 		],
-		"_fEquipment": []
+		"_fEquipment": [],
+		"_pTypes": {
+			"types": [
+				"aberration"
+			],
+			"tags": [],
+			"asText": "Aberration",
+			"asTextShort": "Aberration",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "5",
+		"_fCr": [
+			"5"
+		]
 	},
 	{
 		"name": "Adult Oblex",
@@ -4772,21 +4782,6 @@
 		"hasFluff": true,
 		"hasFluffImages": true,
 		"__prop": "monster",
-		"_pTypes": {
-			"types": [
-				"ooze"
-			],
-			"tags": [],
-			"asText": "Ooze",
-			"asTextShort": "Ooze",
-			"typeSidekick": null,
-			"tagsSidekick": [],
-			"asTextSidekick": null
-		},
-		"_pCr": "5",
-		"_fCr": [
-			"5"
-		],
 		"_fSpeedType": [
 			"walk"
 		],
@@ -4858,7 +4853,22 @@
 			"C",
 			"X"
 		],
-		"_fEquipment": []
+		"_fEquipment": [],
+		"_pTypes": {
+			"types": [
+				"ooze"
+			],
+			"tags": [],
+			"asText": "Ooze",
+			"asTextShort": "Ooze",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "5",
+		"_fCr": [
+			"5"
+		]
 	},
 	{
 		"name": "Vampiric Mist",
@@ -5024,21 +5034,6 @@
 		"hasFluff": true,
 		"hasFluffImages": true,
 		"__prop": "monster",
-		"_pTypes": {
-			"types": [
-				"undead"
-			],
-			"tags": [],
-			"asText": "Undead",
-			"asTextShort": "Undead",
-			"typeSidekick": null,
-			"tagsSidekick": [],
-			"asTextSidekick": null
-		},
-		"_pCr": "3",
-		"_fCr": [
-			"3"
-		],
 		"_fSpeedType": [
 			"fly",
 			"canHover",
@@ -5132,7 +5127,22 @@
 		"_fLanguageTags": [
 			"None"
 		],
-		"_fEquipment": []
+		"_fEquipment": [],
+		"_pTypes": {
+			"types": [
+				"undead"
+			],
+			"tags": [],
+			"asText": "Undead",
+			"asTextShort": "Undead",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "3",
+		"_fCr": [
+			"3"
+		]
 	},
 	{
 		"name": "Spawn of Kyuss",
@@ -5258,6 +5268,7 @@
 			"S"
 		],
 		"miscTags": [
+			"DIS",
 			"MW"
 		],
 		"savingThrowForced": [
@@ -5267,21 +5278,6 @@
 		"hasFluff": true,
 		"hasFluffImages": true,
 		"__prop": "monster",
-		"_pTypes": {
-			"types": [
-				"undead"
-			],
-			"tags": [],
-			"asText": "Undead",
-			"asTextShort": "Undead",
-			"typeSidekick": null,
-			"tagsSidekick": [],
-			"asTextSidekick": null
-		},
-		"_pCr": "5",
-		"_fCr": [
-			"5"
-		],
 		"_fSpeedType": [
 			"walk"
 		],
@@ -5336,6 +5332,7 @@
 		"_fWis": 7,
 		"_fCha": 3,
 		"_fMisc": [
+			"DIS",
 			"MW",
 			"Has Token",
 			"Has Info",
@@ -5344,6 +5341,1844 @@
 		"_fLanguageTags": [
 			"CS",
 			"LF"
+		],
+		"_fEquipment": [],
+		"_pTypes": {
+			"types": [
+				"undead"
+			],
+			"tags": [],
+			"asText": "Undead",
+			"asTextShort": "Undead",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "5",
+		"_fCr": [
+			"5"
+		]
+	},
+	{
+		"name": "Hobgoblin Warlord",
+		"source": "MM",
+		"page": 187,
+		"otherSources": [
+			{
+				"source": "SKT"
+			},
+			{
+				"source": "WDMM"
+			},
+			{
+				"source": "BGDIA"
+			},
+			{
+				"source": "DSotDQ"
+			},
+			{
+				"source": "SatO"
+			},
+			{
+				"source": "QftIS"
+			}
+		],
+		"size": [
+			"M"
+		],
+		"type": {
+			"type": "humanoid",
+			"tags": [
+				"goblinoid"
+			]
+		},
+		"alignment": [
+			"L",
+			"E"
+		],
+		"ac": [
+			{
+				"ac": 20,
+				"from": [
+					"{@item plate armor|phb}",
+					"{@item shield|phb}"
+				]
+			}
+		],
+		"hp": {
+			"average": 97,
+			"formula": "13d8 + 39"
+		},
+		"speed": {
+			"walk": 30
+		},
+		"str": 16,
+		"dex": 14,
+		"con": 16,
+		"int": 14,
+		"wis": 11,
+		"cha": 15,
+		"save": {
+			"int": "+5",
+			"wis": "+3",
+			"cha": "+5"
+		},
+		"senses": [
+			"darkvision 60 ft."
+		],
+		"passive": 10,
+		"languages": [
+			"Common",
+			"Goblin"
+		],
+		"cr": "6",
+		"trait": [
+			{
+				"name": "Martial Advantage",
+				"entries": [
+					"Once per turn, the hobgoblin can deal an extra 14 ({@dice 4d6}) damage to a creature it hits with a weapon attack if that creature is within 5 feet of an ally of the hobgoblin that isn't {@condition incapacitated}."
+				]
+			}
+		],
+		"action": [
+			{
+				"name": "Multiattack",
+				"entries": [
+					"The hobgoblin makes three melee attacks. Alternatively, it can make two ranged attacks with its javelins."
+				]
+			},
+			{
+				"name": "Longsword",
+				"entries": [
+					"{@atk mw} {@hit 9} to hit, reach 5 ft., one target. {@h}7 ({@damage 1d8 + 3}) slashing damage, or 8 ({@damage 1d10 + 3}) slashing damage if used with two hands."
+				]
+			},
+			{
+				"name": "Shield Bash",
+				"entries": [
+					"{@atk mw} {@hit 9} to hit, reach 5 ft., one creature. {@h}5 ({@damage 1d4 + 3}) bludgeoning damage. If the target is Large or smaller, it must succeed on a {@dc 14} Strength saving throw or be knocked {@condition prone}."
+				]
+			},
+			{
+				"name": "Javelin",
+				"entries": [
+					"{@atk mw,rw} {@hit 9} to hit, reach 5 ft. or range 30/120 ft., one target. {@h}6 ({@damage 1d6 + 3}) piercing damage."
+				]
+			},
+			{
+				"name": "Leadership (Recharges after a Short or Long Rest)",
+				"entries": [
+					"For 1 minute, the hobgoblin can utter a special command or warning whenever a nonhostile creature that it can see within 30 feet of it makes an attack roll or a saving throw. The creature can add a {@dice d4} to its roll provided it can hear and understand the hobgoblin. A creature can benefit from only one Leadership die at a time. This effect ends if the hobgoblin is {@condition incapacitated}."
+				]
+			}
+		],
+		"reaction": [
+			{
+				"name": "Parry",
+				"entries": [
+					"The hobgoblin adds 3 to its AC against one melee attack that would hit it. To do so, the hobgoblin must see the attacker and be wielding a melee weapon."
+				]
+			}
+		],
+		"environment": [
+			"desert",
+			"forest",
+			"grassland",
+			"hill",
+			"underdark"
+		],
+		"soundClip": {
+			"type": "internal",
+			"path": "bestiary/hobgoblin-warlord.mp3"
+		},
+		"attachedItems": [
+			"javelin|phb",
+			"longsword|phb"
+		],
+		"senseTags": [
+			"D"
+		],
+		"actionTags": [
+			"Multiattack",
+			"Parry"
+		],
+		"languageTags": [
+			"C",
+			"GO"
+		],
+		"damageTags": [
+			"B",
+			"P",
+			"S"
+		],
+		"miscTags": [
+			"MLW",
+			"MW",
+			"RW",
+			"THW"
+		],
+		"conditionInflict": [
+			"prone"
+		],
+		"savingThrowForced": [
+			"strength"
+		],
+		"hasToken": true,
+		"hasFluff": true,
+		"hasFluffImages": true,
+		"__prop": "monster",
+		"_pTypes": {
+			"types": [
+				"humanoid"
+			],
+			"tags": [
+				"goblinoid"
+			],
+			"asText": "Humanoid (Goblinoid)",
+			"asTextShort": "Humanoid (Goblinoid)",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "6",
+		"_fCr": [
+			"6"
+		],
+		"_fSpeedType": [
+			"walk"
+		],
+		"_fSpeed": 30,
+		"_fAc": [
+			20
+		],
+		"_fHp": 97,
+		"_fAlign": [
+			"L",
+			"E"
+		],
+		"_fEnvironment": [
+			"desert",
+			"forest",
+			"grassland",
+			"hill",
+			"underdark"
+		],
+		"_fVuln": [],
+		"_fRes": [],
+		"_fImm": [],
+		"_fCondImm": [],
+		"_fSave": [
+			"int",
+			"wis",
+			"cha"
+		],
+		"_fSkill": [],
+		"_fSources": [
+			"MM",
+			{
+				"item": "SKT",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "WDMM",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "BGDIA",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "DSotDQ",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "SatO",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "QftIS",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			}
+		],
+		"_fPassive": 10,
+		"_fStr": 16,
+		"_fDex": 14,
+		"_fCon": 16,
+		"_fInt": 14,
+		"_fWis": 11,
+		"_fCha": 15,
+		"_fMisc": [
+			"MLW",
+			"MW",
+			"RW",
+			"THW",
+			"AC from Item(s)",
+			"Reactions",
+			"Has Token",
+			"Has Info",
+			"Has Images"
+		],
+		"_fLanguageTags": [
+			"C",
+			"GO"
+		],
+		"_fEquipment": [
+			"javelin|phb",
+			"longsword|phb",
+			"plate armor|phb",
+			"shield|phb"
+		]
+	},
+	{
+		"name": "Duergar Mind Master",
+		"source": "MPMM",
+		"page": 108,
+		"otherSources": [
+			{
+				"source": "MTF",
+				"page": 189
+			}
+		],
+		"size": [
+			"M"
+		],
+		"type": {
+			"type": "humanoid",
+			"tags": [
+				"dwarf"
+			]
+		},
+		"alignment": [
+			"A"
+		],
+		"ac": [
+			{
+				"ac": 14,
+				"from": [
+					"{@item leather armor|PHB}"
+				]
+			}
+		],
+		"hp": {
+			"average": 39,
+			"formula": "6d8 + 12"
+		},
+		"speed": {
+			"walk": 25
+		},
+		"str": 11,
+		"dex": 17,
+		"con": 14,
+		"int": 15,
+		"wis": 10,
+		"cha": 12,
+		"save": {
+			"wis": "+2"
+		},
+		"skill": {
+			"perception": "+2",
+			"stealth": "+5"
+		},
+		"senses": [
+			"darkvision 120 ft.",
+			"truesight 30 ft."
+		],
+		"passive": 12,
+		"resist": [
+			"poison"
+		],
+		"languages": [
+			"Dwarvish",
+			"Undercommon"
+		],
+		"cr": "2",
+		"trait": [
+			{
+				"name": "Duergar Resilience",
+				"entries": [
+					"The duergar has advantage on saving throws against spells and the {@condition charmed}, {@condition paralyzed}, and {@condition poisoned} conditions."
+				]
+			},
+			{
+				"name": "Sunlight Sensitivity",
+				"entries": [
+					"While in sunlight, the duergar has disadvantage on attack rolls, as well as on Wisdom ({@skill Perception}) checks that rely on sight."
+				]
+			}
+		],
+		"action": [
+			{
+				"name": "Multiattack",
+				"entries": [
+					"The duergar makes two Mind-Poison Dagger attacks. It can replace one attack with a use of Mind Mastery."
+				]
+			},
+			{
+				"name": "Mind-Poison Dagger",
+				"entries": [
+					"{@atk mw} {@hit 5} to hit, reach 5 ft., one target. {@h}5 ({@damage 1d4 + 3}) piercing damage plus 10 ({@damage 3d6}) psychic damage, or 1 piercing damage plus 10 ({@damage 3d6}) psychic damage while under the effect of Reduce."
+				]
+			},
+			{
+				"name": "Invisibility {@recharge 4}",
+				"entries": [
+					"The duergar magically turns {@condition invisible} for up to 1 hour or until it attacks, it forces a creature to make a saving throw, or its {@status concentration} is broken (as if {@status concentration||concentrating} on a spell). Any equipment the duergar wears or carries is {@condition invisible} with it."
+				]
+			},
+			{
+				"name": "Mind Mastery",
+				"entries": [
+					"The duergar targets one creature it can see within 60 feet of it. The target must succeed on a {@dc 12} Intelligence saving throw, or the duergar causes it to use its reaction, if available, either to make one weapon attack against another creature the duergar can see or to move up to 10 feet in a direction of the duergar's choice. Creatures that can't be {@condition charmed} are immune to this effect."
+				]
+			}
+		],
+		"bonus": [
+			{
+				"name": "Reduce (Recharges after a Short or Long Rest)",
+				"entries": [
+					"For 1 minute, the duergar magically decreases in size, along with anything it is wearing or carrying. While reduced, the duergar is Tiny, reduces its weapon damage to 1, and makes attack rolls, ability checks, and saving throws with disadvantage if they use Strength. It gains a +5 bonus to all Dexterity ({@skill Stealth}) checks and a +5 bonus to its AC. It can also take a bonus action on each of its turns to take the {@action Hide} action."
+				]
+			}
+		],
+		"environment": [
+			"mountain",
+			"underdark"
+		],
+		"soundClip": {
+			"type": "internal",
+			"path": "bestiary/duergar-mind-master.mp3"
+		},
+		"traitTags": [
+			"Sunlight Sensitivity"
+		],
+		"senseTags": [
+			"SD",
+			"U"
+		],
+		"actionTags": [
+			"Multiattack"
+		],
+		"languageTags": [
+			"D",
+			"U"
+		],
+		"damageTags": [
+			"P",
+			"Y"
+		],
+		"miscTags": [
+			"MLW",
+			"MW"
+		],
+		"conditionInflict": [
+			"invisible"
+		],
+		"savingThrowForced": [
+			"intelligence"
+		],
+		"hasToken": true,
+		"hasFluff": true,
+		"hasFluffImages": true,
+		"__prop": "monster",
+		"_pTypes": {
+			"types": [
+				"humanoid"
+			],
+			"tags": [
+				"dwarf"
+			],
+			"asText": "Humanoid (Dwarf)",
+			"asTextShort": "Humanoid (Dwarf)",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "2",
+		"_fCr": [
+			"2"
+		],
+		"_fSpeedType": [
+			"walk"
+		],
+		"_fSpeed": 25,
+		"_fAc": [
+			14
+		],
+		"_fHp": 39,
+		"_fAlign": [
+			"A"
+		],
+		"_fEnvironment": [
+			"mountain",
+			"underdark"
+		],
+		"_fVuln": [],
+		"_fRes": [
+			"poison"
+		],
+		"_fImm": [],
+		"_fCondImm": [],
+		"_fSave": [
+			"wis"
+		],
+		"_fSkill": [
+			"perception",
+			"stealth"
+		],
+		"_fSources": [
+			"MPMM",
+			{
+				"item": "MTF",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			}
+		],
+		"_fPassive": 12,
+		"_fStr": 11,
+		"_fDex": 17,
+		"_fCon": 14,
+		"_fInt": 15,
+		"_fWis": 10,
+		"_fCha": 12,
+		"_fMisc": [
+			"MLW",
+			"MW",
+			"AC from Item(s)",
+			"Bonus Actions",
+			"Has Token",
+			"Has Info",
+			"Has Images",
+			"Has Recharge"
+		],
+		"_fLanguageTags": [
+			"D",
+			"U"
+		],
+		"_fEquipment": [
+			"leather armor|phb"
+		]
+	},
+	{
+		"name": "Duergar Screamer",
+		"source": "MPMM",
+		"page": 111,
+		"otherSources": [
+			{
+				"source": "MTF",
+				"page": 190
+			}
+		],
+		"size": [
+			"M"
+		],
+		"type": {
+			"type": "construct",
+			"tags": [
+				"dwarf"
+			]
+		},
+		"alignment": [
+			"A"
+		],
+		"ac": [
+			{
+				"ac": 15,
+				"from": [
+					"natural armor"
+				]
+			}
+		],
+		"hp": {
+			"average": 38,
+			"formula": "7d8 + 7"
+		},
+		"speed": {
+			"walk": 20
+		},
+		"str": 18,
+		"dex": 7,
+		"con": 12,
+		"int": 5,
+		"wis": 5,
+		"cha": 5,
+		"senses": [
+			"darkvision 60 ft."
+		],
+		"passive": 7,
+		"immune": [
+			"poison"
+		],
+		"conditionImmune": [
+			"charmed",
+			"exhaustion",
+			"frightened",
+			"paralyzed",
+			"petrified",
+			"poisoned"
+		],
+		"languages": [
+			"understands Dwarvish but can't speak"
+		],
+		"cr": "3",
+		"action": [
+			{
+				"name": "Multiattack",
+				"entries": [
+					"The screamer makes one Drill attack, and it uses Sonic Scream."
+				]
+			},
+			{
+				"name": "Drill",
+				"entries": [
+					"{@atk mw} {@hit 6} to hit, reach 5 ft., one target. {@h}10 ({@damage 1d12 + 4}) piercing damage."
+				]
+			},
+			{
+				"name": "Sonic Scream",
+				"entries": [
+					"The screamer emits destructive energy in a 15-foot cube. Each creature in that area must succeed on a {@dc 11} Strength saving throw or take 7 ({@damage 2d6}) thunder damage and be knocked {@condition prone}."
+				]
+			}
+		],
+		"reaction": [
+			{
+				"name": "Engine of Pain",
+				"entries": [
+					"Immediately after a creature within 5 feet of the screamer hits it with an attack roll, the screamer makes a Drill attack against that creature."
+				]
+			}
+		],
+		"environment": [
+			"mountain",
+			"underdark"
+		],
+		"soundClip": {
+			"type": "internal",
+			"path": "bestiary/duergar-screamer.mp3"
+		},
+		"senseTags": [
+			"D"
+		],
+		"actionTags": [
+			"Multiattack"
+		],
+		"languageTags": [
+			"CS",
+			"D"
+		],
+		"damageTags": [
+			"P",
+			"T"
+		],
+		"miscTags": [
+			"AOE",
+			"MW"
+		],
+		"conditionInflict": [
+			"prone"
+		],
+		"savingThrowForced": [
+			"strength"
+		],
+		"hasToken": true,
+		"hasFluff": true,
+		"__prop": "monster",
+		"_pTypes": {
+			"types": [
+				"construct"
+			],
+			"tags": [
+				"dwarf"
+			],
+			"asText": "Construct (Dwarf)",
+			"asTextShort": "Construct (Dwarf)",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "3",
+		"_fCr": [
+			"3"
+		],
+		"_fSpeedType": [
+			"walk"
+		],
+		"_fSpeed": 20,
+		"_fAc": [
+			15
+		],
+		"_fHp": 38,
+		"_fAlign": [
+			"A"
+		],
+		"_fEnvironment": [
+			"mountain",
+			"underdark"
+		],
+		"_fVuln": [],
+		"_fRes": [],
+		"_fImm": [
+			"poison"
+		],
+		"_fCondImm": [
+			"charmed",
+			"exhaustion",
+			"frightened",
+			"paralyzed",
+			"petrified",
+			"poisoned"
+		],
+		"_fSave": [],
+		"_fSkill": [],
+		"_fSources": [
+			"MPMM",
+			{
+				"item": "MTF",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			}
+		],
+		"_fPassive": 7,
+		"_fStr": 18,
+		"_fDex": 7,
+		"_fCon": 12,
+		"_fInt": 5,
+		"_fWis": 5,
+		"_fCha": 5,
+		"_fMisc": [
+			"AOE",
+			"MW",
+			"AC from Natural Armor",
+			"Reactions",
+			"Has Token",
+			"Has Info"
+		],
+		"_fLanguageTags": [
+			"CS",
+			"D"
+		],
+		"_fEquipment": []
+	},
+	{
+		"name": "Duergar Kavalrachni",
+		"source": "MPMM",
+		"page": 107,
+		"otherSources": [
+			{
+				"source": "MTF",
+				"page": 189
+			}
+		],
+		"size": [
+			"M"
+		],
+		"type": {
+			"type": "humanoid",
+			"tags": [
+				"dwarf"
+			]
+		},
+		"alignment": [
+			"A"
+		],
+		"ac": [
+			{
+				"ac": 16,
+				"from": [
+					"{@item scale mail|PHB}",
+					"{@item shield|PHB}"
+				]
+			}
+		],
+		"hp": {
+			"average": 26,
+			"formula": "4d8 + 8"
+		},
+		"speed": {
+			"walk": 25
+		},
+		"str": 14,
+		"dex": 11,
+		"con": 14,
+		"int": 11,
+		"wis": 10,
+		"cha": 9,
+		"senses": [
+			"darkvision 120 ft."
+		],
+		"passive": 10,
+		"resist": [
+			"poison"
+		],
+		"languages": [
+			"Dwarvish",
+			"Undercommon"
+		],
+		"cr": "2",
+		"trait": [
+			{
+				"name": "Cavalry Training",
+				"entries": [
+					"When the duergar hits a target with a melee attack while mounted, the mount can use its reaction to make one melee attack against the same target."
+				]
+			},
+			{
+				"name": "Duergar Resilience",
+				"entries": [
+					"The duergar has advantage on saving throws against spells and the {@condition charmed}, {@condition paralyzed}, and {@condition poisoned} conditions."
+				]
+			},
+			{
+				"name": "Sunlight Sensitivity",
+				"entries": [
+					"While in sunlight, the duergar has disadvantage on attack rolls, as well as on Wisdom ({@skill Perception}) checks that rely on sight."
+				]
+			}
+		],
+		"action": [
+			{
+				"name": "Multiattack",
+				"entries": [
+					"The duergar makes two War Pick attacks."
+				]
+			},
+			{
+				"name": "War Pick",
+				"entries": [
+					"{@atk mw} {@hit 4} to hit, reach 5 ft., one target. {@h}6 ({@damage 1d8 + 2}) piercing damage plus 5 ({@damage 2d4}) poison damage."
+				]
+			},
+			{
+				"name": "Heavy Crossbow",
+				"entries": [
+					"{@atk rw} {@hit 2} to hit, range 100/400 ft., one target. {@h}5 ({@damage 1d10}) piercing damage."
+				]
+			},
+			{
+				"name": "Shared Invisibility (Recharges after a Short or Long Rest)",
+				"entries": [
+					"The duergar magically turns {@condition invisible} for up to 1 hour or until it attacks, it forces a creature to make a saving throw, or its {@status concentration} is broken (as if {@status concentration||concentrating} on a spell). Any equipment the duergar wears or carries is {@condition invisible} with it. While the {@condition invisible} duergar is mounted, the mount is {@condition invisible} as well. The invisibility ends early on the mount immediately after it attacks."
+				]
+			}
+		],
+		"environment": [
+			"mountain",
+			"underdark"
+		],
+		"soundClip": {
+			"type": "internal",
+			"path": "bestiary/duergar-kavalrachni.mp3"
+		},
+		"attachedItems": [
+			"heavy crossbow|phb",
+			"war pick|phb"
+		],
+		"traitTags": [
+			"Sunlight Sensitivity"
+		],
+		"senseTags": [
+			"SD"
+		],
+		"actionTags": [
+			"Multiattack"
+		],
+		"languageTags": [
+			"D",
+			"U"
+		],
+		"damageTags": [
+			"I",
+			"P"
+		],
+		"miscTags": [
+			"MLW",
+			"MW",
+			"RNG",
+			"RW"
+		],
+		"conditionInflict": [
+			"invisible"
+		],
+		"hasToken": true,
+		"hasFluff": true,
+		"__prop": "monster",
+		"_pTypes": {
+			"types": [
+				"humanoid"
+			],
+			"tags": [
+				"dwarf"
+			],
+			"asText": "Humanoid (Dwarf)",
+			"asTextShort": "Humanoid (Dwarf)",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "2",
+		"_fCr": [
+			"2"
+		],
+		"_fSpeedType": [
+			"walk"
+		],
+		"_fSpeed": 25,
+		"_fAc": [
+			16
+		],
+		"_fHp": 26,
+		"_fAlign": [
+			"A"
+		],
+		"_fEnvironment": [
+			"mountain",
+			"underdark"
+		],
+		"_fVuln": [],
+		"_fRes": [
+			"poison"
+		],
+		"_fImm": [],
+		"_fCondImm": [],
+		"_fSave": [],
+		"_fSkill": [],
+		"_fSources": [
+			"MPMM",
+			{
+				"item": "MTF",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			}
+		],
+		"_fPassive": 10,
+		"_fStr": 14,
+		"_fDex": 11,
+		"_fCon": 14,
+		"_fInt": 11,
+		"_fWis": 10,
+		"_fCha": 9,
+		"_fMisc": [
+			"MLW",
+			"MW",
+			"RNG",
+			"RW",
+			"AC from Item(s)",
+			"Has Token",
+			"Has Info"
+		],
+		"_fLanguageTags": [
+			"D",
+			"U"
+		],
+		"_fEquipment": [
+			"heavy crossbow|phb",
+			"war pick|phb",
+			"scale mail|phb",
+			"shield|phb"
+		]
+	},
+	{
+		"name": "Female Steeder",
+		"source": "MPMM",
+		"page": 231,
+		"otherSources": [
+			{
+				"source": "MTF",
+				"page": 238
+			}
+		],
+		"size": [
+			"L"
+		],
+		"type": "monstrosity",
+		"alignment": [
+			"U"
+		],
+		"ac": [
+			{
+				"ac": 14,
+				"from": [
+					"natural armor"
+				]
+			}
+		],
+		"hp": {
+			"average": 30,
+			"formula": "4d10 + 8"
+		},
+		"speed": {
+			"walk": 30,
+			"climb": 30
+		},
+		"str": 15,
+		"dex": 16,
+		"con": 14,
+		"int": 2,
+		"wis": 10,
+		"cha": 3,
+		"skill": {
+			"stealth": "+7",
+			"perception": "+4"
+		},
+		"senses": [
+			"darkvision 120 ft."
+		],
+		"passive": 14,
+		"cr": "1",
+		"trait": [
+			{
+				"name": "Extraordinary Leap",
+				"entries": [
+					"The distance of the steeder's long jumps is tripled; every foot of its walking speed that it spends on the jump allows it to move 3 feet."
+				]
+			},
+			{
+				"name": "Spider Climb",
+				"entries": [
+					"The steeder can climb difficult surfaces, including upside down on ceilings, without needing to make an ability check."
+				]
+			}
+		],
+		"action": [
+			{
+				"name": "Bite",
+				"entries": [
+					"{@atk mw} {@hit 5} to hit, reach 5 ft., one target. {@h}7 ({@damage 1d8 + 3}) piercing damage plus 9 ({@damage 2d8}) poison damage."
+				]
+			},
+			{
+				"name": "Sticky Leg",
+				"entries": [
+					"{@atk mw} {@hit 5} to hit, reach 5 ft., one Medium or smaller creature. {@h}The target is stuck to the steeder's leg and {@condition grappled} (escape {@dc 12}). The steeder can have only one creature {@condition grappled} at a time."
+				]
+			}
+		],
+		"environment": [
+			"underdark"
+		],
+		"soundClip": {
+			"type": "internal",
+			"path": "bestiary/female-steeder.mp3"
+		},
+		"traitTags": [
+			"Spider Climb"
+		],
+		"senseTags": [
+			"SD"
+		],
+		"damageTags": [
+			"I",
+			"P"
+		],
+		"miscTags": [
+			"MW"
+		],
+		"conditionInflict": [
+			"grappled"
+		],
+		"hasToken": true,
+		"hasFluff": true,
+		"hasFluffImages": true,
+		"__prop": "monster",
+		"_pTypes": {
+			"types": [
+				"monstrosity"
+			],
+			"tags": [],
+			"asText": "Monstrosity",
+			"asTextShort": "Monstrosity",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "1",
+		"_fCr": [
+			"1"
+		],
+		"_fSpeedType": [
+			"walk",
+			"climb"
+		],
+		"_fSpeed": 30,
+		"_fAc": [
+			14
+		],
+		"_fHp": 30,
+		"_fAlign": [
+			"U"
+		],
+		"_fEnvironment": [
+			"underdark"
+		],
+		"_fVuln": [],
+		"_fRes": [],
+		"_fImm": [],
+		"_fCondImm": [],
+		"_fSave": [],
+		"_fSkill": [
+			"stealth",
+			"perception"
+		],
+		"_fSources": [
+			"MPMM",
+			{
+				"item": "MTF",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			}
+		],
+		"_fPassive": 14,
+		"_fStr": 15,
+		"_fDex": 16,
+		"_fCon": 14,
+		"_fInt": 2,
+		"_fWis": 10,
+		"_fCha": 3,
+		"_fMisc": [
+			"MW",
+			"AC from Natural Armor",
+			"Has Token",
+			"Has Info",
+			"Has Images"
+		],
+		"_fLanguageTags": [
+			"None"
+		],
+		"_fEquipment": []
+	},
+	{
+		"name": "Succubus",
+		"source": "MM",
+		"page": 285,
+		"srd": true,
+		"otherSources": [
+			{
+				"source": "RoT"
+			},
+			{
+				"source": "SKT"
+			},
+			{
+				"source": "TftYP"
+			},
+			{
+				"source": "ToA"
+			},
+			{
+				"source": "BGDIA"
+			},
+			{
+				"source": "ERLW"
+			},
+			{
+				"source": "EGW"
+			},
+			{
+				"source": "TCE"
+			},
+			{
+				"source": "CRCotN"
+			},
+			{
+				"source": "SatO"
+			},
+			{
+				"source": "BMT"
+			},
+			{
+				"source": "GHLoE"
+			}
+		],
+		"size": [
+			"M"
+		],
+		"type": {
+			"type": "fiend",
+			"tags": [
+				"shapechanger"
+			]
+		},
+		"alignment": [
+			"N",
+			"E"
+		],
+		"ac": [
+			{
+				"ac": 15,
+				"from": [
+					"natural armor"
+				]
+			}
+		],
+		"hp": {
+			"average": 66,
+			"formula": "12d8 + 12"
+		},
+		"speed": {
+			"walk": 30,
+			"fly": 60
+		},
+		"str": 8,
+		"dex": 17,
+		"con": 13,
+		"int": 15,
+		"wis": 12,
+		"cha": 20,
+		"skill": {
+			"deception": "+9",
+			"insight": "+5",
+			"perception": "+5",
+			"persuasion": "+9",
+			"stealth": "+7"
+		},
+		"senses": [
+			"darkvision 60 ft."
+		],
+		"passive": 15,
+		"resist": [
+			"cold",
+			"fire",
+			"lightning",
+			"poison",
+			{
+				"resist": [
+					"bludgeoning",
+					"piercing",
+					"slashing"
+				],
+				"note": "from nonmagical attacks",
+				"cond": true
+			}
+		],
+		"languages": [
+			"Abyssal",
+			"Common",
+			"Infernal",
+			"telepathy 60 ft."
+		],
+		"cr": "4",
+		"trait": [
+			{
+				"name": "Telepathic Bond",
+				"entries": [
+					"The fiend ignores the range restriction on its telepathy when communicating with a creature it has {@condition charmed}. The two don't even need to be on the same plane of existence."
+				]
+			},
+			{
+				"name": "Shapechanger",
+				"entries": [
+					"The fiend can use its action to polymorph into a Small or Medium humanoid, or back into its true form. Without wings, the fiend loses its flying speed. Other than its size and speed, its statistics are the same in each form. Any equipment it is wearing or carrying isn't transformed. It reverts to its true form if it dies."
+				]
+			}
+		],
+		"action": [
+			{
+				"name": "Claw (Fiend Form Only)",
+				"entries": [
+					"{@atk mw} {@hit 5} to hit, reach 5 ft., one target. {@h}6 ({@damage 1d6 + 3}) slashing damage."
+				]
+			},
+			{
+				"name": "Charm",
+				"entries": [
+					"One humanoid the fiend can see within 30 feet of it must succeed on a {@dc 15} Wisdom saving throw or be magically {@condition charmed} for 1 day. The {@condition charmed} target obeys the fiend's verbal or telepathic commands. If the target suffers any harm or receives a suicidal command, it can repeat the saving throw, ending the effect on a success. If the target successfully saves against the effect, or if the effect on it ends, the target is immune to this fiend's Charm for the next 24 hours.",
+					"The fiend can have only one target {@condition charmed} at a time. If it charms another, the effect on the previous target ends."
+				]
+			},
+			{
+				"name": "Draining Kiss",
+				"entries": [
+					"The fiend kisses a creature {@condition charmed} by it or a willing creature. The target must make a {@dc 15} Constitution saving throw against this magic, taking 32 ({@damage 5d10 + 5}) psychic damage on a failed save, or half as much damage on a successful one. The target's hit point maximum is reduced by an amount equal to the damage taken. This reduction lasts until the target finishes a long rest. The target dies if this effect reduces its hit point maximum to 0."
+				]
+			},
+			{
+				"name": "Etherealness",
+				"entries": [
+					"The fiend magically enters the Ethereal Plane from the Material Plane, or vice versa."
+				]
+			}
+		],
+		"environment": [
+			"urban"
+		],
+		"soundClip": {
+			"type": "internal",
+			"path": "bestiary/succubus-incubus.mp3"
+		},
+		"traitTags": [
+			"Shapechanger"
+		],
+		"senseTags": [
+			"D"
+		],
+		"languageTags": [
+			"AB",
+			"C",
+			"I",
+			"TP"
+		],
+		"damageTags": [
+			"S",
+			"Y"
+		],
+		"miscTags": [
+			"HPR",
+			"MW"
+		],
+		"conditionInflict": [
+			"charmed"
+		],
+		"savingThrowForced": [
+			"constitution",
+			"wisdom"
+		],
+		"hasToken": true,
+		"hasFluff": true,
+		"hasFluffImages": true,
+		"__prop": "monster",
+		"_pTypes": {
+			"types": [
+				"fiend"
+			],
+			"tags": [
+				"shapechanger"
+			],
+			"asText": "Fiend (Shapechanger)",
+			"asTextShort": "Fiend (Shapechanger)",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "4",
+		"_fCr": [
+			"4"
+		],
+		"_fSpeedType": [
+			"walk",
+			"fly"
+		],
+		"_fSpeed": 60,
+		"_fAc": [
+			15
+		],
+		"_fHp": 66,
+		"_fAlign": [
+			"N",
+			"E",
+			"NX"
+		],
+		"_fEnvironment": [
+			"urban"
+		],
+		"_fVuln": [],
+		"_fRes": [
+			"cold",
+			"fire",
+			"lightning",
+			"poison",
+			"bludgeoning (Conditional)",
+			"piercing (Conditional)",
+			"slashing (Conditional)"
+		],
+		"_fImm": [],
+		"_fCondImm": [],
+		"_fSave": [],
+		"_fSkill": [
+			"deception",
+			"insight",
+			"perception",
+			"persuasion",
+			"stealth"
+		],
+		"_fSources": [
+			"MM",
+			{
+				"item": "RoT",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "SKT",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "TftYP",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "ToA",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "BGDIA",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "ERLW",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "EGW",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "TCE",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "CRCotN",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "SatO",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "BMT",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "GHLoE",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			}
+		],
+		"_fPassive": 15,
+		"_fStr": 8,
+		"_fDex": 17,
+		"_fCon": 13,
+		"_fInt": 15,
+		"_fWis": 12,
+		"_fCha": 20,
+		"_fMisc": [
+			"HPR",
+			"MW",
+			"AC from Natural Armor",
+			"SRD",
+			"Has Token",
+			"Has Info",
+			"Has Images"
+		],
+		"_fLanguageTags": [
+			"AB",
+			"C",
+			"I",
+			"TP"
+		],
+		"_fEquipment": []
+	},
+	{
+		"name": "Incubus",
+		"source": "MM",
+		"page": 285,
+		"srd": true,
+		"otherSources": [
+			{
+				"source": "ToA"
+			},
+			{
+				"source": "WDMM"
+			},
+			{
+				"source": "BGDIA"
+			},
+			{
+				"source": "ERLW"
+			},
+			{
+				"source": "IMR"
+			},
+			{
+				"source": "EGW"
+			},
+			{
+				"source": "TCE"
+			},
+			{
+				"source": "WBtW"
+			},
+			{
+				"source": "CRCotN"
+			},
+			{
+				"source": "KftGV"
+			},
+			{
+				"source": "ToFW"
+			},
+			{
+				"source": "GHLoE"
+			}
+		],
+		"size": [
+			"M"
+		],
+		"type": {
+			"type": "fiend",
+			"tags": [
+				"shapechanger"
+			]
+		},
+		"alignment": [
+			"N",
+			"E"
+		],
+		"ac": [
+			{
+				"ac": 15,
+				"from": [
+					"natural armor"
+				]
+			}
+		],
+		"hp": {
+			"average": 66,
+			"formula": "12d8 + 12"
+		},
+		"speed": {
+			"walk": 30,
+			"fly": 60
+		},
+		"str": 8,
+		"dex": 17,
+		"con": 13,
+		"int": 15,
+		"wis": 12,
+		"cha": 20,
+		"skill": {
+			"deception": "+9",
+			"insight": "+5",
+			"perception": "+5",
+			"persuasion": "+9",
+			"stealth": "+7"
+		},
+		"senses": [
+			"darkvision 60 ft."
+		],
+		"passive": 15,
+		"resist": [
+			"cold",
+			"fire",
+			"lightning",
+			"poison",
+			{
+				"resist": [
+					"bludgeoning",
+					"piercing",
+					"slashing"
+				],
+				"note": "from nonmagical attacks",
+				"cond": true
+			}
+		],
+		"languages": [
+			"Abyssal",
+			"Common",
+			"Infernal",
+			"telepathy 60 ft."
+		],
+		"cr": "4",
+		"trait": [
+			{
+				"name": "Telepathic Bond",
+				"entries": [
+					"The fiend ignores the range restriction on its telepathy when communicating with a creature it has {@condition charmed}. The two don't even need to be on the same plane of existence."
+				]
+			},
+			{
+				"name": "Shapechanger",
+				"entries": [
+					"The fiend can use its action to polymorph into a Small or Medium humanoid, or back into its true form. Without wings, the fiend loses its flying speed. Other than its size and speed, its statistics are the same in each form. Any equipment it is wearing or carrying isn't transformed. It reverts to its true form if it dies."
+				]
+			}
+		],
+		"action": [
+			{
+				"name": "Claw (Fiend Form Only)",
+				"entries": [
+					"{@atk mw} {@hit 5} to hit, reach 5 ft., one target. {@h}6 ({@damage 1d6 + 3}) slashing damage."
+				]
+			},
+			{
+				"name": "Charm",
+				"entries": [
+					"One humanoid the fiend can see within 30 feet of it must succeed on a {@dc 15} Wisdom saving throw or be magically {@condition charmed} for 1 day. The {@condition charmed} target obeys the fiend's verbal or telepathic commands. If the target suffers any harm or receives a suicidal command, it can repeat the saving throw, ending the effect on a success. If the target successfully saves against the effect, or if the effect on it ends, the target is immune to this fiend's Charm for the next 24 hours.",
+					"The fiend can have only one target {@condition charmed} at a time. If it charms another, the effect on the previous target ends."
+				]
+			},
+			{
+				"name": "Draining Kiss",
+				"entries": [
+					"The fiend kisses a creature {@condition charmed} by it or a willing creature. The target must make a {@dc 15} Constitution saving throw against this magic, taking 32 ({@damage 5d10 + 5}) psychic damage on a failed save, or half as much damage on a successful one. The target's hit point maximum is reduced by an amount equal to the damage taken. This reduction lasts until the target finishes a long rest. The target dies if this effect reduces its hit point maximum to 0."
+				]
+			},
+			{
+				"name": "Etherealness",
+				"entries": [
+					"The fiend magically enters the Ethereal Plane from the Material Plane, or vice versa."
+				]
+			}
+		],
+		"environment": [
+			"urban"
+		],
+		"soundClip": {
+			"type": "internal",
+			"path": "bestiary/succubus-incubus.mp3"
+		},
+		"traitTags": [
+			"Shapechanger"
+		],
+		"senseTags": [
+			"D"
+		],
+		"languageTags": [
+			"AB",
+			"C",
+			"I",
+			"TP"
+		],
+		"damageTags": [
+			"S",
+			"Y"
+		],
+		"miscTags": [
+			"HPR",
+			"MW"
+		],
+		"conditionInflict": [
+			"charmed"
+		],
+		"savingThrowForced": [
+			"constitution",
+			"wisdom"
+		],
+		"hasToken": true,
+		"hasFluff": true,
+		"hasFluffImages": true,
+		"__prop": "monster",
+		"_pTypes": {
+			"types": [
+				"fiend"
+			],
+			"tags": [
+				"shapechanger"
+			],
+			"asText": "Fiend (Shapechanger)",
+			"asTextShort": "Fiend (Shapechanger)",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "4",
+		"_fCr": [
+			"4"
+		],
+		"_fSpeedType": [
+			"walk",
+			"fly"
+		],
+		"_fSpeed": 60,
+		"_fAc": [
+			15
+		],
+		"_fHp": 66,
+		"_fAlign": [
+			"N",
+			"E",
+			"NX"
+		],
+		"_fEnvironment": [
+			"urban"
+		],
+		"_fVuln": [],
+		"_fRes": [
+			"cold",
+			"fire",
+			"lightning",
+			"poison",
+			"bludgeoning (Conditional)",
+			"piercing (Conditional)",
+			"slashing (Conditional)"
+		],
+		"_fImm": [],
+		"_fCondImm": [],
+		"_fSave": [],
+		"_fSkill": [
+			"deception",
+			"insight",
+			"perception",
+			"persuasion",
+			"stealth"
+		],
+		"_fSources": [
+			"MM",
+			{
+				"item": "ToA",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "WDMM",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "BGDIA",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "ERLW",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "IMR",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "EGW",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "TCE",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "WBtW",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "CRCotN",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "KftGV",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "ToFW",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "GHLoE",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			}
+		],
+		"_fPassive": 15,
+		"_fStr": 8,
+		"_fDex": 17,
+		"_fCon": 13,
+		"_fInt": 15,
+		"_fWis": 12,
+		"_fCha": 20,
+		"_fMisc": [
+			"HPR",
+			"MW",
+			"AC from Natural Armor",
+			"SRD",
+			"Has Token",
+			"Has Info",
+			"Has Images"
+		],
+		"_fLanguageTags": [
+			"AB",
+			"C",
+			"I",
+			"TP"
 		],
 		"_fEquipment": []
 	}
