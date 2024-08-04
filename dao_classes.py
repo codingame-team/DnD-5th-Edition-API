@@ -197,31 +197,34 @@ class Monster(Sprite):
             else:
                 attacks: List[Action] = [action]
             for attack in attacks:
-                if attack.type == ActionType.MELEE:
-                    attack_roll = randint(1, 20) + attack.attack_bonus
+                if isinstance(attack, SpecialAbility):
+                    total_damage += self.special_attack(character, attack)
                 else:
-                    disadvantage: bool = True if distance <= attack.normal_range else False
-                    # https://roll20.net/compendium/dnd5e/Ability%20Scores?expansion=0#toc_2
-                    if not disadvantage:
+                    if attack.type == ActionType.MELEE:
                         attack_roll = randint(1, 20) + attack.attack_bonus
                     else:
-                        attack_roll = min([randint(1, 20) + attack.attack_bonus for _ in range(2)])
-                if attack_roll >= character.armor_class:
-                    if attack.damages:
-                        for damage in attack.damages:
-                            damage_given = damage.dd.roll()
-                            total_damage += damage_given
-                            cprint(
-                                f"{color.RED}{self.name}{color.END} {damage.type.index.replace('ing', 'es')} {color.GREEN}{character.name}{color.END} for {damage_given} hit points!")
-                    if attack.effects:
-                        character.conditions = [copy(e) for e in attack.effects]
-                        for e in character.conditions:
-                            if e.index == 'restrained':
-                                e.creature = self
-                        effects: str = ' and '.join([e.index for e in attack.effects])
-                        cprint(f'{color.RED}{character.name}{color.END} is {effects}!')
-                else:
-                    cprint(f'{self.name} misses {character.name}!')
+                        disadvantage: bool = True if distance <= attack.normal_range else False
+                        # https://roll20.net/compendium/dnd5e/Ability%20Scores?expansion=0#toc_2
+                        if not disadvantage:
+                            attack_roll = randint(1, 20) + attack.attack_bonus
+                        else:
+                            attack_roll = min([randint(1, 20) + attack.attack_bonus for _ in range(2)])
+                    if attack_roll >= character.armor_class:
+                        if attack.damages:
+                            for damage in attack.damages:
+                                damage_given = damage.dd.roll()
+                                total_damage += damage_given
+                                cprint(
+                                    f"{color.RED}{self.name}{color.END} {damage.type.index.replace('ing', 'es')} {color.GREEN}{character.name}{color.END} for {damage_given} hit points!")
+                        if attack.effects:
+                            character.conditions = [copy(e) for e in attack.effects]
+                            for e in character.conditions:
+                                if e.index == 'restrained':
+                                    e.creature = self
+                            effects: str = ' and '.join([e.index for e in attack.effects])
+                            cprint(f'{color.RED}{character.name}{color.END} is {effects}!')
+                    else:
+                        cprint(f'{self.name} misses {character.name}!')
         return total_damage
 
 
@@ -740,7 +743,7 @@ class Action:
     multi_attack: List[Action|SpecialAbility] = None  # used for MELEE and RANGED attacks
     attack_bonus: int = 0
     normal_range: int = 5
-    long_range: float = 5
+    long_range: float = None
     disadvantage: bool = False
 
 
