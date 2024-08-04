@@ -23,7 +23,7 @@ from main import get_roster, save_character, load_xp_levels, load_character
 from populate_functions import populate, request_armor, request_weapon, request_monster, request_spell, request_monster_other
 from populate_rpg_functions import load_potions_collections
 from tools.cell_bits_dnd import DOORSPACE, TRAPPED, STAIR_UP, STAIR_DN
-from tools.common import cprint, generate_cave, generate_dungeon, Color, MAX_LEVELS
+from tools.common import cprint, generate_cave, generate_dungeon, Color, MAX_LEVELS, GREEN
 from tools.parse_json_dungeon import parse_dungeon_json
 from tools import cell_bits_dnd as cb
 from tools.parsing_json_monsters import get_monster_counts
@@ -422,6 +422,16 @@ class Game:
         self.level.load(hero=self.hero)
         """ Load XP Levels """
         self.xp_levels = load_xp_levels()
+
+    def load_token_images(self, token_images_dir: str) -> dict:
+        token_images = {}
+        for filename in os.listdir(token_images_dir):
+            monster_name, _ = os.path.splitext(filename)
+            image_path = os.path.join(token_images_dir, filename)
+            original_image = pygame.image.load(image_path)
+            # Resize the image to 280x280 pixels
+            token_images[monster_name] = pygame.transform.scale(original_image, (105, 105))
+        return token_images
 
     # Define a method to calculate the view window
     def calculate_view_window(self):
@@ -869,7 +879,7 @@ class Game:
         if t.has_item:
             match randint(1, 3):
                 case 1:
-                    item: HealingPotion = copy(choice(potions)) # work on a copy to avoid sprite id colliding...
+                    item: HealingPotion = copy(choice(potions))  # work on a copy to avoid sprite id colliding...
                 case 2:
                     if self.hero.allowed_armors:
                         item: Armor = request_armor(index_name=choice(self.hero.allowed_armors).index)
@@ -1043,7 +1053,7 @@ def initialize_game(char_name: str) -> Game:
 
 
 # III - Réactualisation de l'affichage
-def update_display(game):
+def update_display(game, token_images):
     # Rendu
     screen.fill(BLACK)
 
@@ -1078,6 +1088,14 @@ def update_display(game):
         image: Surface = level_sprites[monster.id]
         # big_image: Surface = pygame.transform.scale(image, (TILE_SIZE * 2, TILE_SIZE * 2))
         monster.draw(screen, image, TILE_SIZE, *view_port_tuple)
+
+        monster_rect = image.get_rect()
+        monster_rect.topleft = ((monster.x - view_port_tuple[0]) * TILE_SIZE, (monster.y - view_port_tuple[1]) * TILE_SIZE)
+        #screen.blit(image, monster_rect)
+
+        # Draw tooltip with monster name on mouse hover
+        if monster_rect.collidepoint(pygame.mouse.get_pos()):
+            draw_tooltip(monster.name, screen, *monster_rect.bottomright)
 
     # III-3 Afficher les trésors
     for t in game.level.treasures:
@@ -1120,7 +1138,15 @@ def update_display(game):
     if game.hero.sc and game.hero.sc.learned_spells:
         game.draw_spell_book(screen, sprites)
 
+    # III-8 Dessiner la mini-map
     game.draw_mini_map(screen)
+
+    # III-9 Dessiner le message de combat
+    # game.draw_combat_message(screen)
+
+    # III-10 Afficher les tokens de monstres visibles
+    if game.monsters_in_view_range:
+        draw_monster_tokens(screen, game, token_images)
 
     # Mise à jour de l'affichage
     pygame.display.flip()
@@ -1180,6 +1206,7 @@ def main_game_loop(game):
     global level_sprites
     running = True
     game.last_round_time = time.time()
+    token_images = game.load_token_images(token_images_dir)
     round_no: int = 1
     while running:
         # Calculate the time since the last frame
@@ -1192,7 +1219,7 @@ def main_game_loop(game):
         handle_game_conditions(game)
 
         # III - Réactualisation de l'affichage
-        update_display(game)
+        update_display(game, token_images)
 
         # Limit frame rate
         pygame.time.Clock().tick(FPS)
@@ -1239,6 +1266,7 @@ def handle_events(game):
             handle_mouse_events(game, event)
         elif event.type == pygame.KEYDOWN:
             handle_keyboard_events(game, event)
+
 
 def handle_outside_map_click(game, event):
     # Vérifier si un texte d'action a été cliqué
@@ -1382,6 +1410,7 @@ def move_char(game: Game, char: Monster | Character, pos: tuple):
             game.level.explored_tiles.add(char.pos)
             game.update_visible_tiles()
 
+
 def handle_keyboard_events(game, event):
     if event.key == pygame.K_ESCAPE:
         # save_character(char=game.hero, _dir=characters_dir)
@@ -1461,6 +1490,7 @@ def get_initiative_order(characters):
     initiative_rolls = [(char, randint(1, char.abilities.dex)) for char in characters]
     initiative_rolls.sort(key=lambda x: x[1], reverse=True)
     return [char for char, _ in initiative_rolls]
+
 
 # def handle_combat_new(game: Game, monsters: List[Monster], attack_spell: Spell = None, move_position: tuple = None) -> None:
 #     """
@@ -1559,6 +1589,7 @@ def handle_combat(game: Game, monsters: List[Monster], attack_spell: Spell = Non
             game.last_combat_round = game.round_no
     game.round_no += 1
 
+
 def handle_monster_actions(game: Game, monster: Monster):
     # print(monster.name)
     # Precalculate ready spells & special attacks
@@ -1601,7 +1632,8 @@ def handle_monster_actions(game: Game, monster: Monster):
             # Monster attacks the hero
             game.hero.hit_points -= monster.attack(character=game.hero, actions=melee_attacks, distance=range)
         else:
-            ranged_attacks: List[Action] = list(filter(lambda a: a.type in [ActionType.RANGED, ActionType.MIXED] and range <= a.long_range, monster.actions))
+            ranged_attacks: List[Action] = list(filter(lambda a: a.type in [ActionType.RANGED, ActionType.MIXED]
+                                                                 and ((a.long_range and range <= a.long_range) or range <= a.normal_range), monster.actions))
             if ranged_attacks:
                 game.hero.hit_points -= monster.attack(character=game.hero, actions=ranged_attacks, distance=range)
             else:
@@ -1694,6 +1726,7 @@ def create_sprites(hero: Character) -> dict[int, pygame.Surface]:
             # print(item.name, item.id, id(s[item.id]))
     return s
 
+
 def update_level_sprites(monsters: List[Monster], sprites: dict[int, pygame.Surface]):
     for m in monsters:
         m.id = max(sprites) + 1 if sprites else 1
@@ -1702,6 +1735,7 @@ def update_level_sprites(monsters: List[Monster], sprites: dict[int, pygame.Surf
         except FileNotFoundError:
             original_image = pygame.image.load(f"{sprites_dir}/enemy.png").convert_alpha()
         sprites[m.id] = pygame.transform.scale(original_image, (32, 32))
+
 
 def create_level_sprites(level: Level) -> dict[int, pygame.Surface]:
     s = {}
@@ -1730,6 +1764,45 @@ def create_level_sprites(level: Level) -> dict[int, pygame.Surface]:
     return s
 
 
+def draw_monster_tokens(screen, game, token_images):
+    # Calculate the position for the token area
+    token_area_x = SCREEN_WIDTH - 250
+    token_area_y = 20
+
+    font = pygame.font.SysFont(None, 60)
+
+    # Draw visible monsters' tokens
+    column_height = 0
+    column_width = 0
+    for i, monster in enumerate(game.monsters_in_view_range):
+        # token_image = game.token_images.get(monster.name.lower().replace(" ", "_"))
+        token_image = token_images.get(monster.name)
+        if token_image:
+            token_rect = token_image.get_rect()
+            # token_rect.topleft = (token_area_x, token_area_y)
+            if i % 2 == 0:  # First column
+                token_rect.topleft = (token_area_x, token_area_y + column_height)
+                column_height += token_rect.height + 10
+            else:  # Second column
+                token_rect.topleft = (token_area_x + token_rect.width + 10, token_area_y + column_width)
+                column_width += token_rect.height + 10
+
+            screen.blit(token_image, token_rect)
+
+            # Draw current hit points in the center of the token
+            hp_text = font.render(str(monster.hit_points), True, GREEN)
+            hp_text.set_alpha(100)  # Set transparency (0 is fully transparent, 255 is opaque)
+            hp_rect = hp_text.get_rect()
+            hp_rect.center = token_rect.center
+            screen.blit(hp_text, hp_rect)
+
+            # Draw tooltip with monster name on mouse hover
+            if token_rect.collidepoint(pygame.mouse.get_pos()):
+                draw_tooltip(monster.name, screen, *token_rect.bottomleft)
+
+            # token_area_y += token_rect.height + 10  # Adjust the position for the next token
+
+
 if __name__ == "__main__":
     path = os.path.dirname(__file__)
     abspath = os.path.abspath(path)
@@ -1739,10 +1812,11 @@ if __name__ == "__main__":
     char_sprites_dir = f"{sprites_dir}/rpgcharacterspack"
     item_sprites_dir = f"{sprites_dir}/Items"
     spell_sprites_dir = f"{sprites_dir}/schools"
+    token_images_dir = f"{path}/images/monsters/tokens"
     room_no: int = 0  # memorize last visited room number
 
     # Récupération du personnage choisi par l'utilisateur
-    character_name = sys.argv[1] if len(sys.argv) > 1 else 'Flavilar'
+    character_name = sys.argv[1] if len(sys.argv) > 1 else 'Brottor'
 
     # Initialisation de Pygame
     pygame.init()
