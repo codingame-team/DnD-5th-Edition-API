@@ -2,6 +2,7 @@ import os
 import re
 
 from populate_functions import request_monster
+from tools.download_tokens import download_image
 from tools.parse_json_dungeon import parse_dungeon_json
 
 from typing import List
@@ -9,9 +10,8 @@ from typing import List
 
 def get_monster_counts(text):
     # pattern = r"(?:(\d+) x )?(\w+(?: \w+)*)"
-    pattern = r"(?:(\d+) x )?([\w-]+(?: [\w-]+)*)" # To include -
+    pattern = r"(?:(\d+) x )?([\w-]+(?: [\w-]+)*)"  # To include -
 
-    print(text)
     # Split the text on "and"
     parts = text.split(';')[0]
     parts = parts.split(' and ') if 'and' in parts else [parts]
@@ -28,7 +28,6 @@ def get_monster_counts(text):
                 monster_counts[monster] = count
 
     return monster_counts
-
 
 
 def extract_hit_dice_and_damage(text):
@@ -64,6 +63,7 @@ def extract_hit_dice_and_damage(text):
 
     return hit_dice_and_damage
 
+
 # if __name__ == '__main__':
 #     text = "{@atk mw,rw} {@hit 5} to hit, reach 5 ft. or range 20/60 ft., one target. {@h}11 ({@dice 1d6 + 3} plus {@dice 1d8}) piercing damage, or 12 ({@damage 2d8 + 3}) piercing damage if used with two hands to make a melee attack."
 #     text = "{@atk mw} {@hit 4} to hit, reach 5 ft., one target. {@h}5 ({@damage 1d6 + 2}) slashing damage."
@@ -72,12 +72,11 @@ def extract_hit_dice_and_damage(text):
 
 
 if __name__ == '__main__':
-    text = '2 x Orc and 1 x Half-ogre'
-    text = "Ogre Bolt Launcher (cr 2, motm 200, mtf 220) and 2 x Ogre (cr 2, mm 237); deadly, 1350 xp, trying to lure the party into an ambush"
-    text = "Goblin (cr 1/4, mm 166); hard, 50 xp, consumed by disease and madness"
-    monsters = get_monster_counts(text)
-    print(monsters)
-
+    # text = '2 x Orc and 1 x Half-ogre'
+    # text = "Ogre Bolt Launcher (cr 2, motm 200, mtf 220) and 2 x Ogre (cr 2, mm 237); deadly, 1350 xp, trying to lure the party into an ambush"
+    # text = "Goblin (cr 1/4, mm 166); hard, 50 xp, consumed by disease and madness"
+    # monsters = get_monster_counts(text)
+    # print(monsters)
 
     bestiary: List[str] = []
 
@@ -113,16 +112,39 @@ if __name__ == '__main__':
             for monster, count in monsters_tmp.items():
                 if monster in bestiary:
                     continue
-                print(f'{level_fullname} L{level:02d} -> {monster}')
+                # print(f'{level_fullname} L{level:02d} -> {monster}')
                 bestiary.append(monster)
 
-    todo_monsters: List[str] = []
+    # Download tokens for monster_kills.py
+    print(f'{len(bestiary)} bestiary monsters')
+    print(('|'.join(bestiary)))
+    # Define the folder to save the image
+    save_folder = "../images/monsters/tokens"
+    book_ref = "MM" # Monsters manual
+    other_book_ref = "MPMM" # Monsters of the Multiverse
     for monster_name in bestiary:
-        try:
-            monster_defined = request_monster(monster_name.lower().replace(' ', '-'))
-        except FileNotFoundError:
-            todo_monsters.append(monster_name)
+        image_url = f"https://5e.tools/img/bestiary/tokens/{book_ref}/{monster_name}.webp"
+        image_filename = os.path.join(save_folder, f"{monster_name}.webp")
+        # Check if the image file already exists in the folder
+        if not os.path.isfile(image_filename):
+            # Call the download_image function if the file doesn't exist
+            http_status_code = download_image(image_url, save_folder, monster_name)
+            if http_status_code != 200:
+                image_url = f"https://5e.tools/img/bestiary/tokens/{other_book_ref}/{monster_name}.webp"
+                download_image(image_url, save_folder, monster_name)
 
-    print(f'{len(todo_monsters)} todo monsters')
-    for monster_name in todo_monsters:
-        print(monster_name)
+    print('#' * 50)
+
+    # TODO Monsters
+    # todo_monsters: List[str] = []
+    # for monster_name in bestiary:
+    #     try:
+    #         monster_defined = request_monster(monster_name.lower().replace(' ', '-'))
+    #     except FileNotFoundError:
+    #         todo_monsters.append(monster_name)
+    #
+    # print(f'{len(todo_monsters)} todo monsters')
+    # for monster_name in todo_monsters:
+    #     print(monster_name)
+
+
