@@ -10,6 +10,7 @@ def get_screen_resolution():
 
 def load_and_resize_images_from_folder(folder, target_size, valid_extensions=('webp',)):
     images = []
+    filenames = []
     for filename in os.listdir(folder):
         if filename.lower().endswith(valid_extensions):
             image_path = os.path.join(folder, filename)
@@ -24,7 +25,8 @@ def load_and_resize_images_from_folder(folder, target_size, valid_extensions=('w
                 new_width = int(new_height * aspect_ratio)
             image = pygame.transform.scale(image, (new_width, new_height))
             images.append(image)
-    return images
+            filenames.append(filename)
+    return images, filenames
 
 
 def calculate_grid_layout(screen_width, screen_height, images_per_page, padding=10):
@@ -35,19 +37,61 @@ def calculate_grid_layout(screen_width, screen_height, images_per_page, padding=
     return rows, cols, (max_width, max_height)
 
 
-def draw_images(screen, images, page, images_per_page, rows, cols, padding=10):
+def draw_images_old(screen, images, filenames, page, images_per_page, rows, cols, font, padding=10):
     screen.fill((0, 0, 0))  # Effacer l'écran avec une couleur noire
     start_idx = page * images_per_page
     end_idx = min(start_idx + images_per_page, len(images))
 
     for idx in range(start_idx, end_idx):
         image = images[idx]
+        filename = filenames[idx]
         row = (idx - start_idx) // cols
         col = (idx - start_idx) % cols
         x = col * ((screen.get_width() - (cols + 1) * padding) // cols + padding)
         y = row * ((screen.get_height() - (rows + 1) * padding) // rows + padding)
+
+        # Dessiner l'image
         screen.blit(image, (x, y))
 
+        # Dessiner le texte sous l'image
+        text_surface = font.render(filename, True, (255, 255, 255))
+        text_rect = text_surface.get_rect(topleft=(x, y + image.get_height() + padding))
+        screen.blit(text_surface, text_rect)
+
+def draw_images(screen, images, filenames, page, images_per_page, rows, cols, font, padding=10):
+    screen.fill((0, 0, 0))  # Clear the screen with black color
+    start_idx = page * images_per_page
+    end_idx = min(start_idx + images_per_page, len(images))
+
+    # Calculate the maximum width and height of each cell
+    cell_width = (screen.get_width() - (cols + 1) * padding) // cols
+    cell_height = (screen.get_height() - (rows + 1) * padding) // rows
+
+    for idx in range(start_idx, end_idx):
+        image = images[idx]
+        filename = filenames[idx].replace('.webp', '')
+        row = (idx - start_idx) // cols
+        col = (idx - start_idx) % cols
+        x = col * (cell_width + padding) + padding
+        y = row * (cell_height + padding) + padding
+
+        # Draw the image
+        image_rect = image.get_rect()
+        image_rect.topleft = (x, y)
+        screen.blit(image, image_rect)
+
+        # Draw the text below the image
+        text_surface = font.render(filename, True, (255, 255, 255))
+        text_rect = text_surface.get_rect()
+        text_rect.topleft = (x, y + image_rect.height + padding)
+
+        # Adjust the text position if it overlaps with the next cell
+        if text_rect.right > x + cell_width:
+            text_rect.right = x + cell_width
+        if text_rect.bottom > y + cell_height:
+            text_rect.bottom = y + cell_height
+
+        screen.blit(text_surface, text_rect)
 
 def main():
     pygame.init()
@@ -57,22 +101,24 @@ def main():
 
     # Définir la taille de la fenêtre pour Pygame
     screen = pygame.display.set_mode((screen_width, screen_height), pygame.FULLSCREEN)
+    pygame.display.set_caption('Afficher les images WebP - Page 1')
 
     # Paramètres pour l'affichage des images
     folder = "../images/monsters/tokens"
-    images_per_page = 50
+    images_per_page = 33
     padding = 10
+
+    # Charger une police pour le texte
+    font = pygame.font.Font(None, 36)  # Police par défaut, taille 36
 
     # Calculer la disposition de la grille
     rows, cols, target_size = calculate_grid_layout(screen_width, screen_height, images_per_page, padding)
 
     # Charger et redimensionner les images
-    images = load_and_resize_images_from_folder(folder, target_size)
+    images, filenames = load_and_resize_images_from_folder(folder, target_size)
 
     # Calculer le nombre total de pages
     total_pages = (len(images) + images_per_page - 1) // images_per_page
-    pygame.display.set_caption(f'Afficher les images WebP - Page 1 / {total_pages}')
-
     current_page = 0
 
     # Variable pour suivre l'état plein écran
@@ -100,10 +146,10 @@ def main():
                         screen = pygame.display.set_mode((screen_width, screen_height))
 
                 # Mettre à jour le titre de la fenêtre avec le numéro de la page
-                pygame.display.set_caption(f'Afficher les images WebP - Page {current_page + 1} / {total_pages}')
+                pygame.display.set_caption(f'Afficher les images WebP - Page {current_page + 1}')
 
         # Afficher les images de la page courante
-        draw_images(screen, images, current_page, images_per_page, rows, cols, padding)
+        draw_images(screen, images, filenames, current_page, images_per_page, rows, cols, font, padding)
 
         pygame.display.flip()
 
