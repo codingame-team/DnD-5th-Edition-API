@@ -83,15 +83,50 @@ def draw_images(screen, images, filenames, page, images_per_page, rows, cols, fo
         # Draw the text below the image
         text_surface = font.render(filename, True, (255, 255, 255))
         text_rect = text_surface.get_rect()
-        text_rect.topleft = (x, y + image_rect.height + padding)
+        text_rect.topleft = (x + image_rect.width // 2 - text_rect.width // 2, y + image_rect.height + padding)
 
         # Adjust the text position if it overlaps with the next cell
-        if text_rect.right > x + cell_width:
-            text_rect.right = x + cell_width
         if text_rect.bottom > y + cell_height:
             text_rect.bottom = y + cell_height
 
         screen.blit(text_surface, text_rect)
+
+def draw_images_new(screen, images, filenames, page, images_per_page, rows, cols, font, padding=10):
+    screen.fill((0, 0, 0))  # Clear the screen with black color
+    start_idx = page * images_per_page
+    end_idx = min(start_idx + images_per_page, len(images))
+
+    # Calculate the maximum width and height of each cell
+    cell_width = (screen.get_width() - (cols + 1) * padding) // cols
+    cell_height = (screen.get_height() - (rows + 1) * padding) // rows
+
+    for idx in range(start_idx, end_idx):
+        image = images[idx]
+        filename = filenames[idx].replace('.webp', '')
+        row = (idx - start_idx) // cols
+        col = (idx - start_idx) % cols
+        x = col * (cell_width + padding) + padding
+        y = row * (cell_height + padding) + padding
+
+        # Draw the image
+        image_rect = image.get_rect()
+        image_rect.topleft = (x, y)
+        screen.blit(image, image_rect)
+
+        # Draw the text below the image
+        text_surface = font.render(filename, True, (255, 255, 255))
+        text_rect = text_surface.get_rect()
+        text_rect.top = y + image_rect.height + padding
+
+        # Adjust the text position if it overlaps with the cell boundaries
+        if text_rect.left < x:
+            text_rect.left = x
+        if text_rect.right > x + cell_width:
+            text_rect.right = x + cell_width
+
+        screen.blit(text_surface, text_rect)
+
+
 
 def main():
     pygame.init()
