@@ -404,7 +404,7 @@ def get_special_monster_actions(name: str) -> tuple[List[Action], List[SpecialAb
         damage_type: DamageType = request_damage_type(index_name='slashing')
         damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='2d6', bonus=2))]
         multi_attack_action = Action(name='Greatsword', desc='', type=ActionType.MELEE, attack_bonus=4, damages=damages)
-        action = Action(name='Multiattack', desc='', type=ActionType.MELEE, multi_attack=[multi_attack_action] * 2, damages=None)
+        action = Action(name='Multiattack', desc='', type=ActionType.MELEE, multi_attack=[multi_attack_action] * 2)
         actions.append(action)
         # Single Attacks
         damage_type: DamageType = request_damage_type(index_name='piercing')
@@ -424,7 +424,7 @@ def get_special_monster_actions(name: str) -> tuple[List[Action], List[SpecialAb
         # Multiple attack
         damage_type: DamageType = request_damage_type(index_name='psychic')
         damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='2d10', bonus=3))]
-        multi_attack_action = Action(name='Arcane Burst', desc='', type=ActionType.MIXED, attack_bonus=5, damages=damages, normal_range=120, long_range=math.inf)
+        multi_attack_action = Action(name='Arcane Burst', desc='', type=ActionType.MIXED, attack_bonus=5, damages=damages, normal_range=120)
         action = Action(name='Multiattack', desc='', type=ActionType.MIXED, multi_attack=[multi_attack_action] * 2)
         actions.append(action)
         # Ranged attack
@@ -514,14 +514,14 @@ def get_special_monster_actions(name: str) -> tuple[List[Action], List[SpecialAb
         # "If the target is Medium or smaller, it is {@condition grappled} (escape {@dc 13}) and pulled 5 feet toward the water weird. Until this grapple ends, the target is {@condition restrained}, the water weird tries to drown it, and the water weird can't constrict another target."
         damage_type: DamageType = request_damage_type(index_name='bludgeoning')
         damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='3d6', bonus=3))]
-        action = Action(name='Constrict', desc='', type=ActionType.MIXED, attack_bonus=5, damages=damages, normal_range=10, long_range=math.inf)
+        action = Action(name='Constrict', desc='', type=ActionType.MIXED, attack_bonus=5, damages=damages, normal_range=10)
         actions.append(action)
     elif name == "Apprentice Wizard":
         # TODO: implement spell attacks
         # Multiple attack
         damage_type: DamageType = request_damage_type(index_name='psychic')
         damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='2d10', bonus=3))]
-        action = Action(name='Arcane Burst', desc='', type=ActionType.MIXED, attack_bonus=4, damages=damages, normal_range=120, long_range=math.inf)
+        action = Action(name='Arcane Burst', desc='', type=ActionType.MIXED, attack_bonus=4, damages=damages, normal_range=120)
         actions.append(action)
     elif name == "Orc War Chief":
         # Multiple attack
@@ -552,7 +552,7 @@ def get_special_monster_actions(name: str) -> tuple[List[Action], List[SpecialAb
         # Grave Bolt * 2
         damage_type: DamageType = request_damage_type(index_name='necrotic')
         damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='2d10', bonus=3))]
-        multi_attack_action = Action(name='Grave Bolt', desc='', type=ActionType.RANGED, attack_bonus=5, damages=damages, normal_range=120, long_range=math.inf)
+        multi_attack_action = Action(name='Grave Bolt', desc='', type=ActionType.RANGED, attack_bonus=5, damages=damages, normal_range=120)
         action = Action(name='Multiattack', desc='', type=ActionType.RANGED, multi_attack=[multi_attack_action] * 2)
         actions.append(action)
     elif name == "Allip":
@@ -701,8 +701,6 @@ def get_special_monster_actions(name: str) -> tuple[List[Action], List[SpecialAb
         damage_type: DamageType = request_damage_type(index_name='necrotic')
         damages += [Damage(type=damage_type, dd=DamageDice(dice='2d6', bonus=0))]
         multi_attack_action = Action(name='Claw', desc='', type=ActionType.MELEE, attack_bonus=6, damages=damages)
-        action = Action(name='Multiattack', desc='', type=ActionType.MELEE, multi_attack=[multi_attack_action] * 2)
-        actions.append(action)
         # Special attacks
         damage_type: DamageType = request_damage_type(index_name='necrotic')
         # TODO implements Burrowing Worm effect (curse effect)
@@ -715,14 +713,18 @@ def get_special_monster_actions(name: str) -> tuple[List[Action], List[SpecialAb
         # If a worm-infested target is targeted by an effect that cures disease or removes a curse, all the worms infesting it wither away."
 
         damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='2d6', bonus=3))]
+        area_of_effect = AreaOfEffect(type='cube', size=10)
         sa: SpecialAbility = SpecialAbility(name='Burrowing Worm',
                                                 desc='',
                                                 damages=damages,
                                                 dc_type='dex',
                                                 dc_value=11,
                                                 dc_success='half',
+                                                area_of_effect=area_of_effect,
                                                 recharge_on_roll=1)
-        special_abilities.append(sa)
+        action = Action(name='Multiattack', desc='', type=ActionType.MELEE, multi_attack=[multi_attack_action, multi_attack_action, sa])
+        actions.append(action)
+        # special_abilities.append(sa)
     elif name == "Hobgoblin Warlord":
         # Multiple attack
         # "The hobgoblin makes three melee attacks. Alternatively, it can make two ranged attacks with its javelins."
@@ -807,6 +809,136 @@ def get_special_monster_actions(name: str) -> tuple[List[Action], List[SpecialAb
         action = Action(name='Claw (Fiend Form Only)', desc='', type=ActionType.MELEE, attack_bonus=5, damages=damages)
         actions.append(action)
         # TODO Implement "Charm", "Draining Kiss"
+    elif name == "Sea Hag":
+        damage_type: DamageType = request_damage_type(index_name='slashing')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='2d6', bonus=3))]
+        action = Action(name='Claws', desc='', type=ActionType.MELEE, attack_bonus=5, damages=damages)
+        actions.append(action)
+        # TODO Death glare
+        # "The hag targets one {@condition frightened} creature she can see within 30 feet of her.
+        # If the target can see the hag, it must succeed on a {@dc 11} Wisdom saving throw against this magic or drop to 0 hit points."
+        # area_of_effect = AreaOfEffect(type='cube', size=30)
+        # action: SpecialAbility = SpecialAbility(name='Death glare',
+        #                                         desc='',
+        #                                         damages=[],
+        #                                         dc_type='wis',
+        #                                         dc_value=11,
+        #                                         dc_success='none',
+        #                                         recharge_on_roll=1,
+        #                                         area_of_effect=area_of_effect,
+        #                                         effects=[Condition('frightened')])
+        # actions.append(action)
+    elif name == "Kuo-toa Archpriest":
+        # Spellcasting
+        # "The kuo-toa is a 10th-level spellcaster. Its spellcasting ability is Wisdom (spell save {@dc 14}, {@hit 6} to hit with spell attacks). The kuo-toa has the following cleric spells prepared:"
+        # Multi-attack
+        damage_type: DamageType = request_damage_type(index_name='bludgeoning')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='1d6', bonus=3))]
+        damage_type =  request_damage_type(index_name='lightning')
+        damages += [Damage(type=damage_type, dd=DamageDice(dice='4d6'))]
+        multi_attack_action_1 = Action(name='Scepter', desc='', type=ActionType.MELEE, attack_bonus=6, damages=damages)
+        damage_type: DamageType = request_damage_type(index_name='bludgeoning')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='1d4', bonus=3))]
+        multi_attack_action_2 = Action(name='Unarmed Strike', desc='', type=ActionType.MELEE, attack_bonus=6, damages=damages)
+        action = Action(name='Multiattack', desc='', type=ActionType.MELEE, multi_attack=[multi_attack_action_1, multi_attack_action_2])
+        actions.append(action)
+    elif name == "Kuo-toa":
+        damage_type: DamageType = request_damage_type(index_name='piercing')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='1d4', bonus=1))]
+        action = Action(name='Bite', desc='', type=ActionType.MELEE, attack_bonus=3, damages=damages)
+        actions.append(action)
+        damage_type: DamageType = request_damage_type(index_name='piercing')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='1d6', bonus=1))]
+        action = Action(name='Spear', desc='', type=ActionType.MIXED, attack_bonus=3, damages=damages, normal_range=20, long_range=60)
+        actions.append(action)
+        damage_type: DamageType = request_damage_type(index_name='piercing')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='1d8', bonus=1))]
+        action = Action(name='Spear', desc='', type=ActionType.MIXED, attack_bonus=3, damages=damages, normal_range=20, long_range=60)
+        actions.append(action)
+        # TODO "Net" (condition restrained)
+        # "{@atk rw} {@hit 3} to hit, range 5/15 ft., one Large or smaller creature.
+        # {@h}The target is {@condition restrained}.
+        # A creature can use its action to make a {@dc 10} Strength check to free itself or another creature in a net, ending the effect on a success.
+        # Dealing 5 slashing damage to the net (AC 10) frees the target without harming it and destroys the net."
+        # TODO Reaction "Sticky Shield"
+        # "When a creature misses the kuo-toa with a melee weapon attack, the kuo-toa uses its sticky shield to catch the weapon.
+        # The attacker must succeed on a {@dc 11} Strength saving throw, or the weapon becomes stuck to the kuo-toa's shield.
+        # If the weapon's wielder can't or won't let go of the weapon, the wielder is {@condition grappled} while the weapon is stuck. While stuck, the weapon can't be used.
+        # A creature can pull the weapon free by taking an action to make a {@dc 11} Strength check and succeeding."
+    elif name == "Kuo-toa Whip":
+        # Spellcasting
+        # "The kuo-toa is a 2nd-level spellcaster. Its spellcasting ability is Wisdom (spell save {@dc 12}, {@hit 4} to hit with spell attacks). The kuo-toa has the following cleric spells prepared:"
+        damage_type: DamageType = request_damage_type(index_name='piercing')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='1d4', bonus=2))]
+        multi_attack_action_1 = Action(name='Bite', desc='', type=ActionType.MELEE, attack_bonus=3, damages=damages)
+        # TODO "Pincer Staff" Condition Grappled
+        # "{@atk mw} {@hit 4} to hit, reach 10 ft., one target. {@h}5 ({@damage 1d6 + 2}) piercing damage.
+        # If the target is a Medium or smaller creature, it is {@condition grappled} (escape {@dc 14}).
+        # Until this grapple ends, the kuo-toa can't use its pincer staff on another target."
+        damage_type: DamageType = request_damage_type(index_name='piercing')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='1d6', bonus=2))]
+        multi_attack_action_2 = Action(name='Pincer Staff', desc='', type=ActionType.MIXED, attack_bonus=4, damages=damages, normal_range=10)
+        action = Action(name='Multiattack', desc='', type=ActionType.MIXED, multi_attack=[multi_attack_action_1, multi_attack_action_2])
+        actions.append(action)
+    elif name == "Sahuagin Baron":
+        # Multiattack
+        # "The sahuagin makes three attacks: one with his bite and two with his claws or trident."
+        damage_type: DamageType = request_damage_type(index_name='piercing')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='2d4', bonus=4))]
+        multi_attack_action_1 = Action(name='Bite', desc='', type=ActionType.MELEE, attack_bonus=7, damages=damages)
+        damage_type: DamageType = request_damage_type(index_name='slashing')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='2d6', bonus=4))]
+        multi_attack_action_2 = Action(name='Claws', desc='', type=ActionType.MELEE, attack_bonus=7, damages=damages)
+        # "{@atk mw,rw} {@hit 7} to hit, reach 5 ft. or range 20/60 ft., one target.
+        # {@h}11 ({@damage 2d6 + 4}) piercing damage, or 13 ({@damage 2d8 + 4}) piercing damage if used with two hands to make a melee attack."
+        damage_type: DamageType = request_damage_type(index_name='piercing')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='2d8', bonus=4))]
+        multi_attack_action_3 = Action(name='Trident', desc='', type=ActionType.MELEE, attack_bonus=7, damages=damages)
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='2d6', bonus=4))]
+        multi_attack_action_4 = Action(name='Trident', desc='', type=ActionType.RANGED, attack_bonus=7, damages=damages, normal_range=20, long_range=60)
+        action = Action(name='Multiattack', desc='', type=ActionType.MELEE, multi_attack=[multi_attack_action_1, multi_attack_action_2, multi_attack_action_2])
+        actions.append(action)
+        action = Action(name='Multiattack', desc='', type=ActionType.MELEE, multi_attack=[multi_attack_action_1, multi_attack_action_3, multi_attack_action_3])
+        actions.append(action)
+        action = Action(name='Multiattack', desc='', type=ActionType.MIXED, multi_attack=[multi_attack_action_1, multi_attack_action_4, multi_attack_action_4])
+        actions.append(action)
+    elif name == "Sahuagin Priestess":
+        # Spellcasting
+        # "The sahuagin is a 6th-level spellcaster. Her spellcasting ability is Wisdom (spell save {@dc 12}, {@hit 4} to hit with spell attacks). She has the following cleric spells prepared:"
+        # Multiattack
+        # "The sahuagin makes two melee attacks: one with her bite and one with her claws."
+        damage_type: DamageType = request_damage_type(index_name='piercing')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='1d4', bonus=1))]
+        multi_attack_action_1 = Action(name='Bite', desc='', type=ActionType.MELEE, attack_bonus=3, damages=damages)
+        damage_type: DamageType = request_damage_type(index_name='slashing')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='1d4', bonus=1))]
+        multi_attack_action_2 = Action(name='Claws', desc='', type=ActionType.MELEE, attack_bonus=3, damages=damages)
+        action = Action(name='Multiattack', desc='', type=ActionType.MELEE, multi_attack=[multi_attack_action_1, multi_attack_action_2, multi_attack_action_2])
+        actions.append(action)
+    elif name == "Sea Spawn":
+        # Multiattack
+        # "The sea spawn makes two Unarmed Strike attacks and one Piscine Anatomy attack."
+        damage_type: DamageType = request_damage_type(index_name='bludgeoning')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='1d4', bonus=3))]
+        multi_attack_action_0 = Action(name='Unarmed Strike', desc='', type=ActionType.MELEE, attack_bonus=6, damages=damages)
+        # "Piscine Anatomy"
+        # "The sea spawn uses one of the following options (choose one or roll a {@dice d6}):"
+        damage_type: DamageType = request_damage_type(index_name='piercing')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='1d4', bonus=2))]
+        multi_attack_action_1 = Action(name='Bite', desc='', type=ActionType.MELEE, attack_bonus=4, damages=damages)
+        # TODO Condition Poisoned
+        # "{@atk mw} {@hit 4} to hit, reach 5 ft., one creature.
+        # {@h}3 ({@damage 1d6}) poison damage, and the target must succeed on a {@dc 12} Constitution saving throw or be {@condition poisoned} for 1 minute.
+        # The target can repeat the saving throw at the end of each of its turns, ending the effect on itself on a success."
+        damage_type: DamageType = request_damage_type(index_name='poison')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='1d6'))]
+        multi_attack_action_2 = Action(name='Poison Quills', desc='', type=ActionType.MELEE, attack_bonus=4, damages=damages)
+        damage_type: DamageType = request_damage_type(index_name='piercing')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='1d4', bonus=2))]
+        multi_attack_action_3 = Action(name='Tentacle', desc='', type=ActionType.RANGED, attack_bonus=4, damages=damages, normal_range=10)
+        for multi_action in (multi_attack_action_1, multi_attack_action_2, multi_attack_action_3):
+            action = Action(name='Multiattack', desc='', type=ActionType.MELEE, multi_attack=[multi_attack_action_0, multi_action])
+            actions.append(action)
     return actions, special_abilities, spell_caster
 
 def request_monster_other(name: str) -> Optional[Monster]:
@@ -846,7 +978,7 @@ def request_monster_other(name: str) -> Optional[Monster]:
         # average damage per round assuming all attacks hit
         dpr: float = sum(damages) / len(damages)
         xp: float = 5 * int(data['hp']['average']) * dpr * (ac + ab - 2) / (4 * 13)
-        print(f'{name}: {xp} XP')
+        # print(f'{name}: {xp} XP')
         return Monster(id=-1,
                        image_name=f'monster_enemy.png',
                        x=-1, y=-1, old_x=-1, old_y=-1,
