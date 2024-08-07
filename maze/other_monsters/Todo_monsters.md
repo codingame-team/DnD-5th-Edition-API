@@ -29,3 +29,10 @@
 | Female Steeder               | Monstrosity          |  1  |    1   |
 | Succubus                     | Fiend (Shapechanger) |  4  |    1   |
 | Incubus                      | Fiend (Shapechanger) |  4  |    1   |
+| Sea Hag                      | Fey                  |  2  |    1   |
+| Kuo-toa Archpriest           | Humanoid (Kuo-Toa)   |  6  |    1   |
+| Kuo-toa                      | Humanoid (Kuo-Toa)   | 1/4 |    1   |
+| Kuo-toa Whip                 | Humanoid (Kuo-Toa)   |  1  |    1   |
+| Sahuagin Baron               | Humanoid (Sahuagin)  |  5  |    1   |
+| Sahuagin Priestess           | Humanoid (Sahuagin)  |  2  |    1   |
+| Sea Spawn                    | Monstrosity          |  1  |    1   |
