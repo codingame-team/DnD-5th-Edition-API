@@ -115,36 +115,42 @@ if __name__ == '__main__':
                 # print(f'{level_fullname} L{level:02d} -> {monster}')
                 bestiary.append(monster)
 
+    print('#' * 50)
+
+    # TODO Monsters
+    todo_monsters: List[str] = []
+    for monster_name in bestiary:
+        try:
+            monster_defined = request_monster(monster_name.lower().replace(' ', '-'))
+        except FileNotFoundError:
+            todo_monsters.append(monster_name)
+    print(f'{len(todo_monsters)} todo monsters')
+    print(('|'.join(todo_monsters)))
+    for m in todo_monsters: print(m)
+
+    print('#' * 50)
+
     # Download tokens for monster_kills.py
     print(f'{len(bestiary)} bestiary monsters')
     print(('|'.join(bestiary)))
     # Define the folder to save the image
     save_folder = "../images/monsters/tokens"
-    book_ref = "MM" # Monsters manual
-    other_book_ref = "MPMM" # Monsters of the Multiverse
+    mm_book_ref = "MM" # Monsters manual
+    mpmm_book_ref = "MPMM" # Monsters of the Multiverse
+    phb_book_ref = "PHB" # Player's Handbook
     for monster_name in bestiary:
-        image_url = f"https://5e.tools/img/bestiary/tokens/{book_ref}/{monster_name}.webp"
         image_filename = os.path.join(save_folder, f"{monster_name}.webp")
         # Check if the image file already exists in the folder
         if not os.path.isfile(image_filename):
-            # Call the download_image function if the file doesn't exist
-            http_status_code = download_image(image_url, save_folder, monster_name)
-            if http_status_code != 200:
-                image_url = f"https://5e.tools/img/bestiary/tokens/{other_book_ref}/{monster_name}.webp"
+            for book_ref in (mm_book_ref, mpmm_book_ref):
+                image_url = f"https://5e.tools/img/bestiary/tokens/{book_ref}/{monster_name}.webp"
                 download_image(image_url, save_folder, monster_name)
+                # Call the download_image function if the file doesn't exist
+                http_status_code = download_image(image_url, save_folder, monster_name)
+                if http_status_code == 200:
+                    break
 
-    print('#' * 50)
 
-    # TODO Monsters
-    # todo_monsters: List[str] = []
-    # for monster_name in bestiary:
-    #     try:
-    #         monster_defined = request_monster(monster_name.lower().replace(' ', '-'))
-    #     except FileNotFoundError:
-    #         todo_monsters.append(monster_name)
-    #
-    # print(f'{len(todo_monsters)} todo monsters')
-    # for monster_name in todo_monsters:
-    #     print(monster_name)
+
 
 
