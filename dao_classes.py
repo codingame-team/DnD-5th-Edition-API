@@ -83,6 +83,10 @@ class Monster(Sprite):
     sc: SpellCaster | None
     sa: List[SpecialAbility] | None
     attack_round: int = 0
+    max_hit_points: int = field(init=False)
+
+    def __post_init__(self):
+        self.max_hit_points = self.hit_points
 
     def __repr__(self):
         return f"#{self.id} {self.name} (AC {self.armor_class} HD: {self.hit_dice} CR: {self.challenge_rating})"
@@ -201,7 +205,10 @@ class Monster(Sprite):
                     total_damage += self.special_attack(character, attack)
                 else:
                     if attack.type == ActionType.MELEE:
-                        attack_roll = randint(1, 20) + attack.attack_bonus
+                        try:
+                            attack_roll = randint(1, 20) + attack.attack_bonus
+                        except:
+                            attack_roll = randint(1, 20)
                     else:
                         disadvantage: bool = True if distance <= attack.normal_range else False
                         # https://roll20.net/compendium/dnd5e/Ability%20Scores?expansion=0#toc_2
@@ -226,7 +233,6 @@ class Monster(Sprite):
                     else:
                         cprint(f'{self.name} misses {character.name}!')
         return total_damage
-
 
 
 """ Character classes """
@@ -740,7 +746,7 @@ class Action:
     type: ActionType
     damages: List[Damage] = None
     effects: List[Condition] = None
-    multi_attack: List[Action|SpecialAbility] = None  # used for MELEE and RANGED attacks
+    multi_attack: List[Action | SpecialAbility] = None  # used for MELEE and RANGED attacks
     attack_bonus: int = 0
     normal_range: int = 5
     long_range: float = None
