@@ -2583,8 +2583,8 @@
 			{
 				"item": "LK",
 				"isIgnoreRed": true,
-				"rendered": null,
-				"searchText": null,
+				"rendered": {},
+				"searchText": "lk -- lightning keep",
 				"isOtherSource": true,
 				"btnMini": {}
 			},
@@ -5481,11 +5481,11 @@
 			}
 		],
 		"environment": [
-			"desert",
-			"forest",
+			"underdark",
 			"grassland",
+			"forest",
 			"hill",
-			"underdark"
+			"desert"
 		],
 		"soundClip": {
 			"type": "internal",
@@ -5527,23 +5527,6 @@
 		"hasFluff": true,
 		"hasFluffImages": true,
 		"__prop": "monster",
-		"_pTypes": {
-			"types": [
-				"humanoid"
-			],
-			"tags": [
-				"goblinoid"
-			],
-			"asText": "Humanoid (Goblinoid)",
-			"asTextShort": "Humanoid (Goblinoid)",
-			"typeSidekick": null,
-			"tagsSidekick": [],
-			"asTextSidekick": null
-		},
-		"_pCr": "6",
-		"_fCr": [
-			"6"
-		],
 		"_fSpeedType": [
 			"walk"
 		],
@@ -5557,11 +5540,11 @@
 			"E"
 		],
 		"_fEnvironment": [
-			"desert",
-			"forest",
+			"underdark",
 			"grassland",
+			"forest",
 			"hill",
-			"underdark"
+			"desert"
 		],
 		"_fVuln": [],
 		"_fRes": [],
@@ -5645,6 +5628,23 @@
 			"longsword|phb",
 			"plate armor|phb",
 			"shield|phb"
+		],
+		"_pTypes": {
+			"types": [
+				"humanoid"
+			],
+			"tags": [
+				"goblinoid"
+			],
+			"asText": "Humanoid (Goblinoid)",
+			"asTextShort": "Humanoid (Goblinoid)",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "6",
+		"_fCr": [
+			"6"
 		]
 	},
 	{
@@ -5798,23 +5798,6 @@
 		"hasFluff": true,
 		"hasFluffImages": true,
 		"__prop": "monster",
-		"_pTypes": {
-			"types": [
-				"humanoid"
-			],
-			"tags": [
-				"dwarf"
-			],
-			"asText": "Humanoid (Dwarf)",
-			"asTextShort": "Humanoid (Dwarf)",
-			"typeSidekick": null,
-			"tagsSidekick": [],
-			"asTextSidekick": null
-		},
-		"_pCr": "2",
-		"_fCr": [
-			"2"
-		],
 		"_fSpeedType": [
 			"walk"
 		],
@@ -5876,6 +5859,23 @@
 		],
 		"_fEquipment": [
 			"leather armor|phb"
+		],
+		"_pTypes": {
+			"types": [
+				"humanoid"
+			],
+			"tags": [
+				"dwarf"
+			],
+			"asText": "Humanoid (Dwarf)",
+			"asTextShort": "Humanoid (Dwarf)",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "2",
+		"_fCr": [
+			"2"
 		]
 	},
 	{
@@ -6003,23 +6003,6 @@
 		"hasToken": true,
 		"hasFluff": true,
 		"__prop": "monster",
-		"_pTypes": {
-			"types": [
-				"construct"
-			],
-			"tags": [
-				"dwarf"
-			],
-			"asText": "Construct (Dwarf)",
-			"asTextShort": "Construct (Dwarf)",
-			"typeSidekick": null,
-			"tagsSidekick": [],
-			"asTextSidekick": null
-		},
-		"_pCr": "3",
-		"_fCr": [
-			"3"
-		],
 		"_fSpeedType": [
 			"walk"
 		],
@@ -6079,7 +6062,24 @@
 			"CS",
 			"D"
 		],
-		"_fEquipment": []
+		"_fEquipment": [],
+		"_pTypes": {
+			"types": [
+				"construct"
+			],
+			"tags": [
+				"dwarf"
+			],
+			"asText": "Construct (Dwarf)",
+			"asTextShort": "Construct (Dwarf)",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "3",
+		"_fCr": [
+			"3"
+		]
 	},
 	{
 		"name": "Duergar Kavalrachni",
@@ -6224,23 +6224,6 @@
 		"hasToken": true,
 		"hasFluff": true,
 		"__prop": "monster",
-		"_pTypes": {
-			"types": [
-				"humanoid"
-			],
-			"tags": [
-				"dwarf"
-			],
-			"asText": "Humanoid (Dwarf)",
-			"asTextShort": "Humanoid (Dwarf)",
-			"typeSidekick": null,
-			"tagsSidekick": [],
-			"asTextSidekick": null
-		},
-		"_pCr": "2",
-		"_fCr": [
-			"2"
-		],
 		"_fSpeedType": [
 			"walk"
 		],
@@ -6299,6 +6282,23 @@
 			"war pick|phb",
 			"scale mail|phb",
 			"shield|phb"
+		],
+		"_pTypes": {
+			"types": [
+				"humanoid"
+			],
+			"tags": [
+				"dwarf"
+			],
+			"asText": "Humanoid (Dwarf)",
+			"asTextShort": "Humanoid (Dwarf)",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "2",
+		"_fCr": [
+			"2"
 		]
 	},
 	{
@@ -6404,21 +6404,6 @@
 		"hasFluff": true,
 		"hasFluffImages": true,
 		"__prop": "monster",
-		"_pTypes": {
-			"types": [
-				"monstrosity"
-			],
-			"tags": [],
-			"asText": "Monstrosity",
-			"asTextShort": "Monstrosity",
-			"typeSidekick": null,
-			"tagsSidekick": [],
-			"asTextSidekick": null
-		},
-		"_pCr": "1",
-		"_fCr": [
-			"1"
-		],
 		"_fSpeedType": [
 			"walk",
 			"climb"
@@ -6470,7 +6455,22 @@
 		"_fLanguageTags": [
 			"None"
 		],
-		"_fEquipment": []
+		"_fEquipment": [],
+		"_pTypes": {
+			"types": [
+				"monstrosity"
+			],
+			"tags": [],
+			"asText": "Monstrosity",
+			"asTextShort": "Monstrosity",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "1",
+		"_fCr": [
+			"1"
+		]
 	},
 	{
 		"name": "Succubus",
@@ -6662,23 +6662,6 @@
 		"hasFluff": true,
 		"hasFluffImages": true,
 		"__prop": "monster",
-		"_pTypes": {
-			"types": [
-				"fiend"
-			],
-			"tags": [
-				"shapechanger"
-			],
-			"asText": "Fiend (Shapechanger)",
-			"asTextShort": "Fiend (Shapechanger)",
-			"typeSidekick": null,
-			"tagsSidekick": [],
-			"asTextSidekick": null
-		},
-		"_pCr": "4",
-		"_fCr": [
-			"4"
-		],
 		"_fSpeedType": [
 			"walk",
 			"fly"
@@ -6825,7 +6808,24 @@
 			"I",
 			"TP"
 		],
-		"_fEquipment": []
+		"_fEquipment": [],
+		"_pTypes": {
+			"types": [
+				"fiend"
+			],
+			"tags": [
+				"shapechanger"
+			],
+			"asText": "Fiend (Shapechanger)",
+			"asTextShort": "Fiend (Shapechanger)",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "4",
+		"_fCr": [
+			"4"
+		]
 	},
 	{
 		"name": "Incubus",
@@ -7017,23 +7017,6 @@
 		"hasFluff": true,
 		"hasFluffImages": true,
 		"__prop": "monster",
-		"_pTypes": {
-			"types": [
-				"fiend"
-			],
-			"tags": [
-				"shapechanger"
-			],
-			"asText": "Fiend (Shapechanger)",
-			"asTextShort": "Fiend (Shapechanger)",
-			"typeSidekick": null,
-			"tagsSidekick": [],
-			"asTextSidekick": null
-		},
-		"_pCr": "4",
-		"_fCr": [
-			"4"
-		],
 		"_fSpeedType": [
 			"walk",
 			"fly"
@@ -7179,6 +7162,2154 @@
 			"C",
 			"I",
 			"TP"
+		],
+		"_fEquipment": [],
+		"_pTypes": {
+			"types": [
+				"fiend"
+			],
+			"tags": [
+				"shapechanger"
+			],
+			"asText": "Fiend (Shapechanger)",
+			"asTextShort": "Fiend (Shapechanger)",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "4",
+		"_fCr": [
+			"4"
+		]
+	},
+	{
+		"name": "Sea Hag",
+		"source": "MM",
+		"page": 179,
+		"srd": true,
+		"otherSources": [
+			{
+				"source": "PotA"
+			},
+			{
+				"source": "TftYP"
+			},
+			{
+				"source": "ToA"
+			},
+			{
+				"source": "WDMM"
+			},
+			{
+				"source": "GoS"
+			},
+			{
+				"source": "DIP"
+			},
+			{
+				"source": "SLW"
+			},
+			{
+				"source": "MOT"
+			},
+			{
+				"source": "IDRotF"
+			},
+			{
+				"source": "JttRC"
+			},
+			{
+				"source": "SatO"
+			},
+			{
+				"source": "DoDk"
+			}
+		],
+		"size": [
+			"M"
+		],
+		"type": "fey",
+		"alignment": [
+			"C",
+			"E"
+		],
+		"ac": [
+			{
+				"ac": 14,
+				"from": [
+					"natural armor"
+				]
+			}
+		],
+		"hp": {
+			"average": 52,
+			"formula": "7d8 + 21"
+		},
+		"speed": {
+			"walk": 30,
+			"swim": 40
+		},
+		"str": 16,
+		"dex": 13,
+		"con": 16,
+		"int": 12,
+		"wis": 12,
+		"cha": 13,
+		"senses": [
+			"darkvision 60 ft."
+		],
+		"passive": 11,
+		"languages": [
+			"Aquan",
+			"Common",
+			"Giant"
+		],
+		"cr": {
+			"cr": "2",
+			"coven": "4"
+		},
+		"trait": [
+			{
+				"name": "Amphibious",
+				"entries": [
+					"The hag can breathe air and water."
+				]
+			},
+			{
+				"name": "Horrific Appearance",
+				"entries": [
+					"Any humanoid that starts its turn within 30 feet of the hag and can see the hag's true form must make a {@dc 11} Wisdom saving throw. On a failed save, the creature is {@condition frightened} for 1 minute. A creature can repeat the saving throw at the end of each of its turns, with disadvantage if the hag is within line of sight, ending the effect on itself on a success. If a creature's saving throw is successful or the effect ends for it, the creature is immune to the hag's Horrific Appearance for the next 24 hours.",
+					"Unless the target is {@status surprised} or the revelation of the hag's true form is sudden, the target can avert its eyes and avoid making the initial saving throw. Until the start of its next turn, a creature that averts its eyes has disadvantage on attack rolls against the hag."
+				]
+			}
+		],
+		"action": [
+			{
+				"name": "Claws",
+				"entries": [
+					"{@atk mw} {@hit 5} to hit, reach 5 ft., one target. {@h}10 ({@damage 2d6 + 3}) slashing damage."
+				]
+			},
+			{
+				"name": "Death Glare",
+				"entries": [
+					"The hag targets one {@condition frightened} creature she can see within 30 feet of her. If the target can see the hag, it must succeed on a {@dc 11} Wisdom saving throw against this magic or drop to 0 hit points."
+				]
+			},
+			{
+				"name": "Illusory Appearance",
+				"entries": [
+					"The hag covers herself and anything she is wearing or carrying with a magical illusion that makes her look like an ugly creature of her general size and humanoid shape. The effect ends if the hag takes a bonus action to end it or if she dies.",
+					"The changes wrought by this effect fail to hold up to physical inspection. For example, the hag could appear to have no claws, but someone touching her hand might feel the claws. Otherwise, a creature must take an action to visually inspect the illusion and succeed on a {@dc 16} Intelligence ({@skill Investigation}) check to discern that the hag is disguised."
+				]
+			}
+		],
+		"legendaryGroup": {
+			"name": "Sea Hag",
+			"source": "MM"
+		},
+		"variant": [
+			{
+				"type": "inset",
+				"name": "Hag Covens",
+				"entries": [
+					"When hags must work together, they form covens, in spite of their selfish natures. A coven is made up of hags of any type, all of whom are equals within the group. However, each of the hags continues to desire more personal power.",
+					"A coven consists of three hags so that any arguments between two hags can be settled by the third. If more than three hags ever come together, as might happen if two covens come into conflict, the result is usually chaos.",
+					{
+						"type": "spellcasting",
+						"name": "Shared Spellcasting (Coven Only)",
+						"headerEntries": [
+							"While all three members of a hag coven are within 30 feet of one another, they can each cast the following spells from the wizard's spell list but must share the spell slots among themselves:"
+						],
+						"spells": {
+							"1": {
+								"slots": 4,
+								"spells": [
+									"{@spell identify}",
+									"{@spell ray of sickness}"
+								]
+							},
+							"2": {
+								"slots": 3,
+								"spells": [
+									"{@spell hold person}",
+									"{@spell locate object}"
+								]
+							},
+							"3": {
+								"slots": 3,
+								"spells": [
+									"{@spell bestow curse}",
+									"{@spell counterspell}",
+									"{@spell lightning bolt}"
+								]
+							},
+							"4": {
+								"slots": 3,
+								"spells": [
+									"{@spell phantasmal killer}",
+									"{@spell polymorph}"
+								]
+							},
+							"5": {
+								"slots": 2,
+								"spells": [
+									"{@spell contact other plane}",
+									"{@spell scrying}"
+								]
+							},
+							"6": {
+								"slots": 1,
+								"spells": [
+									"{@spell eyebite}"
+								]
+							}
+						},
+						"footerEntries": [
+							"For casting these spells, each hag is a 12th-level spellcaster that uses Intelligence as her spellcasting ability. The spell save DC is 12 + the hag's Intelligence modifier, and the spell attack bonus is 4 + the hag's Intelligence modifier."
+						]
+					},
+					{
+						"type": "entries",
+						"name": "Hag Eye",
+						"entries": [
+							"A hag coven can craft a magic item called a hag eye, which is made from a real eye coated in varnish and often fitted to a pendant or other wearable item. The hag eye is usually entrusted to a minion for safekeeping and transport. A hag in the coven can take an action to see what the hag eye sees if the hag eye is on the same plane of existence. A hag eye has AC 10, 1 hit point, and darkvision with a radius of 60 feet. If it is destroyed, each coven member takes {@dice 3d10} psychic damage and is {@condition blinded} for 24 hours.",
+							"A hag coven can have only one hag eye at a time, and creating a new one requires all three members of the coven to perform a ritual. The ritual takes 1 hour, and the hags can't perform it while {@condition blinded}. During the ritual, if the hags take any action other than performing the ritual, they must start over."
+						]
+					}
+				]
+			}
+		],
+		"environment": [
+			"coastal",
+			"underwater"
+		],
+		"soundClip": {
+			"type": "internal",
+			"path": "bestiary/sea-hag.mp3"
+		},
+		"traitTags": [
+			"Amphibious"
+		],
+		"senseTags": [
+			"D"
+		],
+		"languageTags": [
+			"AQ",
+			"C",
+			"GI"
+		],
+		"damageTags": [
+			"S"
+		],
+		"spellcastingTags": [
+			"CW",
+			"S"
+		],
+		"miscTags": [
+			"MW"
+		],
+		"conditionInflict": [
+			"frightened"
+		],
+		"conditionInflictSpell": [
+			"frightened",
+			"paralyzed",
+			"poisoned",
+			"unconscious"
+		],
+		"savingThrowForced": [
+			"wisdom"
+		],
+		"hasToken": true,
+		"hasFluff": true,
+		"hasFluffImages": true,
+		"_versions": [
+			{
+				"name": "Sea Hag (Coven)",
+				"source": "MM",
+				"_mod": {
+					"spellcasting": {
+						"mode": "appendArr",
+						"items": {
+							"name": "Shared Spellcasting (Coven Only)",
+							"headerEntries": [
+								"While all three members of a hag coven are within 30 feet of one another, they can each cast the following spells from the wizard's spell list but must share the spell slots among themselves:"
+							],
+							"spells": {
+								"1": {
+									"slots": 4,
+									"spells": [
+										"{@spell identify}",
+										"{@spell ray of sickness}"
+									]
+								},
+								"2": {
+									"slots": 3,
+									"spells": [
+										"{@spell hold person}",
+										"{@spell locate object}"
+									]
+								},
+								"3": {
+									"slots": 3,
+									"spells": [
+										"{@spell bestow curse}",
+										"{@spell counterspell}",
+										"{@spell lightning bolt}"
+									]
+								},
+								"4": {
+									"slots": 3,
+									"spells": [
+										"{@spell phantasmal killer}",
+										"{@spell polymorph}"
+									]
+								},
+								"5": {
+									"slots": 2,
+									"spells": [
+										"{@spell contact other plane}",
+										"{@spell scrying}"
+									]
+								},
+								"6": {
+									"slots": 1,
+									"spells": [
+										"{@spell eyebite}"
+									]
+								}
+							},
+							"ability": "int",
+							"footerEntries": [
+								"For casting these spells, each hag is a 12th-level spellcaster that uses Intelligence as her spellcasting ability. The spell save {@dc 13}, and the spell attack bonus is {@hit 5}."
+							]
+						}
+					}
+				},
+				"cr": "4",
+				"variant": null
+			}
+		],
+		"__prop": "monster",
+		"_pTypes": {
+			"types": [
+				"fey"
+			],
+			"tags": [],
+			"asText": "Fey",
+			"asTextShort": "Fey",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "2",
+		"_fCr": [
+			"2",
+			"4"
+		],
+		"_fSpeedType": [
+			"walk",
+			"swim"
+		],
+		"_fSpeed": 40,
+		"_fAc": [
+			14
+		],
+		"_fHp": 52,
+		"_fAlign": [
+			"C",
+			"E"
+		],
+		"_fEnvironment": [
+			"coastal",
+			"underwater"
+		],
+		"_fVuln": [],
+		"_fRes": [],
+		"_fImm": [],
+		"_fCondImm": [],
+		"_fSave": [],
+		"_fSkill": [],
+		"_fSources": [
+			"MM",
+			{
+				"item": "PotA",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "TftYP",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "ToA",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "WDMM",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "GoS",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "DIP",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "SLW",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "MOT",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "IDRotF",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "JttRC",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "SatO",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "DoDk",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			}
+		],
+		"_fPassive": 11,
+		"_fStr": 16,
+		"_fDex": 13,
+		"_fCon": 16,
+		"_fInt": 12,
+		"_fWis": 12,
+		"_fCha": 13,
+		"_fMisc": [
+			"MW",
+			"AC from Natural Armor",
+			"Lair Actions",
+			"Regional Effects",
+			"Has Variants",
+			"SRD",
+			"Has Token",
+			"Has Info",
+			"Has Images"
+		],
+		"_fLanguageTags": [
+			"AQ",
+			"C",
+			"GI"
+		],
+		"_fEquipment": []
+	},
+	{
+		"name": "Kuo-toa Archpriest",
+		"source": "MM",
+		"page": 200,
+		"otherSources": [
+			{
+				"source": "PotA"
+			},
+			{
+				"source": "WDMM"
+			}
+		],
+		"size": [
+			"M"
+		],
+		"type": {
+			"type": "humanoid",
+			"tags": [
+				"kuo-toa"
+			]
+		},
+		"alignment": [
+			"N",
+			"E"
+		],
+		"ac": [
+			{
+				"ac": 13,
+				"from": [
+					"natural armor"
+				]
+			}
+		],
+		"hp": {
+			"average": 97,
+			"formula": "13d8 + 39"
+		},
+		"speed": {
+			"walk": 30,
+			"swim": 30
+		},
+		"str": 16,
+		"dex": 14,
+		"con": 16,
+		"int": 13,
+		"wis": 16,
+		"cha": 14,
+		"skill": {
+			"perception": "+9",
+			"religion": "+7"
+		},
+		"senses": [
+			"darkvision 120 ft."
+		],
+		"passive": 19,
+		"languages": [
+			"Undercommon"
+		],
+		"cr": "6",
+		"spellcasting": [
+			{
+				"name": "Spellcasting",
+				"type": "spellcasting",
+				"headerEntries": [
+					"The kuo-toa is a 10th-level spellcaster. Its spellcasting ability is Wisdom (spell save {@dc 14}, {@hit 6} to hit with spell attacks). The kuo-toa has the following cleric spells prepared:"
+				],
+				"spells": {
+					"0": {
+						"spells": [
+							"{@spell guidance}",
+							"{@spell sacred flame}",
+							"{@spell thaumaturgy}"
+						]
+					},
+					"1": {
+						"slots": 4,
+						"spells": [
+							"{@spell detect magic}",
+							"{@spell sanctuary}",
+							"{@spell shield of faith}"
+						]
+					},
+					"2": {
+						"slots": 3,
+						"spells": [
+							"{@spell hold person}",
+							"{@spell spiritual weapon}"
+						]
+					},
+					"3": {
+						"slots": 3,
+						"spells": [
+							"{@spell spirit guardians}",
+							"{@spell tongues}"
+						]
+					},
+					"4": {
+						"slots": 3,
+						"spells": [
+							"{@spell control water}",
+							"{@spell divination}"
+						]
+					},
+					"5": {
+						"slots": 2,
+						"spells": [
+							"{@spell mass cure wounds}",
+							"{@spell scrying}"
+						]
+					}
+				},
+				"ability": "wis"
+			}
+		],
+		"trait": [
+			{
+				"name": "Amphibious",
+				"entries": [
+					"The kuo-toa can breathe air and water."
+				]
+			},
+			{
+				"name": "Otherworldly Perception",
+				"entries": [
+					"The kuo-toa can sense the presence of any creature within 30 feet of it that is {@condition invisible} or on the Ethereal Plane. It can pinpoint such a creature that is moving."
+				]
+			},
+			{
+				"name": "Slippery",
+				"entries": [
+					"The kuo-toa has advantage on ability checks and saving throws made to escape a grapple."
+				]
+			},
+			{
+				"name": "Sunlight Sensitivity",
+				"entries": [
+					"While in sunlight, the kuo-toa has disadvantage on attack rolls, as well as on Wisdom ({@skill Perception}) checks that rely on sight."
+				]
+			}
+		],
+		"action": [
+			{
+				"name": "Multiattack",
+				"entries": [
+					"The kuo-toa makes two melee attacks."
+				]
+			},
+			{
+				"name": "Scepter",
+				"entries": [
+					"{@atk mw} {@hit 6} to hit, reach 5 ft., one target. {@h}6 ({@damage 1d6 + 3}) bludgeoning damage plus 14 ({@damage 4d6}) lightning damage."
+				]
+			},
+			{
+				"name": "Unarmed Strike",
+				"entries": [
+					"{@atk mw} {@hit 6} to hit, reach 5 ft., one target. {@h}5 ({@damage 1d4 + 3}) bludgeoning damage."
+				]
+			}
+		],
+		"environment": [
+			"underdark"
+		],
+		"soundClip": {
+			"type": "internal",
+			"path": "bestiary/kuo-toa-archpriest.mp3"
+		},
+		"traitTags": [
+			"Amphibious",
+			"Sunlight Sensitivity"
+		],
+		"senseTags": [
+			"SD"
+		],
+		"actionTags": [
+			"Multiattack"
+		],
+		"languageTags": [
+			"U"
+		],
+		"damageTags": [
+			"B",
+			"L"
+		],
+		"damageTagsSpell": [
+			"B",
+			"N",
+			"O",
+			"R"
+		],
+		"spellcastingTags": [
+			"CC"
+		],
+		"miscTags": [
+			"MW"
+		],
+		"conditionInflictSpell": [
+			"paralyzed"
+		],
+		"savingThrowForcedSpell": [
+			"dexterity",
+			"strength",
+			"wisdom"
+		],
+		"hasToken": true,
+		"hasFluff": true,
+		"hasFluffImages": true,
+		"__prop": "monster",
+		"_pTypes": {
+			"types": [
+				"humanoid"
+			],
+			"tags": [
+				"kuo-toa"
+			],
+			"asText": "Humanoid (Kuo-Toa)",
+			"asTextShort": "Humanoid (Kuo-Toa)",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "6",
+		"_fCr": [
+			"6"
+		],
+		"_fSpeedType": [
+			"walk",
+			"swim"
+		],
+		"_fSpeed": 30,
+		"_fAc": [
+			13
+		],
+		"_fHp": 97,
+		"_fAlign": [
+			"N",
+			"E",
+			"NX"
+		],
+		"_fEnvironment": [
+			"underdark"
+		],
+		"_fVuln": [],
+		"_fRes": [],
+		"_fImm": [],
+		"_fCondImm": [],
+		"_fSave": [],
+		"_fSkill": [
+			"perception",
+			"religion"
+		],
+		"_fSources": [
+			"MM",
+			{
+				"item": "PotA",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "WDMM",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			}
+		],
+		"_fPassive": 19,
+		"_fStr": 16,
+		"_fDex": 14,
+		"_fCon": 16,
+		"_fInt": 13,
+		"_fWis": 16,
+		"_fCha": 14,
+		"_fMisc": [
+			"MW",
+			"AC from Natural Armor",
+			"Spellcaster",
+			"Spellcaster, Wisdom",
+			"Has Token",
+			"Has Info",
+			"Has Images"
+		],
+		"_fSpellSlotLevels": [
+			1,
+			2,
+			3,
+			4,
+			5
+		],
+		"_fSpellsKnown": [
+			"guidance|phb",
+			"sacred flame|phb",
+			"thaumaturgy|phb",
+			"detect magic|phb",
+			"sanctuary|phb",
+			"shield of faith|phb",
+			"hold person|phb",
+			"spiritual weapon|phb",
+			"spirit guardians|phb",
+			"tongues|phb",
+			"control water|phb",
+			"divination|phb",
+			"mass cure wounds|phb",
+			"scrying|phb"
+		],
+		"_fLanguageTags": [
+			"U"
+		],
+		"_fEquipment": []
+	},
+	{
+		"name": "Kuo-toa",
+		"source": "MM",
+		"page": 199,
+		"otherSources": [
+			{
+				"source": "PotA"
+			},
+			{
+				"source": "TftYP"
+			},
+			{
+				"source": "WDH"
+			},
+			{
+				"source": "WDMM"
+			},
+			{
+				"source": "GoS"
+			},
+			{
+				"source": "EGW"
+			},
+			{
+				"source": "PSI"
+			},
+			{
+				"source": "SatO"
+			}
+		],
+		"size": [
+			"M"
+		],
+		"type": {
+			"type": "humanoid",
+			"tags": [
+				"kuo-toa"
+			]
+		},
+		"alignment": [
+			"N",
+			"E"
+		],
+		"ac": [
+			{
+				"ac": 13,
+				"from": [
+					"natural armor",
+					"{@item shield|phb}"
+				]
+			}
+		],
+		"hp": {
+			"average": 18,
+			"formula": "4d8"
+		},
+		"speed": {
+			"walk": 30,
+			"swim": 30
+		},
+		"str": 13,
+		"dex": 10,
+		"con": 11,
+		"int": 11,
+		"wis": 10,
+		"cha": 8,
+		"skill": {
+			"perception": "+4"
+		},
+		"senses": [
+			"darkvision 120 ft."
+		],
+		"passive": 14,
+		"languages": [
+			"Undercommon"
+		],
+		"cr": "1/4",
+		"trait": [
+			{
+				"name": "Amphibious",
+				"entries": [
+					"The kuo-toa can breathe air and water."
+				]
+			},
+			{
+				"name": "Otherworldly Perception",
+				"entries": [
+					"The kuo-toa can sense the presence of any creature within 30 feet of it that is {@condition invisible} or on the Ethereal Plane. It can pinpoint such a creature that is moving."
+				]
+			},
+			{
+				"name": "Slippery",
+				"entries": [
+					"The kuo-toa has advantage on ability checks and saving throws made to escape a grapple."
+				]
+			},
+			{
+				"name": "Sunlight Sensitivity",
+				"entries": [
+					"While in sunlight, the kuo-toa has disadvantage on attack rolls, as well as on Wisdom ({@skill Perception}) checks that rely on sight."
+				]
+			}
+		],
+		"action": [
+			{
+				"name": "Bite",
+				"entries": [
+					"{@atk mw} {@hit 3} to hit, reach 5 ft., one target. {@h}3 ({@damage 1d4 + 1}) piercing damage."
+				]
+			},
+			{
+				"name": "Spear",
+				"entries": [
+					"{@atk mw,rw} {@hit 3} to hit, reach 5 ft. or range 20/60 ft., one target. {@h}4 ({@damage 1d6 + 1}) piercing damage, or 5 ({@damage 1d8 + 1}) piercing damage if used with two hands to make a melee attack."
+				]
+			},
+			{
+				"name": "Net",
+				"entries": [
+					"{@atk rw} {@hit 3} to hit, range 5/15 ft., one Large or smaller creature. {@h}The target is {@condition restrained}. A creature can use its action to make a {@dc 10} Strength check to free itself or another creature in a net, ending the effect on a success. Dealing 5 slashing damage to the net (AC 10) frees the target without harming it and destroys the net."
+				]
+			}
+		],
+		"reaction": [
+			{
+				"name": "Sticky Shield",
+				"entries": [
+					"When a creature misses the kuo-toa with a melee weapon attack, the kuo-toa uses its sticky shield to catch the weapon. The attacker must succeed on a {@dc 11} Strength saving throw, or the weapon becomes stuck to the kuo-toa's shield. If the weapon's wielder can't or won't let go of the weapon, the wielder is {@condition grappled} while the weapon is stuck. While stuck, the weapon can't be used. A creature can pull the weapon free by taking an action to make a {@dc 11} Strength check and succeeding."
+				]
+			}
+		],
+		"environment": [
+			"underdark"
+		],
+		"soundClip": {
+			"type": "internal",
+			"path": "bestiary/kuo-toa.mp3"
+		},
+		"attachedItems": [
+			"net|phb",
+			"spear|phb"
+		],
+		"traitTags": [
+			"Amphibious",
+			"Sunlight Sensitivity"
+		],
+		"senseTags": [
+			"SD"
+		],
+		"languageTags": [
+			"U"
+		],
+		"damageTags": [
+			"P",
+			"S"
+		],
+		"miscTags": [
+			"MLW",
+			"MW",
+			"RW",
+			"THW"
+		],
+		"conditionInflict": [
+			"grappled",
+			"restrained"
+		],
+		"savingThrowForced": [
+			"strength"
+		],
+		"hasToken": true,
+		"hasFluff": true,
+		"hasFluffImages": true,
+		"__prop": "monster",
+		"_pTypes": {
+			"types": [
+				"humanoid"
+			],
+			"tags": [
+				"kuo-toa"
+			],
+			"asText": "Humanoid (Kuo-Toa)",
+			"asTextShort": "Humanoid (Kuo-Toa)",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "1/4",
+		"_fCr": [
+			"1/4"
+		],
+		"_fSpeedType": [
+			"walk",
+			"swim"
+		],
+		"_fSpeed": 30,
+		"_fAc": [
+			13
+		],
+		"_fHp": 18,
+		"_fAlign": [
+			"N",
+			"E",
+			"NX"
+		],
+		"_fEnvironment": [
+			"underdark"
+		],
+		"_fVuln": [],
+		"_fRes": [],
+		"_fImm": [],
+		"_fCondImm": [],
+		"_fSave": [],
+		"_fSkill": [
+			"perception"
+		],
+		"_fSources": [
+			"MM",
+			{
+				"item": "PotA",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "TftYP",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "WDH",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "WDMM",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "GoS",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "EGW",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "PSI",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "SatO",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			}
+		],
+		"_fPassive": 14,
+		"_fStr": 13,
+		"_fDex": 10,
+		"_fCon": 11,
+		"_fInt": 11,
+		"_fWis": 10,
+		"_fCha": 8,
+		"_fMisc": [
+			"MLW",
+			"MW",
+			"RW",
+			"THW",
+			"AC from Natural Armor",
+			"AC from Item(s)",
+			"Reactions",
+			"Has Token",
+			"Has Info",
+			"Has Images"
+		],
+		"_fLanguageTags": [
+			"U"
+		],
+		"_fEquipment": [
+			"net|phb",
+			"spear|phb",
+			"shield|phb"
+		]
+	},
+	{
+		"name": "Kuo-toa Whip",
+		"source": "MM",
+		"page": 200,
+		"otherSources": [
+			{
+				"source": "PotA"
+			},
+			{
+				"source": "WDH"
+			},
+			{
+				"source": "WDMM"
+			},
+			{
+				"source": "GoS"
+			}
+		],
+		"size": [
+			"M"
+		],
+		"type": {
+			"type": "humanoid",
+			"tags": [
+				"kuo-toa"
+			]
+		},
+		"alignment": [
+			"N",
+			"E"
+		],
+		"ac": [
+			{
+				"ac": 11,
+				"from": [
+					"natural armor"
+				]
+			}
+		],
+		"hp": {
+			"average": 65,
+			"formula": "10d8 + 20"
+		},
+		"speed": {
+			"walk": 30,
+			"swim": 30
+		},
+		"str": 14,
+		"dex": 10,
+		"con": 14,
+		"int": 12,
+		"wis": 14,
+		"cha": 11,
+		"skill": {
+			"perception": "+6",
+			"religion": "+5"
+		},
+		"senses": [
+			"darkvision 120 ft."
+		],
+		"passive": 16,
+		"languages": [
+			"Undercommon"
+		],
+		"cr": "1",
+		"spellcasting": [
+			{
+				"name": "Spellcasting",
+				"type": "spellcasting",
+				"headerEntries": [
+					"The kuo-toa is a 2nd-level spellcaster. Its spellcasting ability is Wisdom (spell save {@dc 12}, {@hit 4} to hit with spell attacks). The kuo-toa has the following cleric spells prepared:"
+				],
+				"spells": {
+					"0": {
+						"spells": [
+							"{@spell sacred flame}",
+							"{@spell thaumaturgy}"
+						]
+					},
+					"1": {
+						"slots": 3,
+						"spells": [
+							"{@spell bane}",
+							"{@spell shield of faith}"
+						]
+					}
+				},
+				"ability": "wis"
+			}
+		],
+		"trait": [
+			{
+				"name": "Amphibious",
+				"entries": [
+					"The kuo-toa can breathe air and water."
+				]
+			},
+			{
+				"name": "Otherworldly Perception",
+				"entries": [
+					"The kuo-toa can sense the presence of any creature within 30 feet of it that is {@condition invisible} or on the Ethereal Plane. It can pinpoint such a creature that is moving."
+				]
+			},
+			{
+				"name": "Slippery",
+				"entries": [
+					"The kuo-toa has advantage on ability checks and saving throws made to escape a grapple."
+				]
+			},
+			{
+				"name": "Sunlight Sensitivity",
+				"entries": [
+					"While in sunlight, the kuo-toa has disadvantage on attack rolls, as well as on Wisdom ({@skill Perception}) checks that rely on sight."
+				]
+			}
+		],
+		"action": [
+			{
+				"name": "Multiattack",
+				"entries": [
+					"The kuo-toa makes two attacks: one with its bite and one with its pincer staff."
+				]
+			},
+			{
+				"name": "Bite",
+				"entries": [
+					"{@atk mw} {@hit 4} to hit, reach 5 ft., one target. {@h}4 ({@damage 1d4 + 2}) piercing damage."
+				]
+			},
+			{
+				"name": "Pincer Staff",
+				"entries": [
+					"{@atk mw} {@hit 4} to hit, reach 10 ft., one target. {@h}5 ({@damage 1d6 + 2}) piercing damage. If the target is a Medium or smaller creature, it is {@condition grappled} (escape {@dc 14}). Until this grapple ends, the kuo-toa can't use its pincer staff on another target."
+				]
+			}
+		],
+		"environment": [
+			"underdark"
+		],
+		"soundClip": {
+			"type": "internal",
+			"path": "bestiary/kuo-toa-whip.mp3"
+		},
+		"traitTags": [
+			"Amphibious",
+			"Sunlight Sensitivity"
+		],
+		"senseTags": [
+			"SD"
+		],
+		"actionTags": [
+			"Multiattack"
+		],
+		"languageTags": [
+			"U"
+		],
+		"damageTags": [
+			"P"
+		],
+		"damageTagsSpell": [
+			"R"
+		],
+		"spellcastingTags": [
+			"CC"
+		],
+		"miscTags": [
+			"MW",
+			"RCH"
+		],
+		"conditionInflict": [
+			"grappled"
+		],
+		"savingThrowForcedSpell": [
+			"charisma",
+			"dexterity"
+		],
+		"hasToken": true,
+		"hasFluff": true,
+		"hasFluffImages": true,
+		"__prop": "monster",
+		"_pTypes": {
+			"types": [
+				"humanoid"
+			],
+			"tags": [
+				"kuo-toa"
+			],
+			"asText": "Humanoid (Kuo-Toa)",
+			"asTextShort": "Humanoid (Kuo-Toa)",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "1",
+		"_fCr": [
+			"1"
+		],
+		"_fSpeedType": [
+			"walk",
+			"swim"
+		],
+		"_fSpeed": 30,
+		"_fAc": [
+			11
+		],
+		"_fHp": 65,
+		"_fAlign": [
+			"N",
+			"E",
+			"NX"
+		],
+		"_fEnvironment": [
+			"underdark"
+		],
+		"_fVuln": [],
+		"_fRes": [],
+		"_fImm": [],
+		"_fCondImm": [],
+		"_fSave": [],
+		"_fSkill": [
+			"perception",
+			"religion"
+		],
+		"_fSources": [
+			"MM",
+			{
+				"item": "PotA",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "WDH",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "WDMM",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "GoS",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			}
+		],
+		"_fPassive": 16,
+		"_fStr": 14,
+		"_fDex": 10,
+		"_fCon": 14,
+		"_fInt": 12,
+		"_fWis": 14,
+		"_fCha": 11,
+		"_fMisc": [
+			"MW",
+			"RCH",
+			"AC from Natural Armor",
+			"Spellcaster",
+			"Spellcaster, Wisdom",
+			"Has Token",
+			"Has Info",
+			"Has Images"
+		],
+		"_fSpellSlotLevels": [
+			1
+		],
+		"_fSpellsKnown": [
+			"sacred flame|phb",
+			"thaumaturgy|phb",
+			"bane|phb",
+			"shield of faith|phb"
+		],
+		"_fLanguageTags": [
+			"U"
+		],
+		"_fEquipment": []
+	},
+	{
+		"name": "Sahuagin Baron",
+		"source": "MM",
+		"page": 264,
+		"otherSources": [
+			{
+				"source": "TftYP"
+			},
+			{
+				"source": "WDMM"
+			},
+			{
+				"source": "GoS"
+			},
+			{
+				"source": "JttRC"
+			},
+			{
+				"source": "SatO"
+			}
+		],
+		"size": [
+			"L"
+		],
+		"type": {
+			"type": "humanoid",
+			"tags": [
+				"sahuagin"
+			]
+		},
+		"alignment": [
+			"L",
+			"E"
+		],
+		"ac": [
+			{
+				"ac": 16,
+				"from": [
+					"{@item breastplate|phb}"
+				]
+			}
+		],
+		"hp": {
+			"average": 76,
+			"formula": "9d10 + 27"
+		},
+		"speed": {
+			"walk": 30,
+			"swim": 50
+		},
+		"str": 19,
+		"dex": 15,
+		"con": 16,
+		"int": 14,
+		"wis": 13,
+		"cha": 17,
+		"save": {
+			"dex": "+5",
+			"con": "+6",
+			"int": "+5",
+			"wis": "+4"
+		},
+		"skill": {
+			"perception": "+7"
+		},
+		"senses": [
+			"darkvision 120 ft."
+		],
+		"passive": 17,
+		"languages": [
+			"Sahuagin"
+		],
+		"cr": "5",
+		"trait": [
+			{
+				"name": "Blood Frenzy",
+				"entries": [
+					"The sahuagin has advantage on melee attack rolls against any creature that doesn't have all its hit points."
+				]
+			},
+			{
+				"name": "Limited Amphibiousness",
+				"entries": [
+					"The sahuagin can breathe air and water, but it needs to be submerged at least once every 4 hours to avoid suffocating."
+				]
+			},
+			{
+				"name": "Shark Telepathy",
+				"entries": [
+					"The sahuagin can magically command any shark within 120 feet of it, using a limited telepathy."
+				]
+			}
+		],
+		"action": [
+			{
+				"name": "Multiattack",
+				"entries": [
+					"The sahuagin makes three attacks: one with his bite and two with his claws or trident."
+				]
+			},
+			{
+				"name": "Bite",
+				"entries": [
+					"{@atk mw} {@hit 7} to hit, reach 5 ft., one target. {@h}9 ({@damage 2d4 + 4}) piercing damage."
+				]
+			},
+			{
+				"name": "Claws",
+				"entries": [
+					"{@atk mw} {@hit 7} to hit, reach 5 ft., one target. {@h}11 ({@damage 2d6 + 4}) slashing damage."
+				]
+			},
+			{
+				"name": "Trident",
+				"entries": [
+					"{@atk mw,rw} {@hit 7} to hit, reach 5 ft. or range 20/60 ft., one target. {@h}11 ({@damage 2d6 + 4}) piercing damage, or 13 ({@damage 2d8 + 4}) piercing damage if used with two hands to make a melee attack."
+				]
+			}
+		],
+		"environment": [
+			"coastal",
+			"underwater"
+		],
+		"soundClip": {
+			"type": "internal",
+			"path": "bestiary/sahuagin-baron.mp3"
+		},
+		"attachedItems": [
+			"trident|phb"
+		],
+		"senseTags": [
+			"SD"
+		],
+		"actionTags": [
+			"Multiattack"
+		],
+		"languageTags": [
+			"OTH"
+		],
+		"damageTags": [
+			"P",
+			"S"
+		],
+		"miscTags": [
+			"MLW",
+			"MW",
+			"RW",
+			"THW"
+		],
+		"hasToken": true,
+		"hasFluff": true,
+		"hasFluffImages": true,
+		"__prop": "monster",
+		"_pTypes": {
+			"types": [
+				"humanoid"
+			],
+			"tags": [
+				"sahuagin"
+			],
+			"asText": "Humanoid (Sahuagin)",
+			"asTextShort": "Humanoid (Sahuagin)",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "5",
+		"_fCr": [
+			"5"
+		],
+		"_fSpeedType": [
+			"walk",
+			"swim"
+		],
+		"_fSpeed": 50,
+		"_fAc": [
+			16
+		],
+		"_fHp": 76,
+		"_fAlign": [
+			"L",
+			"E"
+		],
+		"_fEnvironment": [
+			"coastal",
+			"underwater"
+		],
+		"_fVuln": [],
+		"_fRes": [],
+		"_fImm": [],
+		"_fCondImm": [],
+		"_fSave": [
+			"dex",
+			"con",
+			"int",
+			"wis"
+		],
+		"_fSkill": [
+			"perception"
+		],
+		"_fSources": [
+			"MM",
+			{
+				"item": "TftYP",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "WDMM",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "GoS",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "JttRC",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "SatO",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			}
+		],
+		"_fPassive": 17,
+		"_fStr": 19,
+		"_fDex": 15,
+		"_fCon": 16,
+		"_fInt": 14,
+		"_fWis": 13,
+		"_fCha": 17,
+		"_fMisc": [
+			"MLW",
+			"MW",
+			"RW",
+			"THW",
+			"AC from Item(s)",
+			"Has Token",
+			"Has Info",
+			"Has Images"
+		],
+		"_fLanguageTags": [
+			"OTH"
+		],
+		"_fEquipment": [
+			"trident|phb",
+			"breastplate|phb"
+		]
+	},
+	{
+		"name": "Sahuagin Priestess",
+		"source": "MM",
+		"page": 264,
+		"otherSources": [
+			{
+				"source": "TftYP"
+			},
+			{
+				"source": "GoS"
+			},
+			{
+				"source": "SDW"
+			},
+			{
+				"source": "BGDIA"
+			}
+		],
+		"size": [
+			"M"
+		],
+		"type": {
+			"type": "humanoid",
+			"tags": [
+				"sahuagin"
+			]
+		},
+		"alignment": [
+			"L",
+			"E"
+		],
+		"ac": [
+			{
+				"ac": 12,
+				"from": [
+					"natural armor"
+				]
+			}
+		],
+		"hp": {
+			"average": 33,
+			"formula": "6d8 + 6"
+		},
+		"speed": {
+			"walk": 30,
+			"swim": 40
+		},
+		"str": 13,
+		"dex": 11,
+		"con": 12,
+		"int": 12,
+		"wis": 14,
+		"cha": 13,
+		"skill": {
+			"perception": "+6",
+			"religion": "+3"
+		},
+		"senses": [
+			"darkvision 120 ft."
+		],
+		"passive": 16,
+		"languages": [
+			"Sahuagin"
+		],
+		"cr": "2",
+		"spellcasting": [
+			{
+				"name": "Spellcasting",
+				"type": "spellcasting",
+				"headerEntries": [
+					"The sahuagin is a 6th-level spellcaster. Her spellcasting ability is Wisdom (spell save {@dc 12}, {@hit 4} to hit with spell attacks). She has the following cleric spells prepared:"
+				],
+				"spells": {
+					"0": {
+						"spells": [
+							"{@spell guidance}",
+							"{@spell thaumaturgy}"
+						]
+					},
+					"1": {
+						"slots": 4,
+						"spells": [
+							"{@spell bless}",
+							"{@spell detect magic}",
+							"{@spell guiding bolt}"
+						]
+					},
+					"2": {
+						"slots": 3,
+						"spells": [
+							"{@spell hold person}",
+							"{@spell spiritual weapon} (trident)"
+						]
+					},
+					"3": {
+						"slots": 3,
+						"spells": [
+							"{@spell mass healing word}",
+							"{@spell tongues}"
+						]
+					}
+				},
+				"ability": "wis"
+			}
+		],
+		"trait": [
+			{
+				"name": "Blood Frenzy",
+				"entries": [
+					"The sahuagin has advantage on melee attack rolls against any creature that doesn't have all its hit points."
+				]
+			},
+			{
+				"name": "Limited Amphibiousness",
+				"entries": [
+					"The sahuagin can breathe air and water, but it needs to be submerged at least once every 4 hours to avoid suffocating."
+				]
+			},
+			{
+				"name": "Shark Telepathy",
+				"entries": [
+					"The sahuagin can magically command any shark within 120 feet of it, using a limited telepathy."
+				]
+			}
+		],
+		"action": [
+			{
+				"name": "Multiattack",
+				"entries": [
+					"The sahuagin makes two melee attacks: one with her bite and one with her claws."
+				]
+			},
+			{
+				"name": "Bite",
+				"entries": [
+					"{@atk mw} {@hit 3} to hit, reach 5 ft., one target. {@h}3 ({@damage 1d4 + 1}) piercing damage."
+				]
+			},
+			{
+				"name": "Claws",
+				"entries": [
+					"{@atk mw} {@hit 3} to hit, reach 5 ft., one target. {@h}3 ({@damage 1d4 + 1}) slashing damage."
+				]
+			}
+		],
+		"environment": [
+			"coastal",
+			"underwater"
+		],
+		"soundClip": {
+			"type": "internal",
+			"path": "bestiary/sahuagin-priestess.mp3"
+		},
+		"senseTags": [
+			"SD"
+		],
+		"actionTags": [
+			"Multiattack"
+		],
+		"languageTags": [
+			"OTH"
+		],
+		"damageTags": [
+			"P",
+			"S"
+		],
+		"damageTagsSpell": [
+			"O",
+			"R"
+		],
+		"spellcastingTags": [
+			"CC"
+		],
+		"miscTags": [
+			"MW"
+		],
+		"savingThrowForcedSpell": [
+			"wisdom"
+		],
+		"hasToken": true,
+		"hasFluff": true,
+		"hasFluffImages": true,
+		"__prop": "monster",
+		"_pTypes": {
+			"types": [
+				"humanoid"
+			],
+			"tags": [
+				"sahuagin"
+			],
+			"asText": "Humanoid (Sahuagin)",
+			"asTextShort": "Humanoid (Sahuagin)",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "2",
+		"_fCr": [
+			"2"
+		],
+		"_fSpeedType": [
+			"walk",
+			"swim"
+		],
+		"_fSpeed": 40,
+		"_fAc": [
+			12
+		],
+		"_fHp": 33,
+		"_fAlign": [
+			"L",
+			"E"
+		],
+		"_fEnvironment": [
+			"coastal",
+			"underwater"
+		],
+		"_fVuln": [],
+		"_fRes": [],
+		"_fImm": [],
+		"_fCondImm": [],
+		"_fSave": [],
+		"_fSkill": [
+			"perception",
+			"religion"
+		],
+		"_fSources": [
+			"MM",
+			{
+				"item": "TftYP",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "GoS",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "SDW",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "BGDIA",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			}
+		],
+		"_fPassive": 16,
+		"_fStr": 13,
+		"_fDex": 11,
+		"_fCon": 12,
+		"_fInt": 12,
+		"_fWis": 14,
+		"_fCha": 13,
+		"_fMisc": [
+			"MW",
+			"AC from Natural Armor",
+			"Spellcaster",
+			"Spellcaster, Wisdom",
+			"Has Token",
+			"Has Info",
+			"Has Images"
+		],
+		"_fSpellSlotLevels": [
+			1,
+			2,
+			3
+		],
+		"_fSpellsKnown": [
+			"guidance|phb",
+			"thaumaturgy|phb",
+			"bless|phb",
+			"detect magic|phb",
+			"guiding bolt|phb",
+			"hold person|phb",
+			"spiritual weapon|phb",
+			"mass healing word|phb",
+			"tongues|phb"
+		],
+		"_fLanguageTags": [
+			"OTH"
+		],
+		"_fEquipment": []
+	},
+	{
+		"name": "Sea Spawn",
+		"source": "MPMM",
+		"page": 211,
+		"otherSources": [
+			{
+				"source": "VGM",
+				"page": 189
+			}
+		],
+		"size": [
+			"M"
+		],
+		"type": "monstrosity",
+		"alignment": [
+			"N",
+			"E"
+		],
+		"alignmentPrefix": "Typically ",
+		"ac": [
+			{
+				"ac": 11,
+				"from": [
+					"natural armor"
+				]
+			}
+		],
+		"hp": {
+			"average": 32,
+			"formula": "5d8 + 10"
+		},
+		"speed": {
+			"walk": 20,
+			"swim": 30
+		},
+		"str": 15,
+		"dex": 8,
+		"con": 15,
+		"int": 6,
+		"wis": 10,
+		"cha": 8,
+		"senses": [
+			"darkvision 120 ft."
+		],
+		"passive": 10,
+		"languages": [
+			"understands Aquan and Common but can't speak"
+		],
+		"cr": "1",
+		"trait": [
+			{
+				"name": "Limited Amphibiousness",
+				"entries": [
+					"The sea spawn can breathe air and water, but it needs to be submerged in the sea at least once a day for 1 minute to avoid suffocating."
+				]
+			}
+		],
+		"action": [
+			{
+				"name": "Multiattack",
+				"entries": [
+					"The sea spawn makes two Unarmed Strike attacks and one Piscine Anatomy attack."
+				]
+			},
+			{
+				"name": "Unarmed Strike",
+				"entries": [
+					"{@atk mw} {@hit 4} to hit, reach 5 ft., one target. {@h}4 ({@damage 1d4 + 2}) bludgeoning damage."
+				]
+			},
+			{
+				"name": "Piscine Anatomy",
+				"entries": [
+					"The sea spawn uses one of the following options (choose one or roll a {@dice d6}):",
+					{
+						"type": "list",
+						"style": "list-hang-notitle",
+						"items": [
+							{
+								"name": "1–2: Bite",
+								"type": "item",
+								"entries": [
+									"{@atk mw} {@hit 4} to hit, reach 5 ft., one target. {@h}4 ({@damage 1d4 + 2}) piercing damage."
+								]
+							},
+							{
+								"name": "3–4: Poison Quills",
+								"type": "item",
+								"entries": [
+									"{@atk mw} {@hit 4} to hit, reach 5 ft., one creature. {@h}3 ({@damage 1d6}) poison damage, and the target must succeed on a {@dc 12} Constitution saving throw or be {@condition poisoned} for 1 minute. The target can repeat the saving throw at the end of each of its turns, ending the effect on itself on a success."
+								]
+							},
+							{
+								"name": "5–6: Tentacle",
+								"type": "item",
+								"entries": [
+									"{@atk mw} {@hit 4} to hit, reach 10 ft., one target. {@h}5 ({@damage 1d6 + 2}) bludgeoning damage, and the target is {@condition grappled} (escape {@dc 12}) if it is a Medium or smaller creature. Until this grapple ends, the sea spawn can't use this tentacle on another target."
+								]
+							}
+						]
+					}
+				]
+			}
+		],
+		"environment": [
+			"coastal",
+			"underwater"
+		],
+		"soundClip": {
+			"type": "internal",
+			"path": "bestiary/sea-spawn.mp3"
+		},
+		"senseTags": [
+			"SD"
+		],
+		"actionTags": [
+			"Multiattack"
+		],
+		"languageTags": [
+			"AQ",
+			"C",
+			"CS"
+		],
+		"damageTags": [
+			"B",
+			"I",
+			"P"
+		],
+		"miscTags": [
+			"MW",
+			"RCH"
+		],
+		"conditionInflict": [
+			"grappled",
+			"poisoned"
+		],
+		"savingThrowForced": [
+			"constitution"
+		],
+		"hasToken": true,
+		"hasFluff": true,
+		"hasFluffImages": true,
+		"__prop": "monster",
+		"_pTypes": {
+			"types": [
+				"monstrosity"
+			],
+			"tags": [],
+			"asText": "Monstrosity",
+			"asTextShort": "Monstrosity",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "1",
+		"_fCr": [
+			"1"
+		],
+		"_fSpeedType": [
+			"walk",
+			"swim"
+		],
+		"_fSpeed": 30,
+		"_fAc": [
+			11
+		],
+		"_fHp": 32,
+		"_fAlign": [
+			"N",
+			"E",
+			"NX"
+		],
+		"_fEnvironment": [
+			"coastal",
+			"underwater"
+		],
+		"_fVuln": [],
+		"_fRes": [],
+		"_fImm": [],
+		"_fCondImm": [],
+		"_fSave": [],
+		"_fSkill": [],
+		"_fSources": [
+			"MPMM",
+			{
+				"item": "VGM",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			}
+		],
+		"_fPassive": 10,
+		"_fStr": 15,
+		"_fDex": 8,
+		"_fCon": 15,
+		"_fInt": 6,
+		"_fWis": 10,
+		"_fCha": 8,
+		"_fMisc": [
+			"MW",
+			"RCH",
+			"AC from Natural Armor",
+			"Has Token",
+			"Has Info",
+			"Has Images"
+		],
+		"_fLanguageTags": [
+			"AQ",
+			"C",
+			"CS"
 		],
 		"_fEquipment": []
 	}
