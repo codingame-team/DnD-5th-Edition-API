@@ -50,6 +50,7 @@ GRAY = (200, 200, 200)
 BLUE = (0, 0, 255)
 RED = (255, 0, 0)
 PINK = (255, 0, 255)
+ORANGE = (255, 165, 0)
 
 # Directions
 UP, DOWN, LEFT, RIGHT = (0, -1), (0, 1), (-1, 0), (1, 0)
@@ -163,7 +164,7 @@ class Level:
     def is_stair(self, x, y):
         return self.world_map[y][x] in ['<', '>']
 
-    def load_maze(self, level: int, MAX_LEVELS=12) -> tuple[list[str] | list[list[str]], int, dict, str, list[Room], tuple | None]:
+    def load_maze(self, level: int) -> tuple[list[str] | list[list[str]], int, dict, str, list[Room], tuple | None]:
         """
         Charge le labyrinthe depuis le fichier level.txt
         nom : nom du fichier contenant le labyrinthe (sans l’extension .txt)
@@ -833,7 +834,7 @@ class Game:
         self.hero.x, self.hero.y = choice(exit_positions)
         self.level.explored_tiles.add((self.hero.x, self.hero.y))
         self.update_visible_tiles()
-        cprint(f'{len(self.level.visible_tiles)} cases visibles')
+        # cprint(f'{len(self.level.visible_tiles)} cases visibles')
 
     def add_to_level(self, item, image, level_sprites) -> bool:
         possible_drop_locations: List[tuple] = [(x, y) for x in range(self.map_width) for y in range(self.map_height) if self.world_map[y][x] == '.'
@@ -1492,68 +1493,6 @@ def get_initiative_order(characters):
     return [char for char, _ in initiative_rolls]
 
 
-# def handle_combat_new(game: Game, monsters: List[Monster], attack_spell: Spell = None, move_position: tuple = None) -> None:
-#     """
-#     Handle the combat against the monsters.
-#
-#     Args:
-#         game (Game): The game instance.
-#         monsters (List[Monster]): A list of monsters to combat.
-#         attack_spell (Spell, optional): The spell to use for attack. Defaults to None.
-#         move_position (tuple, optional): The position to move to. Defaults to None.
-#     """
-#     attack_order = get_initiative_order([game.hero] + monsters)
-#     for char in attack_order:
-#         if isinstance(char, Character):
-#             handle_character_action(game, char, attack_spell, move_position)
-#         else:
-#             handle_monster_action(game, char)
-#
-# def handle_character_action(game: Game, character: Character, attack_spell: Spell, move_position: tuple) -> None:
-#     """
-#     Handle the character's action during combat.
-#
-#     Args:
-#         game (Game): The game instance.
-#         character (Character): The character performing the action.
-#         attack_spell (Spell, optional): The spell to use for attack. Defaults to None.
-#         move_position (tuple, optional): The position to move to. Defaults to None.
-#     """
-#     if character.hit_points > 0:
-#         if move_position:
-#             handle_move_action(game, character, move_position)
-#         elif attack_spell:
-#             handle_right_click_spell_attack(game)
-#         else:
-#             handle_left_click_action(game)
-#
-# def handle_move_action(game: Game, character: Character, move_position: tuple) -> None:
-#     """
-#     Handle the character's move action during combat.
-#
-#     Args:
-#         game (Game): The game instance.
-#         character (Character): The character performing the move action.
-#         move_position (tuple): The position to move to.
-#     """
-#     if move_position not in game.level.obstacles:
-#         move_char(game, character, move_position)
-#     else:
-#         cprint(f'Path is blocked!')
-#
-# def handle_monster_action(game: Game, monster: Monster) -> None:
-#     """
-#     Handle the monster's action during combat.
-#
-#     Args:
-#         game (Game): The game instance.
-#         monster (Monster): The monster performing the action.
-#     """
-#     if monster.hit_points > 0:
-#         handle_monster_actions(game, monster)
-#         game.last_combat_round = game.round_no
-
-
 def handle_combat(game: Game, monsters: List[Monster], attack_spell: Spell = None, move_position: tuple = None):
     """
         Handle the combat against the monsters.
@@ -1606,7 +1545,11 @@ def handle_monster_actions(game: Game, monster: Monster):
             # print(special_attack)
             if special_attack.recharge_on_roll:
                 special_attack.ready = special_attack.recharge_success
-    available_special_attacks: List[SpecialAbility] = list(filter(lambda a: a.ready and a.area_of_effect.size >= UNIT_SIZE * range, monster.sa))
+    try:
+        available_special_attacks: List[SpecialAbility] = list(filter(lambda a: a.ready and a.area_of_effect.size >= UNIT_SIZE * range, monster.sa))
+    except Exception as e:
+        available_special_attacks = []
+        print(e)
 
     monster.attack_round += 1
     # Some monsters may have special attack after death
@@ -1684,12 +1627,12 @@ def handle_level_changes(game):
             else:
                 print(f'Hero found downstairs! going to Level {game.dungeon_level + 1}')
                 game.dungeon_level += 1
-                # print(game.dungeon_level)
-                # if game.dungeon_level == 8:
-                #     # Debug Level 8
-                #     game.level = Level(level_no=game.dungeon_level)
-                #     game.levels[game.dungeon_level-1] = game.level
-                #     game.level.load(hero=game.hero)
+                if game.dungeon_level == 13:
+                    # reset level
+                    print(f'resetting level {game.dungeon_level}')
+                    game.level = Level(level_no=game.dungeon_level)
+                    game.levels[game.dungeon_level-1] = game.level
+                    game.level.load(hero=game.hero)
                 if game.dungeon_level > len(game.levels):
                     game.level = Level(level_no=game.dungeon_level)
                     game.levels.append(game.level)
@@ -1769,7 +1712,8 @@ def draw_monster_tokens(screen, game, token_images):
     token_area_x = SCREEN_WIDTH - 250
     token_area_y = 20
 
-    font = pygame.font.SysFont(None, 60)
+    # font = pygame.font.SysFont(None, 60)
+    font = pygame.font.SysFont(None, 30)
 
     # Draw visible monsters' tokens
     column_height = 0
@@ -1790,10 +1734,13 @@ def draw_monster_tokens(screen, game, token_images):
             screen.blit(token_image, token_rect)
 
             # Draw current hit points in the center of the token
-            hp_text = font.render(str(monster.hit_points), True, GREEN)
-            hp_text.set_alpha(100)  # Set transparency (0 is fully transparent, 255 is opaque)
+            if not hasattr(monster, 'max_hit_points'):
+                monster.max_hit_points = monster.hit_points
+            text_color = GREEN if monster.hit_points == monster.max_hit_points else ORANGE if monster.hit_points > 0.25 * monster.max_hit_points else RED
+            hp_text = font.render(str(monster.hit_points), True, text_color)
+            # hp_text.set_alpha(100)  # Set transparency (0 is fully transparent, 255 is opaque)
             hp_rect = hp_text.get_rect()
-            hp_rect.center = token_rect.center
+            hp_rect.center = token_rect.bottomright[0] - 5, token_rect.bottomright[1] - 5
             screen.blit(hp_text, hp_rect)
 
             # Draw tooltip with monster name on mouse hover
