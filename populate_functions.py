@@ -384,6 +384,20 @@ def get_special_monster_actions(name: str) -> tuple[List[Action], List[SpecialAb
         damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='2d8', bonus=3))]
         action = Action(name='Spear', desc='', type=ActionType.MELEE, attack_bonus=5, damages=damages)
         actions.append(action)
+        # Spellcasting
+        caster_level = 3
+        dc_type = 'wis'
+        dc_value = 11
+        spells = ['guidance', 'resistance', 'thaumaturgy']
+        spells += ['bless', 'command']
+        spells += ['augury', 'spiritual-weapon']
+        if spells:
+            spell_caster: SpellCaster = SpellCaster(level=caster_level,
+                                                    spell_slots=[4, 2, 0, 0, 0],
+                                                    learned_spells=list(filter(None, [request_spell(s) for s in spells])),
+                                                    dc_type=dc_type,
+                                                    dc_value=dc_value + 1,
+                                                    ability_modifier=1)
     elif name == "Ogre Bolt Launcher":
         damage_type: DamageType = request_damage_type(index_name='bludgeoning')
         damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='2d4', bonus=4))]
@@ -428,32 +442,24 @@ def get_special_monster_actions(name: str) -> tuple[List[Action], List[SpecialAb
         action = Action(name='Multiattack', desc='', type=ActionType.MIXED, multi_attack=[multi_attack_action] * 2)
         actions.append(action)
         # Ranged attack
-        # TODO: modify request_spell function for non SRD monsters
         # range = '120 ft'
         # action = Action(name='Multiattack', desc='', type=ActionType.RANGED,
         #        attack_bonus=None,
         #        multi_attack=[multi_attack_action] * 2, damages=None)
         # actions.append(action)
-        # Spell casting
-        # The illusionist casts one of the following spells, using Intelligence as the spellcasting ability (spell save {@dc 13})
-        # caster_level = special_ability['spellcasting']['level']
-        # dc_type = 'int'
-        # dc_value = 13
-        # ability_modifier = special_ability['spellcasting']['modifier']
-        # slots = [s for s in special_ability['spellcasting']['slots'].values()]
-        # spells: List[Spell] = []
-        # for spell_dict in special_ability['spellcasting']['spells']:
-        #     spell_index_name: str = spell_dict['url'].split('/')[3]
-        #     spell = request_spell(spell_index_name)
-        #     if spell is None:
-        #         continue
-        #     spells.append(spell)
-        #     spell_caster: SpellCaster = SpellCaster(level=caster_level,
-        #                                             spell_slots=slots,
-        #                                             learned_spells=spells,
-        #                                             dc_type=dc_type,
-        #                                             dc_value=dc_value + ability_modifier,
-        #                                             ability_modifier=ability_modifier)
+        # Spellcasting
+        caster_level = 2
+        dc_type = 'int'
+        dc_value = 13
+        spells = ['dancing-lights', 'mage-hand', 'minor-illusion']
+        spells += ['disguise-self', 'invisibility', 'mage-armor', 'major-image', 'phantasmal-force', 'phantom-steed']
+        if spells:
+            spell_caster: SpellCaster = SpellCaster(level=caster_level,
+                                                    spell_slots=[0, 1, 0, 0, 0],
+                                                    learned_spells=list(filter(None, [request_spell(s) for s in spells])),
+                                                    dc_type=dc_type,
+                                                    dc_value=dc_value + 5,
+                                                    ability_modifier=5)
     elif name == "Goblin Boss":
         # Multi Attack
         # The goblin makes two attacks with its scimitar. The second attack has disadvantage.
@@ -517,12 +523,24 @@ def get_special_monster_actions(name: str) -> tuple[List[Action], List[SpecialAb
         action = Action(name='Constrict', desc='', type=ActionType.MIXED, attack_bonus=5, damages=damages, normal_range=10)
         actions.append(action)
     elif name == "Apprentice Wizard":
-        # TODO: implement spell attacks
         # Multiple attack
         damage_type: DamageType = request_damage_type(index_name='psychic')
         damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='2d10', bonus=3))]
         action = Action(name='Arcane Burst', desc='', type=ActionType.MIXED, attack_bonus=4, damages=damages, normal_range=120)
         actions.append(action)
+        # Spellcasting
+        caster_level = 1
+        dc_type = 'int'
+        dc_value = 12
+        spells = ['mage-hand', 'prestidigitation']
+        spells += ['burning hands', 'disguise-self', 'mage-armor']
+        if spells:
+            spell_caster: SpellCaster = SpellCaster(level=caster_level,
+                                                    spell_slots=[1, 0, 0, 0, 0],
+                                                    learned_spells=list(filter(None, [request_spell(s) for s in spells])),
+                                                    dc_type=dc_type,
+                                                    dc_value=dc_value + 4,
+                                                    ability_modifier=5)
     elif name == "Orc War Chief":
         # Multiple attack
         # "The orc makes two attacks with its greataxe or its spear."
@@ -555,6 +573,19 @@ def get_special_monster_actions(name: str) -> tuple[List[Action], List[SpecialAb
         multi_attack_action = Action(name='Grave Bolt', desc='', type=ActionType.RANGED, attack_bonus=5, damages=damages, normal_range=120)
         action = Action(name='Multiattack', desc='', type=ActionType.RANGED, multi_attack=[multi_attack_action] * 2)
         actions.append(action)
+        # Spellcasting
+        caster_level = 1
+        dc_type = 'cha'
+        dc_value = 11
+        spells = ['detect-magic', 'disguise-self', 'mage-armor', 'mage-hand']
+        spells += ['dispel-magic', 'hunger-of-Hadar', 'invisibility', 'spider-climb']
+        if spells:
+            spell_caster: SpellCaster = SpellCaster(level=caster_level,
+                                                    spell_slots=[1, 0, 0, 0, 0],
+                                                    learned_spells=list(filter(None, [request_spell(s) for s in spells])),
+                                                    dc_type=dc_type,
+                                                    dc_value=dc_value + 4,
+                                                    ability_modifier=4)
     elif name == "Allip":
         # Single attacks
         damage_type: DamageType = request_damage_type(index_name='psychic')
@@ -616,6 +647,19 @@ def get_special_monster_actions(name: str) -> tuple[List[Action], List[SpecialAb
                                                 recharge_on_roll=1,
                                                 area_of_effect=area_of_effect)
         special_abilities.append(sa)
+        # Spellcasting
+        caster_level = 1
+        dc_type = 'cha'
+        dc_value = 15
+        spells = ['detect-magic', 'guidance', 'levitate',  'mage-armor', 'mage-hand', 'minor-illusion', 'prestidigitation']
+        spells += ['arcane-gate', 'detect-thoughts', 'true-seeing']
+        if spells:
+            spell_caster: SpellCaster = SpellCaster(level=caster_level,
+                                                    spell_slots=[1, 0, 0, 0, 0],
+                                                    learned_spells=list(filter(None, [request_spell(s) for s in spells])),
+                                                    dc_type=dc_type,
+                                                    dc_value=dc_value + 4,
+                                                    ability_modifier=4)
     elif name == "Star Spawn Grue":
         # Single Attacks
         # TODO ???
@@ -672,6 +716,23 @@ def get_special_monster_actions(name: str) -> tuple[List[Action], List[SpecialAb
                                                 recharge_on_roll=1,
                                                 area_of_effect=area_of_effect)
         special_abilities.append(sa)
+        # Spellcasting
+        caster_level = 12
+        dc_type = 'int'
+        dc_value = 15
+        spells = ['identify', 'ray-of-sickness']
+        spells += ['hold-person', 'locate-object']
+        spells += ['bestow-curse', 'counterspell', 'lightning-bolt']
+        spells += ['phantasmal-killer', 'polymorph']
+        spells += ['contact-other-plane', 'scrying']
+        spells += ['eyebite']
+        if spells:
+            spell_caster: SpellCaster = SpellCaster(level=caster_level,
+                                                    spell_slots=[4, 3, 3, 3, 2, 1],
+                                                    learned_spells=list(filter(None, [request_spell(s) for s in spells])),
+                                                    dc_type=dc_type,
+                                                    dc_value=dc_value + 7,
+                                                    ability_modifier=7)
     elif name == 'Vampiric Mist':
         # Special attacks
         damage_type: DamageType = request_damage_type(index_name='necrotic')
@@ -842,6 +903,26 @@ def get_special_monster_actions(name: str) -> tuple[List[Action], List[SpecialAb
         multi_attack_action_2 = Action(name='Unarmed Strike', desc='', type=ActionType.MELEE, attack_bonus=6, damages=damages)
         action = Action(name='Multiattack', desc='', type=ActionType.MELEE, multi_attack=[multi_attack_action_1, multi_attack_action_2])
         actions.append(action)
+        # Spellcasting
+        caster_level = 10
+        dc_type = 'wis'
+        dc_value = 14
+        spells = ['guidance', 'sacred-flame', 'thaumaturgy']
+        spells += ['detect-magic', 'sanctuary', 'shield-of-faith']
+        spells += ['hold-person', 'spiritual-weapon']
+        spells += ['spirit-guardians', 'tongues']
+        spells += ['control-water', 'divination']
+        spells += ['mass-cure-wounds', 'scrying']
+        spells += ['phantasmal-killer', 'polymorph']
+        spells += ['contact-other-plane', 'scrying']
+        spells += ['eyebite']
+        if spells:
+            spell_caster: SpellCaster = SpellCaster(level=caster_level,
+                                                    spell_slots=[4, 3, 3, 3, 2],
+                                                    learned_spells=list(filter(None, [request_spell(s) for s in spells])),
+                                                    dc_type=dc_type,
+                                                    dc_value=dc_value + 7,
+                                                    ability_modifier=7)
     elif name == "Kuo-toa":
         damage_type: DamageType = request_damage_type(index_name='piercing')
         damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='1d4', bonus=1))]
@@ -880,6 +961,19 @@ def get_special_monster_actions(name: str) -> tuple[List[Action], List[SpecialAb
         multi_attack_action_2 = Action(name='Pincer Staff', desc='', type=ActionType.MIXED, attack_bonus=4, damages=damages, normal_range=10)
         action = Action(name='Multiattack', desc='', type=ActionType.MIXED, multi_attack=[multi_attack_action_1, multi_attack_action_2])
         actions.append(action)
+        # Spellcasting
+        caster_level = 2
+        dc_type = 'wis'
+        dc_value = 11
+        spells = ['sacred-flame', 'thaumaturgy']
+        spells += ['bane', 'shield-of-faith']
+        if spells:
+            spell_caster: SpellCaster = SpellCaster(level=caster_level,
+                                                    spell_slots=[3, 0, 0, 0, 0],
+                                                    learned_spells=list(filter(None, [request_spell(s) for s in spells])),
+                                                    dc_type=dc_type,
+                                                    dc_value=dc_value + 5,
+                                                    ability_modifier=5)
     elif name == "Sahuagin Baron":
         # Multiattack
         # "The sahuagin makes three attacks: one with his bite and two with his claws or trident."
@@ -915,6 +1009,21 @@ def get_special_monster_actions(name: str) -> tuple[List[Action], List[SpecialAb
         multi_attack_action_2 = Action(name='Claws', desc='', type=ActionType.MELEE, attack_bonus=3, damages=damages)
         action = Action(name='Multiattack', desc='', type=ActionType.MELEE, multi_attack=[multi_attack_action_1, multi_attack_action_2, multi_attack_action_2])
         actions.append(action)
+        # Spellcasting
+        caster_level = 6
+        dc_type = 'wis'
+        dc_value = 12
+        spells = ['guidance', 'thaumaturgy']
+        spells += ['bless', 'detect-magic', 'guiding-bolt']
+        spells += ['hold-person', 'spiritual-weapon']
+        spells += ['mass-healing-word', 'tongues']
+        if spells:
+            spell_caster: SpellCaster = SpellCaster(level=caster_level,
+                                                    spell_slots=[4, 3, 3, 0, 0],
+                                                    learned_spells=list(filter(None, [request_spell(s) for s in spells])),
+                                                    dc_type=dc_type,
+                                                    dc_value=dc_value + 5,
+                                                    ability_modifier=5)
     elif name == "Sea Spawn":
         # Multiattack
         # "The sea spawn makes two Unarmed Strike attacks and one Piscine Anatomy attack."
@@ -956,6 +1065,7 @@ def request_monster_other(name: str) -> Optional[Monster]:
 
         proficiencies: List[Proficiency] = []
         actions, special_abilities, spell_caster = get_special_monster_actions(name)
+
         ac: int = data['_fAc'][0]
         hit_dice: str = data['hp']['formula']
         dice, bonus = hit_dice.split(' + ') if '+' in hit_dice else [hit_dice, 0]
