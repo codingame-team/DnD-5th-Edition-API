@@ -291,16 +291,6 @@ class Level:
         :param level:
         :return:
         """
-        # monster_names: List[str] = populate(collection_name='monsters', key_name='results')
-        # bestiary: List[Monster] = [request_monster(name) for name in monster_names]
-
-        # rating = lambda m: m.cr < (hero.level / 4 if hero.level < 5 else hero.level / 2)
-        # monster_names: List[str] = ['air-elemental', 'ankheg', 'baboon', 'bat', 'bugbear', 'chimera', 'dust-mephit', 'ettin', 'crab', 'ghost', 'gnoll', 'goblin', 'grimlock',
-        #                             'hobgoblin', 'kobold', 'harpy', 'lizard', 'medusa', 'mimic', 'mummy', 'ogre', 'owl', 'poisonous-snake', 'rat', 'skeleton', 'spider', 'wolf',
-        #                             'wyvern', 'young-red-dragon', 'zombie']
-        # monster_candidates: List[Monster] = [request_monster(name) for name in monster_names]
-        # monster_candidates = list(filter(None, monster_candidates))
-        # monster_candidates = list(filter(lambda m: m.challenge_rating <= self.level_no / 4, monster_candidates))
 
         open_positions: List[tuple] = [(x, y) for x in range(self.map_width) for y in range(self.map_height) if
                                        self.world_map[y][x] == '.' and (x, y) != hero.pos and (x, y) not in self.doors]
@@ -314,7 +304,7 @@ class Level:
                 room_positions = [(x, y) for x, y in room.inner_positions if (x, y) in open_positions]
                 self.place_treasure(room, room_positions)
                 # self.place_monsters(room, room_positions, monster_candidates)
-                self.place_monsters_new(room, room_positions)
+                self.place_monsters(room, room_positions)
                 self.treasures.append(room.treasure)
 
     @property
@@ -346,7 +336,7 @@ class Level:
         room_positions.remove((t_x, t_y))
         room.treasure = Treasure(id=-1, x=t_x, y=t_y, old_x=t_x, old_y=t_y, image_name='treasure.png', gold=gold, has_item=has_item)
 
-    def place_monsters(self, room: Room, room_positions: List[tuple], monster_candidates: List[Monster]):
+    def place_monsters_old(self, room: Room, room_positions: List[tuple], monster_candidates: List[Monster]):
         cr_total: int = 0
         monster_room_candidates = list(filter(lambda m: m.challenge_rating <= self.level_no / 4, monster_candidates))
         max_monster = room.area // 600
@@ -363,7 +353,7 @@ class Level:
             monster_room_candidates = list(filter(lambda m: m.challenge_rating <= remaining_cr, monster_candidates))
             i += 1
 
-    def place_monsters_new(self, room, room_positions):
+    def place_monsters(self, room, room_positions):
         for m in room.monsters:
             m.x, m.y = choice(room_positions)
             room_positions.remove((m.x, m.y))
@@ -445,45 +435,6 @@ class Game:
         # cprint(viewport_x, viewport_y, view_width, view_height, view_port_rect)
         return viewport_x, viewport_y, view_width, view_height
 
-    def draw_mini_map_old(self):
-        """
-        Draw a mini-map on a separate surface.
-        """
-        # Set the size of the mini-map
-        mini_map_width = 300
-        mini_map_height = 200
-
-        # Create a new surface for the mini-map
-        OFFSET_X, OFFSET_Y = SCREEN_WIDTH - STATS_WIDTH + 10, 3 * (SCREEN_HEIGHT // 4) - 30
-        mini_map_rect = pygame.Rect(OFFSET_X, OFFSET_Y, mini_map_width, mini_map_height)
-
-        # Calculate the scale factor to fit the map onto the mini-map
-        scale_x = mini_map_width / self.map_width
-        scale_y = mini_map_height / self.map_height
-
-        # Draw the map tiles onto the mini-map surface
-        for y in range(self.map_height):
-            for x in range(self.map_width):
-                if (x, y) not in self.level.visible_tiles:
-                    color = BLACK
-                else:
-                    tile = self.world_map[y][x]
-                    if tile == '#':
-                        color = (128, 128, 128)  # Wall color
-                    else:
-                        color = (64, 64, 64)  # Floor color
-                pygame.draw.rect(screen, color, (int(OFFSET_X + x * scale_x), int(OFFSET_Y + y * scale_y), int(scale_x), int(scale_y)))
-
-        # Draw the player's position on the mini-map
-        player_x, player_y = self.hero.x, self.hero.y
-        pygame.draw.circle(screen, (255, 0, 0), (int(OFFSET_X + player_x * scale_x), int(OFFSET_Y + player_y * scale_y)), 5)
-
-        # Draw the treasure positions on the mini-map
-        for treasure in self.level.treasures:
-            if treasure.pos not in self.level.visible_tiles:
-                continue
-            treasure_x, treasure_y = treasure.x, treasure.y
-            pygame.draw.circle(screen, (255, 255, 0), (int(OFFSET_X + treasure_x * scale_x), int(OFFSET_Y + treasure_y * scale_y)), 3)
 
     def draw_mini_map(self, screen):
         """
@@ -537,55 +488,6 @@ class Game:
 
         return mini_map_surface
 
-    def draw_mini_map_new(self):
-        """
-        Draw a mini-map on a separate surface.
-        """
-        # Set the size of the mini-map
-        mini_map_width = 300
-        mini_map_height = 200
-
-        # Create a new surface for the mini-map
-        OFFSET_X, OFFSET_Y = SCREEN_WIDTH - STATS_WIDTH + 10, 3 * (SCREEN_HEIGHT // 4) - 30
-        mini_map_rect = pygame.Rect(OFFSET_X, OFFSET_Y, mini_map_width, mini_map_height)
-
-        # Calculate the scale factor to fit the map onto the mini-map
-        scale_x = mini_map_width / self.map_width
-        scale_y = mini_map_height / self.map_height
-
-        # Create a new surface for the mini-map
-        mini_map_surface = pygame.Surface((mini_map_width, mini_map_height))
-
-        # Draw the map tiles onto the mini-map surface
-        for y in range(self.map_height):
-            for x in range(self.map_width):
-                if (x, y) not in self.level.visible_tiles:
-                    color = BLACK
-                else:
-                    tile = self.world_map[y][x]
-                    if tile == '#':
-                        color = (128, 128, 128)  # Wall color
-                    else:
-                        color = (64, 64, 64)  # Floor color
-                tile_width = int(scale_x)
-                tile_height = int(scale_y)
-                pygame.draw.rect(mini_map_surface, color, (int(x * scale_x), int(y * scale_y), tile_width, tile_height))
-
-        # Draw the player's position on the mini-map
-        player_x, player_y = self.hero.x, self.hero.y
-        pygame.draw.circle(mini_map_surface, (255, 0, 0), (int(player_x * scale_x), int(player_y * scale_y)), 5)
-
-        # Draw the treasure positions on the mini-map
-        for treasure in self.level.treasures:
-            if treasure.pos not in self.level.visible_tiles:
-                continue
-            treasure_x, treasure_y = treasure.x, treasure.y
-            pygame.draw.circle(mini_map_surface, (255, 255, 0), (int(treasure_x * scale_x), int(treasure_y * scale_y)), 3)
-
-        # Blit the mini-map onto the main game screen
-        screen.blit(mini_map_surface, (OFFSET_X, OFFSET_Y))
-
-        return mini_map_surface
 
     def draw_map(self, path, screen):
         photo_wall = pygame.image.load(f"{path}/sprites/TilesDungeon/Wall.png")
@@ -1077,13 +979,6 @@ def update_display(game, token_images):
     game.hero.draw(screen, image, TILE_SIZE, *view_port_tuple)
 
     for monster in game.level.monsters:
-        # screen.blit(game.sprites[monster.id], (monster.x * TILE_SIZE, monster.y * TILE_SIZE))
-        # # Create the tooltip data
-        # tooltip_data = {
-        #     "image": f"{char_sprites_dir}/{monster.image_name}",
-        #     "name": monster.name,
-        #     "description": monster.description
-        # }
         if monster.pos not in game.level.visible_tiles:
             continue
         image: Surface = level_sprites[monster.id]
@@ -1532,8 +1427,8 @@ def handle_combat(game: Game, monsters: List[Monster], attack_spell: Spell = Non
 def handle_monster_actions(game: Game, monster: Monster):
     # print(monster.name)
     # Precalculate ready spells & special attacks
-    available_spells: List[Spell] = []
     range = mh_dist(game.hero.pos, monster.pos) * UNIT_SIZE
+    available_spells: List[Spell] = []
     if monster.can_cast:
         cantric_spells: List[Spell] = [s for s in monster.sc.learned_spells if not s.level]
         slot_spells: List[Spell] = [s for s in monster.sc.learned_spells if s.level and monster.sc.spell_slots[s.level - 1] > 0]
@@ -1561,9 +1456,11 @@ def handle_monster_actions(game: Game, monster: Monster):
         game.hero.hit_points -= monster.special_attack(game.hero, special_attack)
     else:
         available_special_attacks = list(filter(lambda a: not a.can_use_after_death(monster), available_special_attacks))
-        if monster.can_cast and available_spells:
+        if available_spells:
+            # print(f'{monster.name} - old spell slots: {monster.sc.spell_slots}')
             attack_spell: Spell = max(available_spells, key=lambda s: s.level)
             game.hero.hit_points -= monster.spell_attack(game.hero, attack_spell)
+            # print(f'{monster.name} - new spell slots: {monster.sc.spell_slots}')
         elif available_special_attacks:
             special_attack: SpecialAbility = max(available_special_attacks, key=lambda a: sum([damage.dd.score(success_type=a.dc_success) for damage in a.damages]))
             # cprint(special_attack)
@@ -1582,16 +1479,6 @@ def handle_monster_actions(game: Game, monster: Monster):
             else:
                 # Monster moves towards the hero
                 move_char(game=game, char=monster, pos=game.hero.pos)
-
-
-# def handle_monster_attacks(game) -> bool:
-#     for monster in game.level.monsters:
-#         if mh_dist(monster.pos, game.hero.pos) == 1:
-#             game.hero.hit_points -= monster.melee_attack(game.hero)
-#             if game.hero.hit_points <= 0:
-#                 # Handle hero's defeat
-#                 return False
-#     return True
 
 
 def handle_treasure_chests(game):
@@ -1627,12 +1514,13 @@ def handle_level_changes(game):
             else:
                 print(f'Hero found downstairs! going to Level {game.dungeon_level + 1}')
                 game.dungeon_level += 1
-                if game.dungeon_level == 13:
-                    # reset level
-                    print(f'resetting level {game.dungeon_level}')
-                    game.level = Level(level_no=game.dungeon_level)
-                    game.levels[game.dungeon_level-1] = game.level
-                    game.level.load(hero=game.hero)
+                # Uncomment following lines to reset level
+                # if game.dungeon_level == 14:
+                #     # reset level
+                #     print(f'resetting level {game.dungeon_level}')
+                #     game.level = Level(level_no=game.dungeon_level)
+                #     game.levels[game.dungeon_level-1] = game.level
+                #     game.level.load(hero=game.hero)
                 if game.dungeon_level > len(game.levels):
                     game.level = Level(level_no=game.dungeon_level)
                     game.levels.append(game.level)
