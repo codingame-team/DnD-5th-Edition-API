@@ -32,10 +32,10 @@ def download_image(url, save_folder, monster_name, filename=None) -> int:
         with open(save_path, 'wb') as file:
             file.write(response.content)
         # print(f"Image successfully downloaded and saved to {save_path}")
-        return 200
     else:
         print(f"{monster_name} -> Failed to download image. HTTP Status code: {response.status_code}")
-        return 404
+
+    return response.status_code
 
 
 if __name__ == "__main__":
