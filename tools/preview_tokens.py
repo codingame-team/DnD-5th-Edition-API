@@ -79,7 +79,6 @@ def main():
 
     # Définir la taille de la fenêtre pour Pygame
     screen = pygame.display.set_mode((screen_width, screen_height), pygame.FULLSCREEN)
-    pygame.display.set_caption('Afficher les images WebP - Page 1')
 
     # Paramètres pour l'affichage des images
     folder = "../images/monsters/tokens"
@@ -97,6 +96,8 @@ def main():
 
     # Calculer le nombre total de pages
     total_pages = (len(images) + images_per_page - 1) // images_per_page
+    # pygame.display.set_caption(f'Afficher les images WebP - Page 1 / {total_pages}')
+
     current_page = 0
 
     # Variable pour suivre l'état plein écran
@@ -124,7 +125,7 @@ def main():
                         screen = pygame.display.set_mode((screen_width, screen_height))
 
                 # Mettre à jour le titre de la fenêtre avec le numéro de la page
-                pygame.display.set_caption(f'Afficher les images WebP - Page {current_page + 1}')
+                pygame.display.set_caption(f'Afficher les images WebP - Page {current_page + 1} / {total_pages}')
 
         # Afficher les images de la page courante
         draw_images(screen, images, filenames, current_page, images_per_page, rows, cols, font, padding)
