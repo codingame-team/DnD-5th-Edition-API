@@ -4,7 +4,9 @@ from collections import Counter
 
 import pygame
 
-from dungeon_pygame import Game, load_character_gamestate, WHITE, RED
+from dungeon_pygame import Game, Level, Room, load_character_gamestate, WHITE, RED
+
+from tools.common import resource_path
 
 # Define colors
 BLACK = (0, 0, 0)
@@ -112,14 +114,14 @@ if __name__ == "__main__":
 
     path = os.path.dirname(__file__)
     abspath = os.path.abspath(path)
-    characters_dir = f'{abspath}/gameState/characters'
-    gamestate_dir = f'{abspath}/gameState/pygame'
+    characters_dir = resource_path(f'gameState/characters')
+    gamestate_dir = resource_path(f'gameState/pygame')
 
     character_name = sys.argv[1] if len(sys.argv) > 1 else 'Brottor'
 
     # Load monster images
     monster_images = {}
-    monster_images_dir = os.path.join(path, 'images/monsters/tokens')
+    monster_images_dir = resource_path('images/monsters/tokens')
     for filename in os.listdir(monster_images_dir):
         monster_name, _ = os.path.splitext(filename)
         image_path = os.path.join(monster_images_dir, filename)
@@ -127,9 +129,9 @@ if __name__ == "__main__":
         # Resize the image to 280x280 pixels
         monster_images[monster_name] = pygame.transform.scale(original_image, (280, 280))
 
-    try:
-        pygame.display.set_caption(f"Monster kills by {character_name}")
-        saved_game = load_character_gamestate(character_name, gamestate_dir)
-        main(saved_game)
-    except IndexError:
-        print(f"Character name <{character_name}> not found in roster")
+    # try:
+    pygame.display.set_caption(f"Monster kills by {character_name}")
+    saved_game = load_character_gamestate(character_name, gamestate_dir)
+    main(saved_game)
+    # except IndexError:
+    #     print(f"Character name <{character_name}> not found in roster")
