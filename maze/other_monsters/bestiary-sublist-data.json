@@ -7381,8 +7381,8 @@
 			}
 		],
 		"environment": [
-			"coastal",
-			"underwater"
+			"underwater",
+			"coastal"
 		],
 		"soundClip": {
 			"type": "internal",
@@ -7492,22 +7492,6 @@
 			}
 		],
 		"__prop": "monster",
-		"_pTypes": {
-			"types": [
-				"fey"
-			],
-			"tags": [],
-			"asText": "Fey",
-			"asTextShort": "Fey",
-			"typeSidekick": null,
-			"tagsSidekick": [],
-			"asTextSidekick": null
-		},
-		"_pCr": "2",
-		"_fCr": [
-			"2",
-			"4"
-		],
 		"_fSpeedType": [
 			"walk",
 			"swim"
@@ -7522,8 +7506,8 @@
 			"E"
 		],
 		"_fEnvironment": [
-			"coastal",
-			"underwater"
+			"underwater",
+			"coastal"
 		],
 		"_fVuln": [],
 		"_fRes": [],
@@ -7641,7 +7625,23 @@
 			"C",
 			"GI"
 		],
-		"_fEquipment": []
+		"_fEquipment": [],
+		"_pTypes": {
+			"types": [
+				"fey"
+			],
+			"tags": [],
+			"asText": "Fey",
+			"asTextShort": "Fey",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "2",
+		"_fCr": [
+			"2",
+			"4"
+		]
 	},
 	{
 		"name": "Kuo-toa Archpriest",
@@ -7851,23 +7851,6 @@
 		"hasFluff": true,
 		"hasFluffImages": true,
 		"__prop": "monster",
-		"_pTypes": {
-			"types": [
-				"humanoid"
-			],
-			"tags": [
-				"kuo-toa"
-			],
-			"asText": "Humanoid (Kuo-Toa)",
-			"asTextShort": "Humanoid (Kuo-Toa)",
-			"typeSidekick": null,
-			"tagsSidekick": [],
-			"asTextSidekick": null
-		},
-		"_pCr": "6",
-		"_fCr": [
-			"6"
-		],
 		"_fSpeedType": [
 			"walk",
 			"swim"
@@ -7953,7 +7936,24 @@
 		"_fLanguageTags": [
 			"U"
 		],
-		"_fEquipment": []
+		"_fEquipment": [],
+		"_pTypes": {
+			"types": [
+				"humanoid"
+			],
+			"tags": [
+				"kuo-toa"
+			],
+			"asText": "Humanoid (Kuo-Toa)",
+			"asTextShort": "Humanoid (Kuo-Toa)",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "6",
+		"_fCr": [
+			"6"
+		]
 	},
 	{
 		"name": "Kuo-toa",
@@ -8128,23 +8128,6 @@
 		"hasFluff": true,
 		"hasFluffImages": true,
 		"__prop": "monster",
-		"_pTypes": {
-			"types": [
-				"humanoid"
-			],
-			"tags": [
-				"kuo-toa"
-			],
-			"asText": "Humanoid (Kuo-Toa)",
-			"asTextShort": "Humanoid (Kuo-Toa)",
-			"typeSidekick": null,
-			"tagsSidekick": [],
-			"asTextSidekick": null
-		},
-		"_pCr": "1/4",
-		"_fCr": [
-			"1/4"
-		],
 		"_fSpeedType": [
 			"walk",
 			"swim"
@@ -8255,6 +8238,23 @@
 			"net|phb",
 			"spear|phb",
 			"shield|phb"
+		],
+		"_pTypes": {
+			"types": [
+				"humanoid"
+			],
+			"tags": [
+				"kuo-toa"
+			],
+			"asText": "Humanoid (Kuo-Toa)",
+			"asTextShort": "Humanoid (Kuo-Toa)",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "1/4",
+		"_fCr": [
+			"1/4"
 		]
 	},
 	{
@@ -8437,23 +8437,6 @@
 		"hasFluff": true,
 		"hasFluffImages": true,
 		"__prop": "monster",
-		"_pTypes": {
-			"types": [
-				"humanoid"
-			],
-			"tags": [
-				"kuo-toa"
-			],
-			"asText": "Humanoid (Kuo-Toa)",
-			"asTextShort": "Humanoid (Kuo-Toa)",
-			"typeSidekick": null,
-			"tagsSidekick": [],
-			"asTextSidekick": null
-		},
-		"_pCr": "1",
-		"_fCr": [
-			"1"
-		],
 		"_fSpeedType": [
 			"walk",
 			"swim"
@@ -8540,7 +8523,24 @@
 		"_fLanguageTags": [
 			"U"
 		],
-		"_fEquipment": []
+		"_fEquipment": [],
+		"_pTypes": {
+			"types": [
+				"humanoid"
+			],
+			"tags": [
+				"kuo-toa"
+			],
+			"asText": "Humanoid (Kuo-Toa)",
+			"asTextShort": "Humanoid (Kuo-Toa)",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "1",
+		"_fCr": [
+			"1"
+		]
 	},
 	{
 		"name": "Sahuagin Baron",
@@ -8662,8 +8662,8 @@
 			}
 		],
 		"environment": [
-			"coastal",
-			"underwater"
+			"underwater",
+			"coastal"
 		],
 		"soundClip": {
 			"type": "internal",
@@ -8695,23 +8695,6 @@
 		"hasFluff": true,
 		"hasFluffImages": true,
 		"__prop": "monster",
-		"_pTypes": {
-			"types": [
-				"humanoid"
-			],
-			"tags": [
-				"sahuagin"
-			],
-			"asText": "Humanoid (Sahuagin)",
-			"asTextShort": "Humanoid (Sahuagin)",
-			"typeSidekick": null,
-			"tagsSidekick": [],
-			"asTextSidekick": null
-		},
-		"_pCr": "5",
-		"_fCr": [
-			"5"
-		],
 		"_fSpeedType": [
 			"walk",
 			"swim"
@@ -8726,8 +8709,8 @@
 			"E"
 		],
 		"_fEnvironment": [
-			"coastal",
-			"underwater"
+			"underwater",
+			"coastal"
 		],
 		"_fVuln": [],
 		"_fRes": [],
@@ -8803,6 +8786,23 @@
 		"_fEquipment": [
 			"trident|phb",
 			"breastplate|phb"
+		],
+		"_pTypes": {
+			"types": [
+				"humanoid"
+			],
+			"tags": [
+				"sahuagin"
+			],
+			"asText": "Humanoid (Sahuagin)",
+			"asTextShort": "Humanoid (Sahuagin)",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "5",
+		"_fCr": [
+			"5"
 		]
 	},
 	{
@@ -8951,8 +8951,8 @@
 			}
 		],
 		"environment": [
-			"coastal",
-			"underwater"
+			"underwater",
+			"coastal"
 		],
 		"soundClip": {
 			"type": "internal",
@@ -8988,23 +8988,6 @@
 		"hasFluff": true,
 		"hasFluffImages": true,
 		"__prop": "monster",
-		"_pTypes": {
-			"types": [
-				"humanoid"
-			],
-			"tags": [
-				"sahuagin"
-			],
-			"asText": "Humanoid (Sahuagin)",
-			"asTextShort": "Humanoid (Sahuagin)",
-			"typeSidekick": null,
-			"tagsSidekick": [],
-			"asTextSidekick": null
-		},
-		"_pCr": "2",
-		"_fCr": [
-			"2"
-		],
 		"_fSpeedType": [
 			"walk",
 			"swim"
@@ -9019,8 +9002,8 @@
 			"E"
 		],
 		"_fEnvironment": [
-			"coastal",
-			"underwater"
+			"underwater",
+			"coastal"
 		],
 		"_fVuln": [],
 		"_fRes": [],
@@ -9097,7 +9080,24 @@
 		"_fLanguageTags": [
 			"OTH"
 		],
-		"_fEquipment": []
+		"_fEquipment": [],
+		"_pTypes": {
+			"types": [
+				"humanoid"
+			],
+			"tags": [
+				"sahuagin"
+			],
+			"asText": "Humanoid (Sahuagin)",
+			"asTextShort": "Humanoid (Sahuagin)",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "2",
+		"_fCr": [
+			"2"
+		]
 	},
 	{
 		"name": "Sea Spawn",
@@ -9242,21 +9242,6 @@
 		"hasFluff": true,
 		"hasFluffImages": true,
 		"__prop": "monster",
-		"_pTypes": {
-			"types": [
-				"monstrosity"
-			],
-			"tags": [],
-			"asText": "Monstrosity",
-			"asTextShort": "Monstrosity",
-			"typeSidekick": null,
-			"tagsSidekick": [],
-			"asTextSidekick": null
-		},
-		"_pCr": "1",
-		"_fCr": [
-			"1"
-		],
 		"_fSpeedType": [
 			"walk",
 			"swim"
@@ -9310,6 +9295,4557 @@
 			"AQ",
 			"C",
 			"CS"
+		],
+		"_fEquipment": [],
+		"_pTypes": {
+			"types": [
+				"monstrosity"
+			],
+			"tags": [],
+			"asText": "Monstrosity",
+			"asTextShort": "Monstrosity",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "1",
+		"_fCr": [
+			"1"
+		]
+	},
+	{
+		"name": "Yuan-ti Pureblood",
+		"source": "MM",
+		"page": 310,
+		"otherSources": [
+			{
+				"source": "HotDQ"
+			},
+			{
+				"source": "RoT"
+			},
+			{
+				"source": "SKT"
+			},
+			{
+				"source": "ToA"
+			},
+			{
+				"source": "WDMM"
+			},
+			{
+				"source": "CM"
+			},
+			{
+				"source": "PSI"
+			}
+		],
+		"size": [
+			"M"
+		],
+		"type": {
+			"type": "humanoid",
+			"tags": [
+				"yuan-ti"
+			]
+		},
+		"alignment": [
+			"N",
+			"E"
+		],
+		"ac": [
+			11
+		],
+		"hp": {
+			"average": 40,
+			"formula": "9d8"
+		},
+		"speed": {
+			"walk": 30
+		},
+		"str": 11,
+		"dex": 12,
+		"con": 11,
+		"int": 13,
+		"wis": 12,
+		"cha": 14,
+		"skill": {
+			"deception": "+6",
+			"perception": "+3",
+			"stealth": "+3"
+		},
+		"senses": [
+			"darkvision 60 ft."
+		],
+		"passive": 13,
+		"immune": [
+			"poison"
+		],
+		"conditionImmune": [
+			"poisoned"
+		],
+		"languages": [
+			"Abyssal",
+			"Common",
+			"Draconic"
+		],
+		"cr": "1",
+		"spellcasting": [
+			{
+				"name": "Innate Spellcasting",
+				"type": "spellcasting",
+				"headerEntries": [
+					"The yuan-ti's spellcasting ability is Charisma (spell save {@dc 12}). The yuan-ti can innately cast the following spells, requiring no material components:"
+				],
+				"will": [
+					"{@spell animal friendship} (snakes only)"
+				],
+				"daily": {
+					"3e": [
+						"{@spell poison spray}",
+						"{@spell suggestion}"
+					]
+				},
+				"ability": "cha"
+			}
+		],
+		"trait": [
+			{
+				"name": "Magic Resistance",
+				"entries": [
+					"The yuan-ti has advantage on saving throws against spells and other magical effects."
+				]
+			}
+		],
+		"action": [
+			{
+				"name": "Multiattack",
+				"entries": [
+					"The yuan-ti makes two melee attacks."
+				]
+			},
+			{
+				"name": "Scimitar",
+				"entries": [
+					"{@atk mw} {@hit 3} to hit, reach 5 ft., one target. {@h}4 ({@damage 1d6 + 1}) slashing damage."
+				]
+			},
+			{
+				"name": "Shortbow",
+				"entries": [
+					"{@atk rw} {@hit 3} to hit, range 80/320 ft., one target. {@h}4 ({@damage 1d6 + 1}) piercing damage plus 7 ({@damage 2d6}) poison damage."
+				]
+			}
+		],
+		"environment": [
+			"desert",
+			"forest",
+			"swamp",
+			"urban"
+		],
+		"soundClip": {
+			"type": "internal",
+			"path": "bestiary/yuan-ti-pureblood.mp3"
+		},
+		"attachedItems": [
+			"scimitar|phb",
+			"shortbow|phb"
+		],
+		"traitTags": [
+			"Magic Resistance"
+		],
+		"senseTags": [
+			"D"
+		],
+		"actionTags": [
+			"Multiattack"
+		],
+		"languageTags": [
+			"AB",
+			"C",
+			"DR"
+		],
+		"damageTags": [
+			"I",
+			"P",
+			"S"
+		],
+		"damageTagsSpell": [
+			"I"
+		],
+		"spellcastingTags": [
+			"I"
+		],
+		"miscTags": [
+			"MLW",
+			"MW",
+			"RNG",
+			"RW"
+		],
+		"savingThrowForcedSpell": [
+			"constitution",
+			"wisdom"
+		],
+		"hasToken": true,
+		"hasFluff": true,
+		"hasFluffImages": true,
+		"__prop": "monster",
+		"_pTypes": {
+			"types": [
+				"humanoid"
+			],
+			"tags": [
+				"yuan-ti"
+			],
+			"asText": "Humanoid (Yuan-Ti)",
+			"asTextShort": "Humanoid (Yuan-Ti)",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "1",
+		"_fCr": [
+			"1"
+		],
+		"_fSpeedType": [
+			"walk"
+		],
+		"_fSpeed": 30,
+		"_fAc": [
+			11
+		],
+		"_fHp": 40,
+		"_fAlign": [
+			"N",
+			"E",
+			"NX"
+		],
+		"_fEnvironment": [
+			"desert",
+			"forest",
+			"swamp",
+			"urban"
+		],
+		"_fVuln": [],
+		"_fRes": [],
+		"_fImm": [
+			"poison"
+		],
+		"_fCondImm": [
+			"poisoned"
+		],
+		"_fSave": [],
+		"_fSkill": [
+			"deception",
+			"perception",
+			"stealth"
+		],
+		"_fSources": [
+			"MM",
+			{
+				"item": "HotDQ",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "RoT",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "SKT",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "ToA",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "WDMM",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "CM",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "PSI",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			}
+		],
+		"_fPassive": 13,
+		"_fStr": 11,
+		"_fDex": 12,
+		"_fCon": 11,
+		"_fInt": 13,
+		"_fWis": 12,
+		"_fCha": 14,
+		"_fMisc": [
+			"MLW",
+			"MW",
+			"RNG",
+			"RW",
+			"Spellcaster",
+			"Spellcaster, Charisma",
+			"Has Token",
+			"Has Info",
+			"Has Images"
+		],
+		"_fSpellsKnown": [
+			"animal friendship|phb",
+			"poison spray|phb",
+			"suggestion|phb"
+		],
+		"_fLanguageTags": [
+			"AB",
+			"C",
+			"DR"
+		],
+		"_fEquipment": [
+			"scimitar|phb",
+			"shortbow|phb"
+		]
+	},
+	{
+		"name": "Firenewt Warlock of Imix",
+		"source": "MPMM",
+		"page": 125,
+		"otherSources": [
+			{
+				"source": "VGM",
+				"page": 143
+			}
+		],
+		"size": [
+			"M"
+		],
+		"type": "elemental",
+		"alignment": [
+			"N",
+			"E"
+		],
+		"alignmentPrefix": "Typically ",
+		"ac": [
+			10
+		],
+		"hp": {
+			"average": 33,
+			"formula": "6d8 + 6"
+		},
+		"speed": {
+			"walk": 30
+		},
+		"str": 13,
+		"dex": 11,
+		"con": 12,
+		"int": 9,
+		"wis": 11,
+		"cha": 14,
+		"senses": [
+			"darkvision 120 ft."
+		],
+		"passive": 10,
+		"immune": [
+			"fire"
+		],
+		"languages": [
+			"Draconic",
+			"Ignan"
+		],
+		"cr": "1",
+		"spellcasting": [
+			{
+				"name": "Spellcasting",
+				"type": "spellcasting",
+				"headerEntries": [
+					"The firenewt casts one of the following spells, using Charisma as the spellcasting ability (spell save {@dc 12}):"
+				],
+				"will": [
+					"{@spell guidance}",
+					"{@spell light}",
+					"{@spell mage armor}",
+					"{@spell mage hand}",
+					"{@spell prestidigitation}"
+				],
+				"ability": "cha",
+				"displayAs": "action"
+			}
+		],
+		"trait": [
+			{
+				"name": "Amphibious",
+				"entries": [
+					"The firenewt can breathe air and water."
+				]
+			},
+			{
+				"name": "Devil's Sight",
+				"entries": [
+					"Magical darkness doesn't impede the firenewt's {@sense darkvision}."
+				]
+			},
+			{
+				"name": "Imix's Blessing",
+				"entries": [
+					"When the firenewt reduces an enemy to 0 hit points, the firenewt gains 5 temporary hit points."
+				]
+			}
+		],
+		"action": [
+			{
+				"name": "Multiattack",
+				"entries": [
+					"The firenewt makes three Morningstar or Fire Ray attacks."
+				]
+			},
+			{
+				"name": "Morningstar",
+				"entries": [
+					"{@atk mw} {@hit 3} to hit, reach 5 ft., one target. {@h}5 ({@damage 1d8 + 1}) piercing damage."
+				]
+			},
+			{
+				"name": "Fire Ray",
+				"entries": [
+					"{@atk rs} {@hit 4} to hit, range 120 ft., one target. {@h}5 ({@damage 1d6 + 2}) fire damage."
+				]
+			}
+		],
+		"environment": [
+			"hill",
+			"mountain",
+			"underdark"
+		],
+		"attachedItems": [
+			"morningstar|phb"
+		],
+		"traitTags": [
+			"Amphibious",
+			"Devil's Sight"
+		],
+		"senseTags": [
+			"SD"
+		],
+		"actionTags": [
+			"Multiattack"
+		],
+		"languageTags": [
+			"DR",
+			"IG"
+		],
+		"damageTags": [
+			"F",
+			"P"
+		],
+		"spellcastingTags": [
+			"O"
+		],
+		"miscTags": [
+			"MLW",
+			"MW"
+		],
+		"savingThrowForcedSpell": [
+			"dexterity"
+		],
+		"hasToken": true,
+		"hasFluff": true,
+		"__prop": "monster",
+		"_pTypes": {
+			"types": [
+				"elemental"
+			],
+			"tags": [],
+			"asText": "Elemental",
+			"asTextShort": "Elemental",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "1",
+		"_fCr": [
+			"1"
+		],
+		"_fSpeedType": [
+			"walk"
+		],
+		"_fSpeed": 30,
+		"_fAc": [
+			10
+		],
+		"_fHp": 33,
+		"_fAlign": [
+			"N",
+			"E",
+			"NX"
+		],
+		"_fEnvironment": [
+			"hill",
+			"mountain",
+			"underdark"
+		],
+		"_fVuln": [],
+		"_fRes": [],
+		"_fImm": [
+			"fire"
+		],
+		"_fCondImm": [],
+		"_fSave": [],
+		"_fSkill": [],
+		"_fSources": [
+			"MPMM",
+			{
+				"item": "VGM",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			}
+		],
+		"_fPassive": 10,
+		"_fStr": 13,
+		"_fDex": 11,
+		"_fCon": 12,
+		"_fInt": 9,
+		"_fWis": 11,
+		"_fCha": 14,
+		"_fMisc": [
+			"MLW",
+			"MW",
+			"Spellcaster",
+			"Spellcaster, Charisma",
+			"Has Token",
+			"Has Info"
+		],
+		"_fSpellsKnown": [
+			"guidance|phb",
+			"light|phb",
+			"mage armor|phb",
+			"mage hand|phb",
+			"prestidigitation|phb"
+		],
+		"_fLanguageTags": [
+			"DR",
+			"IG"
+		],
+		"_fEquipment": [
+			"morningstar|phb"
+		]
+	},
+	{
+		"name": "Firenewt Warrior",
+		"source": "MPMM",
+		"page": 125,
+		"otherSources": [
+			{
+				"source": "VGM",
+				"page": 142
+			}
+		],
+		"size": [
+			"M"
+		],
+		"type": "elemental",
+		"alignment": [
+			"N"
+		],
+		"alignmentPrefix": "Typically ",
+		"ac": [
+			{
+				"ac": 13,
+				"from": [
+					"{@item shield|PHB}"
+				]
+			}
+		],
+		"hp": {
+			"average": 27,
+			"formula": "5d8 + 5"
+		},
+		"speed": {
+			"walk": 30
+		},
+		"str": 10,
+		"dex": 13,
+		"con": 12,
+		"int": 7,
+		"wis": 11,
+		"cha": 8,
+		"passive": 10,
+		"immune": [
+			"fire"
+		],
+		"languages": [
+			"Draconic",
+			"Ignan"
+		],
+		"cr": "1/2",
+		"trait": [
+			{
+				"name": "Amphibious",
+				"entries": [
+					"The firenewt can breathe air and water."
+				]
+			}
+		],
+		"action": [
+			{
+				"name": "Multiattack",
+				"entries": [
+					"The firenewt makes two Scimitar attacks."
+				]
+			},
+			{
+				"name": "Scimitar",
+				"entries": [
+					"{@atk mw} {@hit 3} to hit, reach 5 ft., one target. {@h}4 ({@damage 1d6 + 1}) slashing damage."
+				]
+			},
+			{
+				"name": "Spit Fire (Recharges after a Short or Long Rest)",
+				"entries": [
+					"The firenewt spits fire at a creature within 10 feet of it. The creature must make a {@dc 11} Dexterity saving throw, taking 9 ({@damage 2d8}) fire damage on a failed save, or half as much damage on a successful one."
+				]
+			}
+		],
+		"environment": [
+			"desert",
+			"hill",
+			"mountain",
+			"underdark"
+		],
+		"soundClip": {
+			"type": "internal",
+			"path": "bestiary/firenewt-warrior.mp3"
+		},
+		"attachedItems": [
+			"scimitar|phb"
+		],
+		"traitTags": [
+			"Amphibious"
+		],
+		"actionTags": [
+			"Multiattack"
+		],
+		"languageTags": [
+			"DR",
+			"IG"
+		],
+		"damageTags": [
+			"F",
+			"S"
+		],
+		"miscTags": [
+			"MLW",
+			"MW"
+		],
+		"savingThrowForced": [
+			"dexterity"
+		],
+		"hasToken": true,
+		"hasFluff": true,
+		"hasFluffImages": true,
+		"__prop": "monster",
+		"_pTypes": {
+			"types": [
+				"elemental"
+			],
+			"tags": [],
+			"asText": "Elemental",
+			"asTextShort": "Elemental",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "1/2",
+		"_fCr": [
+			"1/2"
+		],
+		"_fSpeedType": [
+			"walk"
+		],
+		"_fSpeed": 30,
+		"_fAc": [
+			13
+		],
+		"_fHp": 27,
+		"_fAlign": [
+			"N",
+			"NY"
+		],
+		"_fEnvironment": [
+			"desert",
+			"hill",
+			"mountain",
+			"underdark"
+		],
+		"_fVuln": [],
+		"_fRes": [],
+		"_fImm": [
+			"fire"
+		],
+		"_fCondImm": [],
+		"_fSave": [],
+		"_fSkill": [],
+		"_fSources": [
+			"MPMM",
+			{
+				"item": "VGM",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			}
+		],
+		"_fPassive": 10,
+		"_fStr": 10,
+		"_fDex": 13,
+		"_fCon": 12,
+		"_fInt": 7,
+		"_fWis": 11,
+		"_fCha": 8,
+		"_fMisc": [
+			"MLW",
+			"MW",
+			"AC from Item(s)",
+			"Has Token",
+			"Has Info",
+			"Has Images"
+		],
+		"_fLanguageTags": [
+			"DR",
+			"IG"
+		],
+		"_fEquipment": [
+			"scimitar|phb",
+			"shield|phb"
+		]
+	},
+	{
+		"name": "Yuan-ti Malison (Type 1)",
+		"source": "MM",
+		"page": 309,
+		"otherSources": [
+			{
+				"source": "HotDQ"
+			},
+			{
+				"source": "RoT"
+			},
+			{
+				"source": "SKT"
+			},
+			{
+				"source": "ToA"
+			},
+			{
+				"source": "CM"
+			}
+		],
+		"size": [
+			"M"
+		],
+		"type": {
+			"type": "monstrosity",
+			"tags": [
+				"shapechanger",
+				"yuan-ti"
+			]
+		},
+		"alignment": [
+			"N",
+			"E"
+		],
+		"ac": [
+			12
+		],
+		"hp": {
+			"average": 66,
+			"formula": "12d8 + 12"
+		},
+		"speed": {
+			"walk": 30
+		},
+		"str": 16,
+		"dex": 14,
+		"con": 13,
+		"int": 14,
+		"wis": 12,
+		"cha": 16,
+		"skill": {
+			"deception": "+5",
+			"stealth": "+4"
+		},
+		"senses": [
+			"darkvision 60 ft."
+		],
+		"passive": 11,
+		"immune": [
+			"poison"
+		],
+		"conditionImmune": [
+			"poisoned"
+		],
+		"languages": [
+			"Abyssal",
+			"Common",
+			"Draconic"
+		],
+		"cr": "3",
+		"spellcasting": [
+			{
+				"name": "Innate Spellcasting (Yuan-ti Form Only)",
+				"type": "spellcasting",
+				"headerEntries": [
+					"The yuan-ti's innate spellcasting ability is Charisma (spell save {@dc 13}). The yuan-ti can innately cast the following spells, requiring no material components:"
+				],
+				"will": [
+					"{@spell animal friendship} (snakes only)"
+				],
+				"daily": {
+					"3": [
+						"{@spell suggestion}"
+					]
+				},
+				"ability": "cha"
+			}
+		],
+		"trait": [
+			{
+				"name": "Shapechanger",
+				"entries": [
+					"The yuan-ti can use its action to polymorph into a Medium snake, or back into its true form. Its statistics are the same in each form. Any equipment it is wearing or carrying isn't transformed. It doesn't change form if it dies."
+				]
+			},
+			{
+				"name": "Magic Resistance",
+				"entries": [
+					"The yuan-ti has advantage on saving throws against spells and other magical effects."
+				]
+			},
+			{
+				"name": "Malison Type",
+				"entries": [
+					"The yuan-ti has one of the following types:",
+					{
+						"type": "list",
+						"style": "list-hang-notitle",
+						"items": [
+							{
+								"type": "item",
+								"name": "Type 1:",
+								"entry": "Human body with snake head"
+							},
+							{
+								"type": "item",
+								"name": "Type 2:",
+								"entry": "Human head and body with snakes for arms"
+							},
+							{
+								"type": "item",
+								"name": "Type 3:",
+								"entry": "Human head and upper body with a serpentine lower body instead of legs"
+							}
+						]
+					}
+				]
+			}
+		],
+		"action": [
+			{
+				"name": "Multiattack (Yuan-ti Form Only)",
+				"entries": [
+					"The yuan-ti makes two ranged attacks or two melee attacks, but can use its bite only once."
+				]
+			},
+			{
+				"name": "Bite",
+				"entries": [
+					"{@atk mw} {@hit 5} to hit, reach 5 ft., one creature. {@h}5 ({@damage 1d4 + 3}) piercing damage plus 7 ({@damage 2d6}) poison damage."
+				]
+			},
+			{
+				"name": "Scimitar (Yuan-ti Form Only)",
+				"entries": [
+					"{@atk mw} {@hit 5} to hit, reach 5 ft., one target. {@h}6 ({@damage 1d6 + 3}) slashing damage."
+				]
+			},
+			{
+				"name": "Longbow (Yuan-ti Form Only)",
+				"entries": [
+					"{@atk rw} {@hit 4} to hit, range 150/600 ft., one target. {@h}6 ({@damage 1d8 + 2}) piercing damage plus 7 ({@damage 2d6}) poison damage."
+				]
+			}
+		],
+		"environment": [
+			"desert",
+			"forest",
+			"swamp"
+		],
+		"soundClip": {
+			"type": "internal",
+			"path": "bestiary/yuan-ti-malison.mp3"
+		},
+		"attachedItems": [
+			"longbow|phb",
+			"scimitar|phb"
+		],
+		"traitTags": [
+			"Magic Resistance",
+			"Shapechanger"
+		],
+		"senseTags": [
+			"D"
+		],
+		"actionTags": [
+			"Multiattack"
+		],
+		"languageTags": [
+			"AB",
+			"C",
+			"DR"
+		],
+		"damageTags": [
+			"I",
+			"P",
+			"S"
+		],
+		"spellcastingTags": [
+			"F",
+			"I"
+		],
+		"miscTags": [
+			"MLW",
+			"MW",
+			"RNG",
+			"RW"
+		],
+		"savingThrowForcedSpell": [
+			"wisdom"
+		],
+		"hasToken": true,
+		"hasFluff": true,
+		"hasFluffImages": true,
+		"__prop": "monster",
+		"_pTypes": {
+			"types": [
+				"monstrosity"
+			],
+			"tags": [
+				"shapechanger",
+				"yuan-ti"
+			],
+			"asText": "Monstrosity (Shapechanger, Yuan-Ti)",
+			"asTextShort": "Monstrosity (Shapechanger, Yuan-Ti)",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "3",
+		"_fCr": [
+			"3"
+		],
+		"_fSpeedType": [
+			"walk"
+		],
+		"_fSpeed": 30,
+		"_fAc": [
+			12
+		],
+		"_fHp": 66,
+		"_fAlign": [
+			"N",
+			"E",
+			"NX"
+		],
+		"_fEnvironment": [
+			"desert",
+			"forest",
+			"swamp"
+		],
+		"_fVuln": [],
+		"_fRes": [],
+		"_fImm": [
+			"poison"
+		],
+		"_fCondImm": [
+			"poisoned"
+		],
+		"_fSave": [],
+		"_fSkill": [
+			"deception",
+			"stealth"
+		],
+		"_fSources": [
+			"MM",
+			{
+				"item": "HotDQ",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "RoT",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "SKT",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "ToA",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "CM",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			}
+		],
+		"_fPassive": 11,
+		"_fStr": 16,
+		"_fDex": 14,
+		"_fCon": 13,
+		"_fInt": 14,
+		"_fWis": 12,
+		"_fCha": 16,
+		"_fMisc": [
+			"MLW",
+			"MW",
+			"RNG",
+			"RW",
+			"Spellcaster",
+			"Spellcaster, Charisma",
+			"Has Token",
+			"Has Info",
+			"Has Images"
+		],
+		"_fSpellsKnown": [
+			"animal friendship|phb",
+			"suggestion|phb"
+		],
+		"_fLanguageTags": [
+			"AB",
+			"C",
+			"DR"
+		],
+		"_fEquipment": [
+			"longbow|phb",
+			"scimitar|phb"
+		]
+	},
+	{
+		"name": "Yuan-ti Broodguard",
+		"source": "MPMM",
+		"page": 273,
+		"otherSources": [
+			{
+				"source": "VGM",
+				"page": 203
+			}
+		],
+		"size": [
+			"M"
+		],
+		"type": "monstrosity",
+		"alignment": [
+			"N",
+			"E"
+		],
+		"alignmentPrefix": "Typically ",
+		"ac": [
+			{
+				"ac": 14,
+				"from": [
+					"natural armor"
+				]
+			}
+		],
+		"hp": {
+			"average": 45,
+			"formula": "7d8 + 14"
+		},
+		"speed": {
+			"walk": 30
+		},
+		"str": 15,
+		"dex": 14,
+		"con": 14,
+		"int": 6,
+		"wis": 11,
+		"cha": 4,
+		"save": {
+			"str": "+4",
+			"dex": "+4",
+			"wis": "+2"
+		},
+		"skill": {
+			"perception": "+2"
+		},
+		"senses": [
+			"darkvision 60 ft."
+		],
+		"passive": 12,
+		"immune": [
+			"poison"
+		],
+		"conditionImmune": [
+			"charmed",
+			"paralyzed",
+			"poisoned"
+		],
+		"languages": [
+			"Abyssal",
+			"Common",
+			"Draconic"
+		],
+		"cr": "2",
+		"trait": [
+			{
+				"name": "Reckless",
+				"entries": [
+					"At the start of its turn, the broodguard can gain advantage on all melee weapon attack rolls it makes during that turn, but attack rolls against it have advantage until the start of its next turn."
+				]
+			}
+		],
+		"action": [
+			{
+				"name": "Multiattack",
+				"entries": [
+					"The broodguard makes one Bite attack and two Claw attacks."
+				]
+			},
+			{
+				"name": "Bite",
+				"entries": [
+					"{@atk mw} {@hit 4} to hit, reach 5 ft., one target. {@h}6 ({@damage 1d8 + 2}) piercing damage."
+				]
+			},
+			{
+				"name": "Claw",
+				"entries": [
+					"{@atk mw} {@hit 4} to hit, reach 5 ft., one target. {@h}5 ({@damage 1d6 + 2}) slashing damage."
+				]
+			}
+		],
+		"environment": [
+			"desert",
+			"forest",
+			"underdark"
+		],
+		"soundClip": {
+			"type": "internal",
+			"path": "bestiary/yuan-ti-broodguard.mp3"
+		},
+		"traitTags": [
+			"Reckless"
+		],
+		"senseTags": [
+			"D"
+		],
+		"actionTags": [
+			"Multiattack"
+		],
+		"languageTags": [
+			"AB",
+			"C",
+			"DR"
+		],
+		"damageTags": [
+			"P",
+			"S"
+		],
+		"miscTags": [
+			"MW"
+		],
+		"hasToken": true,
+		"hasFluff": true,
+		"hasFluffImages": true,
+		"__prop": "monster",
+		"_pTypes": {
+			"types": [
+				"monstrosity"
+			],
+			"tags": [],
+			"asText": "Monstrosity",
+			"asTextShort": "Monstrosity",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "2",
+		"_fCr": [
+			"2"
+		],
+		"_fSpeedType": [
+			"walk"
+		],
+		"_fSpeed": 30,
+		"_fAc": [
+			14
+		],
+		"_fHp": 45,
+		"_fAlign": [
+			"N",
+			"E",
+			"NX"
+		],
+		"_fEnvironment": [
+			"desert",
+			"forest",
+			"underdark"
+		],
+		"_fVuln": [],
+		"_fRes": [],
+		"_fImm": [
+			"poison"
+		],
+		"_fCondImm": [
+			"charmed",
+			"paralyzed",
+			"poisoned"
+		],
+		"_fSave": [
+			"str",
+			"dex",
+			"wis"
+		],
+		"_fSkill": [
+			"perception"
+		],
+		"_fSources": [
+			"MPMM",
+			{
+				"item": "VGM",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			}
+		],
+		"_fPassive": 12,
+		"_fStr": 15,
+		"_fDex": 14,
+		"_fCon": 14,
+		"_fInt": 6,
+		"_fWis": 11,
+		"_fCha": 4,
+		"_fMisc": [
+			"MW",
+			"AC from Natural Armor",
+			"Has Token",
+			"Has Info",
+			"Has Images"
+		],
+		"_fLanguageTags": [
+			"AB",
+			"C",
+			"DR"
+		],
+		"_fEquipment": []
+	},
+	{
+		"name": "Ogre Chain Brute",
+		"source": "MPMM",
+		"page": 201,
+		"otherSources": [
+			{
+				"source": "MTF",
+				"page": 221
+			}
+		],
+		"size": [
+			"L"
+		],
+		"type": "giant",
+		"alignment": [
+			"C",
+			"E"
+		],
+		"alignmentPrefix": "Typically ",
+		"ac": [
+			{
+				"ac": 11,
+				"from": [
+					"{@item hide armor|phb}"
+				]
+			}
+		],
+		"hp": {
+			"average": 59,
+			"formula": "7d10 + 21"
+		},
+		"speed": {
+			"walk": 40
+		},
+		"str": 19,
+		"dex": 8,
+		"con": 16,
+		"int": 5,
+		"wis": 7,
+		"cha": 7,
+		"senses": [
+			"darkvision 60 ft."
+		],
+		"passive": 8,
+		"languages": [
+			"Common",
+			"Giant"
+		],
+		"cr": "3",
+		"action": [
+			{
+				"name": "Fist",
+				"entries": [
+					"{@atk mw} {@hit 6} to hit, reach 5 ft., one target. {@h}9 ({@damage 2d4 + 4}) bludgeoning damage."
+				]
+			},
+			{
+				"name": "Chain Smash {@recharge}",
+				"entries": [
+					"{@atk mw} {@hit 6} to hit, reach 10 ft., one target. {@h}13 ({@damage 2d8 + 4}) bludgeoning damage, and the target must make a {@dc 14} Constitution saving throw or be {@condition stunned} for 1 minute. The target repeats the saving throw if it takes damage and at the end of each of its turns, ending the effect on itself on a success."
+				]
+			},
+			{
+				"name": "Chain Sweep",
+				"entries": [
+					"The ogre swings its chain, and every creature within 10 feet of it must make a {@dc 14} Dexterity saving throw. On a failed saving throw, a creature takes 8 ({@damage 1d8 + 4}) bludgeoning damage and is knocked {@condition prone}. On a successful save, the creature takes half as much damage and isn't knocked {@condition prone}."
+				]
+			}
+		],
+		"environment": [
+			"grassland",
+			"hill",
+			"mountain"
+		],
+		"soundClip": {
+			"type": "internal",
+			"path": "bestiary/ogre-chain-brute.mp3"
+		},
+		"senseTags": [
+			"D"
+		],
+		"languageTags": [
+			"C",
+			"GI"
+		],
+		"damageTags": [
+			"B"
+		],
+		"miscTags": [
+			"MW",
+			"RCH"
+		],
+		"conditionInflict": [
+			"prone",
+			"stunned"
+		],
+		"savingThrowForced": [
+			"constitution",
+			"dexterity"
+		],
+		"hasToken": true,
+		"hasFluff": true,
+		"__prop": "monster",
+		"_pTypes": {
+			"types": [
+				"giant"
+			],
+			"tags": [],
+			"asText": "Giant",
+			"asTextShort": "Giant",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "3",
+		"_fCr": [
+			"3"
+		],
+		"_fSpeedType": [
+			"walk"
+		],
+		"_fSpeed": 40,
+		"_fAc": [
+			11
+		],
+		"_fHp": 59,
+		"_fAlign": [
+			"C",
+			"E"
+		],
+		"_fEnvironment": [
+			"grassland",
+			"hill",
+			"mountain"
+		],
+		"_fVuln": [],
+		"_fRes": [],
+		"_fImm": [],
+		"_fCondImm": [],
+		"_fSave": [],
+		"_fSkill": [],
+		"_fSources": [
+			"MPMM",
+			{
+				"item": "MTF",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			}
+		],
+		"_fPassive": 8,
+		"_fStr": 19,
+		"_fDex": 8,
+		"_fCon": 16,
+		"_fInt": 5,
+		"_fWis": 7,
+		"_fCha": 7,
+		"_fMisc": [
+			"MW",
+			"RCH",
+			"AC from Item(s)",
+			"Has Token",
+			"Has Info",
+			"Has Recharge"
+		],
+		"_fLanguageTags": [
+			"C",
+			"GI"
+		],
+		"_fEquipment": [
+			"hide armor|phb"
+		]
+	},
+	{
+		"name": "Young Kruthik",
+		"source": "MPMM",
+		"page": 168,
+		"otherSources": [
+			{
+				"source": "MTF",
+				"page": 211
+			}
+		],
+		"size": [
+			"S"
+		],
+		"type": "monstrosity",
+		"alignment": [
+			"U"
+		],
+		"ac": [
+			{
+				"ac": 16,
+				"from": [
+					"natural armor"
+				]
+			}
+		],
+		"hp": {
+			"average": 9,
+			"formula": "2d6 + 2"
+		},
+		"speed": {
+			"walk": 30,
+			"burrow": 10,
+			"climb": 30
+		},
+		"str": 13,
+		"dex": 16,
+		"con": 13,
+		"int": 4,
+		"wis": 10,
+		"cha": 6,
+		"skill": {
+			"perception": "+4"
+		},
+		"senses": [
+			"darkvision 30 ft.",
+			"tremorsense 60 ft."
+		],
+		"passive": 14,
+		"languages": [
+			"Kruthik"
+		],
+		"cr": "1/8",
+		"trait": [
+			{
+				"name": "Pack Tactics",
+				"entries": [
+					"The kruthik has advantage on an attack roll against a creature if at least one of the kruthik's allies is within 5 feet of the creature and the ally isn't {@condition incapacitated}."
+				]
+			},
+			{
+				"name": "Tunneler",
+				"entries": [
+					"The kruthik can burrow through solid rock at half its burrowing speed and leaves a 2½-foot-diameter tunnel in its wake."
+				]
+			}
+		],
+		"action": [
+			{
+				"name": "Stab",
+				"entries": [
+					"{@atk mw} {@hit 5} to hit, reach 5 ft., one target. {@h}5 ({@damage 1d4 + 3}) piercing damage."
+				]
+			}
+		],
+		"environment": [
+			"desert",
+			"mountain",
+			"underdark"
+		],
+		"soundClip": {
+			"type": "internal",
+			"path": "bestiary/young-kruthik.mp3"
+		},
+		"traitTags": [
+			"Pack Tactics",
+			"Tunneler"
+		],
+		"senseTags": [
+			"D",
+			"T"
+		],
+		"languageTags": [
+			"OTH"
+		],
+		"damageTags": [
+			"P"
+		],
+		"miscTags": [
+			"MW"
+		],
+		"hasToken": true,
+		"hasFluff": true,
+		"hasFluffImages": true,
+		"__prop": "monster",
+		"_pTypes": {
+			"types": [
+				"monstrosity"
+			],
+			"tags": [],
+			"asText": "Monstrosity",
+			"asTextShort": "Monstrosity",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "1/8",
+		"_fCr": [
+			"1/8"
+		],
+		"_fSpeedType": [
+			"walk",
+			"burrow",
+			"climb"
+		],
+		"_fSpeed": 30,
+		"_fAc": [
+			16
+		],
+		"_fHp": 9,
+		"_fAlign": [
+			"U"
+		],
+		"_fEnvironment": [
+			"desert",
+			"mountain",
+			"underdark"
+		],
+		"_fVuln": [],
+		"_fRes": [],
+		"_fImm": [],
+		"_fCondImm": [],
+		"_fSave": [],
+		"_fSkill": [
+			"perception"
+		],
+		"_fSources": [
+			"MPMM",
+			{
+				"item": "MTF",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			}
+		],
+		"_fPassive": 14,
+		"_fStr": 13,
+		"_fDex": 16,
+		"_fCon": 13,
+		"_fInt": 4,
+		"_fWis": 10,
+		"_fCha": 6,
+		"_fMisc": [
+			"MW",
+			"AC from Natural Armor",
+			"Has Token",
+			"Has Info",
+			"Has Images"
+		],
+		"_fLanguageTags": [
+			"OTH"
+		],
+		"_fEquipment": []
+	},
+	{
+		"name": "Adult Kruthik",
+		"source": "MPMM",
+		"page": 169,
+		"otherSources": [
+			{
+				"source": "MTF",
+				"page": 212
+			}
+		],
+		"size": [
+			"M"
+		],
+		"type": "monstrosity",
+		"alignment": [
+			"U"
+		],
+		"ac": [
+			{
+				"ac": 18,
+				"from": [
+					"natural armor"
+				]
+			}
+		],
+		"hp": {
+			"average": 39,
+			"formula": "6d8 + 12"
+		},
+		"speed": {
+			"walk": 40,
+			"burrow": 20,
+			"climb": 40
+		},
+		"str": 15,
+		"dex": 16,
+		"con": 15,
+		"int": 7,
+		"wis": 12,
+		"cha": 8,
+		"skill": {
+			"perception": "+5"
+		},
+		"senses": [
+			"darkvision 60 ft.",
+			"tremorsense 60 ft."
+		],
+		"passive": 15,
+		"languages": [
+			"Kruthik"
+		],
+		"cr": "2",
+		"trait": [
+			{
+				"name": "Pack Tactics",
+				"entries": [
+					"The kruthik has advantage on an attack roll against a creature if at least one of the kruthik's allies is within 5 feet of the creature and the ally isn't {@condition incapacitated}."
+				]
+			},
+			{
+				"name": "Tunneler",
+				"entries": [
+					"The kruthik can burrow through solid rock at half its burrowing speed and leaves a 5-foot-diameter tunnel in its wake."
+				]
+			}
+		],
+		"action": [
+			{
+				"name": "Multiattack",
+				"entries": [
+					"The kruthik makes two Stab or Spike attacks."
+				]
+			},
+			{
+				"name": "Stab",
+				"entries": [
+					"{@atk mw} {@hit 5} to hit, reach 5 ft., one target. {@h}6 ({@damage 1d6 + 3}) piercing damage."
+				]
+			},
+			{
+				"name": "Spike",
+				"entries": [
+					"{@atk rw} {@hit 5} to hit, range 20/60 ft., one target. {@h}5 ({@damage 1d4 + 3}) piercing damage."
+				]
+			}
+		],
+		"environment": [
+			"desert",
+			"mountain",
+			"underdark"
+		],
+		"soundClip": {
+			"type": "internal",
+			"path": "bestiary/adult-kruthik.mp3"
+		},
+		"traitTags": [
+			"Pack Tactics",
+			"Tunneler"
+		],
+		"senseTags": [
+			"D",
+			"T"
+		],
+		"actionTags": [
+			"Multiattack"
+		],
+		"languageTags": [
+			"OTH"
+		],
+		"damageTags": [
+			"P"
+		],
+		"miscTags": [
+			"MW",
+			"RW"
+		],
+		"hasToken": true,
+		"hasFluff": true,
+		"hasFluffImages": true,
+		"__prop": "monster",
+		"_pTypes": {
+			"types": [
+				"monstrosity"
+			],
+			"tags": [],
+			"asText": "Monstrosity",
+			"asTextShort": "Monstrosity",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "2",
+		"_fCr": [
+			"2"
+		],
+		"_fSpeedType": [
+			"walk",
+			"burrow",
+			"climb"
+		],
+		"_fSpeed": 40,
+		"_fAc": [
+			18
+		],
+		"_fHp": 39,
+		"_fAlign": [
+			"U"
+		],
+		"_fEnvironment": [
+			"desert",
+			"mountain",
+			"underdark"
+		],
+		"_fVuln": [],
+		"_fRes": [],
+		"_fImm": [],
+		"_fCondImm": [],
+		"_fSave": [],
+		"_fSkill": [
+			"perception"
+		],
+		"_fSources": [
+			"MPMM",
+			{
+				"item": "MTF",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			}
+		],
+		"_fPassive": 15,
+		"_fStr": 15,
+		"_fDex": 16,
+		"_fCon": 15,
+		"_fInt": 7,
+		"_fWis": 12,
+		"_fCha": 8,
+		"_fMisc": [
+			"MW",
+			"RW",
+			"AC from Natural Armor",
+			"Has Token",
+			"Has Info",
+			"Has Images"
+		],
+		"_fLanguageTags": [
+			"OTH"
+		],
+		"_fEquipment": []
+	},
+	{
+		"name": "Gnoll",
+		"source": "MM",
+		"page": 163,
+		"srd": true,
+		"basicRules": true,
+		"otherSources": [
+			{
+				"source": "PotA"
+			},
+			{
+				"source": "TftYP"
+			},
+			{
+				"source": "GoS"
+			},
+			{
+				"source": "BGDIA"
+			},
+			{
+				"source": "ERLW"
+			},
+			{
+				"source": "EGW"
+			},
+			{
+				"source": "IDRotF"
+			},
+			{
+				"source": "SatO"
+			},
+			{
+				"source": "ToFW"
+			},
+			{
+				"source": "BMT"
+			},
+			{
+				"source": "DoDk"
+			}
+		],
+		"size": [
+			"M"
+		],
+		"type": {
+			"type": "humanoid",
+			"tags": [
+				"gnoll"
+			]
+		},
+		"alignment": [
+			"C",
+			"E"
+		],
+		"ac": [
+			{
+				"ac": 15,
+				"from": [
+					"{@item hide armor|phb}",
+					"{@item shield|phb}"
+				]
+			}
+		],
+		"hp": {
+			"average": 22,
+			"formula": "5d8"
+		},
+		"speed": {
+			"walk": 30
+		},
+		"str": 14,
+		"dex": 12,
+		"con": 11,
+		"int": 6,
+		"wis": 10,
+		"cha": 7,
+		"senses": [
+			"darkvision 60 ft."
+		],
+		"passive": 10,
+		"languages": [
+			"Gnoll"
+		],
+		"cr": "1/2",
+		"trait": [
+			{
+				"name": "Rampage",
+				"entries": [
+					"When the gnoll reduces a creature to 0 hit points with a melee attack on its turn, the gnoll can take a bonus action to move up to half its speed and make a bite attack."
+				]
+			}
+		],
+		"action": [
+			{
+				"name": "Bite",
+				"entries": [
+					"{@atk mw} {@hit 4} to hit, reach 5 ft., one creature. {@h}4 ({@damage 1d4 + 2}) piercing damage."
+				]
+			},
+			{
+				"name": "Spear",
+				"entries": [
+					"{@atk mw,rw} {@hit 4} to hit, reach 5 ft. or range 20/60 ft., one target. {@h}5 ({@damage 1d6 + 2}) piercing damage, or 6 ({@damage 1d8 + 2}) piercing damage if used with two hands to make a melee attack."
+				]
+			},
+			{
+				"name": "Longbow",
+				"entries": [
+					"{@atk rw} {@hit 3} to hit, range 150/600 ft., one target. {@h}5 ({@damage 1d8 + 1}) piercing damage."
+				]
+			}
+		],
+		"environment": [
+			"desert",
+			"forest",
+			"grassland",
+			"hill"
+		],
+		"soundClip": {
+			"type": "internal",
+			"path": "bestiary/gnoll.mp3"
+		},
+		"attachedItems": [
+			"longbow|phb",
+			"spear|phb"
+		],
+		"traitTags": [
+			"Rampage"
+		],
+		"senseTags": [
+			"D"
+		],
+		"languageTags": [
+			"OTH"
+		],
+		"damageTags": [
+			"P"
+		],
+		"miscTags": [
+			"MLW",
+			"MW",
+			"RNG",
+			"RW",
+			"THW"
+		],
+		"hasToken": true,
+		"hasFluff": true,
+		"hasFluffImages": true,
+		"__prop": "monster",
+		"_pTypes": {
+			"types": [
+				"humanoid"
+			],
+			"tags": [
+				"gnoll"
+			],
+			"asText": "Humanoid (Gnoll)",
+			"asTextShort": "Humanoid (Gnoll)",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "1/2",
+		"_fCr": [
+			"1/2"
+		],
+		"_fSpeedType": [
+			"walk"
+		],
+		"_fSpeed": 30,
+		"_fAc": [
+			15
+		],
+		"_fHp": 22,
+		"_fAlign": [
+			"C",
+			"E"
+		],
+		"_fEnvironment": [
+			"desert",
+			"forest",
+			"grassland",
+			"hill"
+		],
+		"_fVuln": [],
+		"_fRes": [],
+		"_fImm": [],
+		"_fCondImm": [],
+		"_fSave": [],
+		"_fSkill": [],
+		"_fSources": [
+			"MM",
+			{
+				"item": "PotA",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "TftYP",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "GoS",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "BGDIA",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "ERLW",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "EGW",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "IDRotF",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "SatO",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "ToFW",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "BMT",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "DoDk",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			}
+		],
+		"_fPassive": 10,
+		"_fStr": 14,
+		"_fDex": 12,
+		"_fCon": 11,
+		"_fInt": 6,
+		"_fWis": 10,
+		"_fCha": 7,
+		"_fMisc": [
+			"MLW",
+			"MW",
+			"RNG",
+			"RW",
+			"THW",
+			"AC from Item(s)",
+			"SRD",
+			"Basic Rules",
+			"Has Token",
+			"Has Info",
+			"Has Images"
+		],
+		"_fLanguageTags": [
+			"OTH"
+		],
+		"_fEquipment": [
+			"longbow|phb",
+			"spear|phb",
+			"hide armor|phb",
+			"shield|phb"
+		]
+	},
+	{
+		"name": "Maw Demon",
+		"source": "MPMM",
+		"page": 176,
+		"otherSources": [
+			{
+				"source": "VGM",
+				"page": 137
+			},
+			{
+				"source": "BMT"
+			}
+		],
+		"size": [
+			"M"
+		],
+		"type": {
+			"type": "fiend",
+			"tags": [
+				"demon"
+			]
+		},
+		"alignment": [
+			"C",
+			"E"
+		],
+		"alignmentPrefix": "Typically ",
+		"ac": [
+			{
+				"ac": 13,
+				"from": [
+					"natural armor"
+				]
+			}
+		],
+		"hp": {
+			"average": 33,
+			"formula": "6d8 + 6"
+		},
+		"speed": {
+			"walk": 30
+		},
+		"str": 14,
+		"dex": 8,
+		"con": 13,
+		"int": 5,
+		"wis": 8,
+		"cha": 5,
+		"senses": [
+			"darkvision 60 ft."
+		],
+		"passive": 9,
+		"resist": [
+			"cold",
+			"fire",
+			"lightning"
+		],
+		"immune": [
+			"poison"
+		],
+		"conditionImmune": [
+			"charmed",
+			"frightened",
+			"poisoned"
+		],
+		"languages": [
+			"understands Abyssal but can't speak"
+		],
+		"cr": "1",
+		"action": [
+			{
+				"name": "Bite",
+				"entries": [
+					"{@atk mw} {@hit 4} to hit, reach 5 ft., one target. {@h}11 ({@damage 2d8 + 2}) piercing damage."
+				]
+			},
+			{
+				"name": "Disgorge {@recharge}",
+				"entries": [
+					"The demon vomits in a 15-foot cube. Each creature in that area must succeed on a {@dc 11} Dexterity saving throw or take 11 ({@damage 2d10}) acid damage and fall {@condition prone} in the spew."
+				]
+			}
+		],
+		"environment": [
+			"underdark"
+		],
+		"soundClip": {
+			"type": "internal",
+			"path": "bestiary/maw-demon.mp3"
+		},
+		"senseTags": [
+			"D"
+		],
+		"languageTags": [
+			"AB",
+			"CS"
+		],
+		"damageTags": [
+			"A",
+			"P"
+		],
+		"miscTags": [
+			"AOE",
+			"MW"
+		],
+		"conditionInflict": [
+			"prone"
+		],
+		"savingThrowForced": [
+			"dexterity"
+		],
+		"hasToken": true,
+		"hasFluff": true,
+		"hasFluffImages": true,
+		"__prop": "monster",
+		"_pTypes": {
+			"types": [
+				"fiend"
+			],
+			"tags": [
+				"demon"
+			],
+			"asText": "Fiend (Demon)",
+			"asTextShort": "Fiend (Demon)",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "1",
+		"_fCr": [
+			"1"
+		],
+		"_fSpeedType": [
+			"walk"
+		],
+		"_fSpeed": 30,
+		"_fAc": [
+			13
+		],
+		"_fHp": 33,
+		"_fAlign": [
+			"C",
+			"E"
+		],
+		"_fEnvironment": [
+			"underdark"
+		],
+		"_fVuln": [],
+		"_fRes": [
+			"cold",
+			"fire",
+			"lightning"
+		],
+		"_fImm": [
+			"poison"
+		],
+		"_fCondImm": [
+			"charmed",
+			"frightened",
+			"poisoned"
+		],
+		"_fSave": [],
+		"_fSkill": [],
+		"_fSources": [
+			"MPMM",
+			{
+				"item": "VGM",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "BMT",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			}
+		],
+		"_fPassive": 9,
+		"_fStr": 14,
+		"_fDex": 8,
+		"_fCon": 13,
+		"_fInt": 5,
+		"_fWis": 8,
+		"_fCha": 5,
+		"_fMisc": [
+			"AOE",
+			"MW",
+			"AC from Natural Armor",
+			"Has Token",
+			"Has Info",
+			"Has Images",
+			"Has Recharge"
+		],
+		"_fLanguageTags": [
+			"AB",
+			"CS"
+		],
+		"_fEquipment": []
+	},
+	{
+		"name": "Yuan-ti Pit Master",
+		"source": "MPMM",
+		"page": 276,
+		"otherSources": [
+			{
+				"source": "VGM",
+				"page": 206
+			}
+		],
+		"size": [
+			"M"
+		],
+		"type": {
+			"type": "monstrosity",
+			"tags": [
+				"warlock"
+			]
+		},
+		"alignment": [
+			"N",
+			"E"
+		],
+		"alignmentPrefix": "Typically ",
+		"ac": [
+			{
+				"ac": 14,
+				"from": [
+					"natural armor"
+				]
+			}
+		],
+		"hp": {
+			"average": 88,
+			"formula": "16d8 + 16"
+		},
+		"speed": {
+			"walk": 30
+		},
+		"str": 16,
+		"dex": 14,
+		"con": 13,
+		"int": 14,
+		"wis": 12,
+		"cha": 16,
+		"save": {
+			"wis": "+4",
+			"cha": "+6"
+		},
+		"skill": {
+			"deception": "+6",
+			"stealth": "+5"
+		},
+		"senses": [
+			"darkvision 120 ft."
+		],
+		"passive": 11,
+		"immune": [
+			"poison"
+		],
+		"conditionImmune": [
+			"poisoned"
+		],
+		"languages": [
+			"Abyssal",
+			"Common",
+			"Draconic"
+		],
+		"cr": "5",
+		"spellcasting": [
+			{
+				"name": "Spellcasting (Yuan-ti Form Only)",
+				"type": "spellcasting",
+				"headerEntries": [
+					"The yuan-ti casts one of the following spells, requiring no material components and using Charisma as the spellcasting ability (spell save {@dc 14}):"
+				],
+				"will": [
+					"{@spell animal friendship} (snakes only)",
+					"{@spell guidance}",
+					"{@spell mage hand}",
+					"{@spell message}"
+				],
+				"daily": {
+					"3": [
+						"{@spell suggestion}"
+					],
+					"2e": [
+						"{@spell hold person}",
+						"{@spell invisibility}"
+					]
+				},
+				"ability": "cha",
+				"displayAs": "action"
+			}
+		],
+		"trait": [
+			{
+				"name": "Devil's Sight",
+				"entries": [
+					"Magical darkness doesn't impede the yuan-ti's {@sense darkvision}."
+				]
+			},
+			{
+				"name": "Magic Resistance",
+				"entries": [
+					"The yuan-ti has advantage on saving throws against spells and other magical effects."
+				]
+			}
+		],
+		"action": [
+			{
+				"name": "Multiattack",
+				"entries": [
+					"The yuan-ti makes three Bite attacks or two Spectral Fangs attacks."
+				]
+			},
+			{
+				"name": "Bite",
+				"entries": [
+					"{@atk mw} {@hit 6} to hit, reach 5 ft., one target. {@h}5 ({@damage 1d4 + 3}) piercing damage plus 7 ({@damage 2d6}) poison damage."
+				]
+			},
+			{
+				"name": "Spectral Fangs",
+				"entries": [
+					"{@atk rs} {@hit 6} to hit, range 120 ft., one target. {@h}16 ({@damage 3d8 + 3}) poison damage."
+				]
+			},
+			{
+				"name": "Merrshaulk's Slumber (1/Day)",
+				"entries": [
+					"The yuan-ti targets up to five creatures that it can see within 60 feet of it. Each target must succeed on a {@dc 13} Constitution saving throw or fall into a magical sleep and be {@condition unconscious} for 10 minutes. A sleeping target awakens if it takes damage or if someone uses an action to shake or slap it awake. This magical sleep has no effect on a creature immune to being {@condition charmed}."
+				]
+			}
+		],
+		"bonus": [
+			{
+				"name": "Change Shape",
+				"entries": [
+					"The yuan-ti transforms into a Medium snake or back into its true form. Its statistics are the same in each form. Any equipment it is wearing or carrying isn't transformed. It doesn't change form if it dies."
+				]
+			}
+		],
+		"environment": [
+			"desert",
+			"forest",
+			"underdark"
+		],
+		"soundClip": {
+			"type": "internal",
+			"path": "bestiary/yuan-ti-pit-master.mp3"
+		},
+		"traitTags": [
+			"Devil's Sight",
+			"Magic Resistance"
+		],
+		"senseTags": [
+			"SD"
+		],
+		"actionTags": [
+			"Multiattack",
+			"Shapechanger"
+		],
+		"languageTags": [
+			"AB",
+			"C",
+			"DR"
+		],
+		"damageTags": [
+			"I",
+			"P"
+		],
+		"spellcastingTags": [
+			"F"
+		],
+		"miscTags": [
+			"MW"
+		],
+		"conditionInflict": [
+			"unconscious"
+		],
+		"conditionInflictSpell": [
+			"charmed",
+			"invisible",
+			"paralyzed"
+		],
+		"savingThrowForced": [
+			"constitution"
+		],
+		"savingThrowForcedSpell": [
+			"wisdom"
+		],
+		"hasToken": true,
+		"hasFluff": true,
+		"hasFluffImages": true,
+		"__prop": "monster",
+		"_pTypes": {
+			"types": [
+				"monstrosity"
+			],
+			"tags": [
+				"warlock"
+			],
+			"asText": "Monstrosity (Warlock)",
+			"asTextShort": "Monstrosity (Warlock)",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "5",
+		"_fCr": [
+			"5"
+		],
+		"_fSpeedType": [
+			"walk"
+		],
+		"_fSpeed": 30,
+		"_fAc": [
+			14
+		],
+		"_fHp": 88,
+		"_fAlign": [
+			"N",
+			"E",
+			"NX"
+		],
+		"_fEnvironment": [
+			"desert",
+			"forest",
+			"underdark"
+		],
+		"_fVuln": [],
+		"_fRes": [],
+		"_fImm": [
+			"poison"
+		],
+		"_fCondImm": [
+			"poisoned"
+		],
+		"_fSave": [
+			"wis",
+			"cha"
+		],
+		"_fSkill": [
+			"deception",
+			"stealth"
+		],
+		"_fSources": [
+			"MPMM",
+			{
+				"item": "VGM",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			}
+		],
+		"_fPassive": 11,
+		"_fStr": 16,
+		"_fDex": 14,
+		"_fCon": 13,
+		"_fInt": 14,
+		"_fWis": 12,
+		"_fCha": 16,
+		"_fMisc": [
+			"MW",
+			"AC from Natural Armor",
+			"Spellcaster",
+			"Spellcaster, Charisma",
+			"Bonus Actions",
+			"Has Token",
+			"Has Info",
+			"Has Images"
+		],
+		"_fSpellsKnown": [
+			"animal friendship|phb",
+			"guidance|phb",
+			"mage hand|phb",
+			"message|phb",
+			"suggestion|phb",
+			"hold person|phb",
+			"invisibility|phb"
+		],
+		"_fLanguageTags": [
+			"AB",
+			"C",
+			"DR"
+		],
+		"_fEquipment": []
+	},
+	{
+		"name": "Kruthik Hive Lord",
+		"source": "MPMM",
+		"page": 169,
+		"otherSources": [
+			{
+				"source": "MTF",
+				"page": 212
+			}
+		],
+		"size": [
+			"L"
+		],
+		"type": "monstrosity",
+		"alignment": [
+			"U"
+		],
+		"ac": [
+			{
+				"ac": 20,
+				"from": [
+					"natural armor"
+				]
+			}
+		],
+		"hp": {
+			"average": 102,
+			"formula": "12d10 + 36"
+		},
+		"speed": {
+			"walk": 40,
+			"burrow": 20,
+			"climb": 40
+		},
+		"str": 19,
+		"dex": 16,
+		"con": 17,
+		"int": 10,
+		"wis": 14,
+		"cha": 10,
+		"skill": {
+			"perception": "+8"
+		},
+		"senses": [
+			"darkvision 60 ft.",
+			"tremorsense 60 ft."
+		],
+		"passive": 18,
+		"languages": [
+			"Kruthik"
+		],
+		"cr": "5",
+		"trait": [
+			{
+				"name": "Pack Tactics",
+				"entries": [
+					"The kruthik has advantage on an attack roll against a creature if at least one of the kruthik's allies is within 5 feet of the creature and the ally isn't {@condition incapacitated}."
+				]
+			},
+			{
+				"name": "Tunneler",
+				"entries": [
+					"The kruthik can burrow through solid rock at half its burrowing speed and leaves a 10-foot-diameter tunnel in its wake."
+				]
+			}
+		],
+		"action": [
+			{
+				"name": "Multiattack",
+				"entries": [
+					"The kruthik makes two Stab or Spike attacks."
+				]
+			},
+			{
+				"name": "Stab",
+				"entries": [
+					"{@atk mw} {@hit 7} to hit, reach 10 ft., one target. {@h}9 ({@damage 1d10 + 4}) piercing damage."
+				]
+			},
+			{
+				"name": "Spike",
+				"entries": [
+					"{@atk rw} {@hit 6} to hit, range 30/120 ft., one target. {@h}7 ({@damage 1d6 + 4}) piercing damage."
+				]
+			},
+			{
+				"name": "Acid Spray {@recharge 5}",
+				"entries": [
+					"The kruthik sprays acid in a 15-foot cone. Each creature in that area must make a {@dc 14} Dexterity saving throw, taking 22 ({@damage 4d10}) acid damage on a failed save, or half as much damage on a successful one."
+				]
+			}
+		],
+		"environment": [
+			"desert",
+			"mountain",
+			"underdark"
+		],
+		"soundClip": {
+			"type": "internal",
+			"path": "bestiary/kruthik-hive-lord.mp3"
+		},
+		"traitTags": [
+			"Pack Tactics",
+			"Tunneler"
+		],
+		"senseTags": [
+			"D",
+			"T"
+		],
+		"actionTags": [
+			"Multiattack"
+		],
+		"languageTags": [
+			"OTH"
+		],
+		"damageTags": [
+			"A",
+			"P"
+		],
+		"miscTags": [
+			"AOE",
+			"MW",
+			"RCH",
+			"RW"
+		],
+		"savingThrowForced": [
+			"dexterity"
+		],
+		"hasToken": true,
+		"hasFluff": true,
+		"hasFluffImages": true,
+		"__prop": "monster",
+		"_pTypes": {
+			"types": [
+				"monstrosity"
+			],
+			"tags": [],
+			"asText": "Monstrosity",
+			"asTextShort": "Monstrosity",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "5",
+		"_fCr": [
+			"5"
+		],
+		"_fSpeedType": [
+			"walk",
+			"burrow",
+			"climb"
+		],
+		"_fSpeed": 40,
+		"_fAc": [
+			20
+		],
+		"_fHp": 102,
+		"_fAlign": [
+			"U"
+		],
+		"_fEnvironment": [
+			"desert",
+			"mountain",
+			"underdark"
+		],
+		"_fVuln": [],
+		"_fRes": [],
+		"_fImm": [],
+		"_fCondImm": [],
+		"_fSave": [],
+		"_fSkill": [
+			"perception"
+		],
+		"_fSources": [
+			"MPMM",
+			{
+				"item": "MTF",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			}
+		],
+		"_fPassive": 18,
+		"_fStr": 19,
+		"_fDex": 16,
+		"_fCon": 17,
+		"_fInt": 10,
+		"_fWis": 14,
+		"_fCha": 10,
+		"_fMisc": [
+			"AOE",
+			"MW",
+			"RCH",
+			"RW",
+			"AC from Natural Armor",
+			"Has Token",
+			"Has Info",
+			"Has Images",
+			"Has Recharge"
+		],
+		"_fLanguageTags": [
+			"OTH"
+		],
+		"_fEquipment": []
+	},
+	{
+		"name": "Frost Giant",
+		"source": "MM",
+		"page": 155,
+		"srd": true,
+		"basicRules": true,
+		"otherSources": [
+			{
+				"source": "RoT"
+			},
+			{
+				"source": "SKT"
+			},
+			{
+				"source": "TftYP"
+			},
+			{
+				"source": "ToA"
+			},
+			{
+				"source": "EGW"
+			},
+			{
+				"source": "IDRotF"
+			},
+			{
+				"source": "SatO"
+			}
+		],
+		"size": [
+			"H"
+		],
+		"type": "giant",
+		"alignment": [
+			"N",
+			"E"
+		],
+		"ac": [
+			{
+				"ac": 15,
+				"from": [
+					"patchwork armor"
+				]
+			}
+		],
+		"hp": {
+			"average": 138,
+			"formula": "12d12 + 60"
+		},
+		"speed": {
+			"walk": 40
+		},
+		"str": 23,
+		"dex": 9,
+		"con": 21,
+		"int": 9,
+		"wis": 10,
+		"cha": 12,
+		"save": {
+			"con": "+8",
+			"wis": "+3",
+			"cha": "+4"
+		},
+		"skill": {
+			"athletics": "+9",
+			"perception": "+3"
+		},
+		"passive": 13,
+		"immune": [
+			"cold"
+		],
+		"languages": [
+			"Giant"
+		],
+		"cr": "8",
+		"action": [
+			{
+				"name": "Multiattack",
+				"entries": [
+					"The giant makes two greataxe attacks."
+				]
+			},
+			{
+				"name": "Greataxe",
+				"entries": [
+					"{@atk mw} {@hit 9} to hit, reach 10 ft., one target. {@h}25 ({@damage 3d12 + 6}) slashing damage."
+				]
+			},
+			{
+				"name": "Rock",
+				"entries": [
+					"{@atk rw} {@hit 9} to hit, range 60/240 ft., one target. {@h}28 ({@damage 4d10 + 6}) bludgeoning damage."
+				]
+			}
+		],
+		"variant": [
+			{
+				"type": "variant",
+				"name": "New Giant Options",
+				"entries": [
+					"Some adult frost giants are skilled hunters who construct and hurl nets weighted down with fragments of metal or bone. This ability is represented by the following action option.",
+					{
+						"name": "Weighted Net",
+						"type": "entries",
+						"entries": [
+							"{@atk rw} {@hit 5} to hit, ranged 20/60 ft., one Small, Medium, or Large creature. {@h}The target is {@condition restrained} until it escapes the net. Any creature can use its action to make a {@dc 17} Strength check to free itself or another creature in the net, ending the effect on a success. Dealing 15 slashing damage to the net (AC 12) destroys the net and frees the target."
+						]
+					}
+				],
+				"_version": {
+					"name": "Frost Giant (Optional Actions)",
+					"addHeadersAs": "action"
+				},
+				"source": "SKT",
+				"page": 246
+			}
+		],
+		"environment": [
+			"arctic",
+			"mountain"
+		],
+		"soundClip": {
+			"type": "internal",
+			"path": "bestiary/frost-giant.mp3"
+		},
+		"attachedItems": [
+			"greataxe|phb"
+		],
+		"actionTags": [
+			"Multiattack"
+		],
+		"languageTags": [
+			"GI"
+		],
+		"damageTags": [
+			"B",
+			"S"
+		],
+		"miscTags": [
+			"MLW",
+			"MW",
+			"RCH",
+			"RW"
+		],
+		"conditionInflict": [
+			"restrained"
+		],
+		"hasToken": true,
+		"hasFluff": true,
+		"hasFluffImages": true,
+		"__prop": "monster",
+		"_pTypes": {
+			"types": [
+				"giant"
+			],
+			"tags": [],
+			"asText": "Giant",
+			"asTextShort": "Giant",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "8",
+		"_fCr": [
+			"8"
+		],
+		"_fSpeedType": [
+			"walk"
+		],
+		"_fSpeed": 40,
+		"_fAc": [
+			15
+		],
+		"_fHp": 138,
+		"_fAlign": [
+			"N",
+			"E",
+			"NX"
+		],
+		"_fEnvironment": [
+			"arctic",
+			"mountain"
+		],
+		"_fVuln": [],
+		"_fRes": [],
+		"_fImm": [
+			"cold"
+		],
+		"_fCondImm": [],
+		"_fSave": [
+			"con",
+			"wis",
+			"cha"
+		],
+		"_fSkill": [
+			"athletics",
+			"perception"
+		],
+		"_fSources": [
+			"MM",
+			{
+				"item": "RoT",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "SKT",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "TftYP",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "ToA",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "EGW",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "IDRotF",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "SatO",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			}
+		],
+		"_fPassive": 13,
+		"_fStr": 23,
+		"_fDex": 9,
+		"_fCon": 21,
+		"_fInt": 9,
+		"_fWis": 10,
+		"_fCha": 12,
+		"_fMisc": [
+			"MLW",
+			"MW",
+			"RCH",
+			"RW",
+			"Has Variants",
+			"SRD",
+			"Basic Rules",
+			"Has Token",
+			"Has Info",
+			"Has Images"
+		],
+		"_fLanguageTags": [
+			"GI"
+		],
+		"_fEquipment": [
+			"greataxe|phb"
+		]
+	},
+	{
+		"name": "Bugbear Chief",
+		"source": "MM",
+		"page": 33,
+		"otherSources": [
+			{
+				"source": "TftYP"
+			},
+			{
+				"source": "CRCotN"
+			}
+		],
+		"size": [
+			"M"
+		],
+		"type": {
+			"type": "humanoid",
+			"tags": [
+				"goblinoid"
+			]
+		},
+		"alignment": [
+			"C",
+			"E"
+		],
+		"ac": [
+			{
+				"ac": 17,
+				"from": [
+					"{@item chain shirt|phb}",
+					"{@item shield|phb}"
+				]
+			}
+		],
+		"hp": {
+			"average": 65,
+			"formula": "10d8 + 20"
+		},
+		"speed": {
+			"walk": 30
+		},
+		"str": 17,
+		"dex": 14,
+		"con": 14,
+		"int": 11,
+		"wis": 12,
+		"cha": 11,
+		"skill": {
+			"intimidation": "+2",
+			"stealth": "+6",
+			"survival": "+3"
+		},
+		"senses": [
+			"darkvision 60 ft."
+		],
+		"passive": 11,
+		"languages": [
+			"Common",
+			"Goblin"
+		],
+		"cr": "3",
+		"trait": [
+			{
+				"name": "Brute",
+				"entries": [
+					"A melee weapon deals one extra die of its damage when the bugbear hits with it (included in the attack)."
+				]
+			},
+			{
+				"name": "Surprise Attack",
+				"entries": [
+					"If the bugbear surprises a creature and hits it with an attack during the first round of combat, the target takes an extra 7 ({@dice 2d6}) damage from the attack."
+				]
+			},
+			{
+				"name": "Heart of Hruggek",
+				"entries": [
+					"The bugbear has advantage on saving throws against being {@condition charmed}, {@condition frightened}, {@condition paralyzed}, {@condition poisoned}, {@condition stunned}, or put to sleep."
+				]
+			}
+		],
+		"action": [
+			{
+				"name": "Multiattack",
+				"entries": [
+					"The bugbear makes two melee attacks."
+				]
+			},
+			{
+				"name": "Morningstar",
+				"entries": [
+					"{@atk mw} {@hit 5} to hit, reach 5 ft., one target. {@h}11 ({@damage 2d8 + 3}) piercing damage."
+				]
+			},
+			{
+				"name": "Javelin",
+				"entries": [
+					"{@atk mw,rw} {@hit 5} to hit, reach 5 ft. or range 30/120 ft., one target. {@h}9 ({@damage 2d6 + 3}) piercing damage in melee or 5 ({@damage 1d6 + 3}) piercing damage at range."
+				]
+			}
+		],
+		"environment": [
+			"forest",
+			"grassland",
+			"underdark"
+		],
+		"soundClip": {
+			"type": "internal",
+			"path": "bestiary/bugbear-chief.mp3"
+		},
+		"attachedItems": [
+			"javelin|phb",
+			"morningstar|phb"
+		],
+		"traitTags": [
+			"Brute"
+		],
+		"senseTags": [
+			"D"
+		],
+		"actionTags": [
+			"Multiattack"
+		],
+		"languageTags": [
+			"C",
+			"GO"
+		],
+		"damageTags": [
+			"P"
+		],
+		"miscTags": [
+			"MLW",
+			"MW",
+			"RW",
+			"THW"
+		],
+		"hasToken": true,
+		"hasFluff": true,
+		"hasFluffImages": true,
+		"__prop": "monster",
+		"_pTypes": {
+			"types": [
+				"humanoid"
+			],
+			"tags": [
+				"goblinoid"
+			],
+			"asText": "Humanoid (Goblinoid)",
+			"asTextShort": "Humanoid (Goblinoid)",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "3",
+		"_fCr": [
+			"3"
+		],
+		"_fSpeedType": [
+			"walk"
+		],
+		"_fSpeed": 30,
+		"_fAc": [
+			17
+		],
+		"_fHp": 65,
+		"_fAlign": [
+			"C",
+			"E"
+		],
+		"_fEnvironment": [
+			"forest",
+			"grassland",
+			"underdark"
+		],
+		"_fVuln": [],
+		"_fRes": [],
+		"_fImm": [],
+		"_fCondImm": [],
+		"_fSave": [],
+		"_fSkill": [
+			"intimidation",
+			"stealth",
+			"survival"
+		],
+		"_fSources": [
+			"MM",
+			{
+				"item": "TftYP",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "CRCotN",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			}
+		],
+		"_fPassive": 11,
+		"_fStr": 17,
+		"_fDex": 14,
+		"_fCon": 14,
+		"_fInt": 11,
+		"_fWis": 12,
+		"_fCha": 11,
+		"_fMisc": [
+			"MLW",
+			"MW",
+			"RW",
+			"THW",
+			"AC from Item(s)",
+			"Has Token",
+			"Has Info",
+			"Has Images"
+		],
+		"_fLanguageTags": [
+			"C",
+			"GO"
+		],
+		"_fEquipment": [
+			"javelin|phb",
+			"morningstar|phb",
+			"chain shirt|phb",
+			"shield|phb"
+		]
+	},
+	{
+		"name": "Ogre Zombie",
+		"source": "MM",
+		"page": 316,
+		"srd": true,
+		"otherSources": [
+			{
+				"source": "TftYP"
+			},
+			{
+				"source": "ToA"
+			},
+			{
+				"source": "WDMM"
+			},
+			{
+				"source": "GoS"
+			},
+			{
+				"source": "DIP"
+			},
+			{
+				"source": "SDW"
+			},
+			{
+				"source": "IDRotF"
+			},
+			{
+				"source": "LoX"
+			},
+			{
+				"source": "PaBTSO"
+			},
+			{
+				"source": "DoDk"
+			},
+			{
+				"source": "VEoR"
+			}
+		],
+		"size": [
+			"L"
+		],
+		"type": "undead",
+		"alignment": [
+			"N",
+			"E"
+		],
+		"ac": [
+			8
+		],
+		"hp": {
+			"average": 85,
+			"formula": "9d10 + 36"
+		},
+		"speed": {
+			"walk": 30
+		},
+		"str": 19,
+		"dex": 6,
+		"con": 18,
+		"int": 3,
+		"wis": 6,
+		"cha": 5,
+		"save": {
+			"wis": "+0"
+		},
+		"senses": [
+			"darkvision 60 ft."
+		],
+		"passive": 8,
+		"immune": [
+			"poison"
+		],
+		"conditionImmune": [
+			"poisoned"
+		],
+		"languages": [
+			"understands Common and Giant but can't speak"
+		],
+		"cr": "2",
+		"trait": [
+			{
+				"name": "Undead Fortitude",
+				"entries": [
+					"If damage reduces the zombie to 0 hit points, it must make a Constitution saving throw with a DC of 5 + the damage taken, unless the damage is radiant or from a critical hit. On a success, the zombie drops to 1 hit point instead."
+				]
+			}
+		],
+		"action": [
+			{
+				"name": "Morningstar",
+				"entries": [
+					"{@atk mw} {@hit 6} to hit, reach 5 ft., one target. {@h}13 ({@damage 2d8 + 4}) bludgeoning damage."
+				]
+			}
+		],
+		"soundClip": {
+			"type": "internal",
+			"path": "bestiary/ogre-zombie.mp3"
+		},
+		"attachedItems": [
+			"morningstar|phb"
+		],
+		"traitTags": [
+			"Undead Fortitude"
+		],
+		"senseTags": [
+			"D"
+		],
+		"languageTags": [
+			"C",
+			"CS",
+			"GI"
+		],
+		"damageTags": [
+			"B"
+		],
+		"miscTags": [
+			"MLW",
+			"MW"
+		],
+		"hasToken": true,
+		"hasFluff": true,
+		"hasFluffImages": true,
+		"__prop": "monster",
+		"_pTypes": {
+			"types": [
+				"undead"
+			],
+			"tags": [],
+			"asText": "Undead",
+			"asTextShort": "Undead",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "2",
+		"_fCr": [
+			"2"
+		],
+		"_fSpeedType": [
+			"walk"
+		],
+		"_fSpeed": 30,
+		"_fAc": [
+			8
+		],
+		"_fHp": 85,
+		"_fAlign": [
+			"N",
+			"E",
+			"NX"
+		],
+		"_fEnvironment": [
+			"none"
+		],
+		"_fVuln": [],
+		"_fRes": [],
+		"_fImm": [
+			"poison"
+		],
+		"_fCondImm": [
+			"poisoned"
+		],
+		"_fSave": [
+			"wis"
+		],
+		"_fSkill": [],
+		"_fSources": [
+			"MM",
+			{
+				"item": "TftYP",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "ToA",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "WDMM",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "GoS",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "DIP",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "SDW",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "IDRotF",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "LoX",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "PaBTSO",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "DoDk",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "VEoR",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			}
+		],
+		"_fPassive": 8,
+		"_fStr": 19,
+		"_fDex": 6,
+		"_fCon": 18,
+		"_fInt": 3,
+		"_fWis": 6,
+		"_fCha": 5,
+		"_fMisc": [
+			"MLW",
+			"MW",
+			"SRD",
+			"Has Token",
+			"Has Info",
+			"Has Images"
+		],
+		"_fLanguageTags": [
+			"C",
+			"CS",
+			"GI"
+		],
+		"_fEquipment": [
+			"morningstar|phb"
+		]
+	},
+	{
+		"name": "Hobgoblin Devastator",
+		"source": "MPMM",
+		"page": 153,
+		"otherSources": [
+			{
+				"source": "VGM",
+				"page": 161
+			}
+		],
+		"size": [
+			"M"
+		],
+		"type": {
+			"type": "fey",
+			"tags": [
+				"goblinoid"
+			]
+		},
+		"alignment": [
+			"L",
+			"N"
+		],
+		"alignmentPrefix": "Typically ",
+		"ac": [
+			{
+				"ac": 13,
+				"from": [
+					"{@item studded leather armor|PHB|studded leather}"
+				]
+			}
+		],
+		"hp": {
+			"average": 45,
+			"formula": "7d8 + 14"
+		},
+		"speed": {
+			"walk": 30
+		},
+		"str": 13,
+		"dex": 12,
+		"con": 14,
+		"int": 16,
+		"wis": 13,
+		"cha": 11,
+		"skill": {
+			"arcana": "+5"
+		},
+		"senses": [
+			"darkvision 60 ft."
+		],
+		"passive": 11,
+		"languages": [
+			"Common",
+			"Goblin"
+		],
+		"cr": "4",
+		"spellcasting": [
+			{
+				"name": "Spellcasting",
+				"type": "spellcasting",
+				"headerEntries": [
+					"The hobgoblin casts one of the following spells, using Intelligence as the spellcasting ability (spell save {@dc 13}):"
+				],
+				"will": [
+					"{@spell mage hand}",
+					"{@spell prestidigitation}"
+				],
+				"daily": {
+					"2e": [
+						"{@spell fireball}",
+						"{@spell fly}",
+						"{@spell fog cloud}",
+						"{@spell gust of wind}",
+						"{@spell lightning bolt}"
+					]
+				},
+				"ability": "int",
+				"displayAs": "action"
+			}
+		],
+		"trait": [
+			{
+				"name": "Army Arcana",
+				"entries": [
+					"When the hobgoblin casts a spell that causes damage or that forces other creatures to make a saving throw, it can choose itself and any number of allies to be immune to the damage caused by the spell and to succeed on the required saving throw."
+				]
+			}
+		],
+		"action": [
+			{
+				"name": "Multiattack",
+				"entries": [
+					"The hobgoblin makes two Quarterstaff or Devastating Bolt attacks."
+				]
+			},
+			{
+				"name": "Quarterstaff",
+				"entries": [
+					"{@atk mw} {@hit 3} to hit, reach 5 ft., one target. {@h}4 ({@damage 1d6 + 1}) bludgeoning damage, or 5 ({@damage 1d8 + 1}) bludgeoning damage if used with two hands, plus 13 ({@damage 3d8}) force damage."
+				]
+			},
+			{
+				"name": "Devastating Bolt",
+				"entries": [
+					"{@atk rs} {@hit 5} to hit, range 60 ft., one target. {@h}21 ({@damage 4d8 + 3}) force damage, and the target is knocked {@condition prone}."
+				]
+			}
+		],
+		"environment": [
+			"forest",
+			"grassland",
+			"hill"
+		],
+		"soundClip": {
+			"type": "internal",
+			"path": "bestiary/hobgoblin-devastator.mp3"
+		},
+		"attachedItems": [
+			"quarterstaff|phb"
+		],
+		"senseTags": [
+			"D"
+		],
+		"actionTags": [
+			"Multiattack"
+		],
+		"languageTags": [
+			"C",
+			"GO"
+		],
+		"damageTags": [
+			"B",
+			"O"
+		],
+		"damageTagsSpell": [
+			"F",
+			"L"
+		],
+		"spellcastingTags": [
+			"O"
+		],
+		"miscTags": [
+			"MLW",
+			"MW"
+		],
+		"conditionInflict": [
+			"prone"
+		],
+		"savingThrowForcedSpell": [
+			"dexterity",
+			"strength"
+		],
+		"hasToken": true,
+		"hasFluff": true,
+		"hasFluffImages": true,
+		"__prop": "monster",
+		"_pTypes": {
+			"types": [
+				"fey"
+			],
+			"tags": [
+				"goblinoid"
+			],
+			"asText": "Fey (Goblinoid)",
+			"asTextShort": "Fey (Goblinoid)",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "4",
+		"_fCr": [
+			"4"
+		],
+		"_fSpeedType": [
+			"walk"
+		],
+		"_fSpeed": 30,
+		"_fAc": [
+			13
+		],
+		"_fHp": 45,
+		"_fAlign": [
+			"L",
+			"N",
+			"NY"
+		],
+		"_fEnvironment": [
+			"forest",
+			"grassland",
+			"hill"
+		],
+		"_fVuln": [],
+		"_fRes": [],
+		"_fImm": [],
+		"_fCondImm": [],
+		"_fSave": [],
+		"_fSkill": [
+			"arcana"
+		],
+		"_fSources": [
+			"MPMM",
+			{
+				"item": "VGM",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			}
+		],
+		"_fPassive": 11,
+		"_fStr": 13,
+		"_fDex": 12,
+		"_fCon": 14,
+		"_fInt": 16,
+		"_fWis": 13,
+		"_fCha": 11,
+		"_fMisc": [
+			"MLW",
+			"MW",
+			"AC from Item(s)",
+			"Spellcaster",
+			"Spellcaster, Intelligence",
+			"Has Token",
+			"Has Info",
+			"Has Images"
+		],
+		"_fSpellsKnown": [
+			"mage hand|phb",
+			"prestidigitation|phb",
+			"fireball|phb",
+			"fly|phb",
+			"fog cloud|phb",
+			"gust of wind|phb",
+			"lightning bolt|phb"
+		],
+		"_fLanguageTags": [
+			"C",
+			"GO"
+		],
+		"_fEquipment": [
+			"quarterstaff|phb",
+			"studded leather armor|phb"
+		]
+	},
+	{
+		"name": "Stone Giant",
+		"source": "MM",
+		"page": 156,
+		"srd": true,
+		"otherSources": [
+			{
+				"source": "HotDQ"
+			},
+			{
+				"source": "SKT"
+			},
+			{
+				"source": "TftYP"
+			},
+			{
+				"source": "WDMM"
+			},
+			{
+				"source": "MOT"
+			},
+			{
+				"source": "DoDk"
+			},
+			{
+				"source": "QftIS"
+			}
+		],
+		"size": [
+			"H"
+		],
+		"type": "giant",
+		"alignment": [
+			"N"
+		],
+		"ac": [
+			{
+				"ac": 17,
+				"from": [
+					"natural armor"
+				]
+			}
+		],
+		"hp": {
+			"average": 126,
+			"formula": "11d12 + 55"
+		},
+		"speed": {
+			"walk": 40
+		},
+		"str": 23,
+		"dex": 15,
+		"con": 20,
+		"int": 10,
+		"wis": 12,
+		"cha": 9,
+		"save": {
+			"dex": "+5",
+			"con": "+8",
+			"wis": "+4"
+		},
+		"skill": {
+			"athletics": "+12",
+			"perception": "+4"
+		},
+		"senses": [
+			"darkvision 60 ft."
+		],
+		"passive": 14,
+		"languages": [
+			"Giant"
+		],
+		"cr": "7",
+		"trait": [
+			{
+				"name": "Stone Camouflage",
+				"entries": [
+					"The giant has advantage on Dexterity ({@skill Stealth}) checks made to hide in rocky terrain."
+				]
+			}
+		],
+		"action": [
+			{
+				"name": "Multiattack",
+				"entries": [
+					"The giant makes two greatclub attacks."
+				]
+			},
+			{
+				"name": "Greatclub",
+				"entries": [
+					"{@atk mw} {@hit 9} to hit, reach 15 ft., one target. {@h}19 ({@damage 3d8 + 6}) bludgeoning damage."
+				]
+			},
+			{
+				"name": "Rock",
+				"entries": [
+					"{@atk rw} {@hit 9} to hit, range 60/240 ft., one target. {@h}28 ({@damage 4d10 + 6}) bludgeoning damage. If the target is a creature, it must succeed on a {@dc 17} Strength saving throw or be knocked {@condition prone}."
+				]
+			}
+		],
+		"reaction": [
+			{
+				"name": "Rock Catching",
+				"entries": [
+					"If a rock or similar object is hurled at the giant, the giant can, with a successful {@dc 10} Dexterity saving throw, catch the missile and take no bludgeoning damage from it."
+				]
+			}
+		],
+		"variant": [
+			{
+				"type": "variant",
+				"name": "New Giant Options",
+				"entries": [
+					"Some adult stone giants like to grab enemies and fling them through the air. They can also roll boulders across the ground, striking multiple enemies in a line. These abilities are represented by the following action options.",
+					{
+						"name": "Fling",
+						"type": "entries",
+						"entries": [
+							"The giant tries to throw a Small or Medium creature within 10 feet of it. The target must succeed on a {@dc 17} Dexterity saving throw or be hurled up to 60 feet horizontally in a direction of the giant's choice and land {@condition prone}, taking 3 ({@damage 1d6}) bludgeoning damage for every 10 feet it was thrown."
+						]
+					},
+					{
+						"name": "Rolling Rock",
+						"type": "entries",
+						"entries": [
+							"The giant sends a rock tumbling along the ground in a 30-foot line that is 5 feet wide. Each creature in that line must make a {@dc 17} Dexterity saving throw, taking 22 ({@damage 3d10 + 6}) bludgeoning damage and falling {@condition prone} on a failed save"
+						]
+					}
+				],
+				"_version": {
+					"name": "Stone Giant (Optional Actions)",
+					"addHeadersAs": "action"
+				},
+				"source": "SKT",
+				"page": 246
+			}
+		],
+		"environment": [
+			"hill",
+			"mountain",
+			"underdark"
+		],
+		"soundClip": {
+			"type": "internal",
+			"path": "bestiary/stone-giant.mp3"
+		},
+		"attachedItems": [
+			"greatclub|phb"
+		],
+		"senseTags": [
+			"D"
+		],
+		"actionTags": [
+			"Multiattack"
+		],
+		"languageTags": [
+			"GI"
+		],
+		"damageTags": [
+			"B"
+		],
+		"miscTags": [
+			"MLW",
+			"MW",
+			"RCH",
+			"RW"
+		],
+		"conditionInflict": [
+			"prone"
+		],
+		"savingThrowForced": [
+			"dexterity",
+			"strength"
+		],
+		"hasToken": true,
+		"hasFluff": true,
+		"hasFluffImages": true,
+		"__prop": "monster",
+		"_pTypes": {
+			"types": [
+				"giant"
+			],
+			"tags": [],
+			"asText": "Giant",
+			"asTextShort": "Giant",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "7",
+		"_fCr": [
+			"7"
+		],
+		"_fSpeedType": [
+			"walk"
+		],
+		"_fSpeed": 40,
+		"_fAc": [
+			17
+		],
+		"_fHp": 126,
+		"_fAlign": [
+			"N",
+			"NY"
+		],
+		"_fEnvironment": [
+			"hill",
+			"mountain",
+			"underdark"
+		],
+		"_fVuln": [],
+		"_fRes": [],
+		"_fImm": [],
+		"_fCondImm": [],
+		"_fSave": [
+			"dex",
+			"con",
+			"wis"
+		],
+		"_fSkill": [
+			"athletics",
+			"perception"
+		],
+		"_fSources": [
+			"MM",
+			{
+				"item": "HotDQ",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "SKT",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "TftYP",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "WDMM",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "MOT",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "DoDk",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			},
+			{
+				"item": "QftIS",
+				"isIgnoreRed": true,
+				"rendered": null,
+				"searchText": null,
+				"isOtherSource": true
+			}
+		],
+		"_fPassive": 14,
+		"_fStr": 23,
+		"_fDex": 15,
+		"_fCon": 20,
+		"_fInt": 10,
+		"_fWis": 12,
+		"_fCha": 9,
+		"_fMisc": [
+			"MLW",
+			"MW",
+			"RCH",
+			"RW",
+			"AC from Natural Armor",
+			"Reactions",
+			"Has Variants",
+			"SRD",
+			"Has Token",
+			"Has Info",
+			"Has Images"
+		],
+		"_fLanguageTags": [
+			"GI"
+		],
+		"_fEquipment": [
+			"greatclub|phb"
+		]
+	},
+	{
+		"name": "Orc Hand of Yurtrus",
+		"source": "VGM",
+		"page": 184,
+		"size": [
+			"M"
+		],
+		"type": {
+			"type": "humanoid",
+			"tags": [
+				"orc"
+			]
+		},
+		"alignment": [
+			"C",
+			"E"
+		],
+		"ac": [
+			{
+				"ac": 12,
+				"from": [
+					"{@item hide armor|phb}"
+				]
+			}
+		],
+		"hp": {
+			"average": 30,
+			"formula": "4d8 + 12"
+		},
+		"speed": {
+			"walk": 30
+		},
+		"str": 12,
+		"dex": 11,
+		"con": 16,
+		"int": 11,
+		"wis": 14,
+		"cha": 9,
+		"skill": {
+			"arcana": "+2",
+			"intimidation": "+1",
+			"medicine": "+4",
+			"religion": "+2"
+		},
+		"senses": [
+			"darkvision 60 ft."
+		],
+		"passive": 12,
+		"languages": [
+			"understands Common and Orc but can't speak"
+		],
+		"cr": "2",
+		"spellcasting": [
+			{
+				"name": "Spellcasting",
+				"type": "spellcasting",
+				"headerEntries": [
+					"The orc is a 4th-level spellcaster. Its spellcasting ability is Wisdom (spell save {@dc 12}, {@hit 4} to hit with spell attacks). It requires no verbal components to cast its spells. The orc has the following cleric spells prepared:"
+				],
+				"spells": {
+					"0": {
+						"spells": [
+							"{@spell guidance}",
+							"{@spell mending}",
+							"{@spell resistance}",
+							"{@spell thaumaturgy}"
+						]
+					},
+					"1": {
+						"slots": 4,
+						"spells": [
+							"{@spell bane}",
+							"{@spell detect magic}",
+							"{@spell inflict wounds}",
+							"{@spell protection from evil and good}"
+						]
+					},
+					"2": {
+						"slots": 3,
+						"spells": [
+							"{@spell blindness/deafness}",
+							"{@spell silence}"
+						]
+					}
+				},
+				"ability": "wis"
+			}
+		],
+		"trait": [
+			{
+				"name": "Aggressive",
+				"entries": [
+					"As a bonus action, the orc can move up to its speed toward a hostile creature that it can see."
+				]
+			}
+		],
+		"action": [
+			{
+				"name": "Touch of the White Hand",
+				"entries": [
+					"{@atk mw} {@hit 3} to hit, reach 5 ft., one target. {@h}9 ({@damage 2d8}) necrotic damage."
+				]
+			}
+		],
+		"environment": [
+			"forest",
+			"grassland",
+			"hill",
+			"mountain",
+			"underdark"
+		],
+		"soundClip": {
+			"type": "internal",
+			"path": "bestiary/orc-hand-of-yurtrus.mp3"
+		},
+		"traitTags": [
+			"Aggressive"
+		],
+		"senseTags": [
+			"D"
+		],
+		"languageTags": [
+			"C",
+			"CS",
+			"O"
+		],
+		"damageTags": [
+			"N"
+		],
+		"damageTagsSpell": [
+			"N"
+		],
+		"spellcastingTags": [
+			"CC"
+		],
+		"miscTags": [
+			"MW"
+		],
+		"savingThrowForcedSpell": [
+			"charisma",
+			"constitution"
+		],
+		"hasToken": true,
+		"hasFluff": true,
+		"__prop": "monster",
+		"_pTypes": {
+			"types": [
+				"humanoid"
+			],
+			"tags": [
+				"orc"
+			],
+			"asText": "Humanoid (Orc)",
+			"asTextShort": "Humanoid (Orc)",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "2",
+		"_fCr": [
+			"2"
+		],
+		"_fSpeedType": [
+			"walk"
+		],
+		"_fSpeed": 30,
+		"_fAc": [
+			12
+		],
+		"_fHp": 30,
+		"_fAlign": [
+			"C",
+			"E"
+		],
+		"_fEnvironment": [
+			"forest",
+			"grassland",
+			"hill",
+			"mountain",
+			"underdark"
+		],
+		"_fVuln": [],
+		"_fRes": [],
+		"_fImm": [],
+		"_fCondImm": [],
+		"_fSave": [],
+		"_fSkill": [
+			"arcana",
+			"intimidation",
+			"medicine",
+			"religion"
+		],
+		"_fSources": "VGM",
+		"_fPassive": 12,
+		"_fStr": 12,
+		"_fDex": 11,
+		"_fCon": 16,
+		"_fInt": 11,
+		"_fWis": 14,
+		"_fCha": 9,
+		"_fMisc": [
+			"MW",
+			"AC from Item(s)",
+			"Spellcaster",
+			"Spellcaster, Wisdom",
+			"Legacy",
+			"Has Token",
+			"Has Info"
+		],
+		"_fSpellSlotLevels": [
+			1,
+			2
+		],
+		"_fSpellsKnown": [
+			"guidance|phb",
+			"mending|phb",
+			"resistance|phb",
+			"thaumaturgy|phb",
+			"bane|phb",
+			"detect magic|phb",
+			"inflict wounds|phb",
+			"protection from evil and good|phb",
+			"blindness/deafness|phb",
+			"silence|phb"
+		],
+		"_fLanguageTags": [
+			"C",
+			"CS",
+			"O"
+		],
+		"_fEquipment": [
+			"hide armor|phb"
+		]
+	},
+	{
+		"name": "Orc Nurtured One of Yurtrus",
+		"source": "VGM",
+		"page": 184,
+		"size": [
+			"M"
+		],
+		"type": {
+			"type": "humanoid",
+			"tags": [
+				"orc"
+			]
+		},
+		"alignment": [
+			"C",
+			"E"
+		],
+		"ac": [
+			9
+		],
+		"hp": {
+			"average": 30,
+			"formula": "4d8 + 12"
+		},
+		"speed": {
+			"walk": 30
+		},
+		"str": 15,
+		"dex": 8,
+		"con": 16,
+		"int": 7,
+		"wis": 11,
+		"cha": 7,
+		"senses": [
+			"darkvision 60 ft."
+		],
+		"passive": 10,
+		"languages": [
+			"Common",
+			"Orc"
+		],
+		"cr": "1/2",
+		"trait": [
+			{
+				"name": "Aggressive",
+				"entries": [
+					"As a bonus action, the orc can move up to its speed toward a hostile creature that it can see."
+				]
+			},
+			{
+				"name": "Corrupted Carrier",
+				"entries": [
+					"When the orc is reduced to 0 hit points, it explodes, and any creature within 10 feet of it must make a {@dc 13} Constitution saving throw. On a failed save, the creature takes 14 ({@damage 4d6}) poison damage and becomes {@condition poisoned}. On a success, the creature takes half as much damage and isn't {@condition poisoned}. A creature {@condition poisoned} by this effect can repeat the save at the end of each of its turn, ending the effect on itself on a success. While {@condition poisoned} by this effect, a creature can't regain hit points."
+				]
+			},
+			{
+				"name": "Nurtured One of Yurtrus",
+				"entries": [
+					"The orc has advantage on saving throws against poison and disease."
+				]
+			}
+		],
+		"action": [
+			{
+				"name": "Claws",
+				"entries": [
+					"{@atk mw} {@hit 4} to hit, reach 5 ft., one target. {@h}4 ({@damage 1d4 + 2}) slashing damage plus 2 ({@damage 1d4}) necrotic damage."
+				]
+			},
+			{
+				"name": "Corrupted Vengeance",
+				"entries": [
+					"The orc reduces itself to 0 hit points, triggering its Corrupted Carrier trait."
+				]
+			}
+		],
+		"environment": [
+			"forest",
+			"grassland",
+			"hill",
+			"mountain",
+			"underdark"
+		],
+		"soundClip": {
+			"type": "internal",
+			"path": "bestiary/orc-nurtured-one-of-yurtrus.mp3"
+		},
+		"traitTags": [
+			"Aggressive"
+		],
+		"senseTags": [
+			"D"
+		],
+		"languageTags": [
+			"C",
+			"O"
+		],
+		"damageTags": [
+			"I",
+			"N",
+			"S"
+		],
+		"miscTags": [
+			"MW"
+		],
+		"conditionInflict": [
+			"poisoned"
+		],
+		"savingThrowForced": [
+			"constitution"
+		],
+		"hasToken": true,
+		"hasFluff": true,
+		"hasFluffImages": true,
+		"__prop": "monster",
+		"_pTypes": {
+			"types": [
+				"humanoid"
+			],
+			"tags": [
+				"orc"
+			],
+			"asText": "Humanoid (Orc)",
+			"asTextShort": "Humanoid (Orc)",
+			"typeSidekick": null,
+			"tagsSidekick": [],
+			"asTextSidekick": null
+		},
+		"_pCr": "1/2",
+		"_fCr": [
+			"1/2"
+		],
+		"_fSpeedType": [
+			"walk"
+		],
+		"_fSpeed": 30,
+		"_fAc": [
+			9
+		],
+		"_fHp": 30,
+		"_fAlign": [
+			"C",
+			"E"
+		],
+		"_fEnvironment": [
+			"forest",
+			"grassland",
+			"hill",
+			"mountain",
+			"underdark"
+		],
+		"_fVuln": [],
+		"_fRes": [],
+		"_fImm": [],
+		"_fCondImm": [],
+		"_fSave": [],
+		"_fSkill": [],
+		"_fSources": "VGM",
+		"_fPassive": 10,
+		"_fStr": 15,
+		"_fDex": 8,
+		"_fCon": 16,
+		"_fInt": 7,
+		"_fWis": 11,
+		"_fCha": 7,
+		"_fMisc": [
+			"MW",
+			"Legacy",
+			"Has Token",
+			"Has Info",
+			"Has Images"
+		],
+		"_fLanguageTags": [
+			"C",
+			"O"
 		],
 		"_fEquipment": []
 	}

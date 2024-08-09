@@ -1048,6 +1048,435 @@ def get_special_monster_actions(name: str) -> tuple[List[Action], List[SpecialAb
         for multi_action in (multi_attack_action_1, multi_attack_action_2, multi_attack_action_3):
             action = Action(name='Multiattack', desc='', type=ActionType.MELEE, multi_attack=[multi_attack_action_0, multi_action])
             actions.append(action)
+    elif name == "Yuan-ti Pureblood":
+        # Multiattack
+        # "The yuan-ti makes two melee attacks."
+        damage_type: DamageType = request_damage_type(index_name='slashing')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='1d6', bonus=1))]
+        multi_attack_action = Action(name='Scimitar', desc='', type=ActionType.MELEE, attack_bonus=3, damages=damages)
+        action = Action(name='Multiattack', desc='', type=ActionType.MELEE, multi_attack=[multi_attack_action] * 2)
+        actions.append(action)
+        # Ranged attack
+        damage_type: DamageType = request_damage_type(index_name='piercing')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='1d6', bonus=1))]
+        damage_type: DamageType = request_damage_type(index_name='poison')
+        damages += [Damage(type=damage_type, dd=DamageDice(dice='2d6'))]
+        action = Action(name='Shortbow', desc='', type=ActionType.RANGED, attack_bonus=3, damages=damages, normal_range=80, long_range=320)
+        actions.append(action)
+        # Spellcasting
+        caster_level = 3
+        dc_type = 'cha'
+        dc_value = 12
+        spells = ['animal-friendship']
+        spells += ['poison-spray', 'suggestion']
+        if spells:
+            spell_caster: SpellCaster = SpellCaster(level=caster_level,
+                                                    spell_slots=[0, 0, 99, 0, 0],
+                                                    learned_spells=list(filter(None, [request_spell(s) for s in spells])),
+                                                    dc_type=dc_type,
+                                                    dc_value=dc_value + 3,
+                                                    ability_modifier=3)
+    elif name == "Firenewt Warlock of Imix":
+        # Multiattack
+        # "The firenewt makes three Morningstar or Fire Ray attacks."
+        damage_type: DamageType = request_damage_type(index_name='piercing')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='1d8', bonus=1))]
+        multi_attack_action = Action(name='Morningstar', desc='', type=ActionType.MELEE, attack_bonus=3, damages=damages)
+        action = Action(name='Multiattack', desc='', type=ActionType.MELEE, multi_attack=[multi_attack_action] * 3)
+        actions.append(action)
+        damage_type: DamageType = request_damage_type(index_name='fire')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='1d6', bonus=2))]
+        multi_attack_action = Action(name='Fire Ray', desc='', type=ActionType.RANGED, attack_bonus=4, damages=damages, normal_range=120)
+        action = Action(name='Multiattack', desc='', type=ActionType.RANGED, multi_attack=[multi_attack_action] * 3)
+        actions.append(action)
+        # Spellcasting
+        caster_level = 0
+        dc_type = 'cha'
+        dc_value = 12
+        spells = ['guidance', 'light', 'mage-armor', 'mage-hand', 'prestidigitation']
+        if spells:
+            spell_caster: SpellCaster = SpellCaster(level=caster_level,
+                                                    spell_slots=[0, 0, 0, 0, 0],
+                                                    learned_spells=list(filter(None, [request_spell(s) for s in spells])),
+                                                    dc_type=dc_type,
+                                                    dc_value=dc_value,
+                                                    ability_modifier=0)
+    elif name == "Firenewt Warrior":
+        # Multiattack
+        # "The firenewt makes two Scimitar attacks."
+        damage_type: DamageType = request_damage_type(index_name='slashing')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='1d6', bonus=1))]
+        multi_attack_action = Action(name='Scimitar', desc='', type=ActionType.MELEE, attack_bonus=3, damages=damages)
+        action = Action(name='Multiattack', desc='', type=ActionType.MELEE, multi_attack=[multi_attack_action] * 2)
+        actions.append(action)
+        # Special attack
+        # "Spit Fire (Recharges after a Short or Long Rest)"
+        damage_type: DamageType = request_damage_type(index_name='fire')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='2d8'))]
+        area_of_effect: AreaOfEffect = AreaOfEffect(type='sphere', size=10)
+        sa: SpecialAbility = SpecialAbility(name='Spit Fire',
+                                                desc='',
+                                                damages=damages,
+                                                dc_type='dex',
+                                                dc_value=11,
+                                                dc_success='half',
+                                                recharge_on_roll=7,
+                                                area_of_effect=area_of_effect)
+        special_abilities.append(sa)
+    elif name == "Yuan-ti Malison":
+        # Multiattack
+        # "The yuan-ti makes two ranged attacks or two melee attacks, but can use its bite only once."
+        # Melee attacks
+        damage_type: DamageType = request_damage_type(index_name='piercing')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='1d4', bonus=3))]
+        damage_type: DamageType = request_damage_type(index_name='poison')
+        damages += [Damage(type=damage_type, dd=DamageDice(dice='2d6'))]
+        multi_attack_action_1 = Action(name='Bite', desc='', type=ActionType.MELEE, attack_bonus=5, damages=damages)
+        damage_type: DamageType = request_damage_type(index_name='slashing')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='1d6', bonus=3))]
+        multi_attack_action_2 = Action(name='Scimitar', desc='', type=ActionType.MELEE, attack_bonus=5, damages=damages)
+        action = Action(name='Multiattack', desc='', type=ActionType.MELEE, multi_attack=[multi_attack_action_1, multi_attack_action_2])
+        actions.append(action)
+        action = Action(name='Multiattack', desc='', type=ActionType.MELEE, multi_attack=[multi_attack_action_2] * 2)
+        actions.append(action)
+        # Ranged attack
+        damage_type: DamageType = request_damage_type(index_name='piercing')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='1d8', bonus=2))]
+        damage_type: DamageType = request_damage_type(index_name='poison')
+        damages += [Damage(type=damage_type, dd=DamageDice(dice='2d6'))]
+        multi_attack_action = Action(name='Longbow', desc='', type=ActionType.RANGED, attack_bonus=4, damages=damages, normal_range=150, long_range=600)
+        action = Action(name='Multiattack', desc='', type=ActionType.RANGED, multi_attack=[multi_attack_action] * 2)
+        actions.append(action)
+        # Spellcasting
+        caster_level = 3
+        dc_type = 'cha'
+        dc_value = 13
+        spells = ['animal-friendship', 'suggestion']
+        if spells:
+            spell_caster: SpellCaster = SpellCaster(level=caster_level,
+                                                    spell_slots=[0, 0, 99, 0, 0],
+                                                    learned_spells=list(filter(None, [request_spell(s) for s in spells])),
+                                                    dc_type=dc_type,
+                                                    dc_value=dc_value,
+                                                    ability_modifier=0)
+    elif name == "Yuan-ti Broodguard":
+        # Multiattack
+        # "The broodguard makes one Bite attack and two Claw attacks."
+        damage_type: DamageType = request_damage_type(index_name='piercing')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='1d8', bonus=2))]
+        multi_attack_action_1 = Action(name='Bite', desc='', type=ActionType.MELEE, attack_bonus=4, damages=damages)
+        damage_type: DamageType = request_damage_type(index_name='slashing')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='1d6', bonus=2))]
+        multi_attack_action_2 = Action(name='Claw', desc='', type=ActionType.MELEE, attack_bonus=4, damages=damages)
+        action = Action(name='Multiattack', desc='', type=ActionType.MELEE, multi_attack=[multi_attack_action_1, multi_attack_action_2, multi_attack_action_2])
+        actions.append(action)
+    elif name == "Ogre Chain Brute":
+        # Melee attack
+        # Fist
+        damage_type: DamageType = request_damage_type(index_name='bludgeoning')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='2d4', bonus=4))]
+        action = Action(name='Fist', desc='', type=ActionType.MELEE, attack_bonus=6, damages=damages)
+        actions.append(action)
+        # Chain Smash (special attack)
+        # Todo Condition stunned on failed saving throw
+        # "{@atk mw} {@hit 6} to hit, reach 10 ft., one target.
+        # {@h}13 ({@damage 2d8 + 4}) bludgeoning damage, and the target must make a {@dc 14} Constitution saving throw or be {@condition stunned} for 1 minute.
+        # The target repeats the saving throw if it takes damage and at the end of each of its turns, ending the effect on itself on a success."
+        damage_type: DamageType = request_damage_type(index_name='bludgeoning')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='2d8', bonus=4))]
+        dc_type = 'con'
+        dc_value = 14
+        area_of_effect: AreaOfEffect = AreaOfEffect(type='cone', size=10)
+        sa: SpecialAbility = SpecialAbility(name='Chain Smash',
+                                                desc='',
+                                                damages=damages,
+                                                dc_type=dc_type,
+                                                dc_value=dc_value,
+                                                dc_success='none',
+                                                area_of_effect=area_of_effect,
+                                                effects=[Condition('stunned')],
+                                                recharge_on_roll=1)
+        special_abilities.append(sa)
+        # Chain Sweep
+        # "The ogre swings its chain, and every creature within 10 feet of it must make a {@dc 14} Dexterity saving throw.
+        # On a failed saving throw, a creature takes 8 ({@damage 1d8 + 4}) bludgeoning damage and is knocked {@condition prone}.
+        # On a successful save, the creature takes half as much damage and isn't knocked {@condition prone}."
+        damage_type: DamageType = request_damage_type(index_name='bludgeoning')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='1d8', bonus=4))]
+        area_of_effect: AreaOfEffect = AreaOfEffect(type='cone', size=10)
+        sa: SpecialAbility = SpecialAbility(name='Chain Smash',
+                                                desc='',
+                                                damages=damages,
+                                                dc_type=dc_type,
+                                                dc_value=dc_value,
+                                                dc_success='half',
+                                                area_of_effect=area_of_effect,
+                                                effects=[Condition('prone')],
+                                                recharge_on_roll=1)
+        special_abilities.append(sa)
+    elif name == "Young Kruthik":
+        damage_type: DamageType = request_damage_type(index_name='piercing')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='1d4', bonus=3))]
+        action = Action(name='Stab', desc='', type=ActionType.MELEE, attack_bonus=5, damages=damages)
+        actions.append(action)
+    elif name == "Adult Kruthik":
+        # Multiattack
+        # "The kruthik makes two Stab or Spike attacks."
+        damage_type: DamageType = request_damage_type(index_name='piercing')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='1d6', bonus=3))]
+        multi_attack_action = Action(name='Stab', desc='', type=ActionType.MELEE, attack_bonus=5, damages=damages)
+        action = Action(name='Multiattack', desc='', type=ActionType.MELEE, multi_attack=[multi_attack_action] * 2)
+        actions.append(action)
+        damage_type: DamageType = request_damage_type(index_name='piercing')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='1d4', bonus=3))]
+        multi_attack_action = Action(name='Spike', desc='', type=ActionType.RANGED, attack_bonus=5, damages=damages, normal_range=20, long_range=60)
+        action = Action(name='Multiattack', desc='', type=ActionType.MELEE, multi_attack=[multi_attack_action] * 2)
+        actions.append(action)
+    elif name == "Gnoll":
+        damage_type: DamageType = request_damage_type(index_name='piercing')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='1d4', bonus=2))]
+        action = Action(name='Bite', desc='', type=ActionType.MELEE, attack_bonus=4, damages=damages)
+        actions.append(action)
+        damage_type: DamageType = request_damage_type(index_name='piercing')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='1d6', bonus=2))]
+        damage_type: DamageType = request_damage_type(index_name='poison')
+        damages += [Damage(type=damage_type, dd=DamageDice(dice='1d8', bonus=2))]
+        action = Action(name='Spear', desc='', type=ActionType.MIXED, attack_bonus=4, damages=damages, normal_range=20, long_range=60)
+        actions.append(action)
+        damage_type: DamageType = request_damage_type(index_name='piercing')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='1d8', bonus=1))]
+        action = Action(name='Longbow', desc='', type=ActionType.RANGED, attack_bonus=3, damages=damages, normal_range=150, long_range=600)
+        actions.append(action)
+    elif name == "Maw Demon":
+        # Melee attack
+        damage_type: DamageType = request_damage_type(index_name='piercing')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='2d8', bonus=2))]
+        action = Action(name='Bite', desc='', type=ActionType.MELEE, attack_bonus=4, damages=damages)
+        actions.append(action)
+        # Disgorge (special attack)
+        # "The demon vomits in a 15-foot cube.
+        # Each creature in that area must succeed on a {@dc 11} Dexterity saving throw or take 11 ({@damage 2d10}) acid damage and fall {@condition prone} in the spew."
+        damage_type: DamageType = request_damage_type(index_name='acid')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='2d10'))]
+        dc_type = 'dex'
+        dc_value = 11
+        area_of_effect: AreaOfEffect = AreaOfEffect(type='cube', size=15)
+        sa: SpecialAbility = SpecialAbility(name='Disgorge',
+                                                desc='',
+                                                damages=damages,
+                                                dc_type=dc_type,
+                                                dc_value=dc_value,
+                                                dc_success='none',
+                                                area_of_effect=area_of_effect,
+                                                effects=[Condition('prone')],
+                                                recharge_on_roll=1)
+        special_abilities.append(sa)
+    elif name == "Yuan-ti Pit Master":
+        # Multiattack
+        # "The yuan-ti makes three Bite attacks or two Spectral Fangs attacks."
+        # Melee attack
+        damage_type: DamageType = request_damage_type(index_name='piercing')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='1d4', bonus=3))]
+        damage_type: DamageType = request_damage_type(index_name='poison')
+        damages += [Damage(type=damage_type, dd=DamageDice(dice='2d6'))]
+        multi_attack_action = Action(name='Bite', desc='', type=ActionType.MELEE, attack_bonus=6, damages=damages)
+        action = Action(name='Multiattack', desc='', type=ActionType.MELEE, multi_attack=[multi_attack_action] * 3)
+        actions.append(action)
+        # Spectral Fangs
+        damage_type: DamageType = request_damage_type(index_name='poison')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='3d8', bonus=3))]
+        multi_attack_action = Action(name='Spectral Fangs', desc='', type=ActionType.RANGED, attack_bonus=6, damages=damages, normal_range=120)
+        action = Action(name='Multiattack', desc='', type=ActionType.RANGED, multi_attack=[multi_attack_action] * 2)
+        actions.append(action)
+        # Merrshaulk's Slumber (1/Day) (special attack)
+        # "The yuan-ti targets up to five creatures that it can see within 60 feet of it.
+        # Each target must succeed on a {@dc 13} Constitution saving throw or fall into a magical sleep and be {@condition unconscious} for 10 minutes.
+        # A sleeping target awakens if it takes damage or if someone uses an action to shake or slap it awake.
+        # This magical sleep has no effect on a creature immune to being {@condition charmed}."
+        dc_type = 'con'
+        dc_value = 13
+        area_of_effect: AreaOfEffect = AreaOfEffect(type='cube', size=60)
+        sa: SpecialAbility = SpecialAbility(name='Disgorge',
+                                                desc='',
+                                                damages=[],
+                                                dc_type=dc_type,
+                                                dc_value=dc_value,
+                                                dc_success='none',
+                                                area_of_effect=area_of_effect,
+                                                effects=[Condition('unconscious')],
+                                                recharge_on_roll=1)
+        special_abilities.append(sa)
+        # Spellcasting
+        caster_level = 3
+        dc_type = 'cha'
+        dc_value = 13
+        spells = ['animal-friendship', 'guidance', 'mage-hand', 'message']
+        spells +=  ['hold-person', 'invisibility']
+        spells += ['suggestion']
+        if spells:
+            spell_caster: SpellCaster = SpellCaster(level=caster_level,
+                                                    spell_slots=[0, 99, 99, 0, 0],
+                                                    learned_spells=list(filter(None, [request_spell(s) for s in spells])),
+                                                    dc_type=dc_type,
+                                                    dc_value=dc_value,
+                                                    ability_modifier=0)
+    elif name == "Kruthik Hive Lord":
+        # Multiattack
+        # "The kruthik makes two Stab or Spike attacks."
+        damage_type: DamageType = request_damage_type(index_name='piercing')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='1d10', bonus=4))]
+        multi_attack_action = Action(name='Stab', desc='', type=ActionType.MELEE, attack_bonus=7, damages=damages)
+        action = Action(name='Multiattack', desc='', type=ActionType.MELEE, multi_attack=[multi_attack_action] * 2)
+        actions.append(action)
+        damage_type: DamageType = request_damage_type(index_name='piercing')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='1d6', bonus=4))]
+        multi_attack_action = Action(name='Spike', desc='', type=ActionType.RANGED, attack_bonus=6, damages=damages, normal_range=30, long_range=120)
+        action = Action(name='Multiattack', desc='', type=ActionType.MELEE, multi_attack=[multi_attack_action] * 2)
+        actions.append(action)
+        # "Acid Spray {@recharge 5}" (special attack)
+        # "The kruthik sprays acid in a 15-foot cone.
+        # Each creature in that area must make a {@dc 14} Dexterity saving throw, taking 22 ({@damage 4d10}) acid damage on a failed save, or half as much damage on a successful one."
+        damage_type: DamageType = request_damage_type(index_name='acid')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='4d10'))]
+        dc_type = 'dex'
+        dc_value = 14
+        area_of_effect: AreaOfEffect = AreaOfEffect(type='cone', size=15)
+        sa: SpecialAbility = SpecialAbility(name='Acid Spray',
+                                                desc='',
+                                                damages=damages,
+                                                dc_type=dc_type,
+                                                dc_value=dc_value,
+                                                dc_success='half',
+                                                area_of_effect=area_of_effect,
+                                                recharge_on_roll=5)
+        special_abilities.append(sa)
+    elif name == "Frost giant":
+        # Multiattack
+        # "The giant makes two greataxe attacks."
+        damage_type: DamageType = request_damage_type(index_name='slashing')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='3d12', bonus=6))]
+        multi_attack_action = Action(name='Greataxe', desc='', type=ActionType.MELEE, attack_bonus=9, damages=damages)
+        action = Action(name='Multiattack', desc='', type=ActionType.MELEE, multi_attack=[multi_attack_action] * 2)
+        actions.append(action)
+        # Single attack
+        damage_type: DamageType = request_damage_type(index_name='bludgeoning')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='4d10', bonus=6))]
+        action = Action(name='Rock', desc='', type=ActionType.RANGED, attack_bonus=9, damages=damages, normal_range=60, long_range=240)
+        actions.append(action)
+    elif name == "Bugbear Chief":
+        # Multiattack
+        # "The bugbear makes two melee attacks."
+        # Morningstar (Melee)
+        damage_type: DamageType = request_damage_type(index_name='piercing')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='2d8', bonus=3))]
+        multi_attack_action = Action(name='Morningstar', desc='', type=ActionType.MELEE, attack_bonus=5, damages=damages)
+        action = Action(name='Multiattack', desc='', type=ActionType.MELEE, multi_attack=[multi_attack_action] * 2)
+        actions.append(action)
+        # Javelin (Melee)
+        damage_type: DamageType = request_damage_type(index_name='piercing')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='2d6', bonus=3))]
+        multi_attack_action = Action(name='Javelin', desc='', type=ActionType.MELEE, attack_bonus=5, damages=damages)
+        action = Action(name='Multiattack', desc='', type=ActionType.MIXED, multi_attack=[multi_attack_action] * 2)
+        actions.append(action)
+        # Javelin (Ranged)
+        damage_type: DamageType = request_damage_type(index_name='piercing')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='2d6', bonus=3))]
+        action = Action(name='Javelin', desc='', type=ActionType.RANGED, attack_bonus=5, damages=damages, normal_range=30, long_range=120)
+        actions.append(action)
+    elif name == "Ogre Zombie":
+        damage_type: DamageType = request_damage_type(index_name='bludgeoning')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='2d8', bonus=4))]
+        action = Action(name='Morningstar', desc='', type=ActionType.MELEE, attack_bonus=6, damages=damages)
+        actions.append(action)
+    elif name == "Hobgoblin Devastator":
+        # Multiattack
+        # "The hobgoblin makes two Quarterstaff or Devastating Bolt attacks."
+        # "Quarterstaff"
+        damage_type: DamageType = request_damage_type(index_name='bludgeoning')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='1d8', bonus=1))]
+        damage_type: DamageType = request_damage_type(index_name='force')
+        damages += [Damage(type=damage_type, dd=DamageDice(dice='3d8'))]
+        multi_attack_action = Action(name='Quarterstaff', desc='', type=ActionType.MELEE, attack_bonus=3, damages=damages, normal_range=5, long_range=60)
+        action = Action(name='Multiattack', desc='', type=ActionType.MELEE, multi_attack=[multi_attack_action] * 2)
+        actions.append(action)
+        # "Devastating Bolt"
+        # TODO Condition prone
+        damage_type: DamageType = request_damage_type(index_name='force')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='4d8', bonus=3))]
+        multi_attack_action = Action(name='Devastating Bolt', desc='', type=ActionType.RANGED, attack_bonus=5, damages=damages, normal_range=5, long_range=60)
+        action = Action(name='Multiattack', desc='', type=ActionType.RANGED, multi_attack=[multi_attack_action] * 2)
+        actions.append(action)
+        # Spellcasting
+        caster_level = 2
+        dc_type = 'int'
+        dc_value = 13
+        spells = ['mage-hand', 'prestidigitation', 'fireball', 'fly', 'fog-cloud', 'gust-of-wind', 'lightning-bolt']
+        if spells:
+            spell_caster: SpellCaster = SpellCaster(level=caster_level,
+                                                    spell_slots=[0, 1, 0, 0, 0],
+                                                    learned_spells=list(filter(None, [request_spell(s) for s in spells])),
+                                                    dc_type=dc_type,
+                                                    dc_value=dc_value + 5,
+                                                    ability_modifier=5)
+    elif name == "Stone Giant":
+        # 		"action": [
+        # 			{
+        # 				"name": "Multiattack",
+        # 				"entries": [
+        # 					"The giant makes two greatclub attacks."
+        # 				]
+        # 			},
+        # 			{
+        # 				"name": "Greatclub",
+        # 				"entries": [
+        # 					"{@atk mw} {@hit 9} to hit, reach 15 ft., one target. {@h}19 ({@damage 3d8 + 6}) bludgeoning damage."
+        # 				]
+        # 			},
+        # 			{
+        # 				"name": "Rock",
+        # 				"entries": [
+        # 					"{@atk rw} {@hit 9} to hit, range 60/240 ft., one target. {@h}28 ({@damage 4d10 + 6}) bludgeoning damage. If the target is a creature, it must succeed on a {@dc 17} Strength saving throw or be knocked {@condition prone}."
+        # 				]
+        # 			}
+        # 		],
+        # Multiattack
+        # "The giant makes two greataxe attacks."
+        damage_type: DamageType = request_damage_type(index_name='bludgeoning')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='3d8', bonus=6))]
+        multi_attack_action = Action(name='Greataxe', desc='', type=ActionType.MIXED, attack_bonus=9, damages=damages, normal_range=15)
+        action = Action(name='Multiattack', desc='', type=ActionType.MIXED, multi_attack=[multi_attack_action] * 2)
+        actions.append(action)
+        # Single attack
+        damage_type: DamageType = request_damage_type(index_name='bludgeoning')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='4d10', bonus=6))]
+        action = Action(name='Rock', desc='', type=ActionType.RANGED, attack_bonus=9, damages=damages, normal_range=60, long_range=240)
+        actions.append(action)
+    elif name == "Orc Hand of Yurtrus":
+        # Melee attack
+        damage_type: DamageType = request_damage_type(index_name='necrotic')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='2d8'))]
+        action = Action(name='Touch of the White Hand', desc='', type=ActionType.MELEE, attack_bonus=3, damages=damages, normal_range=5)
+        actions.append(action)
+        # Spellcasting
+        caster_level = 4
+        dc_type = 'wis'
+        dc_value = 12
+        spells = ['guidance', 'mending', 'resistance', 'thaumaturgy', 'bane', 'detect magic', 'inflict wounds', 'protection from evil and good', 'blindness/deafness', 'silence']
+        if spells:
+            spell_caster: SpellCaster = SpellCaster(level=caster_level,
+                                                    spell_slots=[4, 3],
+                                                    learned_spells=list(filter(None, [request_spell(s) for s in spells])),
+                                                    dc_type=dc_type,
+                                                    dc_value=dc_value + 2,
+                                                    ability_modifier=2)
+    elif name == "Orc Nurtured One of Yurtrus":
+        damage_type: DamageType = request_damage_type(index_name='slashing')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='1d4', bonus=2)), Damage(type=damage_type, dd=DamageDice(dice='1d4', bonus=2))]
+        action = Action(name='Claws', desc='', type=ActionType.MELEE, attack_bonus=4, damages=damages, normal_range=5)
+        actions.append(action)
+        # TODO "Corrupted Vengeance"
+        # "The orc reduces itself to 0 hit points, triggering its Corrupted Carrier trait."
+
     return actions, special_abilities, spell_caster
 
 def request_monster_other(name: str) -> Optional[Monster]:
