@@ -15,7 +15,7 @@ from dao_classes import CategoryType, DamageDice, Monster, Armor, RangeType, Spe
     Trait, EquipmentCategory, \
     Abilities, Action, Damage, ActionType, DamageType, Spell, ProfType, Condition, Inventory, AreaOfEffect
 from populate_rpg_functions import load_armor_image_name, load_weapon_image_name
-from tools.common import parse_challenge_rating
+from tools.common import parse_challenge_rating, resource_path
 
 """ CSV loads """
 
@@ -27,7 +27,7 @@ def populate_names(race: Race) -> dict():
     :return: list of names (except humans and half-elf)
     """
     names_list = dict()
-    with open(f"{path}/data/names/{race.index}.csv", newline='') as csv_file:
+    with open(resource_path(f"data/names/{race.index}.csv"), newline='') as csv_file:
         csv_data = csv.reader(csv_file, delimiter=',')
         for gender, name in csv_data:
             if gender not in names_list:
@@ -42,7 +42,7 @@ def populate_human_names() -> dict():
     :return: list of names (humans and half-elf)
     """
     names_list = dict()
-    with open(f"{path}/data/names/human.csv", newline='') as csv_file:
+    with open(resource_path("data/names/human.csv"), newline='') as csv_file:
         csv_data = csv.reader(csv_file, delimiter=',')
         for ethnic, sex, name in csv_data:
             if ethnic not in names_list:
@@ -61,7 +61,7 @@ def read_csvfile_old(filename: str):
     :return: list of dictionaries
     """
     result = []
-    with open(f'{path}/Tables/{filename}', newline='') as csv_file:
+    with open(resource_path(f'Tables/{filename}'), newline='') as csv_file:
         reader = csv.reader(csv_file, delimiter=';')
         headers = next(reader, None)
         csv_data = csv.DictReader(csv_file, delimiter=';')
@@ -75,7 +75,7 @@ def read_csvfile(filename: str):
     :param filename: csv file in Tables directory
     :return: list of dictionaries
     """
-    with open(f'{path}/Tables/{filename}', newline='') as csv_file:
+    with open(resource_path(f'Tables/{filename}'), newline='') as csv_file:
         reader = csv.reader(csv_file, delimiter=';')
         next(reader, None)
         return list(reader)
@@ -89,7 +89,7 @@ def height_weight_table() -> List:
     headers = ['Race', 'Base Height', 'Height Modifier',
                'Base Weight', 'Weight Modifier']
     hw_conv_table = []
-    with open(f"{path}/Tables/Height and Weight-Height and Weight.csv", newline='') as csv_file:
+    with open(resource_path("Tables/Height and Weight-Height and Weight.csv"), newline='') as csv_file:
         # csv_data = csv.reader(csv_file, delimiter=';')
         # next(csv_data, None)
         csv_data = csv.DictReader(csv_file, delimiter=';')
@@ -108,7 +108,7 @@ def populate(collection_name: str, key_name: str, with_url=False, collection_pat
     if not collection_path:
         collection_path = 'collections'
     try:
-        with open(f"{path}/{collection_path}/{collection_name}.json", "r") as f:
+        with open(resource_path(f"{collection_path}/{collection_name}.json"), "r") as f:
             data = json.loads(f.read())
             # collection_count = int(data['count'])
             collection_json_list = data[key_name]
@@ -129,7 +129,7 @@ def request_damage_type(index_name: str) -> DamageType:
     :param index_name: name of the damage type
     :return: DamageType object
     """
-    with open(f"{path}/data/damage-types/{index_name}.json", "r") as f:
+    with open(resource_path(f"data/damage-types/{index_name}.json"), "r") as f:
         data = json.loads(f.read())
     return DamageType(index=data['index'], name=data['name'], desc=data['desc'])
 
@@ -140,7 +140,7 @@ def request_condition(index_name: str) -> Condition:
     :param index_name: name of the condition
     :return: Condition object
     """
-    with open(f"{path}/data/conditions/{index_name}.json", "r") as f:
+    with open(resource_path(f"data/conditions/{index_name}.json"), "r") as f:
         data = json.loads(f.read())
 
     return Condition(index=data['index'], name=data['name'], desc=data['desc'])
@@ -148,7 +148,7 @@ def request_condition(index_name: str) -> Condition:
 
 def request_other_actions(index_name: str) -> List[Action]:
     actions: List[Action] = []
-    with open(f"{path}/data/monsters/{index_name}.json", "r") as f:
+    with open(resource_path(f"data/monsters/{index_name}.json"), "r") as f:
         data = json.loads(f.read())
         damages: List[Damage] = []
         if index_name == 'rug-of-smothering':
@@ -176,7 +176,7 @@ def request_monster(index_name: str) -> Monster:
     :return: Monster object
     """
     # print(index_name)
-    with open(f"{path}/data/monsters/{index_name}.json", "r") as f:
+    with open(resource_path(f"data/monsters/{index_name}.json"), "r") as f:
         data = json.loads(f.read())
 
     can_cast: bool = False
@@ -373,7 +373,7 @@ def get_special_monster_actions(name: str) -> tuple[List[Action], List[SpecialAb
     actions: List[Action] = []
     special_abilities: List[SpecialAbility] = []
     spell_caster: SpellCaster = None
-    print(name)
+    # print(name)
     if name == "Orc Eye of Gruumsh":
         damage_type: DamageType = request_damage_type(index_name='piercing')
         # Ranged attack
@@ -1419,26 +1419,6 @@ def get_special_monster_actions(name: str) -> tuple[List[Action], List[SpecialAb
                                                     dc_value=dc_value + 5,
                                                     ability_modifier=5)
     elif name == "Stone Giant":
-        # 		"action": [
-        # 			{
-        # 				"name": "Multiattack",
-        # 				"entries": [
-        # 					"The giant makes two greatclub attacks."
-        # 				]
-        # 			},
-        # 			{
-        # 				"name": "Greatclub",
-        # 				"entries": [
-        # 					"{@atk mw} {@hit 9} to hit, reach 15 ft., one target. {@h}19 ({@damage 3d8 + 6}) bludgeoning damage."
-        # 				]
-        # 			},
-        # 			{
-        # 				"name": "Rock",
-        # 				"entries": [
-        # 					"{@atk rw} {@hit 9} to hit, range 60/240 ft., one target. {@h}28 ({@damage 4d10 + 6}) bludgeoning damage. If the target is a creature, it must succeed on a {@dc 17} Strength saving throw or be knocked {@condition prone}."
-        # 				]
-        # 			}
-        # 		],
         # Multiattack
         # "The giant makes two greataxe attacks."
         damage_type: DamageType = request_damage_type(index_name='bludgeoning')
@@ -1485,7 +1465,7 @@ def request_monster_other(name: str) -> Optional[Monster]:
     :param monster_name: name of the monster
     :return: Monster object
     """
-    with open(f"{path}/maze/other_monsters/bestiary-sublist-data.json", "r") as f:
+    with open(resource_path("maze/other_monsters/bestiary-sublist-data.json"), "r") as f:
         list_data = json.loads(f.read())
         monster_data = [monster for monster in list_data if monster['name'].lower() == name.lower() ]
         if not monster_data:
@@ -1542,7 +1522,7 @@ def request_spell(index_name: str) -> Spell:
     :param index_name: name of the monster
     :return: Spell object
     """
-    with open(f"{path}/data/spells/{index_name}.json", "r") as f:
+    with open(resource_path(f"data/spells/{index_name}.json"), "r") as f:
         data = json.loads(f.read())
 
     allowed_classes: List[str] = [c['index'] for c in data['classes']]
@@ -1606,7 +1586,7 @@ def request_armor(index_name: str) -> Armor:
     :param index_name: name of the armor
     :return: Armor object
     """
-    with open(f"{path}/data/armors/{index_name}.json", "r") as f:
+    with open(resource_path(f"data/armors/{index_name}.json"), "r") as f:
         data = json.loads(f.read())
     if "armor_class" in data:
         image_name = load_armor_image_name(index_name)
@@ -1633,7 +1613,7 @@ def request_weapon_property(index_name: str) -> WeaponProperty:
     :param index_name: name of the weapon's property
     :return: WeaponProperty object
     """
-    with open(f"{path}/data/weapon-properties/{index_name}.json", "r") as f:
+    with open(resource_path(f"data/weapon-properties/{index_name}.json"), "r") as f:
         data = json.loads(f.read())
     return WeaponProperty(index=data['index'],
                           name=data['name'],
@@ -1646,7 +1626,7 @@ def request_weapon(index_name: str) -> Weapon:
     :param index_name: name of the weapon
     :return: Weapon object
     """
-    with open(f"{path}/data/weapons/{index_name}.json", "r") as f:
+    with open(resource_path(f"data/weapons/{index_name}.json"), "r") as f:
         data = json.loads(f.read())
     weapon_properties = None
     if 'properties' in data:
@@ -1688,7 +1668,7 @@ def request_trait(index_name: str) -> Trait:
     :param index_name: name of the trait
     :return: Trait object
     """
-    with open(f"{path}/data/traits/{index_name}.json", "r") as f:
+    with open(resource_path(f"data/traits/{index_name}.json"), "r") as f:
         data = json.loads(f.read())
     return Trait(index=data['index'],
                  name=data['name'],
@@ -1701,7 +1681,7 @@ def request_race(index_name: str) -> Race:
     :param index_name: name of the race
     :return: Race object
     """
-    with open(f"{path}/data/races/{index_name}.json", "r") as f:
+    with open(resource_path(f"data/races/{index_name}.json"), "r") as f:
         data = json.loads(f.read())
         ability_bonuses = dict([(ability_bonus['ability_score']['index'], ability_bonus['bonus'])
                                 for ability_bonus in data['ability_bonuses']])
@@ -1743,7 +1723,7 @@ def request_subrace(index_name: str) -> SubRace:
     :param index_name: name of the subrace
     :return: SubRace object
     """
-    with open(f"{path}/data/subraces/{index_name}.json", "r") as f:
+    with open(resource_path(f"data/subraces/{index_name}.json"), "r") as f:
         data = json.loads(f.read())
         ability_bonuses = dict([(ability_bonus['ability_score']['index'], ability_bonus['bonus'])
                                 for ability_bonus in data['ability_bonuses']])
@@ -1765,7 +1745,7 @@ def request_language(index_name: str) -> Language:
     :param index_name: name of the language
     :return: Language object
     """
-    with open(f"{path}/data/languages/{index_name}.json", "r") as f:
+    with open(resource_path(f"data/languages/{index_name}.json"), "r") as f:
         data = json.loads(f.read())
         return Language(index_name=data['index'],
                         name=data['name'],
@@ -1781,7 +1761,7 @@ def request_proficiency(index_name: str) -> Proficiency:
     :param index_name: name of the proficiency
     :return: Proficiency object
     """
-    with open(f"{path}/data/proficiencies/{index_name}.json", "r") as f:
+    with open(resource_path(f"data/proficiencies/{index_name}.json"), "r") as f:
         data = json.loads(f.read())
 
     classes: List[str] = []
@@ -1817,7 +1797,7 @@ def request_language(index_name: str) -> Language:
     :param index_name: name of the language
     :return: Language object
     """
-    with open(f"{path}/data/languages/{index_name}.json", "r") as f:
+    with open(resource_path(f"data/languages/{index_name}.json"), "r") as f:
         data = json.loads(f.read())
         return Language(index=data['index'],
                         name=data['name'],
@@ -1833,7 +1813,7 @@ def request_equipment_category(index_name: str) -> EquipmentCategory:
     :param index_name: name of the equipment category
     :return: EquipmentCategory object
     """
-    with open(f"{path}/data/equipment-categories/{index_name}.json", "r") as f:
+    with open(resource_path(f"data/equipment-categories/{index_name}.json"), "r") as f:
         data = json.loads(f.read())
         return EquipmentCategory(index=data['index'],
                                  name=data['name'],
@@ -1862,7 +1842,7 @@ def request_equipment(index_name: str) -> Optional[Equipment]:
     :return: Equipment object
     """
     try:
-        with open(f"{path}/data/equipment/{index_name}.json", "r") as f:
+        with open(resource_path(f"data/equipment/{index_name}.json"), "r") as f:
             data = json.loads(f.read())
             equipment_category = data['equipment_category']['index']
             if equipment_category == 'weapon':
@@ -1960,7 +1940,7 @@ def request_class(index_name: str, known_proficiencies: List[Proficiency] = None
     :param index_name: name of the class
     :return: ClassType object
     """
-    with open(f"{path}/data/classes/{index_name}.json", "r") as f:
+    with open(resource_path(f"data/classes/{index_name}.json"), "r") as f:
         data = json.loads(f.read())
         proficiencies: List[Proficiency] = [request_proficiency(
             d['index']) for d in data['proficiencies']]
