@@ -617,8 +617,8 @@ class Damage:
 @dataclass
 class Condition:
     index: str
-    name: str
-    desc: str
+    name: str = ''
+    desc: str = ''
     dc_type: AbilityType = None
     dc_value: int = None
     creature: Monster = None
