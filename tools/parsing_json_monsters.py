@@ -138,17 +138,24 @@ if __name__ == '__main__':
     mm_book_ref = "MM" # Monsters manual
     mpmm_book_ref = "MPMM" # Monsters of the Multiverse
     phb_book_ref = "PHB" # Player's Handbook
+    vgm_book_ref = "VGM" # Volo's Guide to Monsters
+    book_references = [mm_book_ref, mpmm_book_ref, phb_book_ref, vgm_book_ref]
+    missing_monsters: List[str] = []
     for monster_name in bestiary:
         image_filename = os.path.join(save_folder, f"{monster_name}.webp")
         # Check if the image file already exists in the folder
         if not os.path.isfile(image_filename):
-            for book_ref in (mm_book_ref, mpmm_book_ref):
+            missing_monsters += [monster_name]
+            for book_ref in book_references:
                 image_url = f"https://5e.tools/img/bestiary/tokens/{book_ref}/{monster_name}.webp"
                 download_image(image_url, save_folder, monster_name)
                 # Call the download_image function if the file doesn't exist
                 http_status_code = download_image(image_url, save_folder, monster_name)
                 if http_status_code == 200:
                     break
+    print(f'{len(missing_monsters)} missing monsters')
+    print(('|'.join(missing_monsters)))
+
 
 
 
