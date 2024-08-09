@@ -23,7 +23,7 @@ from main import get_roster, save_character, load_xp_levels, load_character
 from populate_functions import populate, request_armor, request_weapon, request_monster, request_spell, request_monster_other
 from populate_rpg_functions import load_potions_collections
 from tools.cell_bits_dnd import DOORSPACE, TRAPPED, STAIR_UP, STAIR_DN
-from tools.common import cprint, generate_cave, generate_dungeon, Color, MAX_LEVELS, GREEN
+from tools.common import cprint, generate_cave, generate_dungeon, Color, MAX_LEVELS, GREEN, resource_path
 from tools.parse_json_dungeon import parse_dungeon_json
 from tools import cell_bits_dnd as cb
 from tools.parsing_json_monsters import get_monster_counts
@@ -58,8 +58,7 @@ DIRECTIONS = [UP, DOWN, LEFT, RIGHT]
 
 ROUND_DURATION = 3  # Duration of a round in seconds
 
-
-def put_inlay(image: Surface, number: int):
+def put_inlay(image: pygame.Surface, number: int):
     # Police pour le texte
     font = pygame.font.Font(None, 18)
 
@@ -375,13 +374,17 @@ class Game:
     school_images: dict
     xp_levels: List[int]
     last_round_time: float
-    ready_spell: Spell = None
-    target_pos: tuple = None
-    round_no: int = 0
-    last_combat_round: int = 0
-    kills: List[Monster] = []
+    ready_spell: Optional[Spell]
+    target_pos: tuple
+    round_no: int
+    last_combat_round: int
+    kills: List[Monster]
 
     def __init__(self, char_name: str, actions_panel=False, start_level=1):
+        self.ready_spell = None
+        self.kills = []
+        self.round_no = 0
+        self.last_combat_round = 0
         self.last_round_time = time.time()
         # Chargement de la carte
         self.actions_panel = actions_panel
@@ -915,7 +918,7 @@ def find_path(start: tuple, end: tuple, carte: List, obstacles: List[tuple]) -> 
 
 def load_game_assets():
     # Load tiles
-    tile_img = pygame.image.load('sprites/TilesDungeon/Tile.png')
+    tile_img = pygame.image.load(resource_path('sprites/TilesDungeon/Tile.png'))
 
     # Load font
     font = pygame.font.SysFont(None, 36)
@@ -935,16 +938,16 @@ def load_game_assets():
 
 
 def save_character_gamestate(char: Character, _dir: str, gamestate: Game):
-    with open(f'{_dir}/{char.name}_gamestate.dmp', 'wb') as f1:
+    with open(resource_path(f'{_dir}/{char.name}_gamestate.dmp'), 'wb') as f1:
         print(f'Saving {char.name} gamestate...')
         pickle.dump(gamestate, f1)
 
 
 def load_character_gamestate(char_name: str, _dir: str) -> Optional[Game]:
     gs_filename = f'{_dir}/{char_name}_gamestate.dmp'
-    if not os.path.exists(gs_filename):
+    if not os.path.exists(resource_path(gs_filename)):
         return None
-    with open(gs_filename, 'rb') as f1:
+    with open(resource_path(gs_filename), 'rb') as f1:
         print(f'Loading {char_name} gamestate...')
         return pickle.load(f1)
 
@@ -1515,12 +1518,12 @@ def handle_level_changes(game):
                 print(f'Hero found downstairs! going to Level {game.dungeon_level + 1}')
                 game.dungeon_level += 1
                 # Uncomment following lines to reset level
-                # if game.dungeon_level == 14:
-                #     # reset level
-                #     print(f'resetting level {game.dungeon_level}')
-                #     game.level = Level(level_no=game.dungeon_level)
-                #     game.levels[game.dungeon_level-1] = game.level
-                #     game.level.load(hero=game.hero)
+                if game.dungeon_level == 15:
+                    # reset level
+                    print(f'resetting level {game.dungeon_level}')
+                    game.level = Level(level_no=game.dungeon_level)
+                    game.levels[game.dungeon_level-1] = game.level
+                    game.level.load(hero=game.hero)
                 if game.dungeon_level > len(game.levels):
                     game.level = Level(level_no=game.dungeon_level)
                     game.levels.append(game.level)
