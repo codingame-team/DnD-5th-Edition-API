@@ -1516,14 +1516,17 @@ def request_monster_other(name: str) -> Optional[Monster]:
                        sa=special_abilities)  # if can_attack else None
 
 
-def request_spell(index_name: str) -> Spell:
+def request_spell(index_name: str) -> Optional[Spell]:
     """
     Send a request to local database for a spell's characteristic
     :param index_name: name of the monster
     :return: Spell object
     """
-    with open(resource_path(f"data/spells/{index_name}.json"), "r") as f:
-        data = json.loads(f.read())
+    try:
+        with open(resource_path(f"data/spells/{index_name}.json"), "r") as f:
+            data = json.loads(f.read())
+    except FileNotFoundError:
+        return None
 
     allowed_classes: List[str] = [c['index'] for c in data['classes']]
 

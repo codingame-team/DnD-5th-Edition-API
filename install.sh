@@ -8,4 +8,5 @@ pyinstaller --onefile \
     --add-data "maze:maze" \
     --add-data "Tables:Tables" \
     --add-data "gameState:gameState" \
+    --exclude-module "sprites/rpgcharacterspack/big" \
     dungeon_menu_pygame.py

@@ -1069,8 +1069,9 @@ def display_game_over(game):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 save_character(char=game.hero, _dir=characters_dir)
-                pygame.quit()
-                sys.exit()
+                paused = False
+                # pygame.quit()
+                # sys.exit()
             # elif event.type == pygame.KEYDOWN:
             #     paused = False
             #     break
