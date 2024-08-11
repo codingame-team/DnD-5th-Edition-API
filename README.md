@@ -31,8 +31,9 @@ Usage to run:
 
 Prerequisites:
 - Run in binary mode:
-  - install.sh (to compile project on macOS/Linux versions)
-  - install.bat (to compile project on windows versions)
+  - Installer pyinstaller: `pip install pyinstaller`
+    - install.sh (to compile project on macOS/Linux versions)
+    - install.bat (to compile project on windows versions)
 - Run in interpreted mode (useful for debugging)
   - List of required modules for python v3.11:
       ./requirements.txt
