@@ -6,7 +6,7 @@ import pygame
 
 from dungeon_pygame import Game, Level, Room, load_character_gamestate, WHITE, RED
 
-from tools.common import resource_path
+from tools.common import resource_path, get_save_game_path
 
 # Define colors
 BLACK = (0, 0, 0)
@@ -99,8 +99,14 @@ def main(game: Game):
     pygame.quit()
     sys.exit()
 
+def run(character_name: str ='Brottor'):
+    global scroll_offset, line_height, monster_images
+    global SCREEN_WIDTH, SCREEN_HEIGHT
+    global game_path, characters_dir, gamestate_dir
+    global monster_kills, crs
+    global selected_image_index, num_images, text_rects
+    global screen, font
 
-if __name__ == "__main__":
     pygame.init()
 
     # Set up font
@@ -114,10 +120,10 @@ if __name__ == "__main__":
 
     path = os.path.dirname(__file__)
     abspath = os.path.abspath(path)
-    characters_dir = resource_path(f'gameState/characters')
-    gamestate_dir = resource_path(f'gameState/pygame')
+    game_path = get_save_game_path()
+    characters_dir = f'{game_path}/characters'
+    gamestate_dir = f'{game_path}/pygame'
 
-    character_name = sys.argv[1] if len(sys.argv) > 1 else 'Brottor'
 
     # Load monster images
     monster_images = {}
@@ -129,9 +135,13 @@ if __name__ == "__main__":
         # Resize the image to 280x280 pixels
         monster_images[monster_name] = pygame.transform.scale(original_image, (280, 280))
 
-    # try:
-    pygame.display.set_caption(f"Monster kills by {character_name}")
-    saved_game = load_character_gamestate(character_name, gamestate_dir)
-    main(saved_game)
-    # except IndexError:
-    #     print(f"Character name <{character_name}> not found in roster")
+    try:
+        pygame.display.set_caption(f"Monster kills by {character_name}")
+        saved_game = load_character_gamestate(character_name, gamestate_dir)
+        main(saved_game)
+    except IndexError:
+        print(f"Character name <{character_name}> not found in roster")
+
+if __name__ == "__main__":
+    # character_name = sys.argv[1] if len(sys.argv) > 1 else 'Brottor'
+    run()

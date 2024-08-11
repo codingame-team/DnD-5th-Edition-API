@@ -10,6 +10,7 @@ import sys
 import time
 from copy import copy
 from dataclasses import dataclass
+from pathlib import Path
 from random import choice, randint
 from typing import List, Optional, Tuple
 
@@ -23,7 +24,7 @@ from main import get_roster, save_character, load_xp_levels, load_character
 from populate_functions import populate, request_armor, request_weapon, request_monster, request_spell, request_monster_other
 from populate_rpg_functions import load_potions_collections
 from tools.cell_bits_dnd import DOORSPACE, TRAPPED, STAIR_UP, STAIR_DN
-from tools.common import cprint, generate_cave, generate_dungeon, Color, MAX_LEVELS, GREEN, resource_path
+from tools.common import cprint, generate_cave, generate_dungeon, Color, MAX_LEVELS, GREEN, resource_path, get_save_game_path
 from tools.parse_json_dungeon import parse_dungeon_json
 from tools import cell_bits_dnd as cb
 from tools.parsing_json_monsters import get_monster_counts
@@ -943,6 +944,7 @@ def save_character_gamestate(char: Character, _dir: str, gamestate: Game):
         pickle.dump(gamestate, f1)
 
 
+
 def load_character_gamestate(char_name: str, _dir: str) -> Optional[Game]:
     gs_filename = f'{_dir}/{char_name}_gamestate.dmp'
     if not os.path.exists(resource_path(gs_filename)):
@@ -1104,15 +1106,16 @@ def create_wandering_monsters(game) -> List[Monster]:
 def main_game_loop(game):
     global level_sprites
     running = True
+    return_to_main = False
     game.last_round_time = time.time()
     token_images = game.load_token_images(token_images_dir)
     round_no: int = 1
-    while running:
+    while running:# and not return_to_main:
         # Calculate the time since the last frame
         current_time = time.time()
 
         # I - Gestion des actions utilisateur (évènements clavier/souris)
-        handle_events(game)
+        return_to_main = handle_events(game)
 
         # II - Gestion des conditions de jeu
         handle_game_conditions(game)
@@ -1160,11 +1163,13 @@ def handle_events(game):
             # save_character(char=game.hero, _dir=characters_dir)
             # save_character_gamestate(char=game.hero, _dir=gamestate_dir, gamestate=game)
             pygame.quit()
+            # return False
             sys.exit()
         elif event.type == pygame.MOUSEBUTTONDOWN:
             handle_mouse_events(game, event)
         elif event.type == pygame.KEYDOWN:
             handle_keyboard_events(game, event)
+    return True
 
 
 def handle_outside_map_click(game, event):
@@ -1640,21 +1645,23 @@ def draw_monster_tokens(screen, game, token_images):
 
             # token_area_y += token_rect.height + 10  # Adjust the position for the next token
 
-
-if __name__ == "__main__":
+def run(character_name: str = 'Brottor'):
+    global screen, level_sprites, sprites, game, room_no
+    global tile_img, font, armors, weapons, healing_potions
+    global path, characters_dir, gamestate_dir, sprites_dir, char_sprites_dir, item_sprites_dir, spell_sprites_dir, token_images_dir
     path = os.path.dirname(__file__)
-    abspath = os.path.abspath(path)
-    characters_dir = f'{abspath}/gameState/characters'
-    gamestate_dir = f'{abspath}/gameState/pygame'
-    sprites_dir = f"{path}/sprites"
+    # abspath = os.path.abspath(path)
+    # characters_dir = f'{abspath}/gameState/characters'
+    # gamestate_dir = f'{abspath}/gameState/pygame'
+    game_path = get_save_game_path()
+    characters_dir = f'{game_path}/characters'
+    gamestate_dir = f'{game_path}/pygame'
+    sprites_dir = resource_path('sprites')
     char_sprites_dir = f"{sprites_dir}/rpgcharacterspack"
     item_sprites_dir = f"{sprites_dir}/Items"
     spell_sprites_dir = f"{sprites_dir}/schools"
-    token_images_dir = f"{path}/images/monsters/tokens"
-    room_no: int = 0  # memorize last visited room number
-
-    # Récupération du personnage choisi par l'utilisateur
-    character_name = sys.argv[1] if len(sys.argv) > 1 else 'Brottor'
+    token_images_dir = resource_path('images/monsters/tokens')
+    room_no = 0  # memorize last visited room number
 
     # Initialisation de Pygame
     pygame.init()
@@ -1672,7 +1679,13 @@ if __name__ == "__main__":
 
     print(f'dungeon Level: {game.level.level_no} - name = {game.level.fullname}')
     print(f'Hero: #{game.hero.id} {game.hero.name} - {game.hero.race} - {game.hero.class_type.name}')
-    level_sprites: dict = create_level_sprites(game.level)
-    sprites: dict = create_sprites(hero=game.hero)
+    level_sprites = create_level_sprites(game.level)
+    sprites = create_sprites(hero=game.hero)
 
     main_game_loop(game)
+
+if __name__ == "__main__":
+    # Récupération du personnage choisi par l'utilisateur
+    # character_name = sys.argv[1] if len(sys.argv) > 1 else 'Brottor'
+    run()
+

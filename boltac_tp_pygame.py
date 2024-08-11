@@ -6,202 +6,169 @@ from typing import List
 import pygame
 
 from dao_classes import Character, Weapon, Armor, HealingPotion, Equipment
-from dungeon_pygame import Game, Level, Room, load_character_gamestate, save_character_gamestate
+from dungeon_pygame import Game, load_character_gamestate, save_character_gamestate
 from main import get_roster, save_character, load_character
 from populate_functions import request_armor, request_weapon
 from populate_rpg_functions import get_available_potions
-from tools.common import WHITE, RED, cprint, BLACK
+from tools.common import WHITE, RED, cprint, BLACK, get_save_game_path
+
+# Constants
+SCREEN_WIDTH = 1000
+SCREEN_HEIGHT = 600
+LINE_HEIGHT = 30
+RADIO_BUTTON_POSITIONS = [(x, 350) for x in (50, 200, 350)]
+BUY_BUTTON_POS = (800, 300)
+SELL_BUTTON_POS = (800, 350)
 
 
 def draw_radio_buttons(screen, font, selected_option):
     options = ["Weapons", "Armors", "Potions"]
-    for i, pos in enumerate(radio_button_positions):
-        # Draw the outer circle
-        pygame.draw.circle(screen, (255, 255, 255), (pos[0], pos[1] + 200), 10, 1)
-        # Draw the inner circle if selected
+    for i, pos in enumerate(RADIO_BUTTON_POSITIONS):
+        pygame.draw.circle(screen, WHITE, (pos[0], pos[1] + 200), 10, 1)
         if selected_option == i:
-            pygame.draw.circle(screen, (255, 255, 255), (pos[0], pos[1] + 200), 5)
-        # Draw the option text
-        text = font.render(options[i], True, (255, 255, 255))
+            pygame.draw.circle(screen, WHITE, (pos[0], pos[1] + 200), 5)
+        text = font.render(options[i], True, WHITE)
         text_rect = text.get_rect(midleft=(pos[0] + 20, pos[1] + 190))
         screen.blit(text, text_rect)
 
 
-def draw_buy_button(screen, font):
-    pygame.draw.rect(screen, (255, 255, 255), (buy_button_pos[0] - 50, buy_button_pos[1] - 20, 100, 40), 1)
-    buy_text = font.render("Buy", True, (255, 255, 255))
-    buy_text_rect = buy_text.get_rect(center=buy_button_pos)
-    screen.blit(buy_text, buy_text_rect)
+def draw_button(screen, font, pos, text):
+    pygame.draw.rect(screen, WHITE, (pos[0] - 50, pos[1] - 20, 100, 40), 1)
+    rendered_text = font.render(text, True, WHITE)
+    text_rect = rendered_text.get_rect(center=pos)
+    screen.blit(rendered_text, text_rect)
+    return pygame.Rect(pos[0] - 50, pos[1] - 20, 100, 40)
 
 
-def draw_category_items(screen, equipments, scroll_offset, line_height, font, selected_item_index):
+def draw_category_items(screen, equipments, scroll_offset, selected_item_index, font):
     text_rects = []
     for index, item in enumerate(equipments):
-        y_position = 50 + (index * line_height) - scroll_offset
+        y_position = 50 + (index * LINE_HEIGHT) - scroll_offset
         if 0 <= y_position < 500:
-            if index == selected_item_index:
-                option = font.render(f"{item.name} ({cost(item)} gp)", True, (255, 255, 0))  # Highlight the selected item
-            else:
-                option = font.render(f"{item.name} ({cost(item)} gp)", True, RED)
+            option_text = f"{item.name} ({cost(item)} gp)"
+            color = (255, 255, 0) if index == selected_item_index else RED
+            option = font.render(option_text, True, color)
             rect = option.get_rect(topleft=(20, y_position))
             screen.blit(option, rect)
             text_rects.append(rect)
         else:
-            text_rects.append(None)  # Placeholder for non-visible options
+            text_rects.append(None)
     return text_rects
 
 
-def draw_sell_button(screen, font):
-    pygame.draw.rect(screen, (255, 255, 255), (sell_button_pos[0] - 50, sell_button_pos[1] - 20, 100, 40), 1)
-    sell_text = font.render("Sell", True, (255, 255, 255))
-    sell_text_rect = sell_text.get_rect(center=sell_button_pos)
-    screen.blit(sell_text, sell_text_rect)
-
-
-def draw_hero_equipment(screen, hero, scroll_offset, line_height, font, selected_item_index):
+def draw_hero_equipment(screen, hero, scroll_offset, selected_item_index, font):
     text_rects = []
     for index, item in enumerate(hero.inventory):
-        y_position = 50 + (index * line_height) - scroll_offset
+        y_position = 50 + (index * LINE_HEIGHT) - scroll_offset
         if 0 <= y_position < 500:
             if not item:
-                option = font.render(f"<Free slot>", True, RED)
+                option = font.render("<Free slot>", True, RED)
             else:
-                if index == selected_item_index:
-                    option = font.render(f"{item.name} ({cost(item) // 2} gp)", True, (255, 255, 0))  # Highlight the selected item
-                else:
-                    option = font.render(f"{item.name} ({cost(item)} gp)", True, RED)
+                option_text = f"{item.name} ({cost(item) // 2} gp)"
+                color = (255, 255, 0) if index == selected_item_index else RED
+                option = font.render(option_text, True, color)
             rect = option.get_rect(topleft=(400, y_position))
             screen.blit(option, rect)
             text_rects.append(rect)
         else:
-            text_rects.append(None)  # Placeholder for non-visible options
+            text_rects.append(None)
     return text_rects
 
 
-def main():
-    global text_rects_buy, text_rects_sell  # Ensure text_rects is accessible in the event loop
-    global scroll_offset_buy, scroll_offset_sell
+def handle_buy(hero, selected_item_index, selected_category):
+    if selected_item_index is not None:
+        item = selected_category[selected_item_index]
+        items_in_inventory = [i.name for i in hero.inventory if i]
+        if len(items_in_inventory) == 20:
+            cprint('Your inventory is full!')
+        elif cost(item) <= hero.gold:
+            cprint(f'You bought {item.name}!')
+            hero.gold -= cost(item)
+            if isinstance(item, HealingPotion):
+                bought_item = copy(item)
+            elif isinstance(item, Armor):
+                bought_item = request_armor(item.index)
+            else:
+                bought_item = request_weapon(item.index)
+            empty_slots = [i for i, slot in enumerate(hero.inventory) if not slot]
+            hero.inventory[min(empty_slots)] = bought_item
+        else:
+            cprint(f'Not enough Gold to buy {item.name}!')
 
+
+def handle_sell(hero, selected_item_index):
+    if selected_item_index is not None:
+        try:
+            item = hero.inventory[selected_item_index]
+            cprint(f'You sold {item.name} for {cost(item) // 2} gp!')
+            hero.gold += cost(item) // 2
+            hero.inventory[hero.inventory.index(item)] = None
+        except (AttributeError, IndexError):
+            print(f'Error')
+
+
+def main_game_loop(hero, equipments):
+    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+    pygame.display.set_caption("Boltac's Trading Post")
     clock = pygame.time.Clock()
-    running = True
+    font = pygame.font.Font(None, 36)
+
     selected_option = 0
     selected_category = equipments[selected_option]
     selected_item_buy_index = None
     selected_item_sell_index = None
     scroll_offset_buy = scroll_offset_sell = 0
-    line_height = 30
-    focused_list = 'buy'  # Initial focus is on the buy list
+    focused_list = 'buy'
 
-    # Set up fonts
-    title_font = pygame.font.Font(None, 48)
-    item_font = pygame.font.Font(None, 36)
-
+    running = True
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                # save_character(hero, characters_dir)
-                if saved_game:
-                    save_character_gamestate(hero, gamestate_dir, saved_game)
-                else:
-                    save_character(hero, characters_dir)
+                save_character(hero, get_save_game_path() + '/characters')
                 running = False
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 mouse_pos = event.pos
-                # Check if a radio button is clicked
-                for i, pos in enumerate(radio_button_positions):
+                for i, pos in enumerate(RADIO_BUTTON_POSITIONS):
                     if (pos[0] - 10 < mouse_pos[0] < pos[0] + 10) and (pos[1] + 200 - 10 < mouse_pos[1] < pos[1] + 200 + 10):
                         selected_option = i
                         selected_category = equipments[selected_option]
-                        text_rects_buy = draw_category_items(screen, selected_category, scroll_offset_buy, line_height, font, selected_item_buy_index)
-                # Check if the buy button is clicked
-                if buy_list_rect.collidepoint(mouse_pos):
+                        selected_item_buy_index = None
+                if draw_button(screen, font, BUY_BUTTON_POS, "Buy").collidepoint(mouse_pos):
                     focused_list = 'buy'
-                # Check if the sell button is clicked
-                elif sell_list_rect.collidepoint(mouse_pos):
+                    handle_buy(hero, selected_item_buy_index, selected_category)
+                    selected_item_buy_index = None
+                elif draw_button(screen, font, SELL_BUTTON_POS, "Sell").collidepoint(mouse_pos):
                     focused_list = 'sell'
-
-                # Check if the buy button is clicked
-                if buy_button_rect.collidepoint(mouse_pos):
-                    focused_list = 'buy'
-                    if selected_item_buy_index is not None:
-                        item: Equipment = selected_category[selected_item_buy_index]
-                        items_in_inventory = [i.name for i in hero.inventory if i]
-                        if len(items_in_inventory) == 20:
-                            cprint('Your inventory is full!')
-                        elif cost(item) <= hero.gold:
-                            cprint(f'You bought {item.name}!')
-                            hero.gold -= cost(item)
-                            if isinstance(item, HealingPotion):
-                                bought_item: HealingPotion = copy(item)
-                            elif isinstance(item, Armor):
-                                bought_item: Armor = request_armor(item.index)
-                            else:
-                                bought_item: Weapon = request_weapon(item.index)
-                            empty_slots = [i for i, slot in enumerate(hero.inventory) if not slot]
-                            slot: int = min(empty_slots)
-                            hero.inventory[slot] = bought_item
-                        else:
-                            cprint(f'Not enough Gold to buy {item.name}!')
-                    selected_item_buy_index = None  # Deselect the item
-                # Check if the sell button is clicked
-                elif sell_button_rect.collidepoint(mouse_pos):
-                    focused_list = 'sell'
-                    if selected_item_sell_index is not None:
-                        try:
-                            item: Equipment = hero.inventory[selected_item_sell_index]
-                            cprint(f'You sold {item.name} for {cost(item) // 2} gp!')
-                            hero.gold += cost(item) // 2
-                            slot: int = hero.inventory.index(item)  # Find the slot where the item is located
-                            hero.inventory[slot] = None  # Remove the item from the inventory
-                        except (AttributeError, IndexError):
-                            print(f'Error')
-                    selected_item_sell_index = None  # Deselect the item
+                    handle_sell(hero, selected_item_sell_index)
+                    selected_item_sell_index = None
                 else:
-                    for index, rect in enumerate(text_rects_buy):
+                    for index, rect in enumerate(draw_category_items(screen, selected_category, scroll_offset_buy, selected_item_buy_index, font)):
                         if rect and rect.collidepoint(mouse_pos):
                             selected_item_buy_index = index
                             break
-                    for index, rect in enumerate(text_rects_sell):
+                    for index, rect in enumerate(draw_hero_equipment(screen, hero, scroll_offset_sell, selected_item_sell_index, font)):
                         if rect and rect.collidepoint(mouse_pos):
                             selected_item_sell_index = index
                             break
-            # Handle scrolling events
             elif event.type == pygame.MOUSEWHEEL:
                 if focused_list == 'buy':
-                    scroll_offset_buy = max(0, min(len(selected_category) * line_height - 300, scroll_offset_buy + event.y * line_height))
+                    scroll_offset_buy = max(0, min(len(selected_category) * LINE_HEIGHT - 300, scroll_offset_buy + event.y * LINE_HEIGHT))
                 else:
-                    scroll_offset_sell = max(0, min(len(hero.inventory) * line_height - 300, scroll_offset_sell + event.y * line_height))
+                    scroll_offset_sell = max(0, min(len(hero.inventory) * LINE_HEIGHT - 300, scroll_offset_sell + event.y * LINE_HEIGHT))
 
-        # Clear the screen
-        screen.fill((0, 0, 0))
-
-        # Draw the list of selected category above the radio button list
-        text_rects_buy = draw_category_items(screen, selected_category, scroll_offset_buy, line_height, font, selected_item_buy_index)
-
-        # Draw the radio buttons
+        screen.fill(BLACK)
+        draw_category_items(screen, selected_category, scroll_offset_buy, selected_item_buy_index, font)
         draw_radio_buttons(screen, font, selected_option)
+        draw_button(screen, font, BUY_BUTTON_POS, "Buy")
+        draw_button(screen, font, SELL_BUTTON_POS, "Sell")
+        draw_hero_equipment(screen, hero, scroll_offset_sell, selected_item_sell_index, font)
 
-        # Draw the buy button
-        draw_buy_button(screen, font)
-        buy_button_rect = pygame.Rect(buy_button_pos[0] - 50, buy_button_pos[1] - 20, 100, 40)
+        hero_name_text = font.render(f"{hero.name}", True, WHITE)
+        screen.blit(hero_name_text, hero_name_text.get_rect(topleft=(BUY_BUTTON_POS[0] - 50, BUY_BUTTON_POS[1] - 150)))
 
-        # Draw the sell button
-        draw_sell_button(screen, font)
-        sell_button_rect = pygame.Rect(sell_button_pos[0] - 50, sell_button_pos[1] - 20, 100, 40)
+        hero_gold_text = font.render(f"Gold: {hero.gold}", True, WHITE)
+        screen.blit(hero_gold_text, hero_gold_text.get_rect(topleft=(BUY_BUTTON_POS[0] - 50, BUY_BUTTON_POS[1] - 100)))
 
-        # Draw the hero's equipment
-        text_rects_sell = draw_hero_equipment(screen, hero, scroll_offset_sell, line_height, font, selected_item_sell_index)
-
-        # Draw the hero's name and gold
-        hero_name_text = font.render(f"{hero.name}", True, (255, 255, 255))
-        hero_name_rect = hero_name_text.get_rect(topleft=(buy_button_pos[0] - 50, buy_button_pos[1] - 150))
-        screen.blit(hero_name_text, hero_name_rect)
-
-        hero_gold_text = font.render(f"Gold: {hero.gold}", True, (255, 255, 255))
-        hero_gold_rect = hero_gold_text.get_rect(topleft=(buy_button_pos[0] - 50, buy_button_pos[1] - 100))
-        screen.blit(hero_gold_text, hero_gold_rect)
-
-        # Update the display
         pygame.display.flip()
         clock.tick(60)
 
@@ -209,60 +176,30 @@ def main():
     sys.exit()
 
 
+def load_game_data(character_name):
+    game_path = get_save_game_path()
+    characters_dir = f'{game_path}/characters'
+    gamestate_dir = f'{game_path}/pygame'
+
+    try:
+        saved_game = load_character_gamestate(character_name, gamestate_dir)
+        hero = saved_game.hero if saved_game else load_character(character_name, characters_dir)
+        hero.gold = 10000
+        weapons = sorted(hero.allowed_weapons, key=cost)
+        armors = sorted(hero.allowed_armors, key=cost)
+        potions = get_available_potions()
+        return hero, [weapons, armors, potions]
+    except Exception as e:
+        cprint(f'Error loading {character_name}: {e}')
+        sys.exit()
+
+
+def run(character_name: str = 'Brottor'):
+    pygame.init()
+    hero, equipments = load_game_data(character_name)
+    main_game_loop(hero, equipments)
+
 cost = lambda x: int(x.cost) if isinstance(x, HealingPotion) else int(x.cost['quantity'])
 
 if __name__ == "__main__":
-    # Initialize Pygame
-    pygame.init()
-
-    # Set up the display
-    SCREEN_WIDTH = 1000
-    SCREEN_HEIGHT = 600
-    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-    pygame.display.set_caption("Boltac's Trading Post")
-
-    # Set up font
-    font = pygame.font.Font(None, 36)
-
-    # Radio button positions and selected option
-    radio_button_positions = [(x, 350) for x in (50, 200, 350)]
-
-    # Create a new surface for the category list
-    buy_list_surface = pygame.Surface((300, 300))
-    buy_list_surface.fill(WHITE)
-    buy_list_rect = buy_list_surface.get_rect(topleft=(50, 50))
-    buy_list_scroll_y = 0
-    buy_list_scroll_speed = 20
-
-    # Create a new surface for the hero's inventory
-    sell_list_surface = pygame.Surface((600, 300))
-    sell_list_surface.fill(WHITE)
-    sell_list_rect = sell_list_surface.get_rect(topleft=(350, 50))
-    sell_list_scroll_y = 0
-    sell_list_scroll_speed = 20
-
-    # Buy/Sell buttons position
-    buy_button_pos = (800, 300)
-    sell_button_pos = (800, 350)
-
-    path = os.path.dirname(__file__)
-    abspath = os.path.abspath(path)
-    characters_dir = f'{abspath}/gameState/characters'
-    gamestate_dir = f'{abspath}/gameState/pygame'
-
-    character_name: str = sys.argv[1] if len(sys.argv) > 1 else 'Brottor'
-
-    try:
-        # hero: Character = load_character(character_name, characters_dir)
-        saved_game: Game = load_character_gamestate(character_name, gamestate_dir)
-        hero: Character = saved_game.hero if saved_game else load_character(character_name, characters_dir)
-        hero.gold = 10000
-        weapons: List[Weapon] = sorted(hero.allowed_weapons, key=lambda w: cost(w))
-        armors: List[Armor] = sorted(hero.allowed_armors, key=lambda a: cost(a))
-        potions: List[HealingPotion] = get_available_potions()
-        equipments: List[List] = [weapons, armors, potions]
-
-    except IndexError:
-        print(f"Character name <{character_name}> not found in roster")
-
-    main()
+    run()

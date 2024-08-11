@@ -6,11 +6,12 @@ from enum import Enum
 from typing import List
 import os
 
-from dao_classes import Character
+from dao_classes import Character, color
 from dungeon_pygame import save_character_gamestate, Game
 from main import get_roster, save_character
 from tools.cheat_functions import raise_dead_roster
-from tools.common import cprint, SCREEN_WIDTH, SCREEN_HEIGHT, BLACK, RED, WHITE
+from tools.common import cprint, SCREEN_WIDTH, SCREEN_HEIGHT, BLACK, RED, WHITE, resource_path, GREEN, get_save_game_path
+import dungeon_pygame, boltac_tp_pygame, monster_kills_pygame
 
 
 class LT(Enum):
@@ -20,20 +21,14 @@ class LT(Enum):
 
 
 def go_to_location(character_name: str, location: LT):
-    mp.set_start_method('spawn')  # Set the start method to 'spawn' to avoid fork issues
-    target = explore_dungeon if location == LT.DUNGEON else shop_to_boltac if location == LT.BOLTAC else monster_kills
-    proc = mp.Process(target=target, args=(character_name,))
-    proc.start()
-
-def monster_kills(character_name):
-    subprocess.run(['python', 'monster_kills_pygame.py', character_name])
-
-def shop_to_boltac(character_name):
-    subprocess.run(['python', 'boltac_tp_pygame.py', character_name])
-
-
-def explore_dungeon(character_name):
-    subprocess.run(['python', 'dungeon_pygame.py', character_name])
+    if location == LT.DUNGEON:
+        dungeon_pygame.run(character_name)
+    elif location == LT.BOLTAC:
+        boltac_tp_pygame.run(character_name)
+    elif location == LT.MONSTER_KILLS:
+        monster_kills_pygame.run(character_name)
+    else:
+        cprint('Invalid location', color=RED)
 
 
 def reset_ids_all(gamestates: List[Game]):
@@ -100,7 +95,7 @@ def draw_radio_buttons(screen, font, selected_option, options, radio_button_posi
         screen.blit(text, (pos[0] + 20, pos[1] - 10))
 
 
-def main(roster):
+def main(roster: List[Character]):
     global scroll_offset
     clock = pygame.time.Clock()
     running = True
@@ -149,7 +144,12 @@ def main(roster):
     sys.exit()
 
 
-if __name__ == "__main__":
+def run():
+    global abspath, gamestate_dir, characters_dir
+    global scroll_offset, line_height
+    global SCREEN_WIDTH, SCREEN_HEIGHT
+    global screen, font
+
     pygame.init()
 
     font = pygame.font.Font(None, 22)
@@ -165,9 +165,29 @@ if __name__ == "__main__":
 
     path = os.path.dirname(__file__)
     abspath = os.path.abspath(path)
-    characters_dir = f'{abspath}/gameState/characters'
-    roster: List[Character] = get_roster(characters_dir)
-    gamestate_dir = f'{abspath}/gameState/pygame'
-    raise_dead_roster(roster, characters_dir)
 
-    main(roster)
+    game_path = get_save_game_path()
+    characters_dir = f'{game_path}/characters'
+    gamestate_dir = f'{game_path}/pygame'
+    if game_path and not os.path.exists(game_path):
+        os.makedirs(game_path)  # Crée le dossier avec tous ses parents nécessaires
+        os.makedirs(characters_dir)
+        os.makedirs(gamestate_dir)
+        # Importation des personnages existants et sauvegarde dans le répertoire utilisateur
+        default_roster: List[Character] = get_roster(characters_dir=resource_path('gameState/characters'))
+        for char in default_roster:
+            save_character(char=char, _dir=characters_dir)
+            cprint(f'Personnage {char.name} importé dans {characters_dir}', color.GREEN)
+
+    cprint(f'path = {path}')
+
+    try:
+        roster: List[Character] = get_roster(characters_dir)
+        raise_dead_roster(roster, characters_dir)
+        main(roster)
+    except FileNotFoundError:
+        cprint(f'No characters found in {characters_dir}', color=RED)
+
+
+if __name__ == "__main__":
+    run()
