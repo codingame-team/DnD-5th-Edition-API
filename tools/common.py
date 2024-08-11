@@ -6,6 +6,7 @@ import sys
 import termios
 import tty
 from enum import Enum
+from pathlib import Path
 from random import randint, choice
 from time import time
 from typing import List
@@ -55,10 +56,29 @@ def resource_path(relative_path):
         return os.path.join(sys._MEIPASS, relative_path)
     return os.path.join(os.path.abspath("."), relative_path)
 
-def cprint(*args):
+def get_save_game_path(folder_name="Saved_Games_DnD_5th"):
+    """
+    Retourne le chemin d'un dossier pour sauvegarder les jeux en cours en fonction du système d'exploitation.
+
+    :param folder_name: Nom du sous-dossier pour les sauvegardes (optionnel).
+    :return: Chemin absolu du dossier de sauvegarde.
+    """
+    # Récupère le dossier utilisateur en fonction du système d'exploitation
+    if os.name == 'nt':  # Système Windows
+        save_path = f'{Path.home()}/Documents/{folder_name}'
+    elif os.name == 'posix':  # Systèmes Unix-like (Linux, macOS)
+        save_path = f'{Path.home()}/{folder_name}'
+    else:
+        raise OSError("Système d'exploitation non supporté")
+
+    return save_path
+
+def cprint(message: str, color: Color = None):
     # return
-    # print(*args, file=sys.stderr, flush=True)
-    print(*args, flush=True)
+    if color:
+        print(f'{color}{message}{Color.END}', flush=True)
+    else:
+        print(message, flush=True)
 
 
 def get_key():
