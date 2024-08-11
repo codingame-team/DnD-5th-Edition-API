@@ -381,7 +381,7 @@ class Game:
     last_combat_round: int
     kills: List[Monster]
 
-    def __init__(self, char_name: str, actions_panel=False, start_level=1):
+    def __init__(self, char_name: str, char_dir: str, actions_panel=False, start_level=1):
         self.ready_spell = None
         self.kills = []
         self.round_no = 0
@@ -409,7 +409,7 @@ class Game:
         # hero_x, hero_y = choice(open_positions)
         hero_x, hero_y = self.level.start_pos
         open_positions.remove((hero_x, hero_y))
-        self.hero = load_character(char_name=char_name, _dir=characters_dir)
+        self.hero = load_character(char_name=char_name, _dir=char_dir)
         self.hero.x, self.hero.y = hero_x, hero_y
         self.level.explored_tiles.add((self.hero.x, self.hero.y))
         self.update_visible_tiles()
@@ -954,10 +954,10 @@ def load_character_gamestate(char_name: str, _dir: str) -> Optional[Game]:
         return pickle.load(f1)
 
 
-def initialize_game(char_name: str) -> Game:
+def initialize_game(char_name: str, char_dir: str) -> Game:
     # game = Game(character=selected_character, start_level=5)
     saved_game: Game = load_character_gamestate(char_name, gamestate_dir)
-    return saved_game if saved_game else Game(char_name)
+    return saved_game if saved_game else Game(char_name, char_dir)
 
 
 # III - Réactualisation de l'affichage
@@ -1110,7 +1110,7 @@ def main_game_loop(game):
     game.last_round_time = time.time()
     token_images = game.load_token_images(token_images_dir)
     round_no: int = 1
-    while running:# and not return_to_main:
+    while running and not return_to_main:
         # Calculate the time since the last frame
         current_time = time.time()
 
@@ -1157,19 +1157,20 @@ def main_game_loop(game):
             running = False
 
 
-def handle_events(game):
+def handle_events(game) -> bool:
+    return_to_main_menu: bool = False
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             # save_character(char=game.hero, _dir=characters_dir)
             # save_character_gamestate(char=game.hero, _dir=gamestate_dir, gamestate=game)
-            pygame.quit()
-            # return False
-            sys.exit()
+            # pygame.quit()
+            # sys.exit()
+            return_to_main_menu = True
         elif event.type == pygame.MOUSEBUTTONDOWN:
             handle_mouse_events(game, event)
         elif event.type == pygame.KEYDOWN:
-            handle_keyboard_events(game, event)
-    return True
+            return_to_main_menu = handle_keyboard_events(game, event)
+    return return_to_main_menu
 
 
 def handle_outside_map_click(game, event):
@@ -1316,11 +1317,13 @@ def move_char(game: Game, char: Monster | Character, pos: tuple):
 
 
 def handle_keyboard_events(game, event):
+    return_to_main_menu: bool = False
     if event.key == pygame.K_ESCAPE:
         # save_character(char=game.hero, _dir=characters_dir)
         # save_character_gamestate(char=game.hero, _dir=gamestate_dir, gamestate=game)
-        pygame.quit()
-        sys.exit()
+        return_to_main_menu = True
+        # pygame.quit()
+        # sys.exit()
     elif event.key == pygame.K_s:
         save_character(char=game.hero, _dir=characters_dir)
         save_character_gamestate(char=game.hero, _dir=gamestate_dir, gamestate=game)
@@ -1364,6 +1367,7 @@ def handle_keyboard_events(game, event):
                 game.level.doors[door_pos] = not game.level.doors[door_pos]
         else:
             cprint('No open door found!')
+    return return_to_main_menu
 
 
 def handle_potion_use(game):
@@ -1671,7 +1675,7 @@ def run(character_name: str = 'Brottor'):
     tile_img, font, armors, weapons, healing_potions = load_game_assets()
 
     # Chargement du jeu en cours
-    game = initialize_game(character_name)
+    game = initialize_game(character_name, characters_dir)
     if not any((x, y) for y in range(game.map_height) for x in range(game.map_width) if game.world_map[y][x] == '>'):
         print('No downstairs found! Creating one')
         x, y = choice(game.level.walkable_tiles)

@@ -19,6 +19,7 @@ LINE_HEIGHT = 30
 RADIO_BUTTON_POSITIONS = [(x, 350) for x in (50, 200, 350)]
 BUY_BUTTON_POS = (800, 300)
 SELL_BUTTON_POS = (800, 350)
+EXIT_BUTTON_POS = (800, 400)  # Position for the EXIT button
 
 
 def draw_radio_buttons(screen, font, selected_option):
@@ -106,8 +107,14 @@ def handle_sell(hero, selected_item_index):
         except (AttributeError, IndexError):
             print(f'Error')
 
+def exit_boltac(saved_game, hero, characters_dir):
+    game_path = get_save_game_path()
+    if not saved_game:
+        saved_game = Game(char_name=hero.name, char_dir=characters_dir)
+        saved_game.hero = hero
+    save_character_gamestate(hero, game_path + '/pygame', saved_game)
 
-def main_game_loop(hero, equipments):
+def main_game_loop(saved_game, hero, equipments, characters_dir):
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     pygame.display.set_caption("Boltac's Trading Post")
     clock = pygame.time.Clock()
@@ -120,11 +127,15 @@ def main_game_loop(hero, equipments):
     scroll_offset_buy = scroll_offset_sell = 0
     focused_list = 'buy'
 
+    buy_button_rect = draw_button(screen, font, BUY_BUTTON_POS, "Buy")
+    sell_button_rect = draw_button(screen, font, SELL_BUTTON_POS, "Sell")
+    exit_button_rect = draw_button(screen, font, EXIT_BUTTON_POS, "Exit")
+
     running = True
     while running:
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                save_character(hero, get_save_game_path() + '/characters')
+            if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
+                exit_boltac(saved_game, hero, characters_dir)
                 running = False
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 mouse_pos = event.pos
@@ -133,14 +144,18 @@ def main_game_loop(hero, equipments):
                         selected_option = i
                         selected_category = equipments[selected_option]
                         selected_item_buy_index = None
-                if draw_button(screen, font, BUY_BUTTON_POS, "Buy").collidepoint(mouse_pos):
+                if buy_button_rect.collidepoint(mouse_pos):
                     focused_list = 'buy'
                     handle_buy(hero, selected_item_buy_index, selected_category)
                     selected_item_buy_index = None
-                elif draw_button(screen, font, SELL_BUTTON_POS, "Sell").collidepoint(mouse_pos):
+                elif sell_button_rect.collidepoint(mouse_pos):
                     focused_list = 'sell'
                     handle_sell(hero, selected_item_sell_index)
                     selected_item_sell_index = None
+                    # Check if the EXIT button was clicked
+                elif exit_button_rect.collidepoint(event.pos):
+                    exit_boltac(saved_game, hero, characters_dir)
+                    running = False  # Exit the game loop
                 else:
                     for index, rect in enumerate(draw_category_items(screen, selected_category, scroll_offset_buy, selected_item_buy_index, font)):
                         if rect and rect.collidepoint(mouse_pos):
@@ -161,6 +176,7 @@ def main_game_loop(hero, equipments):
         draw_radio_buttons(screen, font, selected_option)
         draw_button(screen, font, BUY_BUTTON_POS, "Buy")
         draw_button(screen, font, SELL_BUTTON_POS, "Sell")
+        draw_button(screen, font, EXIT_BUTTON_POS, "Exit")
         draw_hero_equipment(screen, hero, scroll_offset_sell, selected_item_sell_index, font)
 
         hero_name_text = font.render(f"{hero.name}", True, WHITE)
@@ -172,8 +188,8 @@ def main_game_loop(hero, equipments):
         pygame.display.flip()
         clock.tick(60)
 
-    pygame.quit()
-    sys.exit()
+    # pygame.quit()
+    # sys.exit()
 
 
 def load_game_data(character_name):
@@ -188,16 +204,16 @@ def load_game_data(character_name):
         weapons = sorted(hero.allowed_weapons, key=cost)
         armors = sorted(hero.allowed_armors, key=cost)
         potions = get_available_potions()
-        return hero, [weapons, armors, potions]
+        return saved_game, hero, [weapons, armors, potions]
     except Exception as e:
         cprint(f'Error loading {character_name}: {e}')
         sys.exit()
 
 
 def run(character_name: str = 'Brottor'):
-    pygame.init()
-    hero, equipments = load_game_data(character_name)
-    main_game_loop(hero, equipments)
+    # pygame.init()
+    saved_game, hero, equipments = load_game_data(character_name)
+    main_game_loop(saved_game, hero, equipments, f'{get_save_game_path()}/characters')
 
 cost = lambda x: int(x.cost) if isinstance(x, HealingPotion) else int(x.cost['quantity'])
 

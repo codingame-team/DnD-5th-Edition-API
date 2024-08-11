@@ -46,7 +46,10 @@ def main(game: Game):
     show_monster_image = False
     monster_image_surface = None
 
+    if not hasattr(game, 'kills'):
+        game.kills = []
     crs = {m.name: m.challenge_rating for m in game.kills}
+
     monster_kills = Counter(m.name for m in game.kills)
     monster_kills = dict(sorted(monster_kills.items(), key=lambda x: crs.get(x[0]), reverse=True))
 
@@ -58,7 +61,9 @@ def main(game: Game):
             if event.type == pygame.QUIT:
                 running = False
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_UP:  # Scroll up
+                if event.key == pygame.K_ESCAPE:
+                    running = False
+                elif event.key == pygame.K_UP:  # Scroll up
                     selected_image_index = max(selected_image_index - 1, 0)
                 elif event.key == pygame.K_DOWN:  # Scroll down
                     selected_image_index = min(selected_image_index + 1, num_images - 1)
@@ -91,13 +96,13 @@ def main(game: Game):
             screen.blit(monster_image_surface, (SCREEN_WIDTH - monster_image_surface.get_width() - 20, 20))
 
         # Draw typing hint
-        draw_typing_hint(screen, font, "Use arrow keys to navigate, left click to select")
+        draw_typing_hint(screen, font, "Use arrow keys to navigate, [Esc] to return to main menu")
 
         pygame.display.flip()
         clock.tick(60)
 
-    pygame.quit()
-    sys.exit()
+    # pygame.quit()
+    # sys.exit()
 
 def run(character_name: str ='Brottor'):
     global scroll_offset, line_height, monster_images
@@ -138,7 +143,10 @@ def run(character_name: str ='Brottor'):
     try:
         pygame.display.set_caption(f"Monster kills by {character_name}")
         saved_game = load_character_gamestate(character_name, gamestate_dir)
-        main(saved_game)
+        if not saved_game:
+            print(f"No saved game found for {character_name}")
+        else:
+            main(saved_game)
     except IndexError:
         print(f"Character name <{character_name}> not found in roster")
 
