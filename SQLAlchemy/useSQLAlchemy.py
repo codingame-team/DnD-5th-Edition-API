@@ -1,13 +1,12 @@
 #!/usr/bin/python3
 from typing import List
 
-from sqlalchemy import Column, Integer, Text, Identity
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
 # Base class used by my classes (my entities)
-from dao_classes_sql_alchemy import Monster, Base
+from tests.dao_classes_sql_alchemy import Monster, Base
 
 # The main part
 if __name__ == '__main__':
