@@ -107,12 +107,12 @@ def handle_sell(hero, selected_item_index):
         except (AttributeError, IndexError):
             print(f'Error')
 
-def exit_boltac(saved_game, hero, characters_dir):
+def exit_boltac(saved_game, hero):
     game_path = get_save_game_path()
-    if not saved_game:
-        saved_game = Game(char_name=hero.name, char_dir=characters_dir)
-        saved_game.hero = hero
-    save_character_gamestate(hero, game_path + '/pygame', saved_game)
+    if saved_game:
+        save_character_gamestate(char=hero, _dir=game_path + '/pygame', gamestate=saved_game)
+    else:
+        save_character(char=hero, _dir=game_path + '/characters')
 
 def main_game_loop(saved_game, hero, equipments, characters_dir):
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -135,7 +135,7 @@ def main_game_loop(saved_game, hero, equipments, characters_dir):
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
-                exit_boltac(saved_game, hero, characters_dir)
+                exit_boltac(saved_game, hero)
                 running = False
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 mouse_pos = event.pos
@@ -154,7 +154,7 @@ def main_game_loop(saved_game, hero, equipments, characters_dir):
                     selected_item_sell_index = None
                     # Check if the EXIT button was clicked
                 elif exit_button_rect.collidepoint(event.pos):
-                    exit_boltac(saved_game, hero, characters_dir)
+                    exit_boltac(saved_game, hero)
                     running = False  # Exit the game loop
                 else:
                     for index, rect in enumerate(draw_category_items(screen, selected_category, scroll_offset_buy, selected_item_buy_index, font)):
