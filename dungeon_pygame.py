@@ -59,6 +59,7 @@ DIRECTIONS = [UP, DOWN, LEFT, RIGHT]
 
 ROUND_DURATION = 3  # Duration of a round in seconds
 
+
 def put_inlay(image: pygame.Surface, number: int):
     # Police pour le texte
     font = pygame.font.Font(None, 18)
@@ -439,7 +440,6 @@ class Game:
         # cprint(viewport_x, viewport_y, view_width, view_height, view_port_rect)
         return viewport_x, viewport_y, view_width, view_height
 
-
     def draw_mini_map(self, screen):
         """
         Draw a mini-map on a separate surface.
@@ -491,7 +491,6 @@ class Game:
         screen.blit(mini_map_surface, (OFFSET_X, OFFSET_Y))
 
         return mini_map_surface
-
 
     def draw_map(self, path, screen):
         photo_wall = pygame.image.load(f"{path}/sprites/TilesDungeon/Wall.png")
@@ -944,7 +943,6 @@ def save_character_gamestate(char: Character, _dir: str, gamestate: Game):
         pickle.dump(gamestate, f1)
 
 
-
 def load_character_gamestate(char_name: str, _dir: str) -> Optional[Game]:
     gs_filename = f'{_dir}/{char_name}_gamestate.dmp'
     if not os.path.exists(resource_path(gs_filename)):
@@ -957,6 +955,10 @@ def load_character_gamestate(char_name: str, _dir: str) -> Optional[Game]:
 def initialize_game(char_name: str, char_dir: str) -> Game:
     # game = Game(character=selected_character, start_level=5)
     saved_game: Game = load_character_gamestate(char_name, gamestate_dir)
+
+    if saved_game and saved_game.hero.is_dead:
+        saved_game.hero.status = 'OK'
+        saved_game.hero.hit_points = 1
     return saved_game if saved_game else Game(char_name, char_dir)
 
 
@@ -992,7 +994,7 @@ def update_display(game, token_images):
 
         monster_rect = image.get_rect()
         monster_rect.topleft = ((monster.x - view_port_tuple[0]) * TILE_SIZE, (monster.y - view_port_tuple[1]) * TILE_SIZE)
-        #screen.blit(image, monster_rect)
+        # screen.blit(image, monster_rect)
 
         # Draw tooltip with monster name on mouse hover
         if monster_rect.collidepoint(pygame.mouse.get_pos()):
@@ -1532,7 +1534,7 @@ def handle_level_changes(game):
                     # reset level
                     print(f'resetting level {game.dungeon_level}')
                     game.level = Level(level_no=game.dungeon_level)
-                    game.levels[game.dungeon_level-1] = game.level
+                    game.levels[game.dungeon_level - 1] = game.level
                     game.level.load(hero=game.hero)
                 if game.dungeon_level > len(game.levels):
                     game.level = Level(level_no=game.dungeon_level)
@@ -1650,6 +1652,7 @@ def draw_monster_tokens(screen, game, token_images):
 
             # token_area_y += token_rect.height + 10  # Adjust the position for the next token
 
+
 def run(character_name: str = 'Brottor'):
     global screen, level_sprites, sprites, game, room_no
     global tile_img, font, armors, weapons, healing_potions
@@ -1689,8 +1692,8 @@ def run(character_name: str = 'Brottor'):
 
     main_game_loop(game)
 
+
 if __name__ == "__main__":
     # Récupération du personnage choisi par l'utilisateur
     # character_name = sys.argv[1] if len(sys.argv) > 1 else 'Brottor'
     run()
-
