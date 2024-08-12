@@ -957,11 +957,12 @@ def load_character_gamestate(char_name: str, _dir: str) -> Optional[Game]:
 def initialize_game(char_name: str, char_dir: str) -> Game:
     # game = Game(character=selected_character, start_level=5)
     saved_game: Game = load_character_gamestate(char_name, gamestate_dir)
-
-    if saved_game and saved_game.hero.is_dead:
+    if not saved_game:
+        return Game(char_name, char_dir)
+    if saved_game.hero.is_dead:
         saved_game.hero.status = 'OK'
         saved_game.hero.hit_points = 1
-    return saved_game if saved_game else Game(char_name, char_dir)
+    return saved_game
 
 
 # III - Réactualisation de l'affichage
@@ -1061,9 +1062,10 @@ def display_game_over(game):
     """
     Display the "GAME OVER" message in the Pygame window.
     """
-    font = pygame.font.Font(None, 72)
-    text = font.render("GAME OVER", True, (255, 0, 0))
-    text_rect = pygame.Rect(0, game.view_port_height, SCREEN_WIDTH, SCREEN_HEIGHT)
+    font = pygame.font.Font(None, 36)
+    text = font.render("GAME OVER - Press [Space] to continue", True, (255, 0, 0))
+    # text_rect = pygame.Rect((game.map_width * TILE_SIZE) // 2, 0, (game.map_width * TILE_SIZE) // 2, (game.map_height * TILE_SIZE) // 2)
+    text_rect = pygame.Rect(game.map_width // 2, game.map_width // 2, SCREEN_WIDTH, SCREEN_HEIGHT)
     screen.blit(text, text_rect)
     pygame.display.flip()
 
@@ -1071,8 +1073,8 @@ def display_game_over(game):
     paused = True
     while paused:
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                save_character(char=game.hero, _dir=characters_dir)
+            if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE):
+                # save_character(char=game.hero, _dir=characters_dir)
                 paused = False
                 # pygame.quit()
                 # sys.exit()
@@ -1683,6 +1685,7 @@ def run(character_name: str = 'Brottor'):
     tile_img, font, armors, weapons, healing_potions = load_game_assets()
 
     # Chargement du jeu en cours
+
     game = initialize_game(character_name, characters_dir)
     if not any((x, y) for y in range(game.map_height) for x in range(game.map_width) if game.world_map[y][x] == '>'):
         print('No downstairs found! Creating one')
