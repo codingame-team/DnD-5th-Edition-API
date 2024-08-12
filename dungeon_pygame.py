@@ -381,10 +381,12 @@ class Game:
     round_no: int
     last_combat_round: int
     kills: List[Monster]
+    target_pos: Optional[tuple]
 
     def __init__(self, char_name: str, char_dir: str, actions_panel=False, start_level=1):
         self.ready_spell = None
         self.kills = []
+        self.target_pos = None
         self.round_no = 0
         self.last_combat_round = 0
         self.last_round_time = time.time()
@@ -1269,6 +1271,8 @@ def handle_left_click_action(game):
 
 
 def attack_monsters(game, monsters):
+    if not hasattr(game, 'target_pos'):
+        game.target_pos = None
     for monster in monsters:
         if game.target_pos in (monster.pos, monster.old_pos):
             monster.hit_points -= game.hero.attack(monster, cast=False)
