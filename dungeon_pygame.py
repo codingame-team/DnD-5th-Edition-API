@@ -1158,6 +1158,7 @@ def main_game_loop(game):
                             update_level_sprites(monsters=new_monsters, sprites=level_sprites)
                         # else:
                         #     print(f'no wandering monsters detected this time (roll: {roll_dice})...')
+                game.target_pos = None
         else:
             cprint(f'{game.hero.name} has been defeated!')
             display_game_over(game)
@@ -1489,12 +1490,15 @@ def handle_monster_actions(game: Game, monster: Monster):
             # cprint('target chars: ' + '/'.join([c.name for c in target_chars]))
             game.hero.hit_points -= monster.special_attack(game.hero, special_attack)
         elif mh_dist(monster.pos, game.hero.pos) <= 1:
-            melee_attacks: List[Action] = list(filter(lambda a: a.type == ActionType.MELEE, monster.actions))
+            melee_attacks: List[Action] = list(filter(lambda a: a.type in [ActionType.MELEE, ActionType.MIXED], monster.actions))
             # Monster attacks the hero
             game.hero.hit_points -= monster.attack(character=game.hero, actions=melee_attacks, distance=range)
         else:
-            ranged_attacks: List[Action] = list(filter(lambda a: a.type in [ActionType.RANGED, ActionType.MIXED]
+            try:
+                ranged_attacks: List[Action] = list(filter(lambda a: a.type in [ActionType.RANGED, ActionType.MIXED]
                                                                  and ((a.long_range and range <= a.long_range) or range <= a.normal_range), monster.actions))
+            except TypeError as e:
+                print(e)
             if ranged_attacks:
                 game.hero.hit_points -= monster.attack(character=game.hero, actions=ranged_attacks, distance=range)
             else:
@@ -1536,7 +1540,7 @@ def handle_level_changes(game):
                 print(f'Hero found downstairs! going to Level {game.dungeon_level + 1}')
                 game.dungeon_level += 1
                 # Uncomment following lines to reset level
-                if game.dungeon_level == 15:
+                if game.dungeon_level == 5:
                     # reset level
                     print(f'resetting level {game.dungeon_level}')
                     game.level = Level(level_no=game.dungeon_level)

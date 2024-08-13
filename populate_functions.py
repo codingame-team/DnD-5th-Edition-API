@@ -263,12 +263,26 @@ def request_monster(index_name: str) -> Monster:
                     if match:
                         normal_range = int(match.group(1))
                         long_range = int(match.group(2))
+                    else:
+                        normal_range = 5
+                        long_range = None
                 damages: List[Damage] = []
                 for damage in action['damage']:
                     # print(f'damage = {damage}')
-                    if "damage_type" in damage:
+                    if "choose" in damage and damage['type'] == 'damage':
+                        actions_count = int(damage['choose'])
+                        damages_list = damage['from']
+                        for damage_dict in damages_list:
+                            damage_type: DamageType = request_damage_type(index_name=damage_dict['damage_type']['index'])
+                            damage_choice = Damage(type=damage_type, dd=DamageDice(damage_dict['damage_dice']))
+                            action_type = ActionType.MIXED if is_melee_attack and is_ranged_attack else ActionType.MELEE if is_melee_attack else ActionType.RANGED
+                            actions.append(Action(name=action['name'], desc=action['desc'], type=action_type, normal_range=normal_range, long_range=long_range,
+                                                  attack_bonus=action.get('attack_bonus'),
+                                                  multi_attack=None, damages=[damage_choice]))
+                    elif "damage_type" in damage:
                         damage_type: DamageType = request_damage_type(index_name=damage['damage_type']['index'])
                         damages.append(Damage(type=damage_type, dd=DamageDice(damage['damage_dice'])))
+
                 if damages:
                     can_attack = True
                     action_type = ActionType.MIXED if is_melee_attack and is_ranged_attack else ActionType.MELEE if is_melee_attack else ActionType.RANGED
