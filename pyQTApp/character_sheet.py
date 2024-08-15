@@ -32,14 +32,16 @@ def save_character(char: Character, dialog: QDialog):
 
 @pyqtSlot(Character, Ui_character_Dialog,  str)
 def change_weapon(char: Character, ui: Ui_character_Dialog, weapon_name: str):
-    char.weapon = [e for e in char.inventory if isinstance(e, Weapon) and e.name == weapon_name][0]
-    ui.damage_label.setText(str(char.weapon.damage_dice))
+    weapon: Weapon = [e for e in char.inventory if isinstance(e, Weapon) and e.name == weapon_name][0]
+    weapon.equipped = True
+    ui.damage_label.setText(str(weapon.damage_dice.dice))
 
 
 @pyqtSlot(Character, Ui_character_Dialog, str)
 def change_armor(char: Character, ui: Ui_character_Dialog, armor_name: str):
-    char.armor = [e for e in char.inventory if isinstance(e, Armor) and e.name == armor_name][0]
-    ui.ac_label.setText(str(char.armor_class))
+    armor: Armor = [e for e in char.inventory if isinstance(e, Armor) and e.name == armor_name][0]
+    armor.equipped = True
+    ui.ac_label.setText(str(armor.armor_class['base']))
 
 def display_char_sheet(dialog: QDialog, ui: Ui_character_Dialog, char: Character):
     dialog.setModal(False)
@@ -67,9 +69,10 @@ def display_char_sheet(dialog: QDialog, ui: Ui_character_Dialog, char: Character
     ui.wis_label.setText(str(char.wisdom))
     ui.cha_label.setText(str(char.charism))
     # Combat
-    ui.damage_label.setText(str(char.weapon.damage_dice))
-    ui.hp_label.setText(str(char.hit_points))
-    ui.ac_label.setText(str(char.armor_class))
+    if char.weapon and char.weapon.equipped:
+        ui.damage_label.setText(str(char.weapon.damage_dice))
+        ui.hp_label.setText(str(char.hit_points))
+        ui.ac_label.setText(str(char.armor_class))
     # Picture
     # https://www.pythonguis.com/faq/adding-images-to-pyqt5-applications/
     image_file: str = f'{path}/images/{char.race}.png'
@@ -88,8 +91,9 @@ def display_char_sheet(dialog: QDialog, ui: Ui_character_Dialog, char: Character
     weapon_index = ui.weapon_cbx.findText(char.weapon.name)
     ui.weapon_cbx.setCurrentIndex(weapon_index)
 
-    armor_index = ui.armor_cbx.findText(char.armor.name)
-    ui.armor_cbx.setCurrentIndex(armor_index)
+    if hasattr(char, 'armor'):
+        armor_index = ui.armor_cbx.findText(char.armor.name)
+        ui.armor_cbx.setCurrentIndex(armor_index)
 
     # ui.weapon_cbx.currentTextChanged.connect(lambda: change_weapon(char))
     # ui.armor_cbx.currentTextChanged.connect(lambda: change_armor(char))
@@ -117,8 +121,9 @@ if __name__ == "__main__":
     characters_dir = f'{path}/../gameState/characters'
     roster: List[Character] = get_roster(characters_dir)
     debug(f'{len(roster)} characters in roster! \n')
-    character_file: str = random.choice(roster)
-    with open(f'{characters_dir}/{character_file.name}.dmp', 'rb') as f1:
+    # char: Character = random.choice(roster)
+    char: Character = [c for c in roster if c.name == 'Brottor'][0]
+    with open(f'{characters_dir}/{char.name}.dmp', 'rb') as f1:
         # debug(f'f1: {f1.name}')
         char: Character = pickle.load(f1)
 
