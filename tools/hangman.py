@@ -28,7 +28,7 @@ pygame.display.set_caption("Jeu de Pendu")
 # Chargement des images du pendu
 images = []
 for i in range(7):
-    image = pygame.image.load(f"path/hangman{i}.png")
+    image = pygame.image.load(resource_path(f"data/hangman{i}.png"))
     images.append(image)
 
 # Mots pour le jeu
