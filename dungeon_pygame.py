@@ -722,10 +722,11 @@ class Game:
             # Enregistrer les zones rectangulaires de chaque texte d'action
             self.action_rects[action_text] = rect
 
-    def can_move(self, char: Character | Monster, dir: tuple) -> bool:
+    def can_move(self, char: Character, dir: tuple) -> bool:
         dx, dy = dir
         x, y = char.x + dx, char.y + dy
-        return 0 <= x < self.map_width and 0 <= y < self.map_height and (x, y) not in self.level.obstacles
+        monster_pos: List[tuple] = [m.pos for m in self.level.monsters]
+        return 0 <= x < self.map_width and 0 <= y < self.map_height and (x, y) not in self.level.obstacles + monster_pos
 
     def update_level(self, dir: int):
         # Chargement de la carte
@@ -1100,7 +1101,7 @@ def create_wandering_monsters(game) -> List[Monster]:
     # game.last_combat_round = game.round_no
     # Place monsters
     # reachable_cells = [pos for pos in game.level.visible_tiles if pos not in game.level.obstacles]
-    in_view_range_cells: List[tuple] = game.cells_in_view_range_from_hero
+    in_view_range_cells: List[tuple] = [pos for pos in game.cells_in_view_range_from_hero if pos != game.hero.pos]
     todo_monsters = [*new_monsters]
     in_view_range_cells.sort(key=lambda c: mh_dist(c, game.hero.pos))
     while in_view_range_cells and todo_monsters:
@@ -1289,6 +1290,17 @@ def attack_monsters(game, monsters):
                     # remove monster from room's property
                     rooms[0].monsters.remove(monster)
 
+def attack_monster(game, monster):
+    monster.hit_points -= game.hero.attack(monster, cast=False)
+    if monster.hit_points <= 0:
+        # cprint(f'{monster.name} at pos {monster.pos} is *KILLED*')
+        game.hero.victory(monster=monster, solo_mode=True)
+        game.kills.append(monster)
+        game.level.monsters.remove(monster)
+        rooms: List[Room] = [r for r in game.level.rooms if monster in r.monsters]
+        if rooms:
+            # remove monster from room's property
+            rooms[0].monsters.remove(monster)
 
 def display_room_info(game: Game, pos: tuple, room_no: int) -> int:
     room: Room = game.level.room_at(pos)
@@ -1324,6 +1336,8 @@ def move_char(game: Game, char: Monster | Character, pos: tuple):
         if isinstance(char, Character):
             game.level.explored_tiles.add(char.pos)
             game.update_visible_tiles()
+    else:
+        cprint(f'{char.name} cannot move to {pos}!')
 
 
 def handle_keyboard_events(game, event):
@@ -1348,14 +1362,34 @@ def handle_keyboard_events(game, event):
             print(room)
         else:
             print('No room found!')
-    elif event.key == pygame.K_UP and game.can_move(char=game.hero, dir=UP):
-        handle_combat(game=game, monsters=game.monsters_in_view_range, move_position=(game.hero.x, game.hero.y - 1))
-    elif event.key == pygame.K_DOWN and game.can_move(char=game.hero, dir=DOWN):
-        handle_combat(game=game, monsters=game.monsters_in_view_range, move_position=(game.hero.x, game.hero.y + 1))
-    elif event.key == pygame.K_LEFT and game.can_move(char=game.hero, dir=LEFT):
-        handle_combat(game=game, monsters=game.monsters_in_view_range, move_position=(game.hero.x - 1, game.hero.y))
-    elif event.key == pygame.K_RIGHT and game.can_move(char=game.hero, dir=RIGHT):
-        handle_combat(game=game, monsters=game.monsters_in_view_range, move_position=(game.hero.x + 1, game.hero.y))
+    elif event.key == pygame.K_UP:
+        move_position = (game.hero.x, game.hero.y - 1)
+        monsters = [m for m in game.level.monsters if m.pos == move_position]
+        if monsters:
+            attack_monster(game=game, monster=monsters[0])
+        elif game.can_move(char=game.hero, dir=UP):
+            handle_combat(game=game, monsters=game.monsters_in_view_range, move_position=(game.hero.x, game.hero.y - 1))
+    elif event.key == pygame.K_DOWN:
+        move_position = (game.hero.x, game.hero.y + 1)
+        monsters = [m for m in game.level.monsters if m.pos == move_position]
+        if monsters:
+            attack_monster(game=game, monster=monsters[0])
+        elif game.can_move(char=game.hero, dir=DOWN):
+            handle_combat(game=game, monsters=game.monsters_in_view_range, move_position=move_position)
+    elif event.key == pygame.K_LEFT:
+        move_position = (game.hero.x - 1, game.hero.y)
+        monsters = [m for m in game.level.monsters if m.pos == move_position]
+        if monsters:
+            attack_monster(game=game, monster=monsters[0])
+        elif game.can_move(char=game.hero, dir=LEFT):
+            handle_combat(game=game, monsters=game.monsters_in_view_range, move_position=move_position)
+    elif event.key == pygame.K_RIGHT:
+        move_position = (game.hero.x + 1, game.hero.y)
+        monsters = [m for m in game.level.monsters if m.pos == move_position]
+        if monsters:
+            attack_monster(game=game, monster=monsters[0])
+        elif game.can_move(char=game.hero, dir=RIGHT):
+            handle_combat(game=game, monsters=game.monsters_in_view_range, move_position=move_position)
     elif event.key == pygame.K_p:
         handle_potion_use(game)
     elif event.key == pygame.K_o:
@@ -1425,7 +1459,7 @@ def handle_combat(game: Game, monsters: List[Monster], attack_spell: Spell = Non
             if char.hit_points > 0:
                 # Handle party member's action
                 if move_position:
-                    if move_position not in game.level.obstacles:
+                    if move_position not in game.level.obstacles + game.level.monsters:
                         move_char(game=game, char=game.hero, pos=move_position)
                     else:
                         cprint(f'Path is blocked!')
