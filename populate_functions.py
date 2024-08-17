@@ -1470,7 +1470,631 @@ def get_special_monster_actions(name: str) -> tuple[List[Action], List[SpecialAb
         actions.append(action)
         # TODO "Corrupted Vengeance"
         # "The orc reduces itself to 0 hit points, triggering its Corrupted Carrier trait."
+    elif name == "Blue Dragon Wyrmling":
+        damage_type: DamageType = request_damage_type(index_name='piercing')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='1d10', bonus=3))]
+        damage_type: DamageType = request_damage_type(index_name='lighting')
+        damages += [Damage(type=damage_type, dd=DamageDice(dice='1d6'))]
+        action = Action(name='Bite', desc='', type=ActionType.MELEE, attack_bonus=5, damages=damages)
+        actions.append(action)
+        damage_type: DamageType = request_damage_type(index_name='lighting')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='4d10'))]
+        dc_type = 'dex'
+        dc_value = 12
+        area_of_effect: AreaOfEffect = AreaOfEffect(type='line', size=30)
+        sa: SpecialAbility = SpecialAbility(name='Lightning Breath',
+                                                desc='',
+                                                damages=damages,
+                                                dc_type=dc_type,
+                                                dc_value=dc_value,
+                                                dc_success='half',
+                                                area_of_effect=area_of_effect,
+                                                recharge_on_roll=5)
+        special_abilities.append(sa)
+    elif name == "Kobold Scale Sorcerer":
+        # Multiattack
+        # "The kobold makes two Dagger or Chromatic Bolt attacks. It can replace one attack with a use of Spellcasting."
+        damage_type: DamageType = request_damage_type(index_name='piercing')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='1d4', bonus=2))]
+        multi_attack_action = Action(name='Dagger', desc='', type=ActionType.MIXED, attack_bonus=4, damages=damages, normal_range=20, long_range=60)
+        action = Action(name='Multiattack', desc='', type=ActionType.MIXED, multi_attack=[multi_attack_action] * 2)
+        actions.append(action)
+        for damage_type_name in ['acid', 'cold', 'fire', 'lightning', 'poison', 'thunder']:
+            damage_type: DamageType = request_damage_type(index_name=damage_type_name)
+            damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='2d6', bonus=2))]
+            multi_attack_action = Action(name='Chromatic Bolt', desc='', type=ActionType.RANGED, attack_bonus=4, damages=damages, normal_range=60)
+            action = Action(name='Multiattack', desc='', type=ActionType.RANGED, multi_attack=[multi_attack_action] * 2)
+            actions.append(action)
+        # Spellcasting
+        caster_level = 2
+        dc_type = 'cha'
+        dc_value = 12
+        spells = ['mage-hand', 'prestidigitation', 'charm-person', 'fog-cloud', 'levitate']
+        if spells:
+            spell_caster: SpellCaster = SpellCaster(level=caster_level,
+                                                    spell_slots=[0, 1, 0, 0, 0],
+                                                    learned_spells=list(filter(None, [request_spell(s) for s in spells])),
+                                                    dc_type=dc_type,
+                                                    dc_value=dc_value,
+                                                    ability_modifier=2)
+    elif name == "Flind":
+        # Multiattack
+        # "The flind makes one Flail of Chaos attack, one Flail of Pain attack, and one Flail of Paralysis attack, or it makes three Longbow attacks."
+        damage_type: DamageType = request_damage_type(index_name='bludgeoning')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='1d10', bonus=5))]
+        multi_attack_action_1 = Action(name='Flail of Chaos', desc='', type=ActionType.MIXED, attack_bonus=9, damages=damages, normal_range=10)
+        damage_type: DamageType = request_damage_type(index_name='psychic')
+        multi_attack_action_2 = Action(name='Flail of Pain', desc='', type=ActionType.MIXED, attack_bonus=9, damages=damages + [Damage(type=damage_type, dd=DamageDice(dice='3d10'))], normal_range=10)
+        multi_attack_action_3 = Action(name='Flail of Paralysis', desc='', type=ActionType.MIXED, attack_bonus=9, damages=damages, normal_range=10)
+        action = Action(name='Multiattack', desc='', type=ActionType.MIXED, multi_attack=[multi_attack_action_1, multi_attack_action_2, multi_attack_action_3])
+        actions.append(action)
+        damage_type: DamageType = request_damage_type(index_name='piercing')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='1d8', bonus=2))]
+        multi_attack_action = Action(name='Longbow', desc='', type=ActionType.RANGED, attack_bonus=6, damages=damages, normal_range=150, long_range=600)
+        action = Action(name='Multiattack', desc='', type=ActionType.RANGED, multi_attack=[multi_attack_action] * 3)
+        actions.append(action)
+    elif name == "Young Brass Dragon":
+        # Multiattack
+        # "The dragon makes three attacks: one with its bite and two with its claws."
+        damage_type: DamageType = request_damage_type(index_name='piercing')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='1d10', bonus=5))]
+        multi_attack_action_1 = Action(name='Bite', desc='', type=ActionType.MIXED, attack_bonus=7, damages=damages, normal_range=10)
+        multi_attack_action_2 = Action(name='Claw', desc='', type=ActionType.MELEE, attack_bonus=7, damages=damages, normal_range=5)
+        action = Action(name='Multiattack', desc='', type=ActionType.MIXED, multi_attack=[multi_attack_action_1, multi_attack_action_2, multi_attack_action_2])
+        actions.append(action)
+        # "Breath Weapons {@recharge 5}"
+        # "The dragon uses one of the following breath weapons."
+        damage_type: DamageType = request_damage_type(index_name='fire')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='12d6'))]
+        dc_type = 'dex'
+        dc_value = 14
+        area_of_effect: AreaOfEffect = AreaOfEffect(type='line', size=40)
+        sa: SpecialAbility = SpecialAbility(name='Fire Breath',
+                                                desc='',
+                                                damages=damages,
+                                                dc_type=dc_type,
+                                                dc_value=dc_value,
+                                                dc_success='half',
+                                                area_of_effect=area_of_effect,
+                                                recharge_on_roll=5)
+        special_abilities.append(sa)
+        # TODO  "Sleep Breath"
+    elif name == "Efreeti":
+        # Multiattack
+        # "The efreeti makes two scimitar attacks or uses its Hurl Flame twice."
+        damages: List[Damage] = [Damage(type=request_damage_type('slashing'), dd=DamageDice(dice='2d6', bonus=6))]
+        damages +=  [Damage(type=request_damage_type('fire'), dd=DamageDice(dice='2d6'))]
+        multi_attack_action = Action(name='Scimitar', desc='', type=ActionType.MELEE, attack_bonus=10, damages=damages)
+        action = Action(name='Multiattack', desc='', type=ActionType.MELEE, multi_attack=[multi_attack_action] * 2)
+        actions.append(action)
+        damages: List[Damage] = [Damage(type=request_damage_type('fire'), dd=DamageDice(dice='5d6'))]
+        multi_attack_action = Action(name='Hurl Flame', desc='', type=ActionType.MIXED, attack_bonus=7, damages=damages, normal_range=120)
+        action = Action(name='Multiattack', desc='', type=ActionType.MIXED, multi_attack=[multi_attack_action] * 2)
+        actions.append(action)
+        # "Innate Spellcasting"
+        # "The efreeti's innate spellcasting ability is Charisma (spell save {@dc 15}, {@hit 7} to hit with spell attacks).
+        # It can innately cast the following spells, requiring no material components:"
+        caster_level = 3
+        dc_type = 'cha'
+        dc_value = 15
+        spells = ['detect magic', 'enlarge/reduce', 'tongues', 'conjure elemental (fire elemental only)', 'gaseous form', 'invisibility', 'major image', 'plane shift', 'wall of fire']
+        if spells:
+            spell_caster: SpellCaster = SpellCaster(level=caster_level,
+                                                    spell_slots=[5, 5, 0, 0, 0, 0, 0, 0, 0],
+                                                    learned_spells=list(filter(None, [request_spell(s) for s in spells])),
+                                                    dc_type=dc_type,
+                                                    dc_value=dc_value,
+                                                    ability_modifier=2)
 
+    elif name == "Fire Elemental":
+        # Multiattack
+        # "The elemental makes two touch attacks."
+        #  TODO If the target is a creature or a flammable object, it ignites.
+        #  Until a creature takes an action to douse the fire, the target takes 5 ({@damage 1d10}) fire damage at the start of each of its turns."
+        damage_type: DamageType = request_damage_type(index_name='fire')
+        damages: List[Damage] = [Damage(type=damage_type, dd=DamageDice(dice='2d6', bonus=3))]
+        multi_attack_action = Action(name='Touch', desc='', type=ActionType.MIXED, attack_bonus=6, damages=damages, normal_range=5)
+        action = Action(name='Multiattack', desc='', type=ActionType.MIXED, multi_attack=[multi_attack_action] * 2)
+        actions.append(action)
+    elif name == "Fire Giant":
+        # Multiattack
+        # "The giant makes two greatsword attacks."
+        damages: List[Damage] = [Damage(type=request_damage_type('slashing'), dd=DamageDice(dice='6d6', bonus=7))]
+        multi_attack_action = Action(name='Greatsword', desc='', type=ActionType.MIXED, attack_bonus=11, damages=damages, normal_range=10)
+        action = Action(name='Multiattack', desc='', type=ActionType.MIXED, multi_attack=[multi_attack_action] * 2)
+        actions.append(action)
+        damages: List[Damage] = [Damage(type=request_damage_type('bludgeoning'), dd=DamageDice(dice='4d10', bonus=7))]
+        action = Action(name='Rock', desc='', type=ActionType.RANGED, attack_bonus=11, damages=damages, normal_range=60, long_range=240)
+        actions.append(action)
+    elif name == "Stone Giant Dreamwalker":
+        # Multiattack
+        # "The giant makes two Greatclub or Rock attacks."
+        damages: List[Damage] = [Damage(type=request_damage_type('bludgeoning'), dd=DamageDice(dice='4d8', bonus=6))]
+        multi_attack_action = Action(name='Greatclub', desc='', type=ActionType.MIXED, attack_bonus=10, damages=damages, normal_range=15)
+        action = Action(name='Multiattack', desc='', type=ActionType.MIXED, multi_attack=[multi_attack_action] * 2)
+        actions.append(action)
+        damages: List[Damage] = [Damage(type=request_damage_type('bludgeoning'), dd=DamageDice(dice='3d10', bonus=6))]
+        multi_attack_action = Action(name='Rock', desc='', type=ActionType.RANGED, attack_bonus=10, damages=damages, normal_range=60, long_range=240)
+        action = Action(name='Multiattack', desc='', type=ActionType.RANGED, multi_attack=[multi_attack_action] * 2)
+        actions.append(action)
+    elif name == "Owlbear":
+        # Multiattack
+        # "The owlbear makes two attacks: one with its beak and one with its claws."
+        damages: List[Damage] = [Damage(type=request_damage_type('piercing'), dd=DamageDice(dice='1d10', bonus=5))]
+        multi_attack_action_1 = Action(name='Beak', desc='', type=ActionType.MELEE, attack_bonus=7, damages=damages, normal_range=5)
+        damages: List[Damage] = [Damage(type=request_damage_type('slashing'), dd=DamageDice(dice='2d8', bonus=5))]
+        multi_attack_action_2 = Action(name='Claws', desc='', type=ActionType.MELEE, attack_bonus=7, damages=damages, normal_range=5)
+        action = Action(name='Multiattack', desc='', type=ActionType.MELEE, multi_attack=[multi_attack_action_1, multi_attack_action_2])
+        actions.append(action)
+    elif name == "Orc Claw of Luthic":
+        # Multiattack
+        # "The orc makes two claw attacks,
+        # TODO or four claw attacks if it has fewer than half of its hit points remaining."
+        damages: List[Damage] = [Damage(type=request_damage_type('slashing'), dd=DamageDice(dice='1d8', bonus=2))]
+        multi_attack_action = Action(name='Claw', desc='', type=ActionType.MELEE, attack_bonus=4, damages=damages, normal_range=5)
+        action = Action(name='Multiattack', desc='', type=ActionType.MELEE, multi_attack=[multi_attack_action] * 2)
+        actions.append(action)
+        # Spellcasting
+        # "The orc is a 5th-level spellcaster.
+        # Its spellcasting ability is Wisdom (spell save {@dc 12}, {@hit 4} to hit with spell attacks).
+        # The orc has the following cleric spells prepared:"
+        caster_level = 5
+        dc_type = 'wis'
+        dc_value = 12
+        spells = ['guidance', 'mending', 'resistance', 'thaumaturgy', 'bane', 'cure wounds', 'guiding bolt', 'augury', 'warding bond', 'bestow curse', 'create food and water']
+        if spells:
+            spell_caster: SpellCaster = SpellCaster(level=caster_level,
+                                                    spell_slots=[4, 3, 2, 0, 0, 0, 0, 0, 0],
+                                                    learned_spells=list(filter(None, [request_spell(s) for s in spells])),
+                                                    dc_type=dc_type,
+                                                    dc_value=dc_value,
+                                                    ability_modifier=4)
+    elif name == "Venom Troll":
+        # Multiattack
+        # "The troll makes one Bite attack and two Claw attacks."
+        damages: List[Damage] = [Damage(type=request_damage_type('piercing'), dd=DamageDice(dice='1d6', bonus=4))]
+        damages += [Damage(type=request_damage_type('poison'), dd=DamageDice(dice='1d8'))]
+        # TODO the creature is {@condition poisoned} until the start of the troll's next turn.
+        multi_attack_action_1 = Action(name='Bite', desc='', type=ActionType.MELEE, attack_bonus=7, damages=damages)
+        damages: List[Damage] = [Damage(type=request_damage_type('slashing'), dd=DamageDice(dice='2d6', bonus=4))]
+        damages += [Damage(type=request_damage_type('poison'), dd=DamageDice(dice='1d8'))]
+        multi_attack_action_2 = Action(name='Claws', desc='', type=ActionType.MELEE, attack_bonus=7, damages=damages)
+        action = Action(name='Multiattack', desc='', type=ActionType.MELEE, multi_attack=[multi_attack_action_1, multi_attack_action_2, multi_attack_action_2])
+        actions.append(action)
+        # "Venom Spray {@recharge}"
+        # "The troll slices itself with a claw, releasing a spray of poison in a 15-foot cube.
+        # The troll takes 7 ({@damage 2d6}) slashing damage (this damage can't be reduced in any way).
+        # Each creature in the area must make a {@dc 16} Constitution saving throw.
+        # TODO On a failed save, a creature takes 18 ({@damage 4d8}) poison damage and is {@condition poisoned} for 1 minute.
+        # On a successful save, the creature takes half as much damage and isn't {@condition poisoned}. A {@condition poisoned} creature can repeat the saving throw at the end of each of its turns, ending the effect on itself on a success."
+        damages: List[Damage] = [Damage(type=request_damage_type('slashing'), dd=DamageDice(dice='7'))]
+        sa: SpecialAbility = SpecialAbility(name='Venom Spray {@recharge}',
+                                                desc='',
+                                                damages=damages,
+                                                dc_type='con',
+                                                dc_value=16,
+                                                dc_success='half',
+                                                recharge_on_roll=1)
+        special_abilities.append(sa)
+    elif name == "Yuan-ti Nightmare Speaker":
+        # Spellcasting
+        caster_level = 3
+        dc_type = 'cha'
+        dc_value = 13
+        spells = ['animal friendship', 'mage hand', 'message', 'prestidigitation', 'suggestion', 'darkness', 'fear']
+        if spells:
+            spell_caster: SpellCaster = SpellCaster(level=caster_level,
+                                                    spell_slots=[0, 1, 1, 0, 0, 0, 0, 0, 0],
+                                                    learned_spells=list(filter(None, [request_spell(s) for s in spells])),
+                                                    dc_type=dc_type,
+                                                    dc_value=dc_value,
+                                                    ability_modifier=2)
+        # Multiattack
+        # "The yuan-ti makes one Constrict attack and one Scimitar attack, or it makes two Spectral Fangs attacks."
+        damages: List[Damage] = [Damage(type=request_damage_type('bludgeoning'), dd=DamageDice(dice='1d8', bonus=3))]
+        multi_attack_action_1 = Action(name='Constrict', desc='', type=ActionType.MIXED, attack_bonus=5, damages=damages, normal_range=10)
+        # TODO target is {@condition grappled} (escape {@dc 14}) if it is a Large or smaller creature.
+        # TODO Until this grapple ends, the target is {@condition restrained}. The yuan-ti can constrict only one creature at a time."
+        damages: List[Damage] = [Damage(type=request_damage_type('slashing'), dd=DamageDice(dice='1d6', bonus=3))]
+        multi_attack_action_2 = Action(name='Scimitar', desc='', type=ActionType.MELEE, attack_bonus=5, damages=damages)
+        action = Action(name='Multiattack', desc='', type=ActionType.MIXED, multi_attack=[multi_attack_action_1, multi_attack_action_2])
+        actions.append(action)
+        damages: List[Damage] = [Damage(type=request_damage_type('necrotic'), dd=DamageDice(dice='3d8', bonus=3))]
+        multi_attack_action = Action(name='Spectral Fangs', desc='', type=ActionType.MIXED, attack_bonus=5, damages=damages, normal_range=120)
+        action = Action(name='Multiattack', desc='', type=ActionType.MIXED, multi_attack=[multi_attack_action] * 2)
+        actions.append(action)
+        # "Invoke Nightmare (Recharges after a Short or Long Rest)"
+        # "The yuan-ti taps into the nightmares of one creature it can see within 60 feet of it and creates an illusory, immobile manifestation of the creature's deepest fears, visible only to that creature.",
+        # TODO "The target must make a {@dc 13} Intelligence saving throw. On a failed save, the target takes 22 ({@damage 4d10}) psychic damage and is {@condition frightened} of the manifestation, believing it to be real.
+        # TODO The yuan-ti must concentrate to maintain the illusion (as if {@status concentration||concentrating} on a spell), which lasts for up to 1 minute and can't be harmed.
+        # TODO The target can repeat the saving throw at the end of each of its turns, ending the illusion on a success or taking 11 ({@damage 2d10}) psychic damage on a failure."
+        damages =  [Damage(type=request_damage_type('psychic'), dd=DamageDice(dice='4d10'))]
+        sa: SpecialAbility = SpecialAbility(name='Invoke Nightmare (Recharges after a Short or Long Rest)',
+                                                desc='',
+                                                damages=damages,
+                                                dc_type='int',
+                                                dc_value=13,
+                                                dc_success='half',
+                                                recharge_on_roll=1)
+        special_abilities.append(sa)
+    elif name == "Kobold Dragonshield":
+        # Multiattack
+        # "The kobold makes two Spear attacks."
+        damages: List[Damage] = [Damage(type=request_damage_type('piercing'), dd=DamageDice(dice='1d8', bonus=1))]
+        multi_attack_action = Action(name='Spear', desc='', type=ActionType.MELEE, attack_bonus=3, damages=damages, normal_range=5)
+        action = Action(name='Multiattack', desc='', type=ActionType.MELEE, multi_attack=[multi_attack_action] * 2)
+        actions.append(action)
+        damages: List[Damage] = [Damage(type=request_damage_type('piercing'), dd=DamageDice(dice='1d6', bonus=1))]
+        multi_attack_action = Action(name='Spear', desc='', type=ActionType.RANGED, attack_bonus=3, damages=damages, normal_range=20, long_range=60)
+        action = Action(name='Multiattack', desc='', type=ActionType.RANGED, multi_attack=[multi_attack_action] * 2)
+        actions.append(action)
+    elif name == "Lamia":
+        # "Innate Spellcasting"
+        # "The lamia's innate spellcasting ability is Charisma (spell save {@dc 13}). It can innately cast the following spells, requiring no material components."
+        caster_level = 3
+        dc_type = 'cha'
+        dc_value = 13
+        spells = ['disguise self', 'major image', 'geas', 'charm person', 'mirror image', 'scrying', 'suggestion']
+        if spells:
+            spell_caster: SpellCaster = SpellCaster(level=caster_level,
+                                                    spell_slots=[1, 0, 1, 0, 0, 0, 0, 0, 0],
+                                                    learned_spells=list(filter(None, [request_spell(s) for s in spells])),
+                                                    dc_type=dc_type,
+                                                    dc_value=dc_value,
+                                                    ability_modifier=4)
+        # Multiattack
+        # "The lamia makes two attacks: one with its claws and one with its dagger or Intoxicating Touch."
+        damages: List[Damage] = [Damage(type=request_damage_type('slashing'), dd=DamageDice(dice='2d10', bonus=3))]
+        multi_attack_action_1 = Action(name='Claws', desc='', type=ActionType.MELEE, attack_bonus=5, damages=damages, normal_range=5)
+        damages: List[Damage] = [Damage(type=request_damage_type('piercing'), dd=DamageDice(dice='1d4', bonus=3))]
+        multi_attack_action_2 = Action(name='Dagger', desc='', type=ActionType.MELEE, attack_bonus=5, damages=damages, normal_range=5)
+        action = Action(name='Multiattack', desc='', type=ActionType.MELEE, multi_attack=[multi_attack_action_1, multi_attack_action_2])
+        actions.append(action)
+        # TODO "Intoxicating Touch"
+        # The target is magically cursed for 1 hour. Until the curse ends, the target has disadvantage on Wisdom saving throws and all ability checks."
+    elif name == "Jackalwere":
+        damages: List[Damage] = [Damage(type=request_damage_type('piercing'), dd=DamageDice(dice='1d4', bonus=2))]
+        action = Action(name='Bite', desc='', type=ActionType.MELEE, attack_bonus=4, damages=damages, normal_range=5)
+        actions.append(action)
+        damages: List[Damage] = [Damage(type=request_damage_type('slashing'), dd=DamageDice(dice='1d6', bonus=2))]
+        action = Action(name='Scimitar', desc='', type=ActionType.MELEE, attack_bonus=4, damages=damages, normal_range=5)
+        actions.append(action)
+        # Special ability Sleep Gaze
+        # TODO "The jackalwere gazes at one creature it can see within 30 feet of it.
+        # The target must make a {@dc 10} Wisdom saving throw.
+        # On a failed save, the target succumbs to a magical slumber, falling {@condition unconscious} for 10 minutes or until someone uses an action to shake the target awake.
+        # A creature that successfully saves against the effect is immune to this jackalwere's gaze for the next 24 hours.
+        # Undead and creatures immune to being {@condition charmed} aren't affected by it."
+        # sa: SpecialAbility = SpecialAbility(name='Sleep Gaze',
+        #                                         desc='',
+        #                                         dc_type='wis',
+        #                                         dc_value=10,
+        #                                         dc_success='half',
+        #                                         recharge_on_roll=1)
+    elif name == "Gnoll Flesh Gnawer":
+        # Multiattack
+        # "The gnoll makes one Bite attack and two Shortsword attacks."
+        damages: List[Damage] = [Damage(type=request_damage_type('piercing'), dd=DamageDice(dice='1d4', bonus=2))]
+        multi_attack_action_1 = Action(name='Bite', desc='', type=ActionType.MELEE, attack_bonus=4, damages=damages)
+        damages: List[Damage] = [Damage(type=request_damage_type('piercing'), dd=DamageDice(dice='1d6', bonus=2))]
+        multi_attack_action_2 = Action(name='Shortsword', desc='', type=ActionType.MELEE, attack_bonus=4, damages=damages)
+        action = Action(name='Multiattack', desc='', type=ActionType.MELEE, multi_attack=[multi_attack_action_1, multi_attack_action_2, multi_attack_action_2])
+        actions.append(action)
+        # TODO Sudden Rush
+        # "Until the end of the turn, the gnoll's speed increases by 60 feet and it doesn't provoke {@action opportunity attack||opportunity attacks}."
+        # Bonus action "Rampage"
+        # TODO "After the gnoll reduces a creature to 0 hit points with a melee attack on its turn, the gnoll moves up to half its speed and makes a Bite attack."
+    elif name == "Horned Devil":
+        # Multiattack
+        # "The devil makes three melee attacks: two with its fork and one with its tail. It can use Hurl Flame in place of any melee attack."
+        damages: List[Damage] = [Damage(type=request_damage_type('piercing'), dd=DamageDice(dice='2d8', bonus=6))]
+        multi_attack_action_1 = Action(name='Fork', desc='', type=ActionType.MIXED, attack_bonus=10, damages=damages, normal_range=10)
+        damages: List[Damage] = [Damage(type=request_damage_type('piercing'), dd=DamageDice(dice='1d8', bonus=6))]
+        # TODO If the target is a creature other than an undead or a construct, it must succeed on a {@dc 17} Constitution saving throw or lose 10 ({@dice 3d6}) hit points at the start of each of its turns due to an infernal wound. Each time the devil hits the wounded target with this attack, the damage dealt by the wound increases by 10 ({@dice 3d6}).
+        # Any creature can take an action to stanch the wound with a successful {@dc 12} Wisdom ({@skill Medicine}) check. The wound also closes if the target receives magical healing."
+        multi_attack_action_2 = Action(name='Tail', desc='', type=ActionType.MIXED, attack_bonus=10, damages=damages, normal_range=10)
+        damages: List[Damage] = [Damage(type=request_damage_type('fire'), dd=DamageDice(dice='4d6'))]
+        # TODO If the target is a flammable object that isn't being worn or carried, it also catches fire.
+        multi_attack_action_3 = Action(name='Hurl Flame', desc='', type=ActionType.MIXED, attack_bonus=7, damages=damages, normal_range=150)
+        attack_choices = [[multi_attack_action_1, multi_attack_action_2, multi_attack_action_2]]
+        attack_choices.append([multi_attack_action_1, multi_attack_action_2, multi_attack_action_3])
+        attack_choices.append([multi_attack_action_1, multi_attack_action_3, multi_attack_action_2])
+        attack_choices.append([multi_attack_action_3, multi_attack_action_2, multi_attack_action_2])
+        for multi_attack_choice in attack_choices:
+            action = Action(name='Multiattack', desc='', type=ActionType.MIXED, multi_attack=multi_attack_choice)
+            actions.append(action)
+    elif name in ["Bearded Devil", "Barbed Devil"]:
+        # Multiattack
+        # "The devil makes three melee attacks: one with its tail and two with its claws. Alternatively, it can use Hurl Flame twice."
+        damages: List[Damage] = [Damage(type=request_damage_type('piercing'), dd=DamageDice(dice='2d6', bonus=3))]
+        multi_attack_action_1 = Action(name='Tail', desc='', type=ActionType.MIXED, attack_bonus=6, damages=damages)
+        damages: List[Damage] = [Damage(type=request_damage_type('piercing'), dd=DamageDice(dice='1d6', bonus=3))]
+        multi_attack_action_2 = Action(name='Claw', desc='', type=ActionType.MIXED, attack_bonus=6, damages=damages)
+        action = Action(name='Multiattack', desc='', type=ActionType.MIXED, multi_attack=[multi_attack_action_1, multi_attack_action_2, multi_attack_action_2])
+        actions.append(action)
+        damages: List[Damage] = [Damage(type=request_damage_type('fire'), dd=DamageDice(dice='3d6'))]
+        # TODO If the target is a flammable object that isn't being worn or carried, it also catches fire.
+        multi_attack_action_3 = Action(name='Hurl Flame', desc='', type=ActionType.MIXED, attack_bonus=5, damages=damages, normal_range=150)
+        action = Action(name='Multiattack', desc='', type=ActionType.MIXED, multi_attack=[multi_attack_action_3] * 2)
+        actions.append(action)
+    elif name == "Young Blue Dragon":
+        # Multiattack
+        # "The dragon makes three attacks: one with its bite and two with its claws."
+        damages: List[Damage] = [Damage(type=request_damage_type('piercing'), dd=DamageDice(dice='2d10', bonus=5))]
+        damages += [Damage(type=request_damage_type('lightning'), dd=DamageDice(dice='1d10'))]
+        multi_attack_action_1 = Action(name='Bite', desc='', type=ActionType.MIXED, attack_bonus=9, damages=damages, normal_range=10)
+        damages: List[Damage] = [Damage(type=request_damage_type('slashing'), dd=DamageDice(dice='2d6', bonus=5))]
+        multi_attack_action_2 = Action(name='Claw', desc='', type=ActionType.MELEE, attack_bonus=9, damages=damages)
+        action = Action(name='Multiattack', desc='', type=ActionType.MIXED, multi_attack=[multi_attack_action_1, multi_attack_action_2, multi_attack_action_2])
+        actions.append(action)
+        # Special ability
+        # "Lightning Breath {@recharge 5}"
+        damages: List[Damage] = [Damage(type=request_damage_type('lightning'), dd=DamageDice(dice='10d10'))]
+        area_of_effect: AreaOfEffect = AreaOfEffect(type='line', size=60)
+        sa: SpecialAbility = SpecialAbility(name='Lightning Breath',
+                                                desc='',
+                                                dc_type='dex',
+                                                dc_value=16,
+                                                damages=damages,
+                                                area_of_effect=area_of_effect,
+                                                dc_success='half',
+                                                recharge_on_roll=5)
+        special_abilities.append(sa)
+    elif name == "Warhorse Skeleton":
+        damages: List[Damage] = [Damage(type=request_damage_type('bludgeoning'), dd=DamageDice(dice='2d6', bonus=4))]
+        action = Action(name='Hooves', desc='', type=ActionType.MELEE, attack_bonus=6, damages=damages)
+        actions.append(action)
+    elif name == 'Bone Devil':
+        # Multiattack
+        # "The devil makes three attacks: two with its claws and one with its sting."
+        damages: List[Damage] = [Damage(type=request_damage_type('slashing'), dd=DamageDice(dice='1d8', bonus=4))]
+        multi_attack_action_1 = Action(name='Claw', desc='', type=ActionType.MIXED, attack_bonus=8, damages=damages, normal_range=10)
+        damages: List[Damage] = [Damage(type=request_damage_type('piercing'), dd=DamageDice(dice='2d8', bonus=4))]
+        damages += [Damage(type=request_damage_type('poison'), dd=DamageDice(dice='5d6'))]
+        multi_attack_action_2 = Action(name='Sting', desc='', type=ActionType.MIXED, attack_bonus=8, damages=damages, normal_range=10)
+        # TODO the target must succeed on a {@dc 14} Constitution saving throw or become {@condition poisoned} for 1 minute.
+        #  The target can repeat the saving throw at the end of each of its turns, ending the effect on itself on a success."
+        action = Action(name='Multiattack', desc='', type=ActionType.MIXED, multi_attack=[multi_attack_action_1, multi_attack_action_1, multi_attack_action_2])
+        actions.append(action)
+    elif name == "Spined Devil":
+        # Multiattack
+        # "The devil makes two attacks: one with its bite and one with its fork or two with its tail spines."
+        damages: List[Damage] = [Damage(type=request_damage_type('slashing'), dd=DamageDice(dice='2d4'))]
+        multi_attack_action_1 = Action(name='Claw', desc='', type=ActionType.MELEE, attack_bonus=2, damages=damages)
+        damages: List[Damage] = [Damage(type=request_damage_type('piercing'), dd=DamageDice(dice='1d6'))]
+        multi_attack_action_2 = Action(name='Fork', desc='', type=ActionType.MELEE, attack_bonus=2, damages=damages)
+        action = Action(name='Multiattack', desc='', type=ActionType.MIXED, multi_attack=[multi_attack_action_1, multi_attack_action_2])
+        actions.append(action)
+        damages: List[Damage] = [Damage(type=request_damage_type('piercing'), dd=DamageDice(dice='1d4', bonus=2))]
+        damages += [Damage(type=request_damage_type('fire'), dd=DamageDice(dice='1d6'))]
+        multi_attack_action = Action(name='Tail Spine', desc='', type=ActionType.MELEE, attack_bonus=4, damages=damages, normal_range=20, long_range=80)
+        action = Action(name='Multiattack', desc='', type=ActionType.MIXED, multi_attack=[multi_attack_action] * 2)
+        actions.append(action)
+    elif name == "Deathlock Wight":
+        # Spellcasting
+        caster_level = 1
+        dc_type = 'cha'
+        dc_value = 13
+        spells = ['detect magic', 'disguise self', 'mage armor', 'fear', 'hold person']
+        if spells:
+            spell_caster: SpellCaster = SpellCaster(level=caster_level,
+                                                    spell_slots=[1, 0, 0, 0, 0, 0, 0, 0, 0],
+                                                    learned_spells=list(filter(None, [request_spell(s) for s in spells])),
+                                                    dc_type=dc_type,
+                                                    dc_value=dc_value,
+                                                    ability_modifier=3)
+        # Multiattack
+        # "The deathlock makes two Life Drain or Grave Bolt attacks."
+        damages: List[Damage] = [Damage(type=request_damage_type('necrotic'), dd=DamageDice(dice='1d8', bonus=2))]
+        multi_attack_action = Action(name='Life Drain', desc='', type=ActionType.MELEE, attack_bonus=4, damages=damages)
+        # TODO The target must succeed on a {@dc 13} Constitution saving throw, or its hit point maximum is reduced by an amount equal to the damage taken.
+        #  This reduction lasts until the target finishes a long rest. The target dies if its hit point maximum is reduced to 0."
+        #  A Humanoid slain by this attack rises 24 hours later as a {@creature zombie} under the deathlock's control, unless the Humanoid is restored to life or its body is destroyed.
+        #  The deathlock can have no more than twelve zombies under its control at one time."
+        action = Action(name='Multiattack', desc='', type=ActionType.MELEE, multi_attack=[multi_attack_action] * 2)
+        actions.append(action)
+        damages: List[Damage] = [Damage(type=request_damage_type('necrotic'), dd=DamageDice(dice='2d8', bonus=3))]
+        multi_attack_action = Action(name='Grave Bolt', desc='', type=ActionType.MIXED, attack_bonus=5, damages=damages, normal_range=60)
+        action = Action(name='Multiattack', desc='', type=ActionType.MIXED, multi_attack=[multi_attack_action] * 2)
+        actions.append(action)
+    elif name == "Hell Hound":
+        damages: List[Damage] = [Damage(type=request_damage_type('piercing'), dd=DamageDice(dice='1d8', bonus=3))]
+        damages += [Damage(type=request_damage_type('fire'), dd=DamageDice(dice='2d6'))]
+        action = Action(name='Bite', desc='', type=ActionType.MELEE, attack_bonus=5, damages=damages)
+        actions.append(action)
+        # Special ability
+        # "Fire Breath {@recharge 5}"
+        damages: List[Damage] = [Damage(type=request_damage_type('fire'), dd=DamageDice(dice='6d6'))]
+        area_of_effect: AreaOfEffect = AreaOfEffect(type='cone', size=15)
+        sa: SpecialAbility = SpecialAbility(name='Fire Breath',
+                                                desc='',
+                                                dc_type='dex',
+                                                dc_value=12,
+                                                damages=damages,
+                                                area_of_effect=area_of_effect,
+                                                dc_success='half',
+                                                recharge_on_roll=5)
+        special_abilities.append(sa)
+    elif name == "Conjurer":
+        # Spellcasting
+        caster_level = 1
+        dc_type = 'int'
+        dc_value = 14
+        spells = ['dancing lights', 'mage hand', 'prestidigitation', 'fireball', 'mage armor', 'unseen servant', 'fly', 'stinking cloud', 'web']
+        if spells:
+            spell_caster: SpellCaster = SpellCaster(level=caster_level,
+                                                    spell_slots=[1, 1, 0, 0, 0, 0, 0, 0, 0],
+                                                    learned_spells=list(filter(None, [request_spell(s) for s in spells])),
+                                                    dc_type=dc_type,
+                                                    dc_value=dc_value,
+                                                    ability_modifier=6)
+        # Multiattack
+        # "The conjurer makes three Arcane Burst attacks."
+        damages: List[Damage] = [Damage(type=request_damage_type('force'), dd=DamageDice(dice='3d10', bonus=3))]
+        multi_attack_action = Action(name='Arcane Burst', desc='', type=ActionType.MIXED, attack_bonus=8, damages=damages, normal_range=120)
+        action = Action(name='Multiattack', desc='', type=ActionType.MIXED, multi_attack=[multi_attack_action] * 3)
+        actions.append(action)
+    elif name == "Alhoon":
+        # Spellcasting
+        caster_level = 1
+        dc_type = 'int'
+        dc_value = 16
+        spells = ['dancing lights', 'detect magic', 'detect thoughts', 'disguise self', 'mage hand', 'prestidigitation']
+        spells += ['dominate monster', 'globe of invulnerability', 'invisibility', 'modify memory', 'plane shift', 'wall of force']
+        if spells:
+            spell_caster: SpellCaster = SpellCaster(level=caster_level,
+                                                    spell_slots=[1, 0, 0, 0, 0, 0, 0, 0, 0],
+                                                    learned_spells=list(filter(None, [request_spell(s) for s in spells])),
+                                                    dc_type=dc_type,
+                                                    dc_value=dc_value,
+                                                    ability_modifier=8)
+        # Multiattack
+        # "The alhoon makes two Chilling Grasp or Arcane Bolt attacks."
+        damages: List[Damage] = [Damage(type=request_damage_type('cold'), dd=DamageDice(dice='4d6'))]
+        multi_attack_action = Action(name='Chilling Grasp', desc='', type=ActionType.MELEE, attack_bonus=8, damages=damages)
+        # TODO  the alhoon regains 14 hit points.
+        action = Action(name='Multiattack', desc='', type=ActionType.MIXED, multi_attack=[multi_attack_action] * 2)
+        actions.append(action)
+        damages: List[Damage] = [Damage(type=request_damage_type('force'), dd=DamageDice(dice='8d6'))]
+        multi_attack_action = Action(name='Arcane Bolt', desc='', type=ActionType.MIXED, attack_bonus=8, damages=damages, normal_range=120)
+        action = Action(name='Multiattack', desc='', type=ActionType.MIXED, multi_attack=[multi_attack_action] * 2)
+        actions.append(action)
+        # Special ability
+        # "Mind Blast {@recharge 5}"
+        damages: List[Damage] = [Damage(type=request_damage_type('psychic'), dd=DamageDice(dice='4d8', bonus=4))]
+        area_of_effect: AreaOfEffect = AreaOfEffect(type='cone', size=60)
+        sa: SpecialAbility = SpecialAbility(name='Mind Blast',
+                                                desc='',
+                                                dc_type='int',
+                                                dc_value=16,
+                                                damages=damages,
+                                                area_of_effect=area_of_effect,
+                                                dc_success='half',
+                                                recharge_on_roll=5)
+        special_abilities.append(sa)
+        # Reaction
+        # TODO Negate Spell (3/Day)
+        #  "The alhoon targets one creature it can see within 60 feet of it that is casting a spell.
+        #  If the spell is 3rd level or lower, the spell fails, but any spell slots or charges are not wasted."
+    elif name == "Young Silver Dragon":
+        # Multiattack
+        # "The dragon makes three attacks: one with its bite and two with its claws."
+        damages: List[Damage] = [Damage(type=request_damage_type('piercing'), dd=DamageDice(dice='2d10', bonus=6))]
+        multi_attack_action_1 = Action(name='Bite', desc='', type=ActionType.MIXED, attack_bonus=10, damages=damages, normal_range=10)
+        damages: List[Damage] = [Damage(type=request_damage_type('slashing'), dd=DamageDice(dice='2d6', bonus=6))]
+        multi_attack_action_2 = Action(name='Claw', desc='', type=ActionType.MELEE, attack_bonus=9, damages=damages)
+        action = Action(name='Multiattack', desc='', type=ActionType.MIXED, multi_attack=[multi_attack_action_1, multi_attack_action_2, multi_attack_action_2])
+        actions.append(action)
+        # Special ability
+        # "Breath Weapons {@recharge 5}"
+        damages: List[Damage] = [Damage(type=request_damage_type('cold'), dd=DamageDice(dice='12d8'))]
+        area_of_effect: AreaOfEffect = AreaOfEffect(type='cone', size=30)
+        sa: SpecialAbility = SpecialAbility(name='Cold Breath',
+                                                desc='',
+                                                dc_type='dex',
+                                                dc_value=17,
+                                                damages=damages,
+                                                area_of_effect=area_of_effect,
+                                                dc_success='half',
+                                                recharge_on_roll=5)
+        special_abilities.append(sa)
+        # TODO  "The dragon exhales paralyzing gas in a 30-foot cone.
+        #  Each creature in that area must succeed on a {@dc 17} Constitution saving throw or be {@condition paralyzed} for 1 minute.
+        #  A creature can repeat the saving throw at the end of each of its turns, ending the effect on itself on a success."
+        # damages: List[Damage] = [Damage(type=request_damage_type('cold'), dd=DamageDice(dice='12d8'))]
+        # area_of_effect: AreaOfEffect = AreaOfEffect(type='cone', size=30)
+        # sa: SpecialAbility = SpecialAbility(name='Paralyzing Breath',
+        #                                         desc='',
+        #                                         dc_type='dex',
+        #                                         dc_value=17,
+        #                                         damages=damages,
+        #                                         area_of_effect=area_of_effect,
+        #                                         dc_success='half',
+        #                                         recharge_on_roll=5)
+        # special_abilities.append(sa)
+    elif name == "Orc Blade of Ilneval":
+        # Multiattack
+        # "The orc makes two melee attacks with its longsword or two ranged attacks with its javelins.
+        # If Ilneval's Command is available to use, the orc can use it after these attacks."
+        damages: List[Damage] = [Damage(type=request_damage_type('slashing'), dd=DamageDice(dice='2d8', bonus=3))]
+        multi_attack_action = Action(name='Longsword', desc='', type=ActionType.MELEE, attack_bonus=5, damages=damages)
+        action = Action(name='Multiattack', desc='', type=ActionType.MELEE, multi_attack=[multi_attack_action] * 2)
+        actions.append(action)
+        damages: List[Damage] = [Damage(type=request_damage_type('piercing'), dd=DamageDice(dice='1d6', bonus=3))]
+        multi_attack_action = Action(name='Javelin', desc='', type=ActionType.MIXED, attack_bonus=5, damages=damages, normal_range=30, long_range=120)
+        action = Action(name='Multiattack', desc='', type=ActionType.MIXED, multi_attack=[multi_attack_action] * 2)
+        actions.append(action)
+        # TODO "Ilneval's Command {@recharge 4}"
+        #  "Up to three allied orcs within 120 feet of this orc that can hear it can use their reactions to each make one weapon attack."
+    elif name == "Giant Bat":
+        damages: List[Damage] = [Damage(type=request_damage_type('piercing'), dd=DamageDice(dice='1d6', bonus=2))]
+        action = Action(name='Bite', desc='', type=ActionType.MELEE, attack_bonus=4, damages=damages)
+        actions.append(action)
+    elif name == "Tanarukk":
+        damages: List[Damage] = [Damage(type=request_damage_type('piercing'), dd=DamageDice(dice='1d8', bonus=4))]
+        multi_attack_action_1 = Action(name='Bite', desc='', type=ActionType.MELEE, attack_bonus=7, damages=damages)
+        damages: List[Damage] = [Damage(type=request_damage_type('slashing'), dd=DamageDice(dice='2d6', bonus=4))]
+        multi_attack_action_2 = Action(name='Greatsword', desc='', type=ActionType.MELEE, attack_bonus=7, damages=damages)
+        action = Action(name='Multiattack', desc='', type=ActionType.MELEE, multi_attack=[multi_attack_action_1, multi_attack_action_2])
+        actions.append(action)
+    elif name == "Fomorian":
+        # "action": [
+        #     {
+        #         "name": "Multiattack",
+        #         "entries": [
+        #             "The fomorian attacks twice with its greatclub or makes one greatclub attack and uses Evil Eye once."
+        #         ]
+        #     },
+        #     {
+        #         "name": "Greatclub",
+        #         "entries": [
+        #             "{@atk mw} {@hit 9} to hit, reach 15 ft., one target. {@h}19 ({@damage 3d8 + 6}) bludgeoning damage."
+        #         ]
+        #     },
+        #     {
+        #         "name": "Evil Eye",
+        #         "entries": [
+        #             "The fomorian magically forces a creature it can see within 60 feet of it to make a {@dc 14} Charisma saving throw. The creature takes 27 ({@damage 6d8}) psychic damage on a failed save, or half as much damage on a successful one."
+        #         ]
+        #     },
+        #     {
+        #         "name": "Curse of the Evil Eye (Recharges after a Short or Long Rest)",
+        #         "entries": [
+        #             "With a stare, the fomorian uses Evil Eye, but on a failed save, the creature is also cursed with magical deformities. While deformed, the creature has its speed halved and has disadvantage on ability checks, saving throws, and attacks based on Strength or Dexterity.",
+        #             "The transformed creature can repeat the saving throw whenever it finishes a long rest, ending the effect on a success."
+        #         ]
+        #     }
+        # ],
+        damages: List[Damage] = [Damage(type=request_damage_type('bludgeoning'), dd=DamageDice(dice='3d8', bonus=6))]
+        multi_attack_action_1 = Action(name='Bite', desc='', type=ActionType.MIXED, attack_bonus=9, damages=damages, normal_range=15)
+        damages: List[Damage] = [Damage(type=request_damage_type('psychic'), dd=DamageDice(dice='6d8'))]
+        area_of_effect: AreaOfEffect = AreaOfEffect(type='cone', size=60)
+        multi_attack_action_2: SpecialAbility = SpecialAbility(name='Evil Eye',
+                                                desc='',
+                                                dc_type='cha',
+                                                dc_value=14,
+                                                damages=damages,
+                                                area_of_effect=area_of_effect,
+                                                dc_success='half',
+                                                recharge_on_roll=1)
+        action = Action(name='Multiattack', desc='', type=ActionType.MIXED, multi_attack=[multi_attack_action_1, multi_attack_action_2])
+        actions.append(action)
+        action = Action(name='Multiattack', desc='', type=ActionType.MIXED, multi_attack=[multi_attack_action_1] * 2)
+        actions.append(action)
+        # TODO Curse of the Evil Eye (Recharges after a Short or Long Rest)
+        #  "With a stare, the fomorian uses Evil Eye, but on a failed save, the creature is also cursed with magical deformities.
+        #  While deformed, the creature has its speed halved and has disadvantage on ability checks, saving throws, and attacks based on Strength or Dexterity.",
+        #  The transformed creature can repeat the saving throw whenever it finishes a long rest, ending the effect on a success."
+    elif name == "Boggle":
+        damages: List[Damage] = [Damage(type=request_damage_type('bludgeoning'), dd=DamageDice(dice='1d6', bonus=-1))]
+        action = Action(name='Bite', desc='', type=ActionType.MELEE, attack_bonus=1, damages=damages, normal_range=15)
+        actions.append(action)
+        # TODO Oil Puddle
+        # Slippery Oil
+        # "Any non-boggle creature that enters the puddle or starts its turn there must succeed on a {@dc 11} Dexterity saving throw or fall {@condition prone}."
+        # Sticky Oil
+        # "Any non-boggle creature that enters the puddle or starts its turn there must succeed on a {@dc 11} Strength saving throw or be {@condition restrained}.
+        # On its turn, a creature can use an action to try to extricate itself, ending the effect and moving into the nearest unoccupied space of its choice with a successful {@dc 11} Strength check."
     return actions, special_abilities, spell_caster
 
 def request_monster_other(name: str) -> Optional[Monster]:
