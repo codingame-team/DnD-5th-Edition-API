@@ -1,5 +1,6 @@
 import json
 import os
+import sys
 from dataclasses import dataclass, field
 from enum import Enum
 from random import choice, randint
@@ -11,6 +12,11 @@ from numpy import array
 from algo.brehensam import in_view_range
 from algo.lee import parcours_largeur
 
+def resource_path(relative_path):
+    """ Get the absolute path to a resource, works for dev and for PyInstaller """
+    if hasattr(sys, '_MEIPASS'):
+        return os.path.join(sys._MEIPASS, relative_path)
+    return os.path.join(os.path.abspath("."), relative_path)
 
 @dataclass
 class Weapon:
@@ -253,7 +259,7 @@ class App(Tk):
         - une liste avec les données du labyrinthe
         """
         try:
-            with open(f"{path}/maze_tk/{level}.txt", newline='') as fic:
+            with open(resource_path(f"{path}/maze_tk/{level}.txt"), newline='') as fic:
                 data = fic.readlines()
         except IOError:
             print("Impossible de lire le fichier {}.txt".format(level))
@@ -267,21 +273,21 @@ class App(Tk):
 
     def display(self, stair_pos) -> Tuple[Canvas, List[Character], List[Treasure]]:
         can: Canvas = Canvas(self, width=size_sprite * self.width, height=size_sprite * self.height, bg="ivory")
-        photo_wall: PhotoImage = PhotoImage(file=f"{path}/sprites/WallTile1.png")
-        photo_treasure: PhotoImage = PhotoImage(file=f"{path}/sprites/treasure.png")
+        photo_wall: PhotoImage = PhotoImage(file=resource_path(f"{path}/sprites/WallTile1.png"))
+        photo_treasure: PhotoImage = PhotoImage(file=resource_path(f"{path}/sprites/treasure.png"))
         # photo_enemy: PhotoImage = PhotoImage(file=f"{path}/sprites/enemy.png")
         # photo_exit: PhotoImage = PhotoImage(file=f"{path}/sprites/exit.png")
-        photo_downstairs: PhotoImage = PhotoImage(file=f"{path}/sprites/DownStairs.png")
-        photo_upstairs: PhotoImage = PhotoImage(file=f"{path}/sprites/UpStairs.png")
-        photo_hero: PhotoImage = PhotoImage(file=f"{path}/sprites/hero.png")
+        photo_downstairs: PhotoImage = PhotoImage(file=resource_path(f"{path}/sprites/DownStairs.png"))
+        photo_upstairs: PhotoImage = PhotoImage(file=resource_path(f"{path}/sprites/UpStairs.png"))
+        photo_hero: PhotoImage = PhotoImage(file=resource_path(f"{path}/sprites/hero.png"))
 
         if not self.hero:
             # Initialisation du personnage
             starting_positions: List[tuple] = [(x, y) for x in range(self.width) for y in range(self.height) if self.maze[y][x] == '.']
             hero_x, hero_y = choice(starting_positions)
             # hero_x, hero_y = 17, 18
-            start_armor: Armor = Armor(name='Plate Armor', ac=18, image=PhotoImage(file=f'{path}/sprites/beholder.png'))
-            start_weapon: Weapon = Weapon(name='Greatsword', damage_dice='2d6', image=PhotoImage(file=f'{path}/sprites/beholder.png'))
+            start_armor: Armor = Armor(name='Plate Armor', ac=18, image=PhotoImage(file=resource_path(f'{path}/sprites/beholder.png')))
+            start_weapon: Weapon = Weapon(name='Greatsword', damage_dice='2d6', image=PhotoImage(file=resource_path(f'{path}/sprites/beholder.png')))
             hero: Character = Character(x=hero_x, y=hero_y, speed=15, hp=10, max_hp=10, weapon=start_weapon, armor=start_armor, image=photo_hero)
             hero.id = can.create_image(*hero.img_pos, anchor=NW, image=hero.image)
             can.photo_hero = photo_hero
@@ -319,7 +325,7 @@ class App(Tk):
                     # Ennemis
                     case '$':
                         m: MonsterType = choice(monster_candidates)
-                        photo_enemy: PhotoImage = PhotoImage(file=f"{path}/sprites/rpgcharacterspack/monster_{m.name}.png")
+                        photo_enemy: PhotoImage = PhotoImage(file=resource_path(f"{path}/sprites/rpgcharacterspack/monster_{m.name}.png"))
                         enemy: Monster = Monster(name=m.name,
                                                  image=photo_enemy,
                                                  hit_dice=m.hit_dice,
@@ -501,7 +507,7 @@ class App(Tk):
 
 def request_monster_type(index_name: str) -> Optional[MonsterType]:
     try:
-        with open(f"{path}/data/monsters/{index_name}.json", "r") as f:
+        with open(resource_path(f"{path}/data/monsters/{index_name}.json"), "r") as f:
             data = json.loads(f.read())
         attack_bonus: int = 0
         match index_name:
