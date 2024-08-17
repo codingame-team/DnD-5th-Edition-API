@@ -55,3 +55,41 @@
 | Stone Giant                  | Giant                               |  7  |    1   |
 | Orc Hand of Yurtrus          | Humanoid (Orc)                      |  2  |    1   |
 | Orc Nurtured One of Yurtrus  | Humanoid (Orc)                      | 1/2 |    1   |
+
+| Blue Dragon Wyrmling         | Dragon                              |  3  |    1   |
+| Kobold Scale Sorcerer        | Humanoid                            |  1  |    1   |
+| Flind                        | Fiend (Gnoll)                       |  9  |    1   |
+| Young Brass Dragon           | Dragon                              |  6  |    1   |
+| Efreeti                      | Elemental                           |  11 |    1   |
+| Fire Elemental               | Elemental                           |  5  |    1   |
+| Fire Giant                   | Giant                               |  9  |    1   |
+| Stone Giant Dreamwalker      | Giant                               |  10 |    1   |
+| Owlbear                      | Monstrosity                         |  3  |    1   |
+| Orc Claw of Luthic           | Humanoid (Orc)                      |  2  |    1   |
+| Venom Troll                  | Giant                               |  7  |    1   |
+| Yuan-ti Nightmare Speaker    | Monstrosity (Warlock)               |  4  |    1   |
+| Kobold Dragonshield          | Dragon                              |  1  |    1   |
+| Lamia                        | Monstrosity                         |  4  |    1   |
+| Jackalwere                   | Humanoid (Shapechanger)             | 1/2 |    1   |
+| Gnoll Flesh Gnawer           | Monstrosity                         |  1  |    1   |
+| Horned Devil                 | Fiend (Devil)                       |  11 |    1   |
+| Bearded Devil                | Fiend (Devil)                       |  3  |    1   |
+| Barbed Devil                 | Fiend (Devil)                       |  5  |    1   |
+| Young Blue Dragon            | Dragon                              |  9  |    1   |
+| Warhorse Skeleton            | Undead                              | 1/2 |    1   |
+| Bone Devil                   | Fiend (Devil)                       |  9  |    1   |
+| Spined Devil                 | Fiend (Devil)                       |  2  |    1   |
+| Deathlock Wight              | Undead (Warlock)                    |  3  |    1   |
+| Hell Hound                   | Fiend                               |  3  |    1   |
+| Conjurer Wizard              | Humanoid                            |  6  |    1   |
+| Alhoon                       | Undead (Mind Flayer, Wizard)        |  10 |    1   |
+| Young Silver Dragon          | Dragon                              |  9  |    1   |
+| Orc Blade of Ilneval         | Humanoid (Orc)                      |  4  |    1   |
+| Orc Red Fang of Shargaas     | Humanoid (Orc)                      |  3  |    1   |
+| Giant Bat                    | Beast                               | 1/4 |    1   |
+| Tanarukk                     | Fiend (Demon)                       |  5  |    1   |
+| Fomorian                     | Giant                               |  8  |    1   |
+| Boggle                       | Fey                                 | 1/8 |    1   |
+
+34 missing monsters
+Blue Dragon Wyrmling|Kobold Scale Sorcerer|Flind|Young Brass Dragon|Efreeti|Fire Elemental|Fire Giant|Stone Giant Dreamwalker|Owlbear|Orc Claw of Luthic|Venom Troll|Yuan-ti Nightmare Speaker|Kobold Dragonshield|Lamia|Jackalwere|Gnoll Flesh Gnawer|Horned Devil|Bearded Devil|Barbed Devil|Young Blue Dragon|Warhorse Skeleton|Bone Devil|Spined Devil|Deathlock Wight|Hell Hound|Conjurer|Alhoon|Young Silver Dragon|Orc Blade of Ilneval|Orc Red Fang of Shargaas|Giant Bat|Tanarukk|Fomorian|Boggle
