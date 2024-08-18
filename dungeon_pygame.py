@@ -24,7 +24,7 @@ from main import get_roster, save_character, load_xp_levels, load_character
 from populate_functions import populate, request_armor, request_weapon, request_monster, request_spell, request_monster_other
 from populate_rpg_functions import load_potions_collections
 from tools.cell_bits_dnd import DOORSPACE, TRAPPED, STAIR_UP, STAIR_DN
-from tools.common import cprint, generate_cave, generate_dungeon, Color, MAX_LEVELS, GREEN, resource_path, get_save_game_path
+from tools.common import cprint, generate_cave, generate_dungeon, Color, MAX_LEVELS, GREEN, resource_path, get_save_game_path, read
 from tools.parse_json_dungeon import parse_dungeon_json
 from tools import cell_bits_dnd as cb
 from tools.parsing_json_monsters import get_monster_counts
@@ -1118,7 +1118,9 @@ def main_game_loop(game):
     game.last_round_time = time.time()
     token_images = game.load_token_images(token_images_dir)
     round_no: int = 1
-    while running and not return_to_main:
+    if not hasattr(game, 'exit'):
+        game.finished = False
+    while running and not return_to_main and not game.finished:
         # Calculate the time since the last frame
         current_time = time.time()
 
@@ -1570,6 +1572,15 @@ def handle_level_changes(game):
         case '>':
             if game.level.level_no == MAX_LEVELS:
                 print('You have reached the end of the dungeon!')
+                response: str = read(['y', 'Y', 'n', 'N'], 'Do you want to return to the Castle? (y/n)')
+                moves: List[tuple] = [p for p in game.level.walkable_tiles if mh_dist(p, game.hero.pos) == 1 and p not in game.level.obstacles]
+                move_char(game, game.hero, choice(moves))
+                if response in ['y', 'Y']:
+                    game.finished = True
+                    print(f"{Color.GREEN}Congratulations! You have vanquished {Color.RED}{len(game.kills)}{Color.END} monsters and can now return to a normal life :-){Color.END}")
+                    save_character(char=game.hero, _dir=characters_dir)
+                    save_character_gamestate(char=game.hero, _dir=gamestate_dir, gamestate=game)
+                    print("Returning to Castle :-)")
             else:
                 print(f'Hero found downstairs! going to Level {game.dungeon_level + 1}')
                 game.dungeon_level += 1
