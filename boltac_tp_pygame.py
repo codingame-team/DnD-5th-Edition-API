@@ -143,15 +143,15 @@ def main_game_loop(saved_game, hero, equipments, characters_dir):
                     if (pos[0] - 10 < mouse_pos[0] < pos[0] + 10) and (pos[1] + 200 - 10 < mouse_pos[1] < pos[1] + 200 + 10):
                         selected_option = i
                         selected_category = equipments[selected_option]
-                        selected_item_buy_index = None
+                        # selected_item_buy_index = None
                 if buy_button_rect.collidepoint(mouse_pos):
                     focused_list = 'buy'
                     handle_buy(hero, selected_item_buy_index, selected_category)
-                    selected_item_buy_index = None
+                    # selected_item_buy_index = None
                 elif sell_button_rect.collidepoint(mouse_pos):
                     focused_list = 'sell'
                     handle_sell(hero, selected_item_sell_index)
-                    selected_item_sell_index = None
+                    # selected_item_sell_index = None
                     # Check if the EXIT button was clicked
                 elif exit_button_rect.collidepoint(event.pos):
                     exit_boltac(saved_game, hero)
