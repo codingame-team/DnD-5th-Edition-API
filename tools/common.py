@@ -50,6 +50,34 @@ class AbilityType(Enum):
     WIS = 'wis'
     CHA = 'cha'
 
+from typing import List
+
+def read(choice_list: List[str], message: str = None) -> str:
+    """
+    Prompts the user to enter a choice from a given list of choices.
+
+    Args:
+        choice_list (List[str]): A list of valid choices.
+        message (str, optional): A message to display before prompting for input.
+
+    Returns:
+        str: The user's choice from the provided list.
+
+    Raises:
+        ValueError: If the user enters an invalid choice.
+    """
+    while True:
+        if message:
+            print(message)
+
+        user_input = input("Enter your choice: ")
+
+        if user_input in choice_list:
+            return user_input
+
+        print(f"Invalid choice! Please enter one of the following: {', '.join(choice_list)}")
+
+
 def resource_path(relative_path):
     """ Get the absolute path to a resource, works for dev and for PyInstaller """
     if hasattr(sys, '_MEIPASS'):
