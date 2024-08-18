@@ -1667,7 +1667,7 @@ def get_special_monster_actions(name: str) -> tuple[List[Action], List[SpecialAb
         # Each creature in the area must make a {@dc 16} Constitution saving throw.
         # TODO On a failed save, a creature takes 18 ({@damage 4d8}) poison damage and is {@condition poisoned} for 1 minute.
         # On a successful save, the creature takes half as much damage and isn't {@condition poisoned}. A {@condition poisoned} creature can repeat the saving throw at the end of each of its turns, ending the effect on itself on a success."
-        damages: List[Damage] = [Damage(type=request_damage_type('slashing'), dd=DamageDice(dice='7'))]
+        damages: List[Damage] = [Damage(type=request_damage_type('slashing'), dd=DamageDice(dice='2d6'))]
         sa: SpecialAbility = SpecialAbility(name='Venom Spray {@recharge}',
                                                 desc='',
                                                 damages=damages,
@@ -1709,9 +1709,11 @@ def get_special_monster_actions(name: str) -> tuple[List[Action], List[SpecialAb
         # TODO The yuan-ti must concentrate to maintain the illusion (as if {@status concentration||concentrating} on a spell), which lasts for up to 1 minute and can't be harmed.
         # TODO The target can repeat the saving throw at the end of each of its turns, ending the illusion on a success or taking 11 ({@damage 2d10}) psychic damage on a failure."
         damages =  [Damage(type=request_damage_type('psychic'), dd=DamageDice(dice='4d10'))]
-        sa: SpecialAbility = SpecialAbility(name='Invoke Nightmare (Recharges after a Short or Long Rest)',
+        area_of_effect: AreaOfEffect = AreaOfEffect(type='line', size=60)
+        sa: SpecialAbility = SpecialAbility(name='Invoke Nightmare',
                                                 desc='',
                                                 damages=damages,
+                                                area_of_effect=area_of_effect,
                                                 dc_type='int',
                                                 dc_value=13,
                                                 dc_success='half',
@@ -2026,6 +2028,17 @@ def get_special_monster_actions(name: str) -> tuple[List[Action], List[SpecialAb
         actions.append(action)
         # TODO "Ilneval's Command {@recharge 4}"
         #  "Up to three allied orcs within 120 feet of this orc that can hear it can use their reactions to each make one weapon attack."
+    elif name == "Orc Red Fang of Shargaas":
+        damages: List[Damage] = [Damage(type=request_damage_type('slashing'), dd=DamageDice(dice='3d6', bonus=3))]
+        multi_attack_action = Action(name='Bite', desc='', type=ActionType.MELEE, attack_bonus=5, damages=damages)
+        action = Action(name='Multiattack', desc='', type=ActionType.MELEE, multi_attack=[multi_attack_action] * 2)
+        actions.append(action)
+        damages: List[Damage] = [Damage(type=request_damage_type('piercing'), dd=DamageDice(dice='3d4', bonus=3))]
+        multi_attack_action = Action(name='Dart', desc='', type=ActionType.MIXED, attack_bonus=5, damages=damages, normal_range=20, long_range=60)
+        action = Action(name='Multiattack', desc='', type=ActionType.MIXED, multi_attack=[multi_attack_action] * 2)
+        actions.append(action)
+        # TODO "Veil of Shargaas (Recharges after a Short or Long Rest)"
+        #  "The orc casts {@spell darkness} without any components. Wisdom is its spellcasting ability."
     elif name == "Giant Bat":
         damages: List[Damage] = [Damage(type=request_damage_type('piercing'), dd=DamageDice(dice='1d6', bonus=2))]
         action = Action(name='Bite', desc='', type=ActionType.MELEE, attack_bonus=4, damages=damages)
@@ -2038,33 +2051,6 @@ def get_special_monster_actions(name: str) -> tuple[List[Action], List[SpecialAb
         action = Action(name='Multiattack', desc='', type=ActionType.MELEE, multi_attack=[multi_attack_action_1, multi_attack_action_2])
         actions.append(action)
     elif name == "Fomorian":
-        # "action": [
-        #     {
-        #         "name": "Multiattack",
-        #         "entries": [
-        #             "The fomorian attacks twice with its greatclub or makes one greatclub attack and uses Evil Eye once."
-        #         ]
-        #     },
-        #     {
-        #         "name": "Greatclub",
-        #         "entries": [
-        #             "{@atk mw} {@hit 9} to hit, reach 15 ft., one target. {@h}19 ({@damage 3d8 + 6}) bludgeoning damage."
-        #         ]
-        #     },
-        #     {
-        #         "name": "Evil Eye",
-        #         "entries": [
-        #             "The fomorian magically forces a creature it can see within 60 feet of it to make a {@dc 14} Charisma saving throw. The creature takes 27 ({@damage 6d8}) psychic damage on a failed save, or half as much damage on a successful one."
-        #         ]
-        #     },
-        #     {
-        #         "name": "Curse of the Evil Eye (Recharges after a Short or Long Rest)",
-        #         "entries": [
-        #             "With a stare, the fomorian uses Evil Eye, but on a failed save, the creature is also cursed with magical deformities. While deformed, the creature has its speed halved and has disadvantage on ability checks, saving throws, and attacks based on Strength or Dexterity.",
-        #             "The transformed creature can repeat the saving throw whenever it finishes a long rest, ending the effect on a success."
-        #         ]
-        #     }
-        # ],
         damages: List[Damage] = [Damage(type=request_damage_type('bludgeoning'), dd=DamageDice(dice='3d8', bonus=6))]
         multi_attack_action_1 = Action(name='Bite', desc='', type=ActionType.MIXED, attack_bonus=9, damages=damages, normal_range=15)
         damages: List[Damage] = [Damage(type=request_damage_type('psychic'), dd=DamageDice(dice='6d8'))]
