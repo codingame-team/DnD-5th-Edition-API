@@ -1585,12 +1585,12 @@ def handle_level_changes(game):
                 print(f'Hero found downstairs! going to Level {game.dungeon_level + 1}')
                 game.dungeon_level += 1
                 # Uncomment following lines to reset level
-                if game.dungeon_level == 5:
-                    # reset level
-                    print(f'resetting level {game.dungeon_level}')
-                    game.level = Level(level_no=game.dungeon_level)
-                    game.levels[game.dungeon_level - 1] = game.level
-                    game.level.load(hero=game.hero)
+                # if game.dungeon_level == 5:
+                #     # reset level
+                #     print(f'resetting level {game.dungeon_level}')
+                #     game.level = Level(level_no=game.dungeon_level)
+                #     game.levels[game.dungeon_level - 1] = game.level
+                #     game.level.load(hero=game.hero)
                 if game.dungeon_level > len(game.levels):
                     game.level = Level(level_no=game.dungeon_level)
                     game.levels.append(game.level)
