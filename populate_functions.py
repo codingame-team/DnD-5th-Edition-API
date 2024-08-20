@@ -2083,6 +2083,20 @@ def get_special_monster_actions(name: str) -> tuple[List[Action], List[SpecialAb
         # On its turn, a creature can use an action to try to extricate itself, ending the effect and moving into the nearest unoccupied space of its choice with a successful {@dc 11} Strength check."
     return actions, special_abilities, spell_caster
 
+def remove_pattern(string, pattern):
+    return re.sub(pattern, '', string).rstrip()
+
+def get_monster_data(list_data, name):
+    # monster_data = []
+    for monster in list_data:
+        cleaned_name = remove_pattern(monster['name'], r'\(.*\)')
+        # if remove_pattern(cleaned_name.lower(), r'(.*)') == name.lower():
+        if cleaned_name.lower() == name.lower():
+            # monster_data.append({'name': cleaned_name})
+            return monster
+        elif name == 'Illusionist' and cleaned_name == 'Illusionist Wizard':
+            return monster
+
 def request_monster_other(name: str) -> Optional[Monster]:
     """
     Send a request to local database for a monster's characteristic
@@ -2091,10 +2105,11 @@ def request_monster_other(name: str) -> Optional[Monster]:
     """
     with open(resource_path("maze/other_monsters/bestiary-sublist-data.json"), "r") as f:
         list_data = json.loads(f.read())
-        monster_data = [monster for monster in list_data if monster['name'].lower() == name.lower() ]
+        # monster_data = [monster for monster in list_data if monster['name'].lower() == name.lower()]
+        monster_data = get_monster_data(list_data, name)
         if not monster_data:
             return None
-        data = monster_data[0]
+        data = monster_data
 
         proficiencies: List[Proficiency] = []
         actions, special_abilities, spell_caster = get_special_monster_actions(name)
