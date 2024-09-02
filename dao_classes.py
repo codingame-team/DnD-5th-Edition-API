@@ -1094,17 +1094,17 @@ class Character(Sprite):
         :return: damage generated
         """
         damage_roll = 0
-        if cast:
-            if self.is_spell_caster:
-                cantric_spells: List[Spell] = [s for s in self.sc.learned_spells if not s.level]
-                slot_spells: List[Spell] = [s for s in self.sc.learned_spells if s.level and self.sc.spell_slots[s.level - 1] > 0]
-                castable_spells: List[Spell] = cantric_spells + slot_spells
-            if self.is_spell_caster and castable_spells:
-                # TODO modify spell_slots to [] for non casters
-                attack_spell: Spell = max(castable_spells, key=lambda s: s.level)
-                damage_roll = self.cast(attack_spell, monster)
-                if not attack_spell.is_cantrip:
-                    self.update_spell_slots(casted_spell=attack_spell)
+        castable_spells: List[Spell] = []
+        if self.is_spell_caster:
+            cantric_spells: List[Spell] = [s for s in self.sc.learned_spells if not s.level]
+            slot_spells: List[Spell] = [s for s in self.sc.learned_spells if s.level and self.sc.spell_slots[s.level - 1] > 0]
+            castable_spells = cantric_spells + slot_spells
+        if cast and castable_spells:
+            # TODO modify spell_slots to [] for non casters
+            attack_spell: Spell = max(castable_spells, key=lambda s: s.level)
+            damage_roll = self.cast(attack_spell, monster)
+            if not attack_spell.is_cantrip:
+                self.update_spell_slots(casted_spell=attack_spell)
         else:
             damage_multi = 0
             for _ in range(self.multi_attacks):
