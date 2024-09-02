@@ -23,7 +23,7 @@ from populate_rpg_functions import load_potion_image_name, load_potions_collecti
 from pyQTApp.character_sheet import display_char_sheet
 from pyQTApp.qt_designer_widgets.character_dialog import Ui_character_Dialog
 from tools.ability_scores_roll import ability_rolls
-from tools.common import cprint, Color, exit_message, get_key
+from tools.common import cprint, Color, exit_message, get_key, get_save_game_path
 
 
 def continue_message(message: str = 'Do you want to continue? (Y/N)') -> bool:
@@ -1234,7 +1234,8 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
                                         cprint(f'{char.name} is ** KILLED **!')
                         else:
                             char: Character = choice(melee_chars)
-                            char.hit_points -= attacker.attack(char)
+                            melee_attacks: List[Action] = list(filter(lambda a: a.type in [ActionType.MELEE, ActionType.MIXED], attacker.actions))
+                            char.hit_points -= attacker.attack(character=char, actions=melee_attacks)
                             if char.hit_points <= 0:
                                 alive_chars.remove(char)
                                 char.status = 'DEAD'
@@ -1265,7 +1266,7 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
                                     print(f'{effect}')
                             else:
                                 monster: Monster = min(alive_monsters, key=lambda m: m.hit_points)
-                            monster.hit_points -= attacker.attack(monster)
+                            monster.hit_points -= attacker.attack(monster=monster)
                             if monster.hit_points <= 0:
                                 alive_monsters.remove(monster)
                                 # attacker.victory(monster)
@@ -1342,9 +1343,11 @@ if __name__ == '__main__':
     MAX_ROSTER = 100 # maximum number of characters allowed in this game
     path = os.path.dirname(__file__)
     abspath = os.path.abspath(path)
-    print(f'path = {path}')
-    print(f'abspath = {abspath}')
-    characters_dir = f'{abspath}/gameState/characters'
+    # print(f'path = {path}')
+    # print(f'abspath = {abspath}')
+    # characters_dir = f'{abspath}/gameState/characters'
+    game_path = get_save_game_path()
+    characters_dir = f'{game_path}/characters'
 
     """ Load XP Levels """
     xp_levels: List[int] = load_xp_levels()
