@@ -80,7 +80,8 @@ def handle_buy(hero, selected_item_index, selected_category):
     if selected_item_index is not None:
         item = selected_category[selected_item_index]
         items_in_inventory = [i.name for i in hero.inventory if i]
-        if len(items_in_inventory) == 20:
+        empty_slots = [i for i, slot in enumerate(hero.inventory) if not slot]
+        if len(items_in_inventory) == 20 or not empty_slots:
             cprint('Your inventory is full!')
         elif cost(item) <= hero.gold:
             cprint(f'You bought {item.name}!')
@@ -91,7 +92,6 @@ def handle_buy(hero, selected_item_index, selected_category):
                 bought_item = request_armor(item.index)
             else:
                 bought_item = request_weapon(item.index)
-            empty_slots = [i for i, slot in enumerate(hero.inventory) if not slot]
             hero.inventory[min(empty_slots)] = bought_item
         else:
             cprint(f'Not enough Gold to buy {item.name}!')
