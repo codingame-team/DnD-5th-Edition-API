@@ -456,6 +456,16 @@ def create_new_character(roster: List[Character]) -> Character:
     exit_message()
     return character
 
+def save_char_to_party(char_to_party: List[Char2Party], _dir: str):
+    with open(f'{_dir}/char_party_mappings.dmp', 'wb') as f1:
+        pickle.dump(char_to_party, f1)
+
+def load_char_to_party(_dir: str) -> List[Char2Party]:
+    try:
+        with open(f'{_dir}/char_party_mappings.dmp', 'rb') as f1:
+            return pickle.load(f1)
+    except FileNotFoundError:
+        return []
 
 def save_character(char: Character, _dir: str):
     # print(f'Sauvegarde personnage {char.name}')
@@ -470,9 +480,10 @@ def get_roster(characters_dir: str) -> List[Character]:
     roster: List[Character] = []
     char_file_list = os.scandir(characters_dir)
     for entry in char_file_list:
-        if entry.is_file():
+        if entry.is_file() and entry.name.endswith('.dmp'):
             with open(entry, 'rb') as f1:
                 # print(f1)
+                # print(entry)
                 roster.append(pickle.load(f1))
     return roster
 
@@ -688,7 +699,8 @@ def add_member_to_party(roster: List[Character], party: List[Character]):
         sleep(2)
         return
     roster = sorted(roster, key=lambda c: c.level)
-    char_names: List[tuple] = [(c.name, c.class_type, f'Lvl {c.level}') for c in roster if c.status == 'OK' and c not in party and not c.in_dungeon]
+    # char_names: List[tuple] = [(c.name, c.class_type, f'Lvl {c.level}') for c in roster if c.status == 'OK' and c not in party and not c.in_dungeon]
+    char_names: List[tuple] = [(c.name, c.class_type, f'Lvl {c.level}') for c in roster if c.status == 'OK' and c not in party]
     if not char_names:
         print(f'No available character to join party!')
         sleep(2)
@@ -697,6 +709,8 @@ def add_member_to_party(roster: List[Character], party: List[Character]):
     char: Character = get_character(name, roster)
     if char:
         party.append(char)
+        char.id_party = len(party) - 1
+        save_character(char, _dir=characters_dir)
     else:
         print(f'Program error! {name} unknown in Castle - Please contact the administrator...')
         sleep(1)
@@ -712,6 +726,8 @@ def delete_member_from_party(roster: List[Character], party: List[Character]):
     char: Character = get_character(char_name, party)
     if char:
         party.remove(char)
+        char.id_party = -1
+        save_character(char, _dir=characters_dir)
     else:
         print(f'Program error! {char_name} not in the party - Please contact the administrator...')
         sleep(1)
@@ -756,6 +772,8 @@ def gilgamesh_tavern(party: List[Character], roster: List[Character]):
                 new_pos = dict(sorted(new_pos.items(), key=lambda x: x[1]))
                 for i, char_name in enumerate(list(new_pos.keys())):
                     party[i] = get_character(char_name, roster)
+                    party[i].id_party = i
+                    save_character(char=party[i], _dir=characters_dir)
             case 'Divvy Gold':
                 if not party:
                     print('No characters remains in the party!')
@@ -1361,15 +1379,20 @@ if __name__ == '__main__':
     castle_destinations: List[str] = ['Gilgamesh\'s Tavern', 'Adventurer\'s Inn', 'Temple of Cant', 'Boltac\'s Trading Post', 'Edge of Town']
     edge_of_town_destinations: List[str] = ['Training Grounds', 'Maze', 'Leave Game', 'Castle']
     roster: List[Character] = get_roster(characters_dir)
-    party_ids: List[int] = set([c.id_party for c in roster if c.in_dungeon])
-    adventurer_groups: dict() = {p_id: [c for c in roster if c.id_party == p_id] for p_id in party_ids}
+    # party_ids: List[int] = set([c.id_party for c in roster if c.in_dungeon])
+    # adventurer_groups: dict() = {p_id: [c for c in roster if c.id_party == p_id] for p_id in party_ids}
+    char_to_party: List[Char2Party] = load_char_to_party(_dir=game_path)
+    if not char_to_party:
+        for c in roster:
+            char_to_party.append(Char2Party(char_name=c.name))
+    party: List[Character] = [c for c in roster for c2p in char_to_party if c2p.char_name == c.name and c2p.id != -1]
+    party.sort(key=lambda c: c.id_party)
 
     encounter_table: dict() = load_encounter_table()
     encounter_gold_table: List[int] = load_encounter_gold_table()
     available_crs: List[Fraction] = [Fraction(str(m.challenge_rating)) for m in monsters]
 
     location = 'Castle'
-    party: List[Character] = []
 
     # cheat_function(roster)
     restore_all_roster(roster)
@@ -1384,7 +1407,10 @@ if __name__ == '__main__':
             print('|     ** CASTLE **     |')
             print('+----------------------+')
             destination: str = read_choice(castle_destinations)
-            party = [c for c in party if c.status == 'OK']
+            for c in party:
+                if c.status != 'OK':
+                    c.id_party = -1
+            # party = [c for c in party if c.status == 'OK']
             match destination:
                 case 'Gilgamesh\'s Tavern':
                     gilgamesh_tavern(party, roster)
@@ -1399,7 +1425,7 @@ if __name__ == '__main__':
                         print('No characters remains in the party!')
                         sleep(2)
                         continue
-                    temple_of_cant(party)
+                    temple_of_cant(roster)
                 case 'Boltac\'s Trading Post':
                     input('not yet created!... [Return] to Castle')
                 case 'Edge of Town':
@@ -1444,6 +1470,11 @@ if __name__ == '__main__':
                                 print(f'** NO CHARACTERS FOUND! ** Return to {Color.RED}Training grounds{Color.END} to create one or more adventurer(s)!')
                                 sleep(2)
                 case 'Leave Game':
+                    for c in party:
+                        for c2p in char_to_party:
+                            if c2p.char_name == c.name:
+                                c2p.id = c.id_party
+                    save_char_to_party(char_to_party=char_to_party, _dir=game_path)
                     print(f'Bye, see you in a next adventure :-)')
                     exit(0)
                 case 'Castle':
