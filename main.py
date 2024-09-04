@@ -794,7 +794,7 @@ def rest_character(char: Character, fee: int, weeks: int):
         if char.sc.spell_slots != char.class_type.spell_slots[char.level]:
             print(f'{char.name} has memorized all his spells')
             char.sc.spell_slots = copy(char.class_type.spell_slots[char.level])
-    if char.level < len(xp_levels) and char.xp > xp_levels[char.level]:
+    if char.level < len(xp_levels) and char.xp >= xp_levels[char.level]:
         if char.class_type.can_cast:
             spell_names: List[str] = populate(collection_name='spells', key_name='results')
             all_spells: List[Spell] = [request_spell(name) for name in spell_names]
