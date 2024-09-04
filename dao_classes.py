@@ -756,6 +756,10 @@ class Action:
     long_range: float = None
     disadvantage: bool = False
 
+@dataclass
+class Char2Party:
+    char_name: str
+    id: int = -1
 
 @dataclass
 class Character(Sprite):
