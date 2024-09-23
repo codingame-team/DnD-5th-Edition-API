@@ -834,7 +834,7 @@ def temple_of_cant(party: List[Character, roster: List[Character]]):
         print('+----------------------------+')
         print('Temple of Cant -- Praise God!!!')
         cures_costs_per_level: dict() = {'PARALYZED': 100, 'STONED': 200, 'DEAD': 250, 'ASHES': 500}
-        cures_candidates: dict() = [f'{c.name} ({cures_costs_per_level[c.status] * c.level} GP)' for c in roster + party if c.status not in ('OK', 'LOST')]
+        cures_candidates: dict() = [f'{c.name} ({cures_costs_per_level[c.status] * c.level} GP)' for c in roster if c.status not in ('OK', 'LOST')]
         if not cures_candidates:
             print('No more character to save ** HERE! **')
             exit_temple = True
@@ -1228,7 +1228,7 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
                         elif available_special_attacks:
                             special_attack: SpecialAbility = max(available_special_attacks, key=lambda a: sum([damage.dd.score(success_type=a.dc_success) for damage in a.damages]))
                             #cprint(special_attack)
-                            if special_attack.targets_count > len(party):
+                            if special_attack.targets_count >= len(party):
                                 cprint(f'{color.GREEN}{attacker.name}{color.END} launches ** {special_attack.name.upper()} ** on whole party!')
                                 target_chars: List[Character] = party
                             else:
@@ -1238,8 +1238,11 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
                                     target_chars: List[Character] = sample(ranged_chars, special_attack.targets_count)
                                 else:
                                     target_chars: List[Character] = sample(party, special_attack.targets_count)
-                                targets: str = ' and '.join([char.name for char in target_chars])
-                                cprint(f'{color.GREEN}{attacker.name}{color.END} launches ** {special_attack.name.upper()} ** on {targets}!')
+                                targets: str = ', '.join([char.name for char in target_chars])
+                                # Replace all ' and ' with ', ' except for the last one
+                                targets_split = targets.rsplit(', ', 1)  # Split at the last ', '
+                                formatted_targets = ' and '.join(targets_split)
+                                cprint(f'{color.GREEN}{attacker.name}{color.END} launches ** {special_attack.name.upper()} ** on {formatted_targets}!')
                             #cprint('target chars: ' + '/'.join([c.name for c in target_chars]))
                             for char in target_chars:
                                 if char in alive_chars:
@@ -1252,12 +1255,15 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
                                         cprint(f'{char.name} is ** KILLED **!')
                         else:
                             char: Character = choice(melee_chars)
-                            melee_attacks: List[Action] = list(filter(lambda a: a.type in [ActionType.MELEE, ActionType.MIXED], attacker.actions))
-                            char.hit_points -= attacker.attack(character=char, actions=melee_attacks)
-                            if char.hit_points <= 0:
-                                alive_chars.remove(char)
-                                char.status = 'DEAD'
-                                cprint(f'{char.name} is ** KILLED **!')
+                            melee_attacks: List[Action] = [a for a in attacker.actions if a in (ActionType.MELEE, ActionType.MIXED)]
+                            if melee_attacks:
+                                char.hit_points -= attacker.attack(character=char, actions=melee_attacks)
+                                if char.hit_points <= 0:
+                                    alive_chars.remove(char)
+                                    char.status = 'DEAD'
+                                    cprint(f'{char.name} is ** KILLED **!')
+                            else:
+                                cprint(f'** {char.name} ** has no MELEE attacks implemented!')
                     else:   # CHARACTER ATTACKS
                         if not alive_monsters:
                             break
