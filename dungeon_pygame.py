@@ -34,7 +34,7 @@ STATS_WIDTH, ACTIONS_HEIGHT = 600, 200
 STATS_HEIGHT = 250
 
 # Paramètres de la map
-UNIT_SIZE = 5
+UNIT_SIZE = 10
 JSON_UNIT_SIZE = 10
 
 # Paramètres de l'écran
@@ -548,6 +548,9 @@ class Game:
                 elif isinstance(item, Armor):
                     armor = item
         ranged_weapon_info: str = f' ({self.hero.weapon.range.normal}")' if self.hero.weapon and self.hero.weapon.range else ''
+        if not hasattr(self.hero, 'speed'):
+            races: dict = {'dragonborn': 30, 'human': 30, 'elf': 30, 'half-elf': 30, 'dwarf': 25, 'halfling': 25, 'gnome': 25, 'half-orc': 30, 'tiefling': 30}
+            self.hero.speed = races[self.hero.race.index]
         stat_texts = [
             f"Nom: {self.hero.name}",
             f"Race: {self.hero.race.name}",
@@ -559,6 +562,7 @@ class Game:
             f"Attaque (x{self.hero.multi_attacks}): {weapon.damage_dice.dice}{ranged_weapon_info}" if weapon else f"Attaque: 1d2",
             # f"Défense: {self.hero.armor.ac}",
             f"Défense: {self.hero.armor_class}" if armor else "Défense: 10",
+            f'Déplacement: {self.hero.speed}"',
             # f"Potions: {self.hero.potions}",
             f"Gold: {self.hero.gold}",
             f"Taille: {height_meters}m{height_centimeters:2d}",
@@ -961,8 +965,12 @@ def initialize_game(char_name: str, char_dir: str) -> Game:
     if not saved_game:
         return Game(char_name, char_dir)
     if saved_game.hero.is_dead:
-        saved_game.hero.status = 'OK'
-        saved_game.hero.hit_points = 1
+        hero = saved_game.hero
+        hero.status = 'OK'
+        hero.hit_points = 1
+        if not hasattr(hero, 'speed'):
+            races: dict = {'dragonborn': 30, 'human': 30, 'elf': 30, 'half-elf': 30, 'dwarf': 25, 'halfling': 25, 'gnome': 25, 'half-orc': 30, 'tiefling': 30}
+            hero.speed = races[hero.race.index]
     return saved_game
 
 
@@ -1060,9 +1068,12 @@ def update_display(game, token_images):
 
 
 def display_game_over(game):
+    global sprites
     """
     Display the "GAME OVER" message in the Pygame window.
     """
+    # Change the sprite's image to the "rip" image
+    sprites[game.hero.id] = pygame.image.load(f"{sprites_dir}/rip.png").convert_alpha()
     font = pygame.font.Font(None, 36)
     text = font.render("GAME OVER - Press [Space] to continue", True, (255, 0, 0))
     # text_rect = pygame.Rect((game.map_width * TILE_SIZE) // 2, 0, (game.map_width * TILE_SIZE) // 2, (game.map_height * TILE_SIZE) // 2)
@@ -1147,6 +1158,8 @@ def main_game_loop(game):
                 if monsters_in_range:
                     # Reset attack mode for monster not in view range
                     for monster in game.level.monsters:
+                        if not hasattr(monster, 'speed'):
+                            monster.speed = 30
                         if monster not in monsters_in_range:
                             monster.attack_round = 0
                     handle_combat(game=game, monsters=monsters_in_range)
@@ -1165,6 +1178,7 @@ def main_game_loop(game):
         else:
             cprint(f'{game.hero.name} has been defeated!')
             display_game_over(game)
+            update_display(game, token_images)
             running = False
 
 
@@ -1293,6 +1307,8 @@ def attack_monsters(game, monsters):
                     rooms[0].monsters.remove(monster)
 
 def attack_monster(game, monster):
+    if not hasattr(monster, 'speed'):
+        monster.speed = 30
     monster.hit_points -= game.hero.attack(monster, cast=False)
     if monster.hit_points <= 0:
         # cprint(f'{monster.name} at pos {monster.pos} is *KILLED*')
@@ -1331,7 +1347,9 @@ def move_char(game: Game, char: Monster | Character, pos: tuple):
             path = find_path(start=char.pos, end=pos, carte=game.level.carte, obstacles=obstacles)
             # cprint(f'path : {path}')
             if path:
-                char.x, char.y = path[1]
+                dist = min(char.speed // UNIT_SIZE + 1, len(path) - 1)
+                print(f'{char.name} moves to {game.hero.name} at speed {char.speed}"')
+                char.x, char.y = path[dist - 1] if len(path) > 3 else path[1]
                 room_no = display_room_info(game, char.pos, room_no)
             else:
                 cprint(f'No path found for {char.name}!')
@@ -1539,6 +1557,8 @@ def handle_monster_actions(game: Game, monster: Monster):
                 game.hero.hit_points -= monster.attack(character=game.hero, actions=ranged_attacks, distance=range)
             else:
                 # Monster moves towards the hero
+                if not hasattr(monster, 'speed'):
+                    monster.speed = 10
                 move_char(game=game, char=monster, pos=game.hero.pos)
 
 
