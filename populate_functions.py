@@ -2140,9 +2140,18 @@ def request_monster_other(name: str) -> Optional[Monster]:
         dpr: float = sum(damages) / len(damages)
         xp: float = 5 * int(data['hp']['average']) * dpr * (ac + ab - 2) / (4 * 13)
         # print(f'{name}: {xp} XP')
-        speed: str = data['speed']['fly'] if 'fly' in data['speed'] else data['speed']['walk']
+        speed_dict = data['speed']
+        if 'fly' in speed_dict:
+            if isinstance(speed_dict['fly'], dict):
+                speed = speed_dict['fly']['number']
+            else:
+                speed = speed_dict['fly']
+        elif 'walk' in speed_dict:
+            speed = speed_dict['walk']
+        else:
+            speed = 30
         type: str = 'fly' if 'fly' in data['speed'] else 'walk'
-        print(f'{name} speed: {speed} type: {type}')
+        # print(f'{name} speed: {speed} type: {type}')
 
         return Monster(id=-1,
                        image_name=f'monster_enemy.png',
@@ -2155,7 +2164,7 @@ def request_monster_other(name: str) -> Optional[Monster]:
                        armor_class=ac,
                        hit_points=hit_dice.roll(),
                        hit_dice=data['hp']['formula'],
-                       speed=int(speed),
+                       speed=speed,
                        xp=int(xp),
                        challenge_rating=parse_challenge_rating(data['cr']),
                        actions=actions,
