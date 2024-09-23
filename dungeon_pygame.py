@@ -1347,9 +1347,13 @@ def move_char(game: Game, char: Monster | Character, pos: tuple):
             path = find_path(start=char.pos, end=pos, carte=game.level.carte, obstacles=obstacles)
             # cprint(f'path : {path}')
             if path:
-                dist = min(char.speed // UNIT_SIZE + 1, len(path) - 1)
-                print(f'{char.name} moves to {game.hero.name} at speed {char.speed}"')
-                char.x, char.y = path[dist - 1] if len(path) > 3 else path[1]
+                if isinstance(char, Character):
+                    char.x, char.y = path[1]
+                else:
+                    speed_ratio: int = round(char.speed / game.hero.speed)
+                    dist = min(speed_ratio, len(path) - 1)
+                    print(f'{char.name} moves to {game.hero.name} at speed {char.speed}"')
+                    char.x, char.y = path[dist] if len(path) > 3 else path[1]
                 room_no = display_room_info(game, char.pos, room_no)
             else:
                 cprint(f'No path found for {char.name}!')
@@ -1496,8 +1500,8 @@ def handle_combat(game: Game, monsters: List[Monster], attack_spell: Spell = Non
                 continue
             # Handle monster's attack
             handle_monster_actions(game, char)
-            game.last_combat_round = game.round_no
-    game.round_no += 1
+            # game.last_combat_round = game.round_no
+    # game.round_no += 1
 
 
 def handle_monster_actions(game: Game, monster: Monster):
@@ -1558,7 +1562,7 @@ def handle_monster_actions(game: Game, monster: Monster):
             else:
                 # Monster moves towards the hero
                 if not hasattr(monster, 'speed'):
-                    monster.speed = 10
+                    monster.speed = 30
                 move_char(game=game, char=monster, pos=game.hero.pos)
 
 
