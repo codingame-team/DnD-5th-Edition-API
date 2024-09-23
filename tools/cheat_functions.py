@@ -2,9 +2,12 @@ import os
 from typing import List
 
 from dao_classes import Character
-from main import get_roster, save_character
+from dungeon_pygame import load_character_gamestate, save_character_gamestate
+from main import get_roster, save_character, load_character
 
 from collections import Counter
+
+from tools.common import get_save_game_path
 
 
 def get_duplicate_ids(roster):
@@ -154,17 +157,33 @@ def delete_arrow(param):
             save_character(char=character, _dir=characters_dir)
 
 if __name__ == "__main__":
-    path = os.path.dirname(__file__)
-    abspath = os.path.abspath(path)
-    characters_dir = f'{abspath}/../gameState/characters'
-    roster: List[Character] = get_roster(characters_dir)
+    # path = os.path.dirname(__file__)
+    # abspath = os.path.abspath(path)
+    # gamestate_dir = f'{abspath}/../gameState/pygame'
+    # characters_dir = f'{abspath}/../gameState/characters'
+    # roster: List[Character] = get_roster(characters_dir)
+
+    game_path = get_save_game_path()
+    characters_dir = f'{game_path}/characters'
+    gamestate_dir = f'{game_path}/pygame'
+    char_name = 'Brottor'
+    saved_game = load_character_gamestate(char_name=char_name, _dir=gamestate_dir)
+    if not saved_game:
+        hero = load_character(char_name=char_name, _dir=characters_dir)
+        hero.inventory = [None] * 20
+        save_character(char=hero, _dir=characters_dir)
+    else:
+        hero = saved_game.hero
+        hero.inventory = [None] * 20
+        save_character_gamestate(hero, gamestate_dir, saved_game)
+
 
     # fix_duplicate_ids_all(roster)
     # delete_inv(roster)
     # delete_dart('Silaqui')
-    delete_arrow('Ehput-Ki')
+    # delete_arrow('Ehput-Ki')
 
     # cure_char(name='Vadania')
     # cure_char(name='Esvele')
-    # delete_char_inv(name='Esvele')
+    # delete_char_inv(name='Vola')
     # fix_duplicate_spells(roster)
