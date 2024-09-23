@@ -366,6 +366,8 @@ def request_monster(index_name: str) -> Monster:
             proficiency.value = prof.get('value')
             proficiencies.append(proficiency)
 
+    speed: str = data['speed']['fly'] if 'fly' in data['speed'] else data['speed']['walk']
+
     return Monster(id=-1,
                    image_name=f'monster_{index_name}.png',
                    x=-1, y=-1, old_x=-1, old_y=-1,
@@ -378,6 +380,7 @@ def request_monster(index_name: str) -> Monster:
                    hit_points=data['hit_points'],
                    hit_dice=data['hit_dice'],
                    xp=data['xp'],
+                   speed=int(speed.split()[0]),
                    challenge_rating=data['challenge_rating'],
                    actions=actions,
                    sc=spell_caster,
@@ -2137,6 +2140,10 @@ def request_monster_other(name: str) -> Optional[Monster]:
         dpr: float = sum(damages) / len(damages)
         xp: float = 5 * int(data['hp']['average']) * dpr * (ac + ab - 2) / (4 * 13)
         # print(f'{name}: {xp} XP')
+        speed: str = data['speed']['fly'] if 'fly' in data['speed'] else data['speed']['walk']
+        type: str = 'fly' if 'fly' in data['speed'] else 'walk'
+        print(f'{name} speed: {speed} type: {type}')
+
         return Monster(id=-1,
                        image_name=f'monster_enemy.png',
                        x=-1, y=-1, old_x=-1, old_y=-1,
@@ -2148,6 +2155,7 @@ def request_monster_other(name: str) -> Optional[Monster]:
                        armor_class=ac,
                        hit_points=hit_dice.roll(),
                        hit_dice=data['hp']['formula'],
+                       speed=int(speed),
                        xp=int(xp),
                        challenge_rating=parse_challenge_rating(data['cr']),
                        actions=actions,

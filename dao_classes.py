@@ -78,6 +78,7 @@ class Monster(Sprite):
     hit_points: int
     hit_dice: str
     xp: int
+    speed: int
     challenge_rating: float
     actions: List[Action]
     sc: SpellCaster | None
@@ -777,6 +778,7 @@ class Character(Sprite):
     ability_modifiers: Abilities
     hit_points: int
     max_hit_points: int
+    speed: int
     xp: int
     level: int
     monster_kills: int
