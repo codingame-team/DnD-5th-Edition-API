@@ -549,8 +549,7 @@ class Game:
                     armor = item
         ranged_weapon_info: str = f' ({self.hero.weapon.range.normal}")' if self.hero.weapon and self.hero.weapon.range else ''
         if not hasattr(self.hero, 'speed'):
-            races: dict = {'dragonborn': 30, 'human': 30, 'elf': 30, 'half-elf': 30, 'dwarf': 25, 'halfling': 25, 'gnome': 25, 'half-orc': 30, 'tiefling': 30}
-            self.hero.speed = races[self.hero.race.index]
+            self.hero.speed = 25 if self.hero.race.index in ['dwarf', 'halfling', 'gnome'] else 30
         stat_texts = [
             f"Nom: {self.hero.name}",
             f"Race: {self.hero.race.name}",

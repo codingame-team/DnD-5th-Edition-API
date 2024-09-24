@@ -808,6 +808,8 @@ class Character(Sprite):
     status: str = 'OK'
     id_party: int = -1
     OUT: bool = False
+    ac_bonus: int = 0
+    multi_attack_bonus: int = 0
 
     @property
     def weapon(self) -> Optional[Weapon]:
@@ -899,7 +901,8 @@ class Character(Sprite):
 
     @property
     def multi_attacks(self) -> int:
-        return 1 if self.level < 5 else 2 if self.level < 11 else 3 if self.level < 20 else 4
+        attack_counts: int = 1 if self.level < 5 else 2 if self.level < 11 else 3 if self.level < 20 else 4
+        return attack_counts + self.multi_attack_bonus if hasattr(self, 'multi_attack_bonus') else attack_counts
 
     @property
     def armor_class(self):
@@ -941,7 +944,7 @@ class Character(Sprite):
 
     def cancel_haste(self):
         self.hasted = False
-        self.speed //= 2
+        self.speed = 25 if self.race.index in ['dwarf', 'halfling', 'gnome'] else 30
         self.ac_bonus = 0
         cprint(f'{self.name} is no longer {color.PURPLE}{color.BOLD}*hasted*{color.END}!')
 
@@ -950,8 +953,8 @@ class Character(Sprite):
             self.hasted = True
             self.haste_timer = time.time()
             self.speed *= 2
-            if not hasattr(self, 'ac_bonus'):
-                self.ac_bonus = 2
+            self.ac_bonus = 2
+            self.multi_attack_bonus = 1
             cprint(f'{self.name} drinks {potion.name} (id={potion.id}) potion and is {color.PURPLE}{color.BOLD}*hasted*{color.END}!')
         else:
             """Healing (??? check rules): A Healing potion repairs one six-sided die, plus one, (2-7) points of damage, just like a Cure Light Wounds spell."""
