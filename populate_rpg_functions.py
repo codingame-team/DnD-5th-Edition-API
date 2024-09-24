@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import json
 import os
 from typing import Optional, List
@@ -5,7 +7,7 @@ from typing import Optional, List
 import pygame
 from pygame import Surface
 
-from dao_classes import HealingPotion, PotionRarity
+from dao_classes import HealingPotion, PotionRarity, SpeedPotion
 from dao_rpg_classes_tk import Monster
 
 path = os.path.dirname(__file__)
@@ -89,26 +91,30 @@ def load_potion_image_name(name: str) -> Optional[str]:
         'Greater healing': 'PotionRed',
         'Superior healing': 'PotionTallRed',
         'Supreme healing': 'PotionTallRed2',
+        'Speed': 'PotionShortBlue',
 
     }
     image_name: str = potions.get(name)
     return image_name + '.PNG' if image_name else 'None.PNG'
 
 def get_available_potions() -> List[HealingPotion]:
-    healing_potions: List[HealingPotion] = []
+    potions: List[HealingPotion|SpeedPotion] = []
     image_name: str = load_potion_image_name('Healing')
     potion = HealingPotion(id=-1, image_name=image_name, x=-1, y=-1, old_x=-1, old_y=-1, name='Healing', rarity=PotionRarity.COMMON, hit_dice='2d4', bonus=2, cost=50)
-    healing_potions.append(potion)
+    potions.append(potion)
     image_name: str = load_potion_image_name('Greater healing')
     potion = HealingPotion(id=-1, image_name=image_name, x=-1, y=-1, old_x=-1, old_y=-1, name='Greater healing', rarity=PotionRarity.UNCOMMON, hit_dice='4d4', bonus=4, cost=150)
-    healing_potions.append(potion)
+    potions.append(potion)
     image_name: str = load_potion_image_name('Superior healing')
     potion = HealingPotion(id=-1, image_name=image_name, x=-1, y=-1, old_x=-1, old_y=-1, name='Superior healing', rarity=PotionRarity.RARE, hit_dice='8d4', bonus=8, cost=450)
-    healing_potions.append(potion)
+    potions.append(potion)
     image_name: str = load_potion_image_name('Supreme healing')
     potion = HealingPotion(id=-1, image_name=image_name, x=-1, y=-1, old_x=-1, old_y=-1, name='Supreme healing', rarity=PotionRarity.VERY_RARE, hit_dice='10d4', bonus=20, cost=1350)
-    healing_potions.append(potion)
-    return healing_potions
+    potions.append(potion)
+    image_name: str = load_potion_image_name('Speed')
+    potion = SpeedPotion(id=-1, image_name=image_name, x=-1, y=-1, old_x=-1, old_y=-1, name='Speed', rarity=PotionRarity.VERY_RARE, duration=60, cost=400)
+    potions.append(potion)
+    return potions
 
 
 def load_potions_collections() -> List[HealingPotion]:

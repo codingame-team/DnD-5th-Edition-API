@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import time
 from copy import deepcopy, copy
 from dataclasses import dataclass, field
 from enum import Enum
@@ -438,6 +439,22 @@ class PotionRarity(Enum):
     RARE = 95
     VERY_RARE = 100
 
+@dataclass
+class SpeedPotion(Sprite):
+    name: str
+    duration: int
+    rarity: PotionRarity
+    cost: int
+
+    def __copy__(self):
+        # Create a shallow copy of the object
+        cls = self.__class__
+        result = cls.__new__(cls)
+        result.__dict__.update(self.__dict__)
+        # For each attribute that should be deep-copied, use copy.copy
+        result.rarity = copy(self.rarity)
+        result.cost = copy(self.cost)
+        return result
 
 @dataclass
 class HealingPotion(Sprite):
@@ -779,6 +796,8 @@ class Character(Sprite):
     hit_points: int
     max_hit_points: int
     speed: int
+    haste_timer: float
+    hasted: bool
     xp: int
     level: int
     monster_kills: int
@@ -888,7 +907,7 @@ class Character(Sprite):
         equipped_shields: List[Armor] = [item for item in self.inventory if isinstance(item, Armor) and item.name == 'Shield' and item.equipped]
         ac: int = sum([item.armor_class['base'] for item in equipped_armors]) if equipped_armors else 10
         ac += sum([item.armor_class['base'] for item in equipped_shields])
-        return ac
+        return ac + self.ac_bonus if hasattr(self, 'ac_bonus') else ac
 
     @property
     def damage_dice(self) -> DamageDice:
@@ -920,16 +939,30 @@ class Character(Sprite):
         available_potions = [p for p in self.healing_potions if p.max_hp_restored >= hp_to_recover]
         return min(available_potions, key=lambda p: p.max_hp_restored) if available_potions else max(self.healing_potions, key=lambda p: p.max_hp_restored)
 
-    def drink(self, potion: HealingPotion):
-        """Healing (??? check rules): A Healing potion repairs one six-sided die, plus one, (2-7) points of damage, just like a Cure Light Wounds spell."""
-        hp_to_recover = self.max_hit_points - self.hit_points
-        dice_count, roll_dice = map(int, potion.hit_dice.split('d'))
-        hp_restored = potion.bonus + sum([randint(1, roll_dice) for _ in range(dice_count)])
-        self.hit_points = min(self.hit_points + hp_restored, self.max_hit_points)
-        if hp_to_recover <= hp_restored:
-            cprint(f'{self.name} drinks {potion.name} (id={potion.id}) potion and is {color.BOLD}*fully*{color.END} healed!')
+    def cancel_haste(self):
+        self.hasted = False
+        self.speed //= 2
+        self.ac_bonus = 0
+        cprint(f'{self.name} is no longer {color.PURPLE}{color.BOLD}*hasted*{color.END}!')
+
+    def drink(self, potion: HealingPotion|SpeedPotion):
+        if isinstance(potion, SpeedPotion):
+            self.hasted = True
+            self.haste_timer = time.time()
+            self.speed *= 2
+            if not hasattr(self, 'ac_bonus'):
+                self.ac_bonus = 2
+            cprint(f'{self.name} drinks {potion.name} (id={potion.id}) potion and is {color.PURPLE}{color.BOLD}*hasted*{color.END}!')
         else:
-            cprint(f'{self.name} drinks {potion.name} (id={potion.id}) potion and has {min(hp_to_recover, hp_restored)} hit points restored!')
+            """Healing (??? check rules): A Healing potion repairs one six-sided die, plus one, (2-7) points of damage, just like a Cure Light Wounds spell."""
+            hp_to_recover = self.max_hit_points - self.hit_points
+            dice_count, roll_dice = map(int, potion.hit_dice.split('d'))
+            hp_restored = potion.bonus + sum([randint(1, roll_dice) for _ in range(dice_count)])
+            self.hit_points = min(self.hit_points + hp_restored, self.max_hit_points)
+            if hp_to_recover <= hp_restored:
+                cprint(f'{self.name} drinks {potion.name} (id={potion.id}) potion and is {color.BOLD}*fully*{color.END} healed!')
+            else:
+                cprint(f'{self.name} drinks {potion.name} (id={potion.id}) potion and has {min(hp_to_recover, hp_restored)} hit points restored!')
 
     def victory(self, monster: Monster, solo_mode=False):
         self.xp += monster.xp

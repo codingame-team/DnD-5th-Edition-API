@@ -19,7 +19,7 @@ from pygame import Surface
 
 from algo.brehensam import in_view_range
 from algo.lee import parcours_largeur, parcours_a_star
-from dao_classes import Character, Level, Spell, Weapon, Armor, HealingPotion, Monster, Equipment, Treasure, Sprite, SpecialAbility, color, ActionType, Action
+from dao_classes import Character, Level, Spell, Weapon, Armor, HealingPotion, Monster, Equipment, Treasure, Sprite, SpecialAbility, color, ActionType, Action, SpeedPotion
 from main import get_roster, save_character, load_xp_levels, load_character
 from populate_functions import populate, request_armor, request_weapon, request_monster, request_spell, request_monster_other
 from populate_rpg_functions import load_potions_collections
@@ -540,7 +540,7 @@ class Game:
         weapon: Weapon = None
         armor: Armor = None
         for item in self.hero.inventory:
-            if not item or isinstance(item, HealingPotion):
+            if not item or isinstance(item, HealingPotion|SpeedPotion):
                 continue
             if item.equipped:
                 if isinstance(item, Weapon):
@@ -861,7 +861,7 @@ class Game:
                     item.equipped = not item.equipped
 
     def use(self, item, sprites):
-        if isinstance(item, HealingPotion):
+        if isinstance(item, (HealingPotion, SpeedPotion)):
             self.hero.drink(item)
             self.remove_from_inv(item, sprites)
         else:
@@ -1149,6 +1149,8 @@ def main_game_loop(game):
 
         # Check if a new round has started
         if game.hero.hit_points > 0:
+            if hasattr(game.hero, 'hasted') and game.hero.hasted and current_time - game.hero.haste_timer > 60:
+                game.hero.cancel_haste()
             if current_time - game.last_round_time >= ROUND_DURATION:
                 game.round_no += 1
                 # print(f'Round #{round_no}')

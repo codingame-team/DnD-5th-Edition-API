@@ -5,7 +5,7 @@ from typing import List
 
 import pygame
 
-from dao_classes import Character, Weapon, Armor, HealingPotion, Equipment
+from dao_classes import Character, Weapon, Armor, HealingPotion, Equipment, SpeedPotion
 from dungeon_pygame import Game, load_character_gamestate, save_character_gamestate
 from main import get_roster, save_character, load_character
 from populate_functions import request_armor, request_weapon
@@ -86,7 +86,7 @@ def handle_buy(hero, selected_item_index, selected_category):
         elif cost(item) <= hero.gold:
             cprint(f'You bought {item.name}!')
             hero.gold -= cost(item)
-            if isinstance(item, HealingPotion):
+            if isinstance(item, (HealingPotion, SpeedPotion)):
                 bought_item = copy(item)
             elif isinstance(item, Armor):
                 bought_item = request_armor(item.index)
@@ -215,7 +215,7 @@ def run(character_name: str = 'Brottor'):
     saved_game, hero, equipments = load_game_data(character_name)
     main_game_loop(saved_game, hero, equipments, f'{get_save_game_path()}/characters')
 
-cost = lambda x: int(x.cost) if isinstance(x, HealingPotion) else int(x.cost['quantity'])
+cost = lambda x: int(x.cost) if isinstance(x, (HealingPotion, SpeedPotion)) else int(x.cost['quantity'])
 
 if __name__ == "__main__":
     run()
