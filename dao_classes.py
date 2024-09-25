@@ -444,7 +444,13 @@ class SpeedPotion(Sprite):
     name: str
     duration: int
     rarity: PotionRarity
-    cost: int
+    min_cost: int = 5001
+    max_cost: int = 50000
+    min_level: int = 11
+    cost: int = field(init=False)
+
+    def __post_init__(self):
+        self.cost = randint(self.min_cost, self.max_cost)
 
     def __copy__(self):
         # Create a shallow copy of the object
@@ -805,6 +811,7 @@ class Character(Sprite):
     gold: int
     sc: SpellCaster | None
     conditions: List[Condition] | None
+    st_advantages: List[str] | None
     status: str = 'OK'
     id_party: int = -1
     OUT: bool = False
@@ -834,6 +841,10 @@ class Character(Sprite):
     @property
     def healing_potions(self) -> List[HealingPotion]:
         return [item for item in self.inventory if isinstance(item, HealingPotion)]
+
+    @property
+    def speed_potions(self) -> List[SpeedPotion]:
+        return [item for item in self.inventory if isinstance(item, SpeedPotion)]
 
     @property
     def is_spell_caster(self) -> bool:
@@ -946,16 +957,25 @@ class Character(Sprite):
         self.hasted = False
         self.speed = 25 if self.race.index in ['dwarf', 'halfling', 'gnome'] else 30
         self.ac_bonus = 0
+        self.multi_attack_bonus = 0
+        if not hasattr(self, 'st_advantages'):
+            self.st_advantages = ['dex']
+        if 'dex' in self.st_advantages: self.st_advantages.remove('dex')
         cprint(f'{self.name} is no longer {color.PURPLE}{color.BOLD}*hasted*{color.END}!')
 
-    def drink(self, potion: HealingPotion|SpeedPotion):
+    def drink(self, potion: HealingPotion|SpeedPotion) -> bool:
         if isinstance(potion, SpeedPotion):
+            if self.level < potion.min_level:
+                return False
             self.hasted = True
             self.haste_timer = time.time()
             self.speed *= 2
             self.ac_bonus = 2
             self.multi_attack_bonus = 1
-            cprint(f'{self.name} drinks {potion.name} (id={potion.id}) potion and is {color.PURPLE}{color.BOLD}*hasted*{color.END}!')
+            if not hasattr(self, 'st_advantages'):
+                self.st_advantages = []
+            self.st_advantages += ['dex']
+            cprint(f'{self.name} drinks {potion.name} potion and is {color.PURPLE}{color.BOLD}*hasted*{color.END}!')
         else:
             """Healing (??? check rules): A Healing potion repairs one six-sided die, plus one, (2-7) points of damage, just like a Cure Light Wounds spell."""
             hp_to_recover = self.max_hit_points - self.hit_points
@@ -966,7 +986,7 @@ class Character(Sprite):
                 cprint(f'{self.name} drinks {potion.name} (id={potion.id}) potion and is {color.BOLD}*fully*{color.END} healed!')
             else:
                 cprint(f'{self.name} drinks {potion.name} (id={potion.id}) potion and has {min(hp_to_recover, hp_restored)} hit points restored!')
-
+        return True
     def victory(self, monster: Monster, solo_mode=False):
         self.xp += monster.xp
         self.monster_kills += 1
@@ -1175,8 +1195,8 @@ class Character(Sprite):
     def saving_throw(self, dc_type: str, dc_value: int) -> bool:
         """
             Determine resistance from a spell casted by a monster
-        :param dc: difficulty class of the caster
-        :param spell: spell of the caster
+        :param dc_type: ability needed for ST
+        :param dc_value: difficulty class
         :return:
         """
 
@@ -1194,7 +1214,7 @@ class Character(Sprite):
             ability_modifier: int = prof_modifiers[0]
         else:
             ability_modifier: int = ability_mod(self.abilities.get_value_by_index(dc_type)) + prof_bonus(self.level)
-        return randint(1, 20) + ability_modifier > dc_value
+        return any(randint(1, 20) + ability_modifier > dc_value for _ in range(2)) if dc_type in self.st_advantages else randint(1, 20) + ability_modifier > dc_value
 
 
 @dataclass
