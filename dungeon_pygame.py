@@ -1376,6 +1376,25 @@ def move_char(game: Game, char: Monster | Character, pos: tuple):
         cprint(f'{char.name} cannot move to {pos}!')
 
 
+def display_available_commands(game):
+    # Print available commands in the console
+    print("\nAvailable Commands:")
+    commands = [
+        f"{Color.GREEN}DIRECTIONAL ARROWS{Color.END} = Move up/left/down/right",
+        f"{Color.GREEN}LEFT CLICK{Color.END} = Attack monster - Equip/Unequip item - Ready spell",
+        f"{Color.GREEN}RIGHT CLICK{Color.END} = Cast spell - Drop Item from inventory",
+        f"{Color.GREEN}P{Color.END} = Drink Healing Potion",
+        f"{Color.GREEN}S{Color.END} = Drink Speed Potion",
+        f"{Color.GREEN}I{Color.END} - Get Info on hero's location",
+        f"{Color.GREEN}CMD-S{Color.END} = Save game",
+        f"{Color.GREEN}ESC{Color.END} - Leave game (without saving)",
+        f"{Color.GREEN}H{Color.END} - Show this help"
+    ]
+
+    for command in commands:
+        print(command)
+
+
 def handle_keyboard_events(game, event):
     return_to_main_menu: bool = False
     if event.key == pygame.K_ESCAPE:
@@ -1388,16 +1407,13 @@ def handle_keyboard_events(game, event):
         save_character(char=game.hero, _dir=characters_dir)
         save_character_gamestate(char=game.hero, _dir=gamestate_dir, gamestate=game)
         print("Character saved!")
-    elif event.key == pygame.K_h:
+    elif event.key == pygame.K_i:
         room: Optional[Room] = game.level.room_at(game.hero.pos)
         msg: str = f'lurking in room {room.id}' if room else 'wandering in a corridor'
         cprint(f'{game.hero.name} located at {game.hero.pos} *{msg}*')
-    elif event.key == pygame.K_i:
-        room: Optional[Room] = game.level.room_at(game.hero.pos)
-        if room:
-            print(room)
-        else:
-            print('No room found!')
+    elif event.key == pygame.K_h:
+        # print available commands
+        display_available_commands(game)
     elif event.key == pygame.K_UP:
         move_position = (game.hero.x, game.hero.y - 1)
         monsters = [m for m in game.level.monsters if m.pos == move_position]
