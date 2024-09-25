@@ -97,7 +97,7 @@ def load_potion_image_name(name: str) -> Optional[str]:
     image_name: str = potions.get(name)
     return image_name + '.PNG' if image_name else 'None.PNG'
 
-def get_available_potions() -> List[HealingPotion]:
+def get_available_potions() -> List[HealingPotion|SpeedPotion]:
     potions: List[HealingPotion|SpeedPotion] = []
     image_name: str = load_potion_image_name('Healing')
     potion = HealingPotion(id=-1, image_name=image_name, x=-1, y=-1, old_x=-1, old_y=-1, name='Healing', rarity=PotionRarity.COMMON, hit_dice='2d4', bonus=2, cost=50)
@@ -112,30 +112,34 @@ def get_available_potions() -> List[HealingPotion]:
     potion = HealingPotion(id=-1, image_name=image_name, x=-1, y=-1, old_x=-1, old_y=-1, name='Supreme healing', rarity=PotionRarity.VERY_RARE, hit_dice='10d4', bonus=20, cost=1350)
     potions.append(potion)
     image_name: str = load_potion_image_name('Speed')
-    potion = SpeedPotion(id=-1, image_name=image_name, x=-1, y=-1, old_x=-1, old_y=-1, name='Speed', rarity=PotionRarity.VERY_RARE, duration=60, cost=400)
+    potion = SpeedPotion(id=-1, image_name=image_name, x=-1, y=-1, old_x=-1, old_y=-1, name='Speed', rarity=PotionRarity.VERY_RARE, duration=60)
     potions.append(potion)
     return potions
 
 
-def load_potions_collections() -> List[HealingPotion]:
-    healing_potions: List[HealingPotion] = []
+def load_potions_collections() -> List[HealingPotion|SpeedPotion]:
+    potions: List[HealingPotion] = []
     for _ in range(PotionRarity.COMMON.value):
         image_name: str = load_potion_image_name('Healing')
         potion = HealingPotion(id=-1, image_name=image_name, x=-1, y=-1, old_x=-1, old_y=-1, name='Healing', rarity=PotionRarity.COMMON, hit_dice='2d4', bonus=2, cost=50)
-        healing_potions.append(potion)
+        potions.append(potion)
     for _ in range(PotionRarity.COMMON.value + 1, PotionRarity.UNCOMMON.value + 1):
         image_name: str = load_potion_image_name('Greater healing')
         potion = HealingPotion(id=-1, image_name=image_name, x=-1, y=-1, old_x=-1, old_y=-1, name='Greater healing', rarity=PotionRarity.UNCOMMON, hit_dice='4d4', bonus=4, cost=150)
-        healing_potions.append(potion)
+        potions.append(potion)
     for _ in range(PotionRarity.UNCOMMON.value + 1, PotionRarity.RARE.value + 1):
         image_name: str = load_potion_image_name('Superior healing')
         potion = HealingPotion(id=-1, image_name=image_name, x=-1, y=-1, old_x=-1, old_y=-1, name='Superior healing', rarity=PotionRarity.RARE, hit_dice='8d4', bonus=8, cost=450)
-        healing_potions.append(potion)
-    for _ in range(PotionRarity.RARE.value + 1, PotionRarity.VERY_RARE.value + 1):
-        image_name: str = load_potion_image_name('Supreme healing')
-        potion = HealingPotion(id=-1, image_name=image_name, x=-1, y=-1, old_x=-1, old_y=-1, name='Supreme healing', rarity=PotionRarity.VERY_RARE, hit_dice='10d4', bonus=20, cost=1350)
-        healing_potions.append(potion)
-    return healing_potions
+        potions.append(potion)
+    for i in range(PotionRarity.RARE.value + 1, PotionRarity.VERY_RARE.value + 1):
+        if i % 2:
+            image_name: str = load_potion_image_name('Supreme healing')
+            potion = HealingPotion(id=-1, image_name=image_name, x=-1, y=-1, old_x=-1, old_y=-1, name='Supreme healing', rarity=PotionRarity.VERY_RARE, hit_dice='10d4', bonus=20, cost=1350)
+        else:
+            image_name: str = load_potion_image_name('Speed')
+            potion = SpeedPotion(id=-1, image_name=image_name, x=-1, y=-1, old_x=-1, old_y=-1, name='Speed', rarity=PotionRarity.VERY_RARE, duration=60)
+        potions.append(potion)
+    return potions
 
 
 def request_monster(index_name: str) -> Optional[Monster]:
