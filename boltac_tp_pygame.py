@@ -200,7 +200,7 @@ def load_game_data(character_name):
     try:
         saved_game = load_character_gamestate(character_name, gamestate_dir)
         hero = saved_game.hero if saved_game else load_character(character_name, characters_dir)
-        hero.gold = 10000
+        # hero.gold = 10000 if hero.name != 'Ivor' else 100000
         weapons = sorted(hero.allowed_weapons, key=cost)
         armors = sorted(hero.allowed_armors, key=cost)
         potions = get_available_potions()
