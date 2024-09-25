@@ -34,7 +34,7 @@ STATS_WIDTH, ACTIONS_HEIGHT = 600, 200
 STATS_HEIGHT = 250
 
 # Paramètres de la map
-UNIT_SIZE = 10
+UNIT_SIZE = 5
 JSON_UNIT_SIZE = 10
 
 # Paramètres de l'écran
@@ -540,7 +540,7 @@ class Game:
         weapon: Weapon = None
         armor: Armor = None
         for item in self.hero.inventory:
-            if not item or isinstance(item, HealingPotion|SpeedPotion):
+            if not item or isinstance(item, HealingPotion | SpeedPotion):
                 continue
             if item.equipped:
                 if isinstance(item, Weapon):
@@ -569,13 +569,15 @@ class Game:
             f"Age: {self.hero.age // 52}",
             # Ajoutez d'autres statistiques ici
         ]
+        if not hasattr(self.hero, 'st_advantages'): self.hero.st_advantages = []
+        has_st_advantage = lambda x: ' **' if x in self.hero.st_advantages else ''
         abilities_texts = [
-            f"Force: {self.hero.strength}",
-            f"Dextérité: {self.hero.dexterity}",
-            f"Constitution: {self.hero.constitution}",
-            f"Intelligence: {self.hero.intelligence}",
-            f"Sagesse: {self.hero.wisdom}",
-            f"Charisme: {self.hero.charism}"
+            f"Force: {self.hero.strength}{has_st_advantage('str')}",
+            f"Dextérité: {self.hero.dexterity}{has_st_advantage('dex')}",
+            f"Constitution: {self.hero.constitution}{has_st_advantage('con')}",
+            f"Intelligence: {self.hero.intelligence}{has_st_advantage('int')}",
+            f"Sagesse: {self.hero.wisdom}{has_st_advantage('wis')}",
+            f"Charisme: {self.hero.charism}{has_st_advantage('cha')}"
         ]
         spells_texts = []
         if self.hero.is_spell_caster:
@@ -654,7 +656,7 @@ class Game:
         for i, item in enumerate(self.hero.inventory):
             # Calculer les coordonnées de l'image dans la case
             icon_x = self.view_port_width + 10 + (i % 5) * 40
-            icon_y = 204 + 70 + (i // 5) * 40
+            icon_y = 214 + 70 + (i // 5) * 40
             # Afficher l'icône de l'objet s'il y en a un dans la case
             if item is not None:
                 try:
@@ -789,9 +791,10 @@ class Game:
             room.treasure = None
         self.hero.gold += t.gold
         if t.has_item:
+            potions = list(filter(lambda p: isinstance(p, SpeedPotion) and game.hero.level < p.min_level, potions))
             match randint(1, 3):
                 case 1:
-                    item: HealingPotion = copy(choice(potions))  # work on a copy to avoid sprite id colliding...
+                    item: HealingPotion | SpeedPotion = copy(choice(potions))  # work on a copy to avoid sprite id colliding...
                 case 2:
                     if self.hero.allowed_armors:
                         item: Armor = request_armor(index_name=choice(self.hero.allowed_armors).index)
@@ -861,7 +864,13 @@ class Game:
 
     def use(self, item, sprites):
         if isinstance(item, (HealingPotion, SpeedPotion)):
-            self.hero.drink(item)
+            if isinstance(item, SpeedPotion):
+                can_drink: bool = self.hero.drink(item)
+                if not can_drink:
+                    cprint(f'{game.hero.name} is too low level to drink this potion!')
+                    return
+            else:
+                self.hero.drink(item)
             self.remove_from_inv(item, sprites)
         else:
             cprint(f'Hero cannot use <{item.name}> yet! *Feature not yet implemented*')
@@ -938,9 +947,9 @@ def load_game_assets():
     weapons = [request_weapon(name) for name in weapon_names]
     weapons = list(filter(lambda w: w, weapons))
 
-    healing_potions = load_potions_collections()
+    potions = load_potions_collections()
 
-    return tile_img, font, armors, weapons, healing_potions
+    return tile_img, font, armors, weapons, potions
 
 
 def save_character_gamestate(char: Character, _dir: str, gamestate: Game):
@@ -1307,6 +1316,7 @@ def attack_monsters(game, monsters):
                     # remove monster from room's property
                     rooms[0].monsters.remove(monster)
 
+
 def attack_monster(game, monster):
     if not hasattr(monster, 'speed'):
         monster.speed = 30
@@ -1320,6 +1330,7 @@ def attack_monster(game, monster):
         if rooms:
             # remove monster from room's property
             rooms[0].monsters.remove(monster)
+
 
 def display_room_info(game: Game, pos: tuple, room_no: int) -> int:
     room: Room = game.level.room_at(pos)
@@ -1373,7 +1384,7 @@ def handle_keyboard_events(game, event):
         return_to_main_menu = True
         # pygame.quit()
         # sys.exit()
-    elif event.key == pygame.K_s:
+    elif event.key == pygame.K_s and (event.mod & pygame.KMOD_META):
         save_character(char=game.hero, _dir=characters_dir)
         save_character_gamestate(char=game.hero, _dir=gamestate_dir, gamestate=game)
         print("Character saved!")
@@ -1416,7 +1427,9 @@ def handle_keyboard_events(game, event):
         elif game.can_move(char=game.hero, dir=RIGHT):
             handle_combat(game=game, monsters=game.monsters_in_view_range, move_position=move_position)
     elif event.key == pygame.K_p:
-        handle_potion_use(game)
+        handle_healing_potion_use(game)
+    elif event.key == pygame.K_s:
+        handle_speed_potion_use(game)
     elif event.key == pygame.K_o:
         closed_doors = [door_pos for door_pos, door_open in game.level.doors.items() if mh_dist(door_pos, game.hero.pos) == 1 and not door_open]
         if closed_doors:
@@ -1439,13 +1452,25 @@ def handle_keyboard_events(game, event):
     return return_to_main_menu
 
 
-def handle_potion_use(game):
+def handle_healing_potion_use(game):
     if game.hero.healing_potions:
         potion = game.hero.choose_best_potion()
         game.hero.drink(potion)
         game.remove_from_inv(potion, sprites)
     else:
         cprint('Sorry dude! no healing potion available...')
+
+
+def handle_speed_potion_use(game):
+    if game.hero.speed_potions:
+        potion = game.hero.speed_potions[0]
+        can_drink: bool = game.hero.drink(potion)
+        if not can_drink:
+            cprint(f'{game.hero.name} is too low level to drink this potion!')
+            return
+        game.remove_from_inv(potion, sprites)
+    else:
+        cprint('Sorry dude! no speed potion available...')
 
 
 def handle_game_conditions(game):
@@ -1522,7 +1547,7 @@ def handle_monster_actions(game: Game, monster: Monster):
             if special_attack.recharge_on_roll:
                 special_attack.ready = special_attack.recharge_success
     try:
-        available_special_attacks: List[SpecialAbility] = list(filter(lambda a: a.ready and a.area_of_effect.size >= UNIT_SIZE * range, monster.sa))
+        available_special_attacks: List[SpecialAbility] = list(filter(lambda a: a.ready and a.area_of_effect.size >= UNIT_SIZE, monster.sa))
     except Exception as e:
         available_special_attacks = []
         print(e)
@@ -1555,7 +1580,7 @@ def handle_monster_actions(game: Game, monster: Monster):
         else:
             try:
                 ranged_attacks: List[Action] = list(filter(lambda a: a.type in [ActionType.RANGED, ActionType.MIXED]
-                                                                 and ((a.long_range and range <= a.long_range) or range <= a.normal_range), monster.actions))
+                                                                     and ((a.long_range and range <= a.long_range) or range <= a.normal_range), monster.actions))
             except TypeError as e:
                 print(e)
             if ranged_attacks:
