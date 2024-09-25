@@ -1385,7 +1385,8 @@ def display_available_commands(game):
         f"{Color.GREEN}RIGHT CLICK{Color.END} = Cast spell - Drop Item from inventory",
         f"{Color.GREEN}P{Color.END} = Drink Healing Potion",
         f"{Color.GREEN}S{Color.END} = Drink Speed Potion",
-        f"{Color.GREEN}I{Color.END} - Get Info on hero's location",
+        f"{Color.GREEN}[O|C]{Color.END} = Open/Close Door",
+        f"{Color.GREEN}I{Color.END} - Gather position/status of hero",
         f"{Color.GREEN}CMD-S{Color.END} = Save game",
         f"{Color.GREEN}ESC{Color.END} - Leave game (without saving)",
         f"{Color.GREEN}H{Color.END} - Show this help"
