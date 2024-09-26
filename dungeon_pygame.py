@@ -19,7 +19,8 @@ from pygame import Surface
 
 from algo.brehensam import in_view_range
 from algo.lee import parcours_largeur, parcours_a_star
-from dao_classes import Character, Level, Spell, Weapon, Armor, HealingPotion, Monster, Equipment, Treasure, Sprite, SpecialAbility, color, ActionType, Action, SpeedPotion
+from dao_classes import Character, Level, Spell, Weapon, Armor, HealingPotion, Monster, Equipment, Treasure, Sprite, SpecialAbility, color, ActionType, Action, SpeedPotion, Potion, \
+    StrengthPotion
 from main import get_roster, save_character, load_xp_levels, load_character
 from populate_functions import populate, request_armor, request_weapon, request_monster, request_spell, request_monster_other
 from populate_rpg_functions import load_potions_collections
@@ -540,7 +541,7 @@ class Game:
         weapon: Weapon = None
         armor: Armor = None
         for item in self.hero.inventory:
-            if not item or isinstance(item, HealingPotion | SpeedPotion):
+            if not item or isinstance(item, Potion):
                 continue
             if item.equipped:
                 if isinstance(item, Weapon):
@@ -570,9 +571,13 @@ class Game:
             # Ajoutez d'autres statistiques ici
         ]
         if not hasattr(self.hero, 'st_advantages'): self.hero.st_advantages = []
-        has_st_advantage = lambda x: ' **' if x in self.hero.st_advantages else ''
+        if hasattr(self.hero, 'haste_timer') and self.hero.hasted:
+            has_st_advantage = lambda x: f' ** ({math.ceil((60 - (time.time() - self.hero.haste_timer)) )}" left)' if x in self.hero.st_advantages else ''
+        else:
+            has_st_advantage = lambda x: f' **' if x in self.hero.st_advantages else ''
+        str_effect_timer = f' ({math.ceil((3600 - (time.time() - self.hero.str_effect_timer)) // 60)}\' left)' if self.hero.str_effect_modifier != -1 else ''
         abilities_texts = [
-            f"Force: {self.hero.strength}{has_st_advantage('str')}",
+            f"Force: {self.hero.strength}{has_st_advantage('str')}{str_effect_timer}",
             f"Dextérité: {self.hero.dexterity}{has_st_advantage('dex')}",
             f"Constitution: {self.hero.constitution}{has_st_advantage('con')}",
             f"Intelligence: {self.hero.intelligence}{has_st_advantage('int')}",
@@ -674,6 +679,10 @@ class Game:
                             tooltip_text = f"{item.name} ({item.damage_dice.dice})"
                         elif isinstance(item, HealingPotion):
                             tooltip_text = f"{item.name} ({item.hit_dice})"
+                        elif isinstance(item, SpeedPotion):
+                            tooltip_text = f"{item.name} ({item.duration} s)"
+                        elif isinstance(item, StrengthPotion):
+                            tooltip_text = f"{item.name} {item.value} ({item.duration // 60} min)"
                         else:
                             tooltip_text = f'{item.name}'
                 except KeyError:
@@ -768,7 +777,8 @@ class Game:
         del level_sprites[item.id]
 
     def remove_from_inv(self, item, sprites):
-        p_idx: int = self.hero.inventory.index(item)
+        # p_idx: int = self.hero.inventory.index(item)
+        p_idx: int = next(i for i, inv_item in enumerate(self.hero.inventory) if inv_item and inv_item.id == item.id)
         self.hero.inventory[p_idx] = None
         del sprites[item.id]
 
@@ -791,15 +801,15 @@ class Game:
             room.treasure = None
         self.hero.gold += t.gold
         if t.has_item:
-            potions = list(filter(lambda p: isinstance(p, SpeedPotion) and game.hero.level < p.min_level, potions))
+            potions = list(filter(lambda p: game.hero.level >= p.min_level, potions))
             match randint(1, 3):
                 case 1:
-                    item: HealingPotion | SpeedPotion = copy(choice(potions))  # work on a copy to avoid sprite id colliding...
+                    item: Potion = copy(choice(potions))  # work on a copy to avoid sprite id colliding...
                 case 2:
                     if self.hero.allowed_armors:
                         item: Armor = request_armor(index_name=choice(self.hero.allowed_armors).index)
                     else:
-                        item: HealingPotion = copy(choice(potions))  # work on a copy to avoid sprite id colliding...
+                        item: Potion = copy(choice(potions))  # work on a copy to avoid sprite id colliding...
                 case 3:
                     item: Weapon = request_weapon(index_name=choice(self.hero.allowed_weapons).index)
                     # item: Weapon = request_weapon('halberd')
@@ -863,14 +873,11 @@ class Game:
                     item.equipped = not item.equipped
 
     def use(self, item, sprites):
-        if isinstance(item, (HealingPotion, SpeedPotion)):
-            if isinstance(item, SpeedPotion):
-                can_drink: bool = self.hero.drink(item)
-                if not can_drink:
-                    cprint(f'{game.hero.name} is too low level to drink this potion!')
-                    return
-            else:
-                self.hero.drink(item)
+        if isinstance(item, Potion):
+            can_drink: bool = self.hero.drink(item)
+            if not can_drink:
+                cprint(f'{game.hero.name} is too low level to drink this potion!')
+                return
             self.remove_from_inv(item, sprites)
         else:
             cprint(f'Hero cannot use <{item.name}> yet! *Feature not yet implemented*')
@@ -947,6 +954,7 @@ def load_game_assets():
     weapons = [request_weapon(name) for name in weapon_names]
     weapons = list(filter(lambda w: w, weapons))
 
+    # https://listfist.com/list-of-dungeons-dragons-5e-potions
     potions = load_potions_collections()
 
     return tile_img, font, armors, weapons, potions
@@ -1158,7 +1166,9 @@ def main_game_loop(game):
         # Check if a new round has started
         if game.hero.hit_points > 0:
             if hasattr(game.hero, 'hasted') and game.hero.hasted and current_time - game.hero.haste_timer > 60:
-                game.hero.cancel_haste()
+                game.hero.cancel_haste_effect()
+            if hasattr(game.hero, 'str_effect_modifier') and game.hero.str_effect_modifier > 0 and current_time - game.hero.str_effect_timer > 3600:
+                game.hero.cancel_strength_effect()
             if current_time - game.last_round_time >= ROUND_DURATION:
                 game.round_no += 1
                 # print(f'Round #{round_no}')
@@ -1611,7 +1621,7 @@ def handle_monster_actions(game: Game, monster: Monster):
 
 def handle_treasure_chests(game):
     if any(t.pos == game.hero.pos for t in game.level.treasures):
-        game.open_chest(sprites, level_sprites, potions=healing_potions, item_sprites_dir=item_sprites_dir)
+        game.open_chest(sprites, level_sprites, potions=potions, item_sprites_dir=item_sprites_dir)
 
 
 def handle_fountains(game):
@@ -1777,7 +1787,7 @@ def draw_monster_tokens(screen, game, token_images):
 
 def run(character_name: str = 'Brottor'):
     global screen, level_sprites, sprites, game, room_no
-    global tile_img, font, armors, weapons, healing_potions
+    global tile_img, font, armors, weapons, potions
     global path, characters_dir, gamestate_dir, sprites_dir, char_sprites_dir, item_sprites_dir, spell_sprites_dir, token_images_dir
     path = os.path.dirname(__file__)
     # abspath = os.path.abspath(path)
@@ -1798,7 +1808,7 @@ def run(character_name: str = 'Brottor'):
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
     # Chargement des assets
-    tile_img, font, armors, weapons, healing_potions = load_game_assets()
+    tile_img, font, armors, weapons, potions = load_game_assets()
 
     # Chargement du jeu en cours
 
