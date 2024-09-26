@@ -5,11 +5,11 @@ from typing import List
 
 import pygame
 
-from dao_classes import Character, Weapon, Armor, HealingPotion, Equipment, SpeedPotion
+from dao_classes import Character, Weapon, Armor, HealingPotion, Equipment, SpeedPotion, Potion
 from dungeon_pygame import Game, load_character_gamestate, save_character_gamestate
 from main import get_roster, save_character, load_character
 from populate_functions import request_armor, request_weapon
-from populate_rpg_functions import get_available_potions
+from populate_rpg_functions import load_potions_collections
 from tools.common import WHITE, RED, cprint, BLACK, get_save_game_path
 
 # Constants
@@ -86,7 +86,7 @@ def handle_buy(hero, selected_item_index, selected_category):
         elif cost(item) <= hero.gold:
             cprint(f'You bought {item.name}!')
             hero.gold -= cost(item)
-            if isinstance(item, (HealingPotion, SpeedPotion)):
+            if isinstance(item, Potion):
                 bought_item = copy(item)
             elif isinstance(item, Armor):
                 bought_item = request_armor(item.index)
@@ -200,10 +200,10 @@ def load_game_data(character_name):
     try:
         saved_game = load_character_gamestate(character_name, gamestate_dir)
         hero = saved_game.hero if saved_game else load_character(character_name, characters_dir)
-        # hero.gold = 10000 if hero.name != 'Ivor' else 100000
+        hero.gold = 10000 if hero.name != 'Ivor' else 100000
         weapons = sorted(hero.allowed_weapons, key=cost)
         armors = sorted(hero.allowed_armors, key=cost)
-        potions = get_available_potions()
+        potions = load_potions_collections()
         return saved_game, hero, [weapons, armors, potions]
     except Exception as e:
         cprint(f'Error loading {character_name}: {e}')
@@ -215,7 +215,7 @@ def run(character_name: str = 'Brottor'):
     saved_game, hero, equipments = load_game_data(character_name)
     main_game_loop(saved_game, hero, equipments, f'{get_save_game_path()}/characters')
 
-cost = lambda x: int(x.cost) if isinstance(x, (HealingPotion, SpeedPotion)) else int(x.cost['quantity'])
+cost = lambda x: int(x.cost) if isinstance(x, Potion) else int(x.cost['quantity'])
 
 if __name__ == "__main__":
     run()
