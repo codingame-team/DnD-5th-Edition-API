@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import time
+from abc import ABC, abstractmethod
 from copy import deepcopy, copy
 from dataclasses import dataclass, field
 from enum import Enum
@@ -52,10 +53,10 @@ class Sprite:
     def old_pos(self) -> tuple:
         return self.old_x, self.old_y
 
-    def __eq__(self, other: "Sprite"):
-        return self.x == other.x and self.y == other.y
+    def __eq__(self, other: Sprite):
+        return self.id == other.id
 
-    def check_collision(self, other: "Sprite"):
+    def check_collision(self, other: Sprite):
         return self.x == other.x and self.y == other.y
 
     def draw(self, screen, image, tile_size, viewport_x, viewport_y, viewport_width, viewport_height):
@@ -437,53 +438,69 @@ class PotionRarity(Enum):
     COMMON = 60
     UNCOMMON = 80
     RARE = 95
-    VERY_RARE = 100
+    VERY_RARE = 99
+    LEGENDARY = 100
 
-@dataclass
-class SpeedPotion(Sprite):
-    name: str
-    duration: int
-    rarity: PotionRarity
-    min_cost: int = 5001
-    max_cost: int = 50000
-    min_level: int = 11
-    cost: int = field(init=False)
+class Potion(ABC, Sprite):
+    def __init__(self, id: int, image_name: str, x: int, y: int, old_x: int, old_y: int,
+                 name: str, rarity: PotionRarity, min_cost: int, max_cost: int, min_level: int = 1):
+        # Initialize Sprite class
+        super().__init__(id, image_name, x, y, old_x, old_y)
 
-    def __post_init__(self):
+        # Initialize Potion-specific fields
+        self.name = name
+        self.rarity = rarity
+        self.min_cost = min_cost
+        self.max_cost = max_cost
+        self.min_level = min_level
         self.cost = randint(self.min_cost, self.max_cost)
 
     def __copy__(self):
-        # Create a shallow copy of the object
         cls = self.__class__
         result = cls.__new__(cls)
         result.__dict__.update(self.__dict__)
-        # For each attribute that should be deep-copied, use copy.copy
         result.rarity = copy(self.rarity)
         result.cost = copy(self.cost)
         return result
 
-@dataclass
-class HealingPotion(Sprite):
-    name: str
-    hit_dice: str
-    bonus: int
-    rarity: PotionRarity
-    cost: int
+    @abstractmethod
+    def effect(self):
+        pass
 
-    def __copy__(self):
-        # Create a shallow copy of the object
-        cls = self.__class__
-        result = cls.__new__(cls)
-        result.__dict__.update(self.__dict__)
-        # For each attribute that should be deep-copied, use copy.copy
-        result.rarity = copy(self.rarity)
-        result.cost = copy(self.cost)
-        return result
+class StrengthPotion(Potion):
+    def __init__(self, id: int, image_name: str, x: int, y: int, old_x: int, old_y: int,
+                 name: str, rarity: PotionRarity, min_cost: int, max_cost: int, value: int, duration: int, min_level: int = 1):
+        super().__init__(id, image_name, x, y, old_x, old_y, name, rarity, min_cost, max_cost, min_level)
+        self.value = value
+        self.duration = duration
+
+    def effect(self):
+        return f"Increases strength to {self.value} for {self.duration // 60} minutes"
+
+
+class SpeedPotion(Potion):
+    def __init__(self, id: int, image_name: str, x: int, y: int, old_x: int, old_y: int,
+                 name: str, rarity: PotionRarity, min_cost: int, max_cost: int, duration: int, min_level: int = 1):
+        super().__init__(id, image_name, x, y, old_x, old_y, name, rarity, min_cost, max_cost, min_level)
+        self.duration = duration
+
+    def effect(self):
+        return f"Increases speed for {self.duration} seconds"
+
+class HealingPotion(Potion):
+    def __init__(self, id: int, image_name: str, x: int, y: int, old_x: int, old_y: int,
+                 name: str, rarity: PotionRarity, hit_dice: str, bonus: int, min_cost: int, max_cost: int, min_level: int = 1):
+        super().__init__(id, image_name, x, y, old_x, old_y, name, rarity, min_cost, max_cost, min_level)
+        self.hit_dice = hit_dice
+        self.bonus = bonus
+
+    def effect(self):
+        return f"Restores {self.min_hp_restored} to {self.max_hp_restored} HP"
 
     @property
     def min_hp_restored(self):
         dice_count, roll_dice = map(int, self.hit_dice.split('d'))
-        return self.bonus + dice_count
+        return self.bonus + dice_count * roll_dice
 
     @property
     def max_hp_restored(self):
@@ -493,6 +510,100 @@ class HealingPotion(Sprite):
     @property
     def score(self) -> float:
         return (self.min_hp_restored + self.max_hp_restored) / 2 + self.bonus
+
+
+
+
+#
+# class PotionRarity(Enum):
+#     COMMON = 60
+#     UNCOMMON = 80
+#     RARE = 95
+#     VERY_RARE = 100
+#
+# @dataclass
+# class StrengthPotion(Sprite):
+#     name: str
+#     duration: int
+#     rarity: PotionRarity
+#     min_cost: int
+#     max_cost: int
+#     min_level: int = 1
+#     cost: int = field(init=False)
+#
+#     def __post_init__(self):
+#         self.cost = randint(self.min_cost, self.max_cost)
+#
+#     def __copy__(self):
+#         # Create a shallow copy of the object
+#         cls = self.__class__
+#         result = cls.__new__(cls)
+#         result.__dict__.update(self.__dict__)
+#         # For each attribute that should be deep-copied, use copy.copy
+#         result.rarity = copy(self.rarity)
+#         result.cost = copy(self.cost)
+#         return result
+#
+# @dataclass
+# class SpeedPotion(Sprite):
+#     name: str
+#     duration: int
+#     rarity: PotionRarity
+#     min_cost: int = 5001
+#     max_cost: int = 50000
+#     min_level: int = 11
+#     cost: int = field(init=False)
+#
+#     def __post_init__(self):
+#         self.cost = randint(self.min_cost, self.max_cost)
+#
+#     def __copy__(self):
+#         # Create a shallow copy of the object
+#         cls = self.__class__
+#         result = cls.__new__(cls)
+#         result.__dict__.update(self.__dict__)
+#         # For each attribute that should be deep-copied, use copy.copy
+#         result.rarity = copy(self.rarity)
+#         result.cost = copy(self.cost)
+#         return result
+#
+# @dataclass
+# class HealingPotion(Sprite):
+#     name: str
+#     hit_dice: str
+#     bonus: int
+#     rarity: PotionRarity
+#     min_cost: int
+#     max_cost: int
+#     min_level: int = 1
+#     cost: int = field(init=False)
+#
+#     def __post_init__(self):
+#         self.cost = randint(self.min_cost, self.max_cost)
+#
+#     def __copy__(self):
+#         # Create a shallow copy of the object
+#         cls = self.__class__
+#         result = cls.__new__(cls)
+#         result.__dict__.update(self.__dict__)
+#         # For each attribute that should be deep-copied, use copy.copy
+#         result.rarity = copy(self.rarity)
+#         result.cost = copy(self.cost)
+#         return result
+#
+#     @property
+#     def min_hp_restored(self):
+#         dice_count, roll_dice = map(int, self.hit_dice.split('d'))
+#         return self.bonus + dice_count
+#
+#     @property
+#     def max_hp_restored(self):
+#         dice_count, roll_dice = map(int, self.hit_dice.split('d'))
+#         return self.bonus + dice_count * roll_dice
+#
+#     @property
+#     def score(self) -> float:
+#         return (self.min_hp_restored + self.max_hp_restored) / 2 + self.bonus
 
 
 class AbilityType(Enum):
@@ -811,12 +922,17 @@ class Character(Sprite):
     gold: int
     sc: SpellCaster | None
     conditions: List[Condition] | None
+    # attributes for Speed potion
     st_advantages: List[str] | None
+    ac_bonus: int = 0
+    multi_attack_bonus: int = 0
+    # attributes for Strength potion
+    str_effect_modifier: int = -1
+    str_effect_timer: float = 0.0
+    # other attributes
     status: str = 'OK'
     id_party: int = -1
     OUT: bool = False
-    ac_bonus: int = 0
-    multi_attack_bonus: int = 0
 
     @property
     def weapon(self) -> Optional[Weapon]:
@@ -874,6 +990,8 @@ class Character(Sprite):
 
     @property
     def strength(self):
+        if self.str_effect_modifier != -1:
+            return self.str_effect_modifier
         return self.abilities.str if 'str' not in self.race.ability_bonuses else self.abilities.str + \
                                                                                  self.race.ability_bonuses['str']
 
@@ -953,7 +1071,7 @@ class Character(Sprite):
         available_potions = [p for p in self.healing_potions if p.max_hp_restored >= hp_to_recover]
         return min(available_potions, key=lambda p: p.max_hp_restored) if available_potions else max(self.healing_potions, key=lambda p: p.max_hp_restored)
 
-    def cancel_haste(self):
+    def cancel_haste_effect(self):
         self.hasted = False
         self.speed = 25 if self.race.index in ['dwarf', 'halfling', 'gnome'] else 30
         self.ac_bonus = 0
@@ -963,30 +1081,40 @@ class Character(Sprite):
         if 'dex' in self.st_advantages: self.st_advantages.remove('dex')
         cprint(f'{self.name} is no longer {color.PURPLE}{color.BOLD}*hasted*{color.END}!')
 
-    def drink(self, potion: HealingPotion|SpeedPotion) -> bool:
-        if isinstance(potion, SpeedPotion):
-            if self.level < potion.min_level:
-                return False
-            self.hasted = True
-            self.haste_timer = time.time()
-            self.speed *= 2
-            self.ac_bonus = 2
-            self.multi_attack_bonus = 1
-            if not hasattr(self, 'st_advantages'):
-                self.st_advantages = []
-            self.st_advantages += ['dex']
-            cprint(f'{self.name} drinks {potion.name} potion and is {color.PURPLE}{color.BOLD}*hasted*{color.END}!')
+    def cancel_strength_effect(self):
+        self.str_effect_modifier = -1
+        cprint(f'{self.name} is no longer {color.PURPLE}{color.BOLD}*strong*{color.END}!')
+
+    def drink(self, potion: Potion) -> bool:
+        if self.level < potion.min_level:
+            return False
         else:
-            """Healing (??? check rules): A Healing potion repairs one six-sided die, plus one, (2-7) points of damage, just like a Cure Light Wounds spell."""
-            hp_to_recover = self.max_hit_points - self.hit_points
-            dice_count, roll_dice = map(int, potion.hit_dice.split('d'))
-            hp_restored = potion.bonus + sum([randint(1, roll_dice) for _ in range(dice_count)])
-            self.hit_points = min(self.hit_points + hp_restored, self.max_hit_points)
-            if hp_to_recover <= hp_restored:
-                cprint(f'{self.name} drinks {potion.name} (id={potion.id}) potion and is {color.BOLD}*fully*{color.END} healed!')
+            if isinstance(potion, StrengthPotion):
+                self.str_effect_modifier = potion.value
+                self.str_effect_timer = time.time()
+                cprint(potion.effect())
+            elif isinstance(potion, SpeedPotion):
+                self.hasted = True
+                self.haste_timer = time.time()
+                self.speed *= 2
+                self.ac_bonus = 2
+                self.multi_attack_bonus = 1
+                if not hasattr(self, 'st_advantages'):
+                    self.st_advantages = []
+                self.st_advantages += ['dex']
+                cprint(f'{self.name} drinks {potion.name} potion and is {color.PURPLE}{color.BOLD}*hasted*{color.END}!')
             else:
-                cprint(f'{self.name} drinks {potion.name} (id={potion.id}) potion and has {min(hp_to_recover, hp_restored)} hit points restored!')
-        return True
+                """Healing (??? check rules): A Healing potion repairs one six-sided die, plus one, (2-7) points of damage, just like a Cure Light Wounds spell."""
+                hp_to_recover = self.max_hit_points - self.hit_points
+                dice_count, roll_dice = map(int, potion.hit_dice.split('d'))
+                hp_restored = potion.bonus + sum([randint(1, roll_dice) for _ in range(dice_count)])
+                self.hit_points = min(self.hit_points + hp_restored, self.max_hit_points)
+                if hp_to_recover <= hp_restored:
+                    cprint(f'{self.name} drinks {potion.name} (id={potion.id}) potion and is {color.BOLD}*fully*{color.END} healed!')
+                else:
+                    cprint(f'{self.name} drinks {potion.name} (id={potion.id}) potion and has {min(hp_to_recover, hp_restored)} hit points restored!')
+            cprint(potion.effect())
+            return True
     def victory(self, monster: Monster, solo_mode=False):
         self.xp += monster.xp
         self.monster_kills += 1
