@@ -68,7 +68,7 @@ def main(monsters):
     clock = pygame.time.Clock()
     scroll_offset = 0
 
-    key_delay = 150  # Delay in milliseconds between key repeats
+    key_delay = 125  # Delay in milliseconds between key repeats
     last_key_time = 0
 
     while running:
@@ -123,11 +123,11 @@ def run(character_name: str = 'Brottor'):
     gamestate_dir = f'{game_path}/pygame'
 
     try:
-        pygame.display.set_caption(f"Monster kills by {character_name}")
         game = load_character_gamestate(character_name, gamestate_dir)
         if not hasattr(game, 'kills'):
             game.kills = []
         monsters_count = Counter([m.name for m in game.kills])
+        pygame.display.set_caption(f"{len(monsters_count)} different types of monsters killed by {character_name} for a total of {len(game.kills)} kills")
         monsters = {m.name: (m.challenge_rating, monsters_count[m.name]) for m in game.kills}
         monsters = dict(sorted(monsters.items(), key=lambda x: x[1], reverse=True))
 
