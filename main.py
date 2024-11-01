@@ -382,7 +382,7 @@ def create_new_character(roster: List[Character]) -> Character:
     chosen_armor.equipped = True
     hit_points = class_type.hit_die
     # Add a set of healing potions to the starting equipment
-    starting_equipment += [copy(choice(healing_potions)) for _ in range(POTION_INITIAL_PACK)]
+    starting_equipment += [copy(choice(potions)) for _ in range(POTION_INITIAL_PACK)]
     # Assign sprite id for each item inside inventory
     max_item_id: int = get_next_item_id(roster)
     for item in starting_equipment:
@@ -1295,7 +1295,7 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
                                 alive_monsters.remove(monster)
                                 # attacker.victory(monster)
                                 cprint(f'{color.RED}{monster.name}{color.END} is ** KILLED **!')
-                                attacker.treasure(weapons, armors, equipments, healing_potions)
+                                attacker.treasure(weapons, armors, equipments, potions)
                                 attacker.monster_kills += 1
             # End of Round
             alive_chars: List[Character] = [c for c in party if c.hit_points > 0]
@@ -1377,7 +1377,7 @@ if __name__ == '__main__':
     xp_levels: List[int] = load_xp_levels()
 
     """ Load Monster, Armor, Weapon databases """
-    monsters, armors, weapons, equipments, equipment_categories, healing_potions = load_dungeon_collections()
+    monsters, armors, weapons, equipments, equipment_categories, potions = load_dungeon_collections()
     armors = list(filter(lambda a: a, armors))
     weapons = list(filter(lambda w: w, weapons))
 
