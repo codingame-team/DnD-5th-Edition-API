@@ -58,7 +58,7 @@ ORANGE = (255, 165, 0)
 UP, DOWN, LEFT, RIGHT = (0, -1), (0, 1), (-1, 0), (1, 0)
 DIRECTIONS = [UP, DOWN, LEFT, RIGHT]
 
-ROUND_DURATION = 3  # Duration of a round in seconds
+ROUND_DURATION = 6  # Duration of a round in seconds
 
 
 def put_inlay(image: pygame.Surface, number: int):
@@ -361,6 +361,7 @@ class Level:
             room_positions.remove((m.x, m.y))
 
 
+
 class Game:
     world_map: List[List[int]]
     map_width: int
@@ -376,6 +377,7 @@ class Game:
     level: Level
     school_images: dict
     xp_levels: List[int]
+    timer: int
     last_round_time: float
     ready_spell: Optional[Spell]
     target_pos: tuple
@@ -391,6 +393,7 @@ class Game:
         self.round_no = 0
         self.last_combat_round = 0
         self.last_round_time = time.time()
+        self.timer = 0
         # Chargement de la carte
         self.actions_panel = actions_panel
         self.dungeon_level = start_level
@@ -421,6 +424,42 @@ class Game:
         self.level.load(hero=self.hero)
         """ Load XP Levels """
         self.xp_levels = load_xp_levels()
+
+    @property
+    def time_elapsed(self):
+        return self.round_no * ROUND_DURATION
+
+    # @property
+    # def days(self):
+    #     return self.time_elapsed // (24 * 60 * 60)
+    #
+    # @property
+    # def hours(self):
+    #     return (self.time_elapsed % (24 * 60 * 60)) // (60 * 60)
+    #
+    # @property
+    # def minutes(self):
+    #     return (self.time_elapsed % (60 * 60)) // 60
+    #
+    # @property
+    # def seconds(self):
+    #     return self.time_elapsed % 60
+    #
+    # @property
+    # def date_print(self):
+    #     return f'{self.days}j {self.hours}h {self.minutes}m {self.seconds}s'
+
+    @property
+    def gregorian_calendar(self) -> str:
+        time_elapsed = self.time_elapsed
+        days = int(time_elapsed // (24 * 60 * 60))
+        time_elapsed %= (24 * 60 * 60)
+        hours = int(time_elapsed // (60 * 60))
+        time_elapsed %= (60 * 60)
+        minutes = int(time_elapsed // 60)
+        time_elapsed %= 60
+        seconds = int(time_elapsed)
+        return f'{days}j {hours}h {minutes}m {seconds}s'
 
     def load_token_images(self, token_images_dir: str) -> dict:
         token_images = {}
@@ -524,7 +563,7 @@ class Game:
                     # Draw a black square for unexplored and not in sight range tiles
                     screen.fill(BLACK, (tile_x, tile_y, TILE_SIZE, TILE_SIZE))
 
-    def feet_inches_to_m_cm(self, height_feet: int, height_inches: int):
+    def feet_inches_to_m_cm(self, height_feet: int, height_inches: int) -> tuple[float, float]:
         total_inches = height_feet * 12 + height_inches
         height_meters = total_inches * 2.54 / 100
         height_centimeters = total_inches * 2.54 % 100
@@ -535,7 +574,7 @@ class Game:
         stats_rect = pygame.Rect(self.view_port_width, 0, STATS_WIDTH, self.view_port_height)
         pygame.draw.rect(screen, GRAY, stats_rect)
         font = pygame.font.Font(None, 20)
-        pygame.display.set_caption(f"Dungeon Level: {self.dungeon_level} ({self.level.fullname})")
+        pygame.display.set_caption(f"Time: {self.gregorian_calendar} - Dungeon Level: {self.dungeon_level} ({self.level.fullname})")
         height_feet, height_inches = map(int, self.hero.height.split("'"))
         height_meters, height_centimeters = map(round, self.feet_inches_to_m_cm(height_feet, height_inches))
         weapon: Weapon = None
@@ -1171,6 +1210,8 @@ def main_game_loop(game):
                 game.hero.cancel_strength_effect()
             if current_time - game.last_round_time >= ROUND_DURATION:
                 game.round_no += 1
+                game.timer = 0
+                pygame.display.set_caption(f"Time: {game.gregorian_calendar} - Dungeon Level: {game.dungeon_level} ({game.level.fullname})")
                 # print(f'Round #{round_no}')
                 game.last_round_time = current_time
                 # Check if there are monster in range
@@ -1358,8 +1399,10 @@ def move_char(game: Game, char: Monster | Character, pos: tuple):
     char.old_x, char.old_y = char.x, char.y
     game.target_pos = None
     if pos in game.level.walkable_tiles:
+        current_time = time.time()
         if mh_dist(char.pos, pos) <= 1:
             char.x, char.y = pos
+            # game.timer += UNIT_SIZE / game.hero.speed
             room_no = display_room_info(game, char.pos, room_no)
         else:
             if isinstance(char, Character):
@@ -1371,6 +1414,7 @@ def move_char(game: Game, char: Monster | Character, pos: tuple):
             if path:
                 if isinstance(char, Character):
                     char.x, char.y = path[1]
+
                 else:
                     speed_ratio: int = round(char.speed / game.hero.speed)
                     dist = min(speed_ratio, len(path) - 1)
