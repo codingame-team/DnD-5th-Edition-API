@@ -1068,7 +1068,7 @@ class Character(Sprite):
 
     def choose_best_potion(self) -> HealingPotion:
         hp_to_recover = self.max_hit_points - self.hit_points
-        available_potions = [p for p in self.healing_potions if p.max_hp_restored >= hp_to_recover]
+        available_potions = [p for p in self.healing_potions if p.max_hp_restored >= hp_to_recover and self.level >= p.min_level]
         return min(available_potions, key=lambda p: p.max_hp_restored) if available_potions else max(self.healing_potions, key=lambda p: p.max_hp_restored)
 
     def cancel_haste_effect(self):
