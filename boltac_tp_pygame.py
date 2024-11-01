@@ -81,9 +81,14 @@ def handle_buy(hero, selected_item_index, selected_category):
         item = selected_category[selected_item_index]
         items_in_inventory = [i.name for i in hero.inventory if i]
         empty_slots = [i for i, slot in enumerate(hero.inventory) if not slot]
+
         if len(items_in_inventory) == 20 or not empty_slots:
             cprint('Your inventory is full!')
-        elif cost(item) <= hero.gold:
+        elif cost(item) > hero.gold:
+            cprint(f'Not enough Gold to buy {item.name}!')
+        elif isinstance(item, Potion) and hero.level < item.min_level:
+            cprint(f'You need to be level {item.min_level} to buy {item.name}!')
+        else:
             cprint(f'You bought {item.name}!')
             hero.gold -= cost(item)
             if isinstance(item, Potion):
@@ -93,19 +98,22 @@ def handle_buy(hero, selected_item_index, selected_category):
             else:
                 bought_item = request_weapon(item.index)
             hero.inventory[min(empty_slots)] = bought_item
-        else:
-            cprint(f'Not enough Gold to buy {item.name}!')
 
 
 def handle_sell(hero, selected_item_index):
     if selected_item_index is not None:
         try:
             item = hero.inventory[selected_item_index]
-            cprint(f'You sold {item.name} for {cost(item) // 2} gp!')
-            hero.gold += cost(item) // 2
-            hero.inventory[hero.inventory.index(item)] = None
-        except (AttributeError, IndexError):
-            print(f'Error')
+            if item is None:
+                cprint("There's no item in this slot to sell!")
+                return
+
+            sell_price = cost(item) // 2
+            cprint(f'You sold {item.name} for {sell_price} gp!')
+            hero.gold += sell_price
+            hero.inventory[selected_item_index] = None
+        except (AttributeError, IndexError) as e:
+            print(f'Error: {e}')
 
 def exit_boltac(saved_game, hero):
     game_path = get_save_game_path()
@@ -200,7 +208,7 @@ def load_game_data(character_name):
     try:
         saved_game = load_character_gamestate(character_name, gamestate_dir)
         hero = saved_game.hero if saved_game else load_character(character_name, characters_dir)
-        hero.gold = 10000 if hero.name != 'Ivor' else 100000
+        hero.gold = 10000 if hero.name != 'Ivor' else 1000000
         weapons = sorted(hero.allowed_weapons, key=cost)
         armors = sorted(hero.allowed_armors, key=cost)
         potions = load_potions_collections()
