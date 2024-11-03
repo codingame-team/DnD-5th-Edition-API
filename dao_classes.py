@@ -69,6 +69,40 @@ class Sprite:
             if 0 <= draw_x <= viewport_width * tile_size and 0 <= draw_y <= viewport_height * tile_size:
                 screen.blit(image, (draw_x, draw_y))
 
+    def draw_effect(self, screen, sprites, tile_size, fps, viewport_x, viewport_y, viewport_width, viewport_height):
+        # Calculate the position of the sprite relative to the viewport
+        draw_x = (self.x - viewport_x) * tile_size
+        draw_y = (self.y - viewport_y) * tile_size
+        # cprint(sprites)
+        # cprint(str((draw_x, draw_y)))
+        frame_delay = 1 / fps  # Calculate delay between frames
+        reduce_ratio = 2 # 2
+
+        while sprites:
+            start_time = time.time()  # Get the start time of this frame
+
+            # Get the first sprite
+            original_sprite = sprites.pop(0)
+
+            # Get the original dimensions
+            original_width, original_height = original_sprite.get_size()
+
+            # Create a new surface with half the dimensions
+            reduced_sprite = pygame.transform.scale(original_sprite, (original_width // reduce_ratio, original_height // reduce_ratio))
+
+            # Blit the reduced sprite to the screen
+            screen.blit(reduced_sprite, (draw_x, draw_y))
+            pygame.display.flip()
+
+            # Calculate how long to wait
+            elapsed_time = time.time() - start_time
+            wait_time = max(frame_delay - elapsed_time, 0)
+
+            # Wait for the remainder of the frame time
+            time.sleep(wait_time)
+
+            # Ensure the final frame is displayed for the full duration
+        time.sleep(frame_delay)
 
 @dataclass
 class Monster(Sprite):
@@ -1068,7 +1102,7 @@ class Character(Sprite):
 
     def choose_best_potion(self) -> HealingPotion:
         hp_to_recover = self.max_hit_points - self.hit_points
-        available_potions = [p for p in self.healing_potions if p.max_hp_restored >= hp_to_recover and self.level >= p.min_level]
+        available_potions = [p for p in self.healing_potions if p.max_hp_restored >= hp_to_recover and hasattr(p, 'min_level') and self.level >= p.min_level]
         return min(available_potions, key=lambda p: p.max_hp_restored) if available_potions else max(self.healing_potions, key=lambda p: p.max_hp_restored)
 
     def cancel_haste_effect(self):
@@ -1086,6 +1120,8 @@ class Character(Sprite):
         cprint(f'{self.name} is no longer {color.PURPLE}{color.BOLD}*strong*{color.END}!')
 
     def drink(self, potion: Potion) -> bool:
+        if not hasattr(potion, 'min_level'):
+            potion.min_level = 1
         if self.level < potion.min_level:
             return False
         else:
