@@ -361,7 +361,6 @@ class Level:
             room_positions.remove((m.x, m.y))
 
 
-
 class Game:
     world_map: List[List[int]]
     map_width: int
@@ -611,7 +610,7 @@ class Game:
         ]
         if not hasattr(self.hero, 'st_advantages'): self.hero.st_advantages = []
         if hasattr(self.hero, 'haste_timer') and self.hero.hasted:
-            has_st_advantage = lambda x: f' ** ({math.ceil((60 - (time.time() - self.hero.haste_timer)) )}" left)' if x in self.hero.st_advantages else ''
+            has_st_advantage = lambda x: f' ** ({math.ceil((60 - (time.time() - self.hero.haste_timer)))}" left)' if x in self.hero.st_advantages else ''
         else:
             has_st_advantage = lambda x: f' **' if x in self.hero.st_advantages else ''
         str_effect_timer = f' ({math.ceil((3600 - (time.time() - self.hero.str_effect_timer)) // 60)}\' left)' if self.hero.str_effect_modifier != -1 else ''
@@ -1321,11 +1320,70 @@ def handle_in_map_click(game, event, x, y):
     game.last_round_time = time.time()
 
 
+def draw_spell_animation_old(game, monster_pos, duration=2.5, color=(255, 255, 0)):
+    start_time = time.time()
+    while time.time() - start_time < duration:
+        progress = (time.time() - start_time) / duration
+
+        radius = UNIT_SIZE // 2
+        # Create a surface for the spell effect
+        effect_surface = pygame.Surface((radius * 2, radius * 2), pygame.SRCALPHA)
+        pygame.draw.circle(effect_surface, color + (int(255 * (1 - progress)),), (radius, radius), radius)
+
+        # Calculate the position to draw the effect
+        effect_pos = (monster_pos[0] * UNIT_SIZE + UNIT_SIZE // 2 - radius,
+                      monster_pos[1] * UNIT_SIZE + UNIT_SIZE // 2 - radius)
+
+        # # Draw the game state
+        # game.draw()
+
+        # Draw the spell effect
+        screen.blit(effect_surface, effect_pos)
+
+        pygame.display.flip()
+        # game.clock.tick(60)
+
+
+def draw_spell_animation(game, monster_pos, duration=0.5, color=(255, 255, 0)):
+    start_time = time.time()
+    radius = UNIT_SIZE // 2
+    while time.time() - start_time < duration:
+        progress = (time.time() - start_time) / duration
+
+        # Create a surface for the spell effect
+        effect_surface = pygame.Surface((UNIT_SIZE, UNIT_SIZE), pygame.SRCALPHA)
+        pygame.draw.circle(effect_surface, color + (int(255 * (1 - progress)),),
+                           (UNIT_SIZE // 2, UNIT_SIZE // 2),
+                           int(radius * (1 + progress)))
+
+        # Calculate the position to draw the effect
+        effect_pos = (monster_pos[0] * UNIT_SIZE + UNIT_SIZE // 2 - radius,
+                      monster_pos[1] * UNIT_SIZE + UNIT_SIZE // 2 - radius)
+
+        # Draw the game state
+        # game.draw()
+
+        # Draw the spell effect
+        screen.blit(effect_surface, effect_pos)
+
+        pygame.display.flip()
+        # game.clock.tick(60)
+
+    # Ensure the final game state is drawn after the animation
+    # game.draw()
+    # pygame.display.flip()
+
+
 def handle_right_click_spell_attack(game):
     monsters_in_range = [m for m in game.monsters_in_view_range if dist(game.hero.pos, m.pos) <= game.ready_spell.range // UNIT_SIZE]
     for monster in monsters_in_range:
         if game.target_pos in (monster.pos, monster.old_pos):
             monster.hit_points -= game.hero.cast(game.ready_spell, monster)
+            # Draw the spell animation
+            sprites_sheet = f'{effects_images_dir}/flash03.png'
+            sprites: List[Surface] = extract_sprites(sprites_sheet, columns=5, rows=2)
+            view_port_tuple = game.calculate_view_window()
+            monster.draw_effect(screen, sprites, TILE_SIZE, FPS, *view_port_tuple)
             if monster.hit_points <= 0:
                 # cprint(f'{monster.name} at pos {monster.pos} is *KILLED*')
                 game.hero.victory(monster=monster, solo_mode=True)
@@ -1361,6 +1419,8 @@ def attack_monsters(game, monsters):
                 # cprint(f'{monster.name} at pos {monster.pos} is *KILLED*')
                 game.hero.victory(monster=monster, solo_mode=True)
                 game.kills.append(monster)
+                if not hasattr(monster, 'speed'):
+                    monster.speed = 15
                 game.level.monsters.remove(monster)
                 rooms: List[Room] = [r for r in game.level.rooms if monster in r.monsters]
                 if rooms:
@@ -1527,6 +1587,19 @@ def handle_healing_potion_use(game):
     if game.hero.healing_potions:
         potion = game.hero.choose_best_potion()
         game.hero.drink(potion)
+        # Draw the drink potion animation
+        sprites_sheet = f'{effects_images_dir}/flash_heal.png'
+        sprites_icons: List[Surface] = extract_sprites(sprites_sheet, columns=5, rows=10)
+        # sprites_sheet = f'{spell_animations_images_dir}/flash03.png'
+        # sprites_icons: List[Surface] = extract_sprites(sprites_sheet, columns=5, rows=2)
+        # sprites_sheet = f'{spell_animations_images_dir}/flash_freeze.png'
+        # sprites_icons: List[Surface] = extract_sprites(sprites_sheet, columns=8, rows=12)
+        # sprites_sheet = f'{spell_animations_images_dir}/sphere_blue.png'
+        # sprites_icons: List[Surface] = extract_sprites(sprites_sheet, columns=6, rows=5)
+        # sprites_sheet = f'{spell_animations_images_dir}/skull_smoke_green.png'
+        # sprites_icons: List[Surface] = extract_sprites(sprites_sheet, columns=19, rows=2)
+        view_port_tuple = game.calculate_view_window()
+        game.hero.draw_effect(screen, sprites_icons, TILE_SIZE, FPS, *view_port_tuple)
         game.remove_from_inv(potion, sprites)
     else:
         cprint('Sorry dude! no healing potion available...')
@@ -1730,6 +1803,41 @@ def handle_level_changes(game):
             level_sprites = create_level_sprites(game.level)
 
 
+def extract_sprites(spritesheet_path, columns, rows):
+    # Load the spritesheet
+    spritesheet = pygame.image.load(spritesheet_path).convert_alpha()
+
+    # Calculate the size of each sprite
+    sheet_width, sheet_height = spritesheet.get_size()
+    sprite_width = sheet_width // columns
+    sprite_height = sheet_height // rows
+
+    # Set the sprite size to 64x64 pixels
+    sprite_size = 64
+
+    sprites = []
+
+    for i in range(columns * rows):
+        # Calculate the position of the sprite in the sheet
+        row = i // columns
+        col = i % columns
+
+        # Create a new surface for the sprite
+        sprite_surface = pygame.Surface((sprite_width, sprite_height), pygame.SRCALPHA)
+
+        offset_x = col * sprite_width + (sprite_width - sprite_size) // 2
+        offset_y = row * sprite_height + (sprite_height - sprite_size) // 2
+
+        # Copy the sprite from the sheet to the new surface
+        sprite_surface.blit(spritesheet, (0, 0),
+                            (offset_x + col * sprite_size, offset_y + row * sprite_size,
+                             sprite_size, sprite_size))
+
+        sprites.append(sprite_surface)
+
+    return sprites
+
+
 def create_sprites(hero: Character) -> dict[int, pygame.Surface]:
     hero.id = 1
     s: dict[int, pygame.Surface] = {hero.id: pygame.image.load(f"{char_sprites_dir}/{game.hero.image_name}").convert_alpha()}
@@ -1832,7 +1940,8 @@ def draw_monster_tokens(screen, game, token_images):
 def run(character_name: str = 'Brottor'):
     global screen, level_sprites, sprites, game, room_no
     global tile_img, font, armors, weapons, potions
-    global path, characters_dir, gamestate_dir, sprites_dir, char_sprites_dir, item_sprites_dir, spell_sprites_dir, token_images_dir
+    global path, characters_dir, gamestate_dir, sprites_dir, char_sprites_dir
+    global item_sprites_dir, spell_sprites_dir, effects_images_dir, token_images_dir
     path = os.path.dirname(__file__)
     # abspath = os.path.abspath(path)
     # characters_dir = f'{abspath}/gameState/characters'
@@ -1844,6 +1953,7 @@ def run(character_name: str = 'Brottor'):
     char_sprites_dir = f"{sprites_dir}/rpgcharacterspack"
     item_sprites_dir = f"{sprites_dir}/Items"
     spell_sprites_dir = f"{sprites_dir}/schools"
+    effects_images_dir = resource_path('sprites/spell_animations')
     token_images_dir = resource_path('images/monsters/tokens')
     room_no = 0  # memorize last visited room number
 
