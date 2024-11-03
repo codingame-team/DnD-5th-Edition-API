@@ -1383,7 +1383,8 @@ def handle_right_click_spell_attack(game):
             sprites_sheet = f'{effects_images_dir}/flash03.png'
             sprites: List[Surface] = extract_sprites(sprites_sheet, columns=5, rows=2)
             view_port_tuple = game.calculate_view_window()
-            monster.draw_effect(screen, sprites, TILE_SIZE, FPS, *view_port_tuple)
+            sound_file: str = f'{sound_effects_dir}/foom_0.mp3'
+            monster.draw_effect(screen, sprites, TILE_SIZE, FPS, *view_port_tuple, sound_file)
             if monster.hit_points <= 0:
                 # cprint(f'{monster.name} at pos {monster.pos} is *KILLED*')
                 game.hero.victory(monster=monster, solo_mode=True)
@@ -1588,18 +1589,23 @@ def handle_healing_potion_use(game):
         potion = game.hero.choose_best_potion()
         game.hero.drink(potion)
         # Draw the drink potion animation
-        sprites_sheet = f'{effects_images_dir}/flash_heal.png'
-        sprites_icons: List[Surface] = extract_sprites(sprites_sheet, columns=5, rows=10)
-        # sprites_sheet = f'{spell_animations_images_dir}/flash03.png'
+        # sprites_sheet = f'{effects_images_dir}/flash_heal.png'
+        # sprites_icons: List[Surface] = extract_sprites(sprites_sheet, columns=5, rows=10)
+        sprites_sheet = f'{effects_images_dir}/fireball_blue.png'
+        sprites_icons: List[Surface] = extract_sprites(sprites_sheet, columns=4, rows=10)
+        # sprites_sheet = f'{effects_images_dir}/flash01.png'
         # sprites_icons: List[Surface] = extract_sprites(sprites_sheet, columns=5, rows=2)
-        # sprites_sheet = f'{spell_animations_images_dir}/flash_freeze.png'
-        # sprites_icons: List[Surface] = extract_sprites(sprites_sheet, columns=8, rows=12)
-        # sprites_sheet = f'{spell_animations_images_dir}/sphere_blue.png'
+        # sprites_sheet = f'{effects_images_dir}/flash03.png'
+        # sprites_icons: List[Surface] = extract_sprites(sprites_sheet, columns=5, rows=2)
+        sprites_sheet = f'{effects_images_dir}/flash_freeze.png'
+        sprites_icons: List[Surface] = extract_sprites(sprites_sheet, columns=8, rows=12)
+        # sprites_sheet = f'{effects_images_dir}/sphere_blue.png'
         # sprites_icons: List[Surface] = extract_sprites(sprites_sheet, columns=6, rows=5)
-        # sprites_sheet = f'{spell_animations_images_dir}/skull_smoke_green.png'
+        # sprites_sheet = f'{effects_images_dir}/skull_smoke_green.png'
         # sprites_icons: List[Surface] = extract_sprites(sprites_sheet, columns=19, rows=2)
         view_port_tuple = game.calculate_view_window()
-        game.hero.draw_effect(screen, sprites_icons, TILE_SIZE, FPS, *view_port_tuple)
+        sound_file: str = f'{sound_effects_dir}/magic_words.mp3'
+        game.hero.draw_effect(screen, sprites_icons, TILE_SIZE, FPS, *view_port_tuple, sound_file)
         game.remove_from_inv(potion, sprites)
     else:
         cprint('Sorry dude! no healing potion available...')
@@ -1803,7 +1809,7 @@ def handle_level_changes(game):
             level_sprites = create_level_sprites(game.level)
 
 
-def extract_sprites(spritesheet_path, columns, rows):
+def extract_sprites(spritesheet_path, columns, rows) -> List[Surface]:
     # Load the spritesheet
     spritesheet = pygame.image.load(spritesheet_path).convert_alpha()
 
@@ -1812,12 +1818,10 @@ def extract_sprites(spritesheet_path, columns, rows):
     sprite_width = sheet_width // columns
     sprite_height = sheet_height // rows
 
-    # Set the sprite size to 64x64 pixels
-    sprite_size = 64
+    sprites: List[Surface] = []
+    num_sprites: int = columns * rows
 
-    sprites = []
-
-    for i in range(columns * rows):
+    for i in range(num_sprites):
         # Calculate the position of the sprite in the sheet
         row = i // columns
         col = i % columns
@@ -1825,13 +1829,13 @@ def extract_sprites(spritesheet_path, columns, rows):
         # Create a new surface for the sprite
         sprite_surface = pygame.Surface((sprite_width, sprite_height), pygame.SRCALPHA)
 
-        offset_x = col * sprite_width + (sprite_width - sprite_size) // 2
-        offset_y = row * sprite_height + (sprite_height - sprite_size) // 2
+        # offset_x = col * sprite_width + (sprite_width - sprite_size) // 2
+        # offset_y = row * sprite_height + (sprite_height - sprite_size) // 2
 
         # Copy the sprite from the sheet to the new surface
         sprite_surface.blit(spritesheet, (0, 0),
-                            (offset_x + col * sprite_size, offset_y + row * sprite_size,
-                             sprite_size, sprite_size))
+                            (col * sprite_width, row * sprite_height,
+                             sprite_width, sprite_height))
 
         sprites.append(sprite_surface)
 
@@ -1941,7 +1945,7 @@ def run(character_name: str = 'Brottor'):
     global screen, level_sprites, sprites, game, room_no
     global tile_img, font, armors, weapons, potions
     global path, characters_dir, gamestate_dir, sprites_dir, char_sprites_dir
-    global item_sprites_dir, spell_sprites_dir, effects_images_dir, token_images_dir
+    global item_sprites_dir, spell_sprites_dir, effects_images_dir, sound_effects_dir, token_images_dir
     path = os.path.dirname(__file__)
     # abspath = os.path.abspath(path)
     # characters_dir = f'{abspath}/gameState/characters'
@@ -1953,12 +1957,14 @@ def run(character_name: str = 'Brottor'):
     char_sprites_dir = f"{sprites_dir}/rpgcharacterspack"
     item_sprites_dir = f"{sprites_dir}/Items"
     spell_sprites_dir = f"{sprites_dir}/schools"
-    effects_images_dir = resource_path('sprites/spell_animations')
+    effects_images_dir = resource_path('sprites/effects')
+    sound_effects_dir = resource_path('sounds')
     token_images_dir = resource_path('images/monsters/tokens')
     room_no = 0  # memorize last visited room number
 
     # Initialisation de Pygame
     pygame.init()
+    pygame.mixer.init()
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
     # Chargement des assets
