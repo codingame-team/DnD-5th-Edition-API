@@ -69,7 +69,7 @@ class Sprite:
             if 0 <= draw_x <= viewport_width * tile_size and 0 <= draw_y <= viewport_height * tile_size:
                 screen.blit(image, (draw_x, draw_y))
 
-    def draw_effect(self, screen, sprites, tile_size, fps, viewport_x, viewport_y, viewport_width, viewport_height, sound_file=None):
+    def draw_effect(self, screen, sprites, tile_size, fps, viewport_x, viewport_y, viewport_width, viewport_height, sound_file=None, reduce_ratio=1):
         # Calculate the position of the sprite relative to the viewport
         draw_x = (self.x - viewport_x) * tile_size
         draw_y = (self.y - viewport_y) * tile_size
@@ -77,8 +77,8 @@ class Sprite:
         # cprint(str((draw_x, draw_y)))
         frame_delay = 2 / fps  # Calculate delay between frames
 
-        sprite_size = sprites[0].get_size()[0]
-        reduce_ratio = sprite_size // (tile_size * 2)
+        # sprite_size = sprites[0].get_size()[0]
+        # reduce_ratio = sprite_size // (tile_size * 2) if sprite_size > tile_size else 1
         # reduce_ratio = 1
 
         # Load and play the sound effect if provided
