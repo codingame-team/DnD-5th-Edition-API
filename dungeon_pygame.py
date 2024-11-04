@@ -1380,11 +1380,40 @@ def handle_right_click_spell_attack(game):
         if game.target_pos in (monster.pos, monster.old_pos):
             monster.hit_points -= game.hero.cast(game.ready_spell, monster)
             # Draw the spell animation
-            sprites_sheet = f'{effects_images_dir}/flash03.png'
-            sprites: List[Surface] = extract_sprites(sprites_sheet, columns=5, rows=2)
+            # https://listfist.com/list-of-dungeons-dragons-5e-spells-by-damage?utm_content=cmp-true
+            # damage_types = ["acid", "bludgeoning", "cold", "fire", "force", "lightning", "necrotic", "piercing", "poison", "psychic", "radiant", "slashing", "thunder", "variable"]
+            damage_types = {
+                "acid": (15, 1, 1),
+                "bludgeoning": (4, 4, 1/2),
+                "cold": (4, 10, 4),
+                "fire": (7, 5, 2),
+                "force": None,
+                "lightning": (5, 2, 1),
+                "necrotic": (6, 5, 1),
+                "piercing": (6, 5, 1),
+                "poison": (4, 4, 1),
+                "psychic": None,
+                "radiant": None,
+                "slashing": None,
+                "thunder": (6, 6, 4),
+                "variable": None
+            }
+            cprint(game.ready_spell.damage_type)
+            damage_type = damage_types[game.ready_spell.damage_type]
+            reduce_ratio = 1
+            if isinstance(damage_type, tuple):
+                cols, rows, reduce_ratio = damage_type
+                sprites_sheet = f'{effects_images_dir}/{game.ready_spell.damage_type}.png'
+                sprites: List[Surface] = extract_sprites(sprites_sheet, columns=cols, rows=rows)
+            elif isinstance(damage_type, str):
+                sprites_sheet = f'{effects_images_dir}/{damage_type}.png'
+                sprites: List[Surface] = extract_sprites(sprites_sheet, columns=5, rows=2)
+            else:
+                sprites_sheet = f'{effects_images_dir}/flash03.png'
+                sprites: List[Surface] = extract_sprites(sprites_sheet, columns=5, rows=2)
             view_port_tuple = game.calculate_view_window()
             sound_file: str = f'{sound_effects_dir}/foom_0.mp3'
-            monster.draw_effect(screen, sprites, TILE_SIZE, FPS, *view_port_tuple, sound_file)
+            monster.draw_effect(screen, sprites, TILE_SIZE, FPS, *view_port_tuple, sound_file, reduce_ratio)
             if monster.hit_points <= 0:
                 # cprint(f'{monster.name} at pos {monster.pos} is *KILLED*')
                 game.hero.victory(monster=monster, solo_mode=True)
@@ -1591,21 +1620,23 @@ def handle_healing_potion_use(game):
         # Draw the drink potion animation
         # sprites_sheet = f'{effects_images_dir}/flash_heal.png'
         # sprites_icons: List[Surface] = extract_sprites(sprites_sheet, columns=5, rows=10)
-        sprites_sheet = f'{effects_images_dir}/fireball_blue.png'
-        sprites_icons: List[Surface] = extract_sprites(sprites_sheet, columns=4, rows=10)
+        # reduce_ratio = 4
+        # sprites_sheet = f'{effects_images_dir}/fireball_blue.png'
+        # sprites_icons: List[Surface] = extract_sprites(sprites_sheet, columns=4, rows=10)
         # sprites_sheet = f'{effects_images_dir}/flash01.png'
         # sprites_icons: List[Surface] = extract_sprites(sprites_sheet, columns=5, rows=2)
         # sprites_sheet = f'{effects_images_dir}/flash03.png'
         # sprites_icons: List[Surface] = extract_sprites(sprites_sheet, columns=5, rows=2)
         sprites_sheet = f'{effects_images_dir}/flash_freeze.png'
         sprites_icons: List[Surface] = extract_sprites(sprites_sheet, columns=8, rows=12)
+        reduce_ratio = 4
         # sprites_sheet = f'{effects_images_dir}/sphere_blue.png'
         # sprites_icons: List[Surface] = extract_sprites(sprites_sheet, columns=6, rows=5)
         # sprites_sheet = f'{effects_images_dir}/skull_smoke_green.png'
         # sprites_icons: List[Surface] = extract_sprites(sprites_sheet, columns=19, rows=2)
         view_port_tuple = game.calculate_view_window()
         sound_file: str = f'{sound_effects_dir}/magic_words.mp3'
-        game.hero.draw_effect(screen, sprites_icons, TILE_SIZE, FPS, *view_port_tuple, sound_file)
+        game.hero.draw_effect(screen, sprites_icons, TILE_SIZE, FPS, *view_port_tuple, sound_file, reduce_ratio)
         game.remove_from_inv(potion, sprites)
     else:
         cprint('Sorry dude! no healing potion available...')
