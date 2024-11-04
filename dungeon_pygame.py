@@ -829,6 +829,13 @@ class Game:
         sprites[item.id] = image
 
     def open_chest(self, sprites, level_sprites, potions: List[HealingPotion], item_sprites_dir):
+        sound_file: str = f'{sound_effects_dir}/Chest Open 1.wav'
+        # Load and play the sound effect if provided
+        try:
+            sound = pygame.mixer.Sound(sound_file)
+            sound.play()
+        except Exception as e:
+            print(f"Error playing sound: {e}")
         print(f'Hero gained a treasure!')
         t: Treasure = [t for t in self.level.treasures if t.pos == self.hero.pos][0]
         self.level.treasures.remove(t)
@@ -1392,7 +1399,7 @@ def handle_right_click_spell_attack(game):
                 "necrotic": (6, 5, 1),
                 "piercing": (6, 5, 1),
                 "poison": (4, 4, 1),
-                "psychic": None,
+                "psychic": (3, 3, 2),
                 "radiant": None,
                 "slashing": None,
                 "thunder": (6, 6, 4),
@@ -1488,6 +1495,7 @@ def move_char(game: Game, char: Monster | Character, pos: tuple):
         return
     char.old_x, char.old_y = char.x, char.y
     game.target_pos = None
+    move_position = char.pos
     if pos in game.level.walkable_tiles:
         current_time = time.time()
         if mh_dist(char.pos, pos) <= 1:
@@ -1504,7 +1512,9 @@ def move_char(game: Game, char: Monster | Character, pos: tuple):
             if path:
                 if isinstance(char, Character):
                     char.x, char.y = path[1]
-
+                    sound_file: str = f'{sound_effects_dir}/Dirt Chain Walk 1.wav'
+                    sound = pygame.mixer.Sound(sound_file)
+                    sound.play()
                 else:
                     speed_ratio: int = round(char.speed / game.hero.speed)
                     dist = min(speed_ratio, len(path) - 1)
@@ -1518,6 +1528,11 @@ def move_char(game: Game, char: Monster | Character, pos: tuple):
             game.update_visible_tiles()
     else:
         cprint(f'{char.name} cannot move to {pos}!')
+
+    if isinstance(char, Character) and move_position != char.pos:
+        sound_file: str = f'{sound_effects_dir}/Dirt Chain Walk 1.wav'
+        sound = pygame.mixer.Sound(sound_file)
+        sound.play()
 
 
 def display_available_commands(game):
@@ -1595,7 +1610,10 @@ def handle_keyboard_events(game, event):
         closed_doors = [door_pos for door_pos, door_open in game.level.doors.items() if mh_dist(door_pos, game.hero.pos) == 1 and not door_open]
         if closed_doors:
             door_pos = closed_doors[0]
-            game.level.doors[door_pos] = not game.level.doors[door_pos]
+            game.level.doors[door_pos] = True
+            sound_file: str = f'{sound_effects_dir}/Door Open 1.wav'
+            sound = pygame.mixer.Sound(sound_file)
+            sound.play()
         else:
             cprint('No closed door found!')
     elif event.key == pygame.K_c:
@@ -1607,7 +1625,10 @@ def handle_keyboard_events(game, event):
             elif door_pos == game.hero.pos:
                 cprint('Cannot close door with the hero in it!')
             else:
-                game.level.doors[door_pos] = not game.level.doors[door_pos]
+                game.level.doors[door_pos] = False
+                sound_file: str = f'{sound_effects_dir}/Door Close 1.wav'
+                sound = pygame.mixer.Sound(sound_file)
+                sound.play()
         else:
             cprint('No open door found!')
     return return_to_main_menu
@@ -1781,6 +1802,9 @@ def handle_treasure_chests(game):
 def handle_fountains(game):
     if any(f.pos == game.hero.pos for f in game.level.fountains):
         char = game.hero
+        sound_file: str = f'{sound_effects_dir}/magic_words.mp3'
+        sound = pygame.mixer.Sound(sound_file)
+        sound.play()
         if char.class_type.can_cast:
             if char.sc.spell_slots != char.class_type.spell_slots[char.level]:
                 print(f'{char.name} has memorized all his spells')
