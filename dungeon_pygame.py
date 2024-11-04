@@ -1451,7 +1451,14 @@ def attack_monsters(game, monsters):
         game.target_pos = None
     for monster in monsters:
         if game.target_pos in (monster.pos, monster.old_pos):
-            monster.hit_points -= game.hero.attack(monster, cast=False)
+            damage: int = game.hero.attack(monster, cast=False)
+            if damage > 0:
+                monster.hit_points -= damage
+                sound_file: str = f'{sound_effects_dir}/Sword Impact Hit 1.wav'
+            else:
+                sound_file: str = f'{sound_effects_dir}/Sword Parry 1.wav'
+            sound = pygame.mixer.Sound(sound_file)
+            sound.play()
             if monster.hit_points <= 0:
                 # cprint(f'{monster.name} at pos {monster.pos} is *KILLED*')
                 game.hero.victory(monster=monster, solo_mode=True)
@@ -1468,7 +1475,14 @@ def attack_monsters(game, monsters):
 def attack_monster(game, monster):
     if not hasattr(monster, 'speed'):
         monster.speed = 30
-    monster.hit_points -= game.hero.attack(monster, cast=False)
+    damage: int = game.hero.attack(monster, cast=False)
+    if damage > 0:
+        monster.hit_points -= damage
+        sound_file: str = f'{sound_effects_dir}/Sword Impact Hit 1.wav'
+    else:
+        sound_file: str = f'{sound_effects_dir}/Sword Parry 1.wav'
+    sound = pygame.mixer.Sound(sound_file)
+    sound.play()
     if monster.hit_points <= 0:
         # cprint(f'{monster.name} at pos {monster.pos} is *KILLED*')
         game.hero.victory(monster=monster, solo_mode=True)
