@@ -1560,7 +1560,7 @@ def display_available_commands(game):
         f"{Color.GREEN}S{Color.END} = Drink Speed Potion",
         f"{Color.GREEN}[O|C]{Color.END} = Open/Close Door",
         f"{Color.GREEN}I{Color.END} - Gather position/status of hero",
-        f"{Color.GREEN}CMD-S{Color.END} = Save game",
+        f"{Color.GREEN}CMD-S (Apple) - Windows-S (PC) {Color.END} = Save game",
         f"{Color.GREEN}ESC{Color.END} - Leave game (without saving)",
         f"{Color.GREEN}H{Color.END} - Show this help"
     ]
