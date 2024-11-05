@@ -12,7 +12,7 @@ from time import time
 from typing import List
 import numpy as np
 
-from tools.dungeon_perl import create_dungeon
+# from tools.dungeon_perl import create_dungeon
 from tools import cell_bits_dnd as cb
 from tools.parse_json_dungeon import parse_dungeon_json
 
