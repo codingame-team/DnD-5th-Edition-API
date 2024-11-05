@@ -56,8 +56,8 @@ def load_weapon_image_name(index_name: str) -> Optional[str]:
                'warhammer': 'HammerWar',
                'whip': 'Whip',
                'blowgun': 'BlowGun',
-               'crossbow-hand': 'CrossBowLight',
-               'crossbow-heavy': 'CrossBowHeavy',
+               'crossbow-hand': 'CrossbowLight',
+               'crossbow-heavy': 'CrossbowHeavy',
                'longbow': 'BowLong'}
     image_name: str = weapons.get(index_name)
     return image_name + '.PNG' if image_name else 'None.PNG'
