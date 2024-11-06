@@ -86,10 +86,12 @@ def delete_inv_old(roster):
                 character.inventory.remove(item)
                 save_character(char=character, _dir=characters_dir)
 
+
 def delete_inv(roster):
     for character in roster:
         character.inventory = [None] * 20
-        save_character(char=character, _dir=characters_dir)
+        # save_character(char=character, _dir=characters_dir)
+
 
 def delete_char_inv(name: str):
     for char in roster:
@@ -118,6 +120,7 @@ def fix_duplicate_spells(roster):
                 save_character(char=character, _dir=characters_dir)
                 print(f'duplicates spells for char {character} fixed!')
 
+
 def raise_dead_roster(roster, characters_dir):
     for character in roster:
         if character.hit_points <= 0:
@@ -136,6 +139,7 @@ def raise_dead(character, characters_dir):
     character.status = 'OK'
     character.hit_points = 1
     save_character(char=character, _dir=characters_dir)
+
 
 def delete_dart(param):
     for character in roster:
@@ -156,34 +160,116 @@ def delete_arrow(param):
                 character.inventory.remove(arrow)
             save_character(char=character, _dir=characters_dir)
 
+
+def update_xp(hero):
+    current_xp = hero.xp
+    print(f"Current XP: {current_xp}")
+    new_xp = int(input("Enter new XP value: "))
+    hero.xp = new_xp
+    print(f"XP updated to: {hero.xp}")
+
+
+def update_hit_points(hero):
+    current_hp = hero.hit_points
+    print(f"Current Hit Points: {current_hp}")
+    new_hp = int(input("Enter new Hit Points value: "))
+    hero.hit_points = new_hp
+    print(f"Hit Points updated to: {hero.hit_points}")
+
+
+def update_gold(hero):
+    current_gold = hero.gold
+    print(f"Current Gold: {current_gold}")
+    new_gold = int(input("Enter new Gold value: "))
+    hero.gold = new_gold
+    print(f"Gold updated to: {hero.gold}")
+
+
 if __name__ == "__main__":
-    # path = os.path.dirname(__file__)
-    # abspath = os.path.abspath(path)
-    # gamestate_dir = f'{abspath}/../gameState/pygame'
-    # characters_dir = f'{abspath}/../gameState/characters'
-    # roster: List[Character] = get_roster(characters_dir)
 
     game_path = get_save_game_path()
     characters_dir = f'{game_path}/characters'
     gamestate_dir = f'{game_path}/pygame'
-    char_name = 'Brottor'
+    roster = get_roster(characters_dir)
+
+    # Display available characters
+    print("Available characters:")
+    for i, character in enumerate(roster, 1):
+        print(f"{i}. {character.name} (Lvl {character.level} {character.race} {character.class_type})")
+
+    # Get user input for character selection
+    while True:
+        try:
+            selection = int(input("Enter the number of the character you want to modify: "))
+            if 1 <= selection <= len(roster):
+                selected_character = roster[selection - 1]
+                break
+            else:
+                print("Invalid selection. Please try again.")
+        except ValueError:
+            print("Please enter a valid number.")
+
+    # Load the selected character
+    char_name = selected_character.name
     saved_game = load_character_gamestate(char_name=char_name, _dir=gamestate_dir)
-    if not saved_game:
-        hero = load_character(char_name=char_name, _dir=characters_dir)
-        hero.inventory = [None] * 20
-        save_character(char=hero, _dir=characters_dir)
+
+    hero = load_character(char_name=char_name, _dir=characters_dir) if not saved_game else saved_game.hero
+    print(f"Selected character: {hero.name}")
+
+    # Flag to track if any action has been performed
+    action_performed = False
+
+    # Action menu for the selected character
+    while True:
+        print("1. Update XP")
+        print("2. Update Hit Points")
+        print("3. Update Gold")
+        print("4. Fix duplicate IDs")
+        print("5. Delete inventory")
+        print("6. Save and Exit")
+
+        choice = input("Enter your choice (1-6): ")
+
+        if choice == '1':
+            update_xp(hero)
+            action_performed = True
+        elif choice == '2':
+            update_hit_points(hero)
+            action_performed = True
+        elif choice == '3':
+            update_gold(hero)
+            action_performed = True
+        elif choice == '4':
+            fix_duplicate_ids_all([hero])
+            print("Duplicate IDs fixed.")
+            action_performed = True
+        elif choice == '5':
+            delete_inv([hero])
+            print("Inventory deleted.")
+            action_performed = True
+        elif choice == '6':
+            if action_performed:
+                if saved_game:
+                    save_character_gamestate(hero, gamestate_dir, saved_game)
+                else:
+                    save_character(char=hero, _dir=characters_dir)
+                print("Changes saved. Exiting...")
+            else:
+                print("No changes were made. Exiting without saving.")
+            break
+        else:
+            print("Invalid choice. Please try again.")
+
+    if action_performed:
+        print(f"Character {hero.name} has been processed and saved.")
     else:
-        hero = saved_game.hero
-        hero.inventory = [None] * 20
-        save_character_gamestate(hero, gamestate_dir, saved_game)
+        print(f"No changes were made to character {hero.name}.")
 
-
-    # fix_duplicate_ids_all(roster)
-    # delete_inv(roster)
-    # delete_dart('Silaqui')
-    # delete_arrow('Ehput-Ki')
-
-    # cure_char(name='Vadania')
-    # cure_char(name='Esvele')
-    # delete_char_inv(name='Vola')
-    # fix_duplicate_spells(roster)
+    # Uncomment and modify these lines as needed for specific fixes
+    # fix_duplicate_ids_all([hero])
+    # delete_inv([hero])
+    # delete_dart(hero.name)
+    # delete_arrow(hero.name)
+    # cure_char(name=hero.name)
+    # delete_char_inv(name=hero.name)
+    # fix_duplicate_spells([hero])
