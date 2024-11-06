@@ -208,7 +208,6 @@ def load_game_data(character_name):
     try:
         saved_game = load_character_gamestate(character_name, gamestate_dir)
         hero = saved_game.hero if saved_game else load_character(character_name, characters_dir)
-        hero.gold = 10000 if hero.name != 'Ivor' else 1000000
         weapons = sorted(hero.allowed_weapons, key=cost)
         armors = sorted(hero.allowed_armors, key=cost)
         potions = load_potions_collections()
@@ -222,6 +221,7 @@ def run(character_name: str = 'Brottor'):
     # pygame.init()
     saved_game, hero, equipments = load_game_data(character_name)
     main_game_loop(saved_game, hero, equipments, f'{get_save_game_path()}/characters')
+
 
 cost = lambda x: int(x.cost) if isinstance(x, Potion) else int(x.cost['quantity'])
 
