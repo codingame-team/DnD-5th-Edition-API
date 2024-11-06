@@ -1227,7 +1227,7 @@ def main_game_loop(game):
                     for monster in game.level.monsters:
                         if not hasattr(monster, 'speed'):
                             monster.speed = 30
-                        if monster not in monsters_in_range:
+                        if any(m.id == monster.id for m in monsters_in_range):
                             monster.attack_round = 0
                     handle_combat(game=game, monsters=monsters_in_range)
                 else:
@@ -1828,7 +1828,12 @@ def handle_fountains(game):
                 spell_names: List[str] = populate(collection_name='spells', key_name='results')
                 all_spells: List[Spell] = [request_spell(name) for name in spell_names]
                 class_tome_spells = [s for s in all_spells if s is not None and char.class_type.index in s.allowed_classes]
-                char.gain_level(tome_spells=class_tome_spells)
+                new_spells = char.gain_level(tome_spells=class_tome_spells)
+                if new_spells:
+                    for spell in new_spells:
+                        image = pygame.image.load(f"{spell_sprites_dir}/{spell.school}.png")
+                        spell.id = max(sprites) + 1 if sprites else 1
+                        sprites[spell.id] = pygame.transform.scale(image, (ICON_SIZE, ICON_SIZE))  # Resize the image
             else:
                 char.gain_level()
         save_character(char, _dir=characters_dir)
