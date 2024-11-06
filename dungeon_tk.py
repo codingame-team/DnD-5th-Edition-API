@@ -11,6 +11,8 @@ from numpy import array
 
 from algo.brehensam import in_view_range
 from algo.lee import parcours_largeur
+from tools.gene_maze_dfs import generate_maze
+
 
 def resource_path(relative_path):
     """ Get the absolute path to a resource, works for dev and for PyInstaller """
@@ -194,6 +196,21 @@ def find_path(start: tuple, end: tuple, carte: List) -> Optional[List[tuple]]:
     return path[::-1]
 
 
+def load_new_maze(level: int):
+    width = height = 30
+    maze, start, end = generate_maze(width, height)
+    new_maze = [['.'] * width for _ in range(height)]
+    for i, row in enumerate(maze):
+        for j, cell in enumerate(row):
+            new_maze[i][j] = '#' if cell else '.'
+    x, y = start
+    if level > 1:
+        new_maze[y][x] = '<'
+    x, y = end
+    new_maze[y - 1][x] = '>'
+    return [''.join(row) for row in new_maze][:-1]
+
+
 class App(Tk):
     maze: List
     width: int
@@ -206,7 +223,7 @@ class App(Tk):
     treasures: List[Treasure] = None
     level: int = 1
 
-    def __init__(self, level: str):
+    def __init__(self):
         super().__init__()
 
         ## Setting up Initial Things
@@ -215,7 +232,8 @@ class App(Tk):
         self.resizable(True, True)
         self.iconphoto(False, PhotoImage(file=f"{path}/sprites/beholder.png"))
 
-        self.maze = self.load_maze(level)
+        self.maze = self.load_maze(self.level) if not REMI else load_new_maze(self.level)
+
         self.height = len(self.maze)
 
         self.width = max([len(self.maze[i]) for i in range(self.height)])
@@ -232,7 +250,7 @@ class App(Tk):
         # Initialisation des fonctions événementielles
         self.init_touches()
 
-    def update_level(self, level: int):
+    def update_level(self, level: int, remi=False):
         """
             display new level
         :param level: +/- 1
@@ -240,7 +258,7 @@ class App(Tk):
         """
         self.level += level
         self.refresh_title()
-        self.maze = self.load_maze(f'level_{self.level}')
+        self.maze = self.load_maze(self.level) if not REMI else load_new_maze(self.level)
         self.height, self.width = len(self.maze), len(self.maze[0])
         self.walls = [(x, y) for y in range(self.height) for x in range(self.width) if self.maze[y][x] in ('+', '-', '|', '-', '#')]
         # self.canvas.delete("all")
@@ -251,7 +269,7 @@ class App(Tk):
         self.canvas, self.hero, self.enemies, self.treasures = self.display(stair_pos)
         self.init_touches()
 
-    def load_maze(self, level: str) -> List:
+    def load_maze(self, level: int) -> List:
         """
         Charge le labyrinthe depuis le fichier level.txt
         nom : nom du fichier contenant le labyrinthe (sans l’extension .txt)
@@ -259,7 +277,7 @@ class App(Tk):
         - une liste avec les données du labyrinthe
         """
         try:
-            with open(resource_path(f"{path}/maze_tk/{level}.txt"), newline='') as fic:
+            with open(resource_path(f"{path}/maze_tk/level_{level}.txt"), newline='') as fic:
                 data = fic.readlines()
         except IOError:
             print("Impossible de lire le fichier {}.txt".format(level))
@@ -285,7 +303,7 @@ class App(Tk):
             # Initialisation du personnage
             starting_positions: List[tuple] = [(x, y) for x in range(self.width) for y in range(self.height) if self.maze[y][x] == '.']
             hero_x, hero_y = choice(starting_positions)
-            # hero_x, hero_y = 17, 18
+            # hero_x, hero_y = 0, 0
             start_armor: Armor = Armor(name='Plate Armor', ac=18, image=PhotoImage(file=resource_path(f'{path}/sprites/beholder.png')))
             start_weapon: Weapon = Weapon(name='Greatsword', damage_dice='2d6', image=PhotoImage(file=resource_path(f'{path}/sprites/beholder.png')))
             hero: Character = Character(x=hero_x, y=hero_y, speed=15, hp=10, max_hp=10, weapon=start_weapon, armor=start_armor, image=photo_hero)
@@ -593,6 +611,7 @@ if __name__ == "__main__":
     levels: List[str] = ['level_1', 'level_2']
     size_sprite = 32
     path = os.path.dirname(__file__)
+    REMI = False
 
     # Uncomment these lines to generate levels on output console
     # w, h = 40, 20
@@ -604,5 +623,5 @@ if __name__ == "__main__":
     #
     # exit(0)
 
-    app = App('level_1')
+    app = App()
     app.mainloop()
