@@ -13,6 +13,7 @@ pyinstaller --onefile ^
     --add-data "collections;collections" ^
     --add-data "data;data" ^
     --add-data "sprites;sprites" ^
+    --add-data "sounds:sounds" ^
     --add-data "images;images" ^
     --add-data "maze;maze" ^
     --add-data "Tables;Tables" ^
