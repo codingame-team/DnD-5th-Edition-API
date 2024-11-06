@@ -1241,7 +1241,8 @@ class Character(Sprite):
             input(
                 f'{color.UNDERLINE}{color.DARKCYAN}hit Enter to continue adventure :-) (potions remaining: {len(self.healing_potions)}){color.END}')
 
-    def gain_level(self, tome_spells: List[Spell] = None):
+    def gain_level(self, tome_spells: List[Spell] = None) -> Optional[List[Spell]]:
+        new_spells: List[Spell] = []
         self.level += 1
         hp_gained = randint(1, 10) + \
                     self.ability_modifiers.get_value_by_index('con')
@@ -1293,8 +1294,11 @@ class Character(Sprite):
                     new_spells_known_count -= 1
                     self.sc.learned_spells.append(learned_spell)
                 new_spells_count += 1
+                new_spells.append(learned_spell)
             if new_spells_count:
                 print(f'You learned new Spells!!!')
+        return new_spells
+
 
     def update_spell_slots(self, casted_spell: Spell):
         match self.class_type.name:
