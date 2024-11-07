@@ -192,7 +192,31 @@ def choose_equipment_from(starting_equipment_options: List[List[Inventory]]):
     return starting_equipment
 
 
-def create_new_character_start(races: List[Race], subraces: List[SubRace], classes: List[ClassType], proficiencies: List[Proficiency], equipments: List[Equipment], names: dict(), human_names: dict(),
+def get_height_and_weight(race, subrace):
+    hw_conv_table = read_csvfile("Height and Weight-Height and Weight.csv")
+    race_name = race.name if not subrace else subrace.name
+    found_record = [x for x in hw_conv_table if x[0] == race_name]
+    if not found_record:
+        found_record = [x for x in hw_conv_table if x[0] == race.name]
+    race_name, base_height, height_modifier, base_weight, weight_modifier = found_record[0]
+    feet2inch = lambda ft, inches: 12 * ft + inches
+    inch2feet = lambda inches: f"{inches // 12}'{inches - (inches // 12) * 12}"
+    height = feet2inch(*tuple((map(int, tuple(base_height.split("'"))))))
+    roll_num, dice_num = map(int, height_modifier.split('d'))
+    height_roll_result = sum([randint(1, dice_num) for _ in range(roll_num)])
+    height += height_roll_result
+    weight, unit = base_weight.split(' ')
+    if 'd' in weight_modifier:
+        roll_num, dice_num = map(int, weight_modifier.split('d'))
+        weight_roll_result = sum([randint(1, dice_num) for _ in range(roll_num)])
+    else:
+        weight_roll_result = 1
+    weight = int(weight) + height_roll_result * weight_roll_result
+    return inch2feet(height), f'{weight} {unit}'
+
+
+def create_new_character_start(races: List[Race], subraces: List[SubRace], classes: List[ClassType], proficiencies: List[Proficiency], equipments: List[Equipment], names: dict(),
+                               human_names: dict(),
                                roster: List[Character]) -> tuple:
     """
         Character selection on 1st set of attributes
@@ -221,9 +245,10 @@ def create_new_character_start(races: List[Race], subraces: List[SubRace], class
         subrace: SubRace = [r for r in subraces if r.index == subrace][0]
     # Choose proficiencies within the race
     chosen_proficiencies: List[str] = []
-    for choose, proficiency_options in race.starting_proficiency_options:
-        prof_indexes: List[str] = [prof.index for prof in proficiency_options]
-        prof_count = choose
+    for starting_proficiency_option in race.starting_proficiency_options:
+        choose, prof_list = starting_proficiency_option
+        prof_count = min(choose, len(prof_list))  # Ensure we don't try to choose more than available
+        prof_indexes: List[str] = [prof.index for prof in prof_list]
         while prof_count:
             prof_label = 'proficiency' if prof_count == 1 else 'proficiencies'
             prof_index: str = read_choice(prof_indexes, f'Choose {prof_count} race\'s {prof_label}:')
@@ -241,9 +266,10 @@ def create_new_character_start(races: List[Race], subraces: List[SubRace], class
     class_type: ClassType = [c for c in classes if c.index == class_index][0]
     # Choose proficiencies within the class
     chosen_proficiencies: List[str] = []
-    for choose, proficiency_choices in class_type.proficiency_choices:
-        prof_indexes: List[str] = [prof.index for prof in proficiency_choices]
-        prof_count = choose
+    for proficiency_choice in class_type.proficiency_choices:
+        choose, prof_list = proficiency_choice
+        prof_count = min(choose, len(prof_list))  # Ensure we don't try to choose more than available
+        prof_indexes: List[str] = [prof.index for prof in prof_list]
         while prof_count:
             prof_label = 'proficiency' if prof_count == 1 else 'proficiencies'
             prof_name: str = read_choice(prof_indexes, f'Choose {prof_count} class\' {prof_label}:')
@@ -282,33 +308,13 @@ def create_new_character_start(races: List[Race], subraces: List[SubRace], class
         name, ethnic = read_name(race.index, gender, human_names, reserved_names)
     else:
         name = read_name(race.index, gender, names, reserved_names)
-    hw_conv_table = read_csvfile("Height and Weight-Height and Weight.csv")
-    race_name = race.name if not subrace else subrace.name
-    found_record = [x for x in hw_conv_table if x[0] == race_name]
-    if not found_record:
-        found_record = [x for x in hw_conv_table if x[0] == race.name]
-    try:
-        race_name, base_height, height_modifier, base_weight, weight_modifier = found_record[0]
-    except IndexError:
-        print(f'found_record: {found_record}')
-    feet2inch = lambda ft, inches: 12 * ft + inches
-    inch2feet = lambda inches: f"{inches // 12}'{inches - (inches // 12) * 12}"
-    height = feet2inch(*tuple((map(int, tuple(base_height.split("'"))))))
-    roll_num, dice_num = map(int, height_modifier.split('d'))
-    height_roll_result = sum([randint(1, dice_num) for _ in range(roll_num)])
-    height += height_roll_result
-    weight, unit = base_weight.split(' ')
-    if 'd' in weight_modifier:
-        roll_num, dice_num = map(int, weight_modifier.split('d'))
-        weight_roll_result = sum([randint(1, dice_num) for _ in range(roll_num)])
-    else:
-        weight_roll_result = 1
-    weight = int(weight) + height_roll_result * weight_roll_result
+    height, weight = get_height_and_weight(race, subrace)
+
     """ 5. Choose equipment """
     # Choose starting equipment within the class
     starting_equipment: List[Equipment] = choose_equipment_from(class_type.starting_equipment_options)
     starting_equipment += [inv.equipment for inv in class_type.starting_equipment for _ in range(inv.quantity)]
-    return race, subrace, class_type, char_proficiencies, abilities, ability_modifiers, name, gender, ethnic, inch2feet(height), f'{weight} {unit}', starting_equipment
+    return race, subrace, class_type, char_proficiencies, abilities, ability_modifiers, name, gender, ethnic, height, weight, starting_equipment
 
 
 def load_character_collections() -> Tuple:
@@ -355,6 +361,46 @@ def get_next_item_id(roster: List[Character]) -> int:
     # return max([item.id for c in roster for item in c.inventory if item]) + 1 if roster else MAX_ROSTER + 1
     return max([item.id for c in roster for item in c.inventory if item]) + 1 if roster else MAX_ROSTER + 1
 
+
+def get_spell_caster(class_type, char_level, spells) -> Optional[SpellCaster]:
+    learned_spells: List[Spell] = []
+    if class_type.can_cast:
+        learnable_spells: List[Spell] = [s for s in spells if class_type.index in s.allowed_classes and s.level <= char_level and s.damage_type]
+        if learnable_spells:
+            cantrips_spells: List[Spell] = []
+            if class_type.cantrips_known:
+                cantrips_spells = [s for s in learnable_spells if not s.level]
+                n_cantric_spells: int = min(len(cantrips_spells), class_type.cantrips_known[char_level - 1])
+                cantrips_spells = sample(cantrips_spells, n_cantric_spells)
+            slot_spells: List[Spell] = [s for s in learnable_spells if s.level]
+            n_slot_spells: int = min(len(slot_spells), class_type.spells_known[char_level - 1])
+            slot_spells = sample(slot_spells, n_slot_spells)
+            learned_spells = cantrips_spells + slot_spells
+        return SpellCaster(level=char_level,
+                           spell_slots=copy(class_type.spell_slots.get(char_level)),
+                           learned_spells=learned_spells,
+                           dc_type=class_type.spellcasting_ability,
+                           dc_value=None,
+                           ability_modifier=None)
+
+
+def get_char_image(class_type) -> str:
+    sprites: dict = {'barbarian': 'barbarian',
+                     'bard': 'cleric',
+                     'cleric': 'cleric',
+                     'druid': 'cleric',
+                     'fighter': 'knight',
+                     'monk': 'monk',
+                     'paladin': 'knight',
+                     'ranger': 'ranger',
+                     'rogue': 'rogue',
+                     'sorcerer': 'necromant',
+                     'warlock': 'necromant',
+                     'wizard': 'wizzard'
+                     }
+    return f'hero_{sprites[class_type.name.lower()]}.png'
+
+
 def create_new_character(roster: List[Character]) -> Character:
     """
         Character creation's procedure (split in 2 functions, calls create_character)
@@ -390,47 +436,13 @@ def create_new_character(roster: List[Character]) -> Character:
         max_item_id += 1
 
     # Phase 2: Spell selection
-    char_level: int = 1 # could be changed to create higher level characters
-    spell_caster: SpellCaster = None
-    learned_spells: List[Spell] = []
-    if class_type.can_cast:
-        learnable_spells: List[Spell] = [s for s in spells if class_type.index in s.allowed_classes and s.level <= char_level and s.damage_type]
-        if learnable_spells:
-            cantrips_spells: List[Spell] = []
-            if class_type.cantrips_known:
-                cantrips_spells = [s for s in learnable_spells if not s.level]
-                n_cantric_spells: int = min(len(cantrips_spells), class_type.cantrips_known[char_level - 1])
-                cantrips_spells = sample(cantrips_spells, n_cantric_spells)
-            slot_spells: List[Spell] = [s for s in learnable_spells if s.level]
-            n_slot_spells: int = min(len(slot_spells), class_type.spells_known[char_level - 1])
-            slot_spells = sample(slot_spells, n_slot_spells)
-            learned_spells = cantrips_spells + slot_spells
-        spell_caster = SpellCaster(level=char_level,
-                                   spell_slots=copy(class_type.spell_slots.get(char_level)),
-                                   learned_spells=learned_spells,
-                                   dc_type=class_type.spellcasting_ability,
-                                   dc_value=None,
-                                   ability_modifier=None)
+    char_level: int = 1  # could be changed to create higher level characters
+    spell_caster: Optional[SpellCaster] = get_spell_caster(class_type, char_level, spells)
 
-    """ Load Spells characteristic """
-    # cheat_xp: int = 10000 # Level 5 chars
-    sprites: dict = {'barbarian': 'barbarian',
-                     'bard': 'cleric',
-                     'cleric': 'cleric',
-                     'druid': 'cleric',
-                     'fighter': 'knight',
-                     'monk': 'monk',
-                     'paladin': 'knight',
-                     'ranger': 'ranger',
-                     'rogue': 'rogue',
-                     'sorcerer': 'necromant',
-                     'warlock': 'necromant',
-                     'wizard': 'wizzard'
-                     }
     # sorted_roster_by_id = sorted(roster, key=lambda c: c.id)
     free_id = max([c.id for c in roster]) + 1 if roster else 1
     character: Character = Character(id=free_id,
-                                     image_name=f'hero_{sprites[class_type.name.lower()]}.png',
+                                     image_name=get_char_image(class_type),
                                      x=-1, y=-1, old_x=-1, old_y=-1,
                                      race=race,
                                      subrace=subrace,
@@ -456,9 +468,11 @@ def create_new_character(roster: List[Character]) -> Character:
     exit_message()
     return character
 
+
 def save_char_to_party(char_to_party: List[Char2Party], _dir: str):
     with open(f'{_dir}/char_party_mappings.dmp', 'wb') as f1:
         pickle.dump(char_to_party, f1)
+
 
 def load_char_to_party(_dir: str) -> List[Char2Party]:
     try:
@@ -467,14 +481,17 @@ def load_char_to_party(_dir: str) -> List[Char2Party]:
     except FileNotFoundError:
         return []
 
+
 def save_character(char: Character, _dir: str):
     # print(f'Sauvegarde personnage {char.name}')
     with open(f'{_dir}/{char.name}.dmp', 'wb') as f1:
         pickle.dump(char, f1)
 
+
 def load_character(char_name: str, _dir: str) -> Character:
     with open(f'{_dir}/{char_name}.dmp', 'rb') as f1:
         return pickle.load(f1)
+
 
 def get_roster(characters_dir: str) -> List[Character]:
     roster: List[Character] = []
@@ -539,7 +556,7 @@ def display_character_sheet(char: Character):
         potions[rarity] += 1
     potions = dict(filter(lambda p: p[1] > 0, potions.items()))
     sheet += '|{:^51}|\n'.format(f'healing potions = {potions}')
-    #sheet += '|{:^51}|\n'.format(f'healing potions = {len(char.healing_potions)}')
+    # sheet += '|{:^51}|\n'.format(f'healing potions = {len(char.healing_potions)}')
     armors: List[Armor] = [item for item in char.inventory if isinstance(item, Armor) and item.equipped]
     weapons: List[Weapon] = [item for item in char.inventory if isinstance(item, Weapon) and item.equipped]
     armors_list: str = ' + '.join([a.name.title() for a in armors])
@@ -618,9 +635,11 @@ def arena(character: Character):
         # if character.level < len(xp_levels) and character.xp > xp_levels[character.level]:
         #     character.gain_level(pause=PAUSE_ON_RAISE_LEVEL)
         monster: Monster = copy(choice(monsters_to_fight))
-        cprint(f'{color.PURPLE}-------------------------------------------------------------------------------------------------------------------------------------------{color.END}')
+        cprint(
+            f'{color.PURPLE}-------------------------------------------------------------------------------------------------------------------------------------------{color.END}')
         cprint(f'{color.PURPLE} New encounter! {character} vs {monster}{color.END}')
-        cprint(f'{color.PURPLE}-------------------------------------------------------------------------------------------------------------------------------------------{color.END}')
+        cprint(
+            f'{color.PURPLE}-------------------------------------------------------------------------------------------------------------------------------------------{color.END}')
         round_num = 0
         monster_max_hp = monster.hit_points
         while monster.hit_points > 0:
@@ -823,8 +842,6 @@ def rest_character(char: Character, fee: int, weeks: int):
     exit_message()
 
 
-
-
 def temple_of_cant(party: List[Character, roster: List[Character]]):
     exit_temple: bool = False
     while not exit_temple:
@@ -897,7 +914,8 @@ def adventurer_inn(party):
             efface_ecran()
             char: Character = get_character(choice, party)
             print(f'Welcome, {char.name}!')
-            rooms: List[str] = ['The Stables (Free!)', 'A Cot (10 GP / Week)', 'Economy Room (100 GP / Week)', 'Merchant Suites (200 GP / Week)', 'The Royal Suites (500 GP / Week)']
+            rooms: List[str] = ['The Stables (Free!)', 'A Cot (10 GP / Week)', 'Economy Room (100 GP / Week)', 'Merchant Suites (200 GP / Week)',
+                                'The Royal Suites (500 GP / Week)']
             fees: List[int] = [0, 10, 100, 200, 500]
             weeks: List[int] = [0, 1, 3, 7, 10]
             room: str = read_choice(rooms, f'Hello {char.name}.')
@@ -1052,7 +1070,7 @@ def load_encounter_gold_table() -> List[int]:
     return [int(gold) for enc_level, gold in data]
 
 
-def generate_encounter(encounter_level: int, monsters: List[Monster], monster_groups_count: int, spell_casters_only: bool=False) -> List[Monster]:
+def generate_encounter(encounter_level: int, monsters: List[Monster], monster_groups_count: int, spell_casters_only: bool = False) -> List[Monster]:
     if monster_groups_count > 2:
         exit_message('System Error!... only 2 groups of monsters allowed here. Please contact the Dungeon Master :-)')
         return
@@ -1164,7 +1182,8 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
         if not encounter_levels:
             encounter_levels: List[int] = generate_encounter_levels(party_level=party_level)
         encounter_level: int = encounter_levels.pop()
-        monsters: List[Monster] = generate_encounter(encounter_level=encounter_level, monsters=monsters_db, monster_groups_count=monster_groups_count, spell_casters_only=spell_casters_only)
+        monsters: List[Monster] = generate_encounter(encounter_level=encounter_level, monsters=monsters_db, monster_groups_count=monster_groups_count,
+                                                     spell_casters_only=spell_casters_only)
         # monsters: List[Monster] = [request_monster(index_name='swarm-of-centipedes') for _ in range(randint(1, 2))]
         # To debug monster multi-attacks
         # monsters_names_for_debug = ['rug-of-smothering']
@@ -1172,10 +1191,12 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
         # monsters_names_for_debug = ['half-red-dragon-veteran']Ice Mephit
         # monsters_names_for_debug = ['ice-mephit']
         # monsters: List[Monster] = [request_monster(index_name) for index_name in monsters_names_for_debug]
-        cprint(f'{color.PURPLE}-------------------------------------------------------------------------------------------------------------------------------------------{color.END}')
+        cprint(
+            f'{color.PURPLE}-------------------------------------------------------------------------------------------------------------------------------------------{color.END}')
         cprint(f'{color.PURPLE} New encounter!{color.END}')
         display_group_of_monsters(monsters)
-        cprint(f'{color.PURPLE}-------------------------------------------------------------------------------------------------------------------------------------------{color.END}')
+        cprint(
+            f'{color.PURPLE}-------------------------------------------------------------------------------------------------------------------------------------------{color.END}')
         attack_queue = [(c, randint(1, c.abilities.dex)) for c in party] + [(m, randint(1, m.abilities.dex)) for m in monsters]
         attack_queue.sort(key=lambda x: x[1], reverse=True)
         attackers = [c for c, init_roll in attack_queue]
@@ -1211,7 +1232,7 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
                             cantric_spells: List[Spell] = [s for s in attacker.sc.learned_spells if not s.level]
                             slot_spells: List[Spell] = [s for s in attacker.sc.learned_spells if s.level and attacker.sc.spell_slots[s.level - 1] > 0]
                             castable_spells: List[Spell] = cantric_spells + slot_spells
-                        if attacker.sa and round_num > 0: # ou 1? (à vérifier)
+                        if attacker.sa and round_num > 0:  # ou 1? (à vérifier)
                             for special_attack in attacker.sa:
                                 if special_attack.recharge_on_roll:
                                     special_attack.ready = special_attack.recharge_success
@@ -1227,7 +1248,7 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
                                 cprint(f'{char.name} is ** KILLED **!')
                         elif available_special_attacks:
                             special_attack: SpecialAbility = max(available_special_attacks, key=lambda a: sum([damage.dd.score(success_type=a.dc_success) for damage in a.damages]))
-                            #cprint(special_attack)
+                            # cprint(special_attack)
                             if special_attack.targets_count >= len(party):
                                 cprint(f'{color.GREEN}{attacker.name}{color.END} launches ** {special_attack.name.upper()} ** on whole party!')
                                 target_chars: List[Character] = party
@@ -1243,7 +1264,7 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
                                 targets_split = targets.rsplit(', ', 1)  # Split at the last ', '
                                 formatted_targets = ' and '.join(targets_split)
                                 cprint(f'{color.GREEN}{attacker.name}{color.END} launches ** {special_attack.name.upper()} ** on {formatted_targets}!')
-                            #cprint('target chars: ' + '/'.join([c.name for c in target_chars]))
+                            # cprint('target chars: ' + '/'.join([c.name for c in target_chars]))
                             for char in target_chars:
                                 if char in alive_chars:
                                     char.hit_points -= attacker.special_attack(char, special_attack)
@@ -1264,7 +1285,7 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
                                     cprint(f'{char.name} is ** KILLED **!')
                             else:
                                 cprint(f'** {char.name} ** has no MELEE attacks implemented!')
-                    else:   # CHARACTER ATTACKS
+                    else:  # CHARACTER ATTACKS
                         if not alive_monsters:
                             break
                         if attacker.hit_points < 0.3 * attacker.max_hit_points and attacker.healing_potions:
@@ -1334,6 +1355,7 @@ def cheat_function(roster: List[Character]):
         char.hit_points = char.max_hit_points
         char.status = 'OK'
 
+
 def delete_all_potions(roster: List[Character]):
     """ Needs to purge old potions from char's inventory """
     for char in roster:
@@ -1341,12 +1363,14 @@ def delete_all_potions(roster: List[Character]):
             char.healing_potions.clear()
             save_character(char, _dir=characters_dir)
 
+
 def delete_armors_weapons(roster: List[Character]):
     dagger: Weapon = request_weapon('dagger')
     skin: Armor = request_armor('skin-armor')
     for char in roster:
         char.weapon = dagger
         char.armor = skin
+
 
 def give_best_armors_weapons(roster: List[Character]):
     for char in roster:
@@ -1361,10 +1385,10 @@ def load_xp_levels() -> List[int]:
 
 
 if __name__ == '__main__':
-    seed(time())
+    seed(time.time())
     PAUSE_ON_RAISE_LEVEL = True
     POTION_INITIAL_PACK = 15
-    MAX_ROSTER = 100 # maximum number of characters allowed in this game
+    MAX_ROSTER = 100  # maximum number of characters allowed in this game
     path = os.path.dirname(__file__)
     abspath = os.path.abspath(path)
     # print(f'path = {path}')
