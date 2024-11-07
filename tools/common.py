@@ -78,11 +78,29 @@ def read(choice_list: List[str], message: str = None) -> str:
         print(f"Invalid choice! Please enter one of the following: {', '.join(choice_list)}")
 
 
-def resource_path(relative_path):
+def resource_path_old(relative_path):
     """ Get the absolute path to a resource, works for dev and for PyInstaller """
     if hasattr(sys, '_MEIPASS'):
         return os.path.join(sys._MEIPASS, relative_path)
     return os.path.join(os.path.abspath("."), relative_path)
+
+
+def resource_path(relative_path):
+    """ Get the absolute path to a resource, works for dev and for PyInstaller """
+    if hasattr(sys, '_MEIPASS'):
+        # Running as bundled executable
+        return os.path.join(sys._MEIPASS, relative_path)
+    else:
+        # Running in development environment
+        # Get the directory of the current file
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+
+        # Navigate up to the project root (assuming this file is in a subdirectory)
+        project_root = os.path.dirname(current_dir)
+
+        # Join the project root with the relative path
+        return os.path.join(project_root, relative_path)
+
 
 def get_save_game_path(folder_name="Saved_Games_DnD_5th"):
     """
@@ -101,39 +119,54 @@ def get_save_game_path(folder_name="Saved_Games_DnD_5th"):
 
     return save_path
 
+import sys
+import os
+import termios
+import tty
+import select
+
+def is_tty():
+    return sys.stdin.isatty()
+
+def get_key():
+    if is_tty():
+        return get_key_tty()
+    else:
+        return get_key_non_tty()
+
+def get_key_tty():
+    old_settings = termios.tcgetattr(sys.stdin)
+    try:
+        tty.setcbreak(sys.stdin.fileno())
+        while True:
+            if select.select([sys.stdin], [], [], 0)[0]:
+                b = os.read(sys.stdin.fileno(), 3).decode()
+                if len(b) > 1:
+                    k = ord(b[1])
+                else:
+                    k = ord(b)
+                key_mapping = {
+                    127: 'backspace',
+                    10: 'return',
+                    32: 'space',
+                    9: 'tab',
+                    27: 'esc',
+                    65: 'up',
+                    # Add more mappings as needed
+                }
+                return key_mapping.get(k, chr(k))
+    finally:
+        termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_settings)
+
+def get_key_non_tty():
+    return input("Enter key: ")
+
 def cprint(message: str, color: Color = None):
-    # return
     if color:
         print(f'{color}{message}{Color.END}', flush=True)
     else:
         print(message, flush=True)
 
-
-def get_key():
-    old_settings = termios.tcgetattr(sys.stdin)
-    tty.setcbreak(sys.stdin.fileno())
-    try:
-        while True:
-            b = os.read(sys.stdin.fileno(), 3).decode()
-            # if len(b) == 3:
-            if len(b) > 1:
-                k = ord(b[1])
-            else:
-                k = ord(b)
-            key_mapping = {
-                127: 'backspace',
-                10: 'return',
-                32: 'space',
-                9: 'tab',
-                27: 'esc',
-                65: 'up',
-                66: 'down',
-                67: 'right',
-                68: 'left'
-            }
-            return key_mapping.get(k, chr(k))
-    finally:
-        termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_settings)
 
 
 def exit_message(message: str = None):
