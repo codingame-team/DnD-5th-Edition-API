@@ -30,7 +30,7 @@ class GameMenu:
         self.screen_width, self.screen_height = SCREEN_WIDTH, SCREEN_HEIGHT
         self.scroll_offset = 0
         self.line_height = 20
-        self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
+        self.screen = pygame.display.set_mode((self.screen_width, self.screen_height), pygame.RESIZABLE)
         pygame.display.set_caption('Choose your character')
 
         path = os.path.dirname(__file__)
@@ -155,6 +155,8 @@ class GameMenu:
                 elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 5:  # Scroll down
                     max_offset = max(0, (len(roster) + 1) * self.line_height - self.screen_height + self.line_height * 2)
                     self.scroll_offset = min(self.scroll_offset + self.line_height, max_offset)
+                elif event.type == pygame.VIDEORESIZE:
+                    self.screen_width, self.screen_height = event.size
 
             self.screen.fill(WHITE)
             self.draw_character_menu(roster, self.scroll_offset)
