@@ -366,7 +366,8 @@ def request_monster(index_name: str) -> Monster:
             proficiency.value = prof.get('value')
             proficiencies.append(proficiency)
 
-    speed: str = data['speed']['fly'] if 'fly' in data['speed'] else data['speed']['walk']
+    # print(index_name)
+    speed: str = data['speed']['fly'] if 'fly' in data['speed'] else data['speed']['walk'] if 'walk' in data['speed'] else '30'
 
     return Monster(id=-1,
                    image_name=f'monster_{index_name}.png',
