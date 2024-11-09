@@ -850,7 +850,9 @@ class Game:
         self.hero.gold += t.gold
         if t.has_item:
             potions = list(filter(lambda p: game.hero.level >= p.min_level, potions))
-            match randint(1, 3):
+            roll = randint(1, 3)
+            # roll = 1
+            match roll:
                 case 1:
                     item: Potion = copy(choice(potions))  # work on a copy to avoid sprite id colliding...
                 case 2:
@@ -1455,13 +1457,8 @@ def attack_monsters(game, monsters):
     for monster in monsters:
         if game.target_pos in (monster.pos, monster.old_pos):
             damage: int = game.hero.attack(monster, cast=False)
-            if damage > 0:
-                monster.hit_points -= damage
-                sound_file: str = f'{sound_effects_dir}/Sword Impact Hit 1.wav'
-            else:
-                sound_file: str = f'{sound_effects_dir}/Sword Parry 1.wav'
-            sound = pygame.mixer.Sound(sound_file)
-            sound.play()
+            draw_attack_effect(game, monster, damage)
+            monster.hit_points -= damage
             if monster.hit_points <= 0:
                 # cprint(f'{monster.name} at pos {monster.pos} is *KILLED*')
                 game.hero.victory(monster=monster, solo_mode=True)
@@ -1713,6 +1710,20 @@ def get_initiative_order(characters):
     return [char for char, _ in initiative_rolls]
 
 
+def draw_attack_effect(game: Game, char: [Character|Monster], damage: int):
+    if damage > 0:
+        sound_file: str = f'{sound_effects_dir}/Sword Impact Hit 1.wav'
+        # char_image: Surface = level_sprites[game.hero.id]
+        # put_inlay(image=char_image, number=damage, center=False, color=RED)
+    else:
+        sound_file: str = f'{sound_effects_dir}/Sword Parry 1.wav'
+    sprites_sheet = f'{effects_images_dir}/flash04.png'
+    sprites: List[Surface] = extract_sprites(sprites_sheet, columns=5, rows=2)
+    # sound_file: str = f'{sound_effects_dir}/foom_0.mp3'
+    view_port_tuple = game.calculate_view_window()
+    char.draw_effect(screen, sprites, TILE_SIZE, FPS, *view_port_tuple, sound_file)
+
+
 def handle_combat(game: Game, monsters: List[Monster], attack_spell: Spell = None, move_position: tuple = None):
     """
         Handle the combat against the monsters.
@@ -1748,18 +1759,9 @@ def handle_combat(game: Game, monsters: List[Monster], attack_spell: Spell = Non
             damage = handle_monster_actions(game, char)
             # game.last_combat_round = game.round_no
     if damage is not None:
-        if damage > 0:
-            game.hero.hit_points -= damage
-            sound_file: str = f'{sound_effects_dir}/Sword Impact Hit 1.wav'
-            # char_image: Surface = level_sprites[game.hero.id]
-            # put_inlay(image=char_image, number=damage, center=False, color=RED)
-        else:
-            sound_file: str = f'{sound_effects_dir}/Sword Parry 1.wav'
-        sprites_sheet = f'{effects_images_dir}/flash04.png'
-        sprites: List[Surface] = extract_sprites(sprites_sheet, columns=5, rows=2)
-        #sound_file: str = f'{sound_effects_dir}/foom_0.mp3'
-        view_port_tuple = game.calculate_view_window()
-        game.hero.draw_effect(screen, sprites, TILE_SIZE, FPS, *view_port_tuple, sound_file)
+        game.hero.hit_points -= damage
+        # Draw the damage effect
+        draw_attack_effect(game, game.hero, damage)
     game.round_no += 1
 
 
