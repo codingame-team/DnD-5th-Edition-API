@@ -1,6 +1,3 @@
-import os
-from typing import List
-
 from dao_classes import Character
 from dungeon_pygame import load_character_gamestate, save_character_gamestate
 from main import get_roster, save_character, load_character
