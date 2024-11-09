@@ -61,16 +61,19 @@ DIRECTIONS = [UP, DOWN, LEFT, RIGHT]
 ROUND_DURATION = 6  # Duration of a round in seconds
 
 
-def put_inlay(image: pygame.Surface, number: int):
+def put_inlay(image: pygame.Surface, number: int, center=False, color=WHITE):
     # Police pour le texte
     font = pygame.font.Font(None, 18)
 
     # Créer la surface du texte
-    text_surface = font.render(str(number), True, WHITE)
+    text_surface = font.render(str(number), True, color)
 
     # Définir la position du texte sur l'image (par exemple, en bas à droite)
     text_rect = text_surface.get_rect()
-    text_rect.topleft = image.get_rect().topleft
+    if center:
+        text_rect.center = image.get_rect().center
+    else:
+        text_rect.topleft = image.get_rect().topleft
 
     # Ajouter le texte sur l'image
     image.blit(text_surface, text_rect)
@@ -1405,16 +1408,16 @@ def handle_right_click_spell_attack(game):
                 "thunder": (6, 6, 4),
                 "variable": None
             }
-            cprint(game.ready_spell.damage_type)
+            # cprint(game.ready_spell.damage_type)
             damage_type = damage_types[game.ready_spell.damage_type]
             reduce_ratio = 1
             if isinstance(damage_type, tuple):
                 cols, rows, reduce_ratio = damage_type
                 sprites_sheet = f'{effects_images_dir}/{game.ready_spell.damage_type}.png'
                 sprites: List[Surface] = extract_sprites(sprites_sheet, columns=cols, rows=rows)
-            elif isinstance(damage_type, str):
-                sprites_sheet = f'{effects_images_dir}/{damage_type}.png'
-                sprites: List[Surface] = extract_sprites(sprites_sheet, columns=5, rows=2)
+            # elif isinstance(damage_type, str):
+            #     sprites_sheet = f'{effects_images_dir}/{damage_type}.png'
+            #     sprites: List[Surface] = extract_sprites(sprites_sheet, columns=5, rows=2)
             else:
                 sprites_sheet = f'{effects_images_dir}/flash03.png'
                 sprites: List[Surface] = extract_sprites(sprites_sheet, columns=5, rows=2)
@@ -1720,6 +1723,7 @@ def handle_combat(game: Game, monsters: List[Monster], attack_spell: Spell = Non
     :return:
     """
     attack_order = get_initiative_order([game.hero] + monsters)
+    damage: Optional[int] = None
     for char in attack_order:
         if isinstance(char, Character):
             if char.hit_points > 0:
@@ -1741,12 +1745,25 @@ def handle_combat(game: Game, monsters: List[Monster], attack_spell: Spell = Non
                     game.kills.append(char)
                 continue
             # Handle monster's attack
-            handle_monster_actions(game, char)
+            damage = handle_monster_actions(game, char)
             # game.last_combat_round = game.round_no
-    # game.round_no += 1
+    if damage is not None:
+        if damage > 0:
+            game.hero.hit_points -= damage
+            sound_file: str = f'{sound_effects_dir}/Sword Impact Hit 1.wav'
+            # char_image: Surface = level_sprites[game.hero.id]
+            # put_inlay(image=char_image, number=damage, center=False, color=RED)
+        else:
+            sound_file: str = f'{sound_effects_dir}/Sword Parry 1.wav'
+        sprites_sheet = f'{effects_images_dir}/flash04.png'
+        sprites: List[Surface] = extract_sprites(sprites_sheet, columns=5, rows=2)
+        #sound_file: str = f'{sound_effects_dir}/foom_0.mp3'
+        view_port_tuple = game.calculate_view_window()
+        game.hero.draw_effect(screen, sprites, TILE_SIZE, FPS, *view_port_tuple, sound_file)
+    game.round_no += 1
 
 
-def handle_monster_actions(game: Game, monster: Monster):
+def handle_monster_actions(game: Game, monster: Monster) -> Optional[int]:
     # print(monster.name)
     # Precalculate ready spells & special attacks
     range = mh_dist(game.hero.pos, monster.pos) * UNIT_SIZE
@@ -1769,43 +1786,42 @@ def handle_monster_actions(game: Game, monster: Monster):
         print(e)
 
     monster.attack_round += 1
+    damage: Optional[int] = None
     # Some monsters may have special attack after death
     after_death_special_attacks = list(filter(lambda a: a.can_use_after_death(monster), available_special_attacks))
     if monster.hit_points <= 0 and after_death_special_attacks:
         print("death", monster.name, after_death_special_attacks)
         special_attack: SpecialAbility = max(after_death_special_attacks, key=lambda a: sum([damage.dd.score(success_type=a.dc_success) for damage in a.damages]))
         cprint(f'{color.GREEN}{monster.name}{color.END} launches ** {special_attack.name.upper()} ** on {game.hero.name}!')
-        game.hero.hit_points -= monster.special_attack(game.hero, special_attack)
+        damage = monster.special_attack(game.hero, special_attack)
     else:
         available_special_attacks = list(filter(lambda a: not a.can_use_after_death(monster), available_special_attacks))
         if available_spells:
             # print(f'{monster.name} - old spell slots: {monster.sc.spell_slots}')
             attack_spell: Spell = max(available_spells, key=lambda s: s.level)
-            game.hero.hit_points -= monster.spell_attack(game.hero, attack_spell)
+            damage = monster.spell_attack(game.hero, attack_spell)
             # print(f'{monster.name} - new spell slots: {monster.sc.spell_slots}')
         elif available_special_attacks:
             special_attack: SpecialAbility = max(available_special_attacks, key=lambda a: sum([damage.dd.score(success_type=a.dc_success) for damage in a.damages]))
             # cprint(special_attack)
             cprint(f'{color.GREEN}{monster.name}{color.END} launches ** {special_attack.name.upper()} ** on {game.hero.name}!')
             # cprint('target chars: ' + '/'.join([c.name for c in target_chars]))
-            game.hero.hit_points -= monster.special_attack(game.hero, special_attack)
+            damage = monster.special_attack(game.hero, special_attack)
         elif mh_dist(monster.pos, game.hero.pos) <= 1:
             melee_attacks: List[Action] = list(filter(lambda a: a.type in [ActionType.MELEE, ActionType.MIXED], monster.actions))
             # Monster attacks the hero
-            game.hero.hit_points -= monster.attack(character=game.hero, actions=melee_attacks, distance=range)
+            damage = monster.attack(character=game.hero, actions=melee_attacks, distance=range)
         else:
-            try:
-                ranged_attacks: List[Action] = list(filter(lambda a: a.type in [ActionType.RANGED, ActionType.MIXED]
+            ranged_attacks: List[Action] = list(filter(lambda a: a.type in [ActionType.RANGED, ActionType.MIXED]
                                                                      and ((a.long_range and range <= a.long_range) or range <= a.normal_range), monster.actions))
-            except TypeError as e:
-                print(e)
             if ranged_attacks:
-                game.hero.hit_points -= monster.attack(character=game.hero, actions=ranged_attacks, distance=range)
+                damage = monster.attack(character=game.hero, actions=ranged_attacks, distance=range)
             else:
                 # Monster moves towards the hero
                 if not hasattr(monster, 'speed'):
                     monster.speed = 30
                 move_char(game=game, char=monster, pos=game.hero.pos)
+    return damage
 
 
 def handle_treasure_chests(game):
