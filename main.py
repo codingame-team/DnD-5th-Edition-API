@@ -464,7 +464,11 @@ def create_new_character(roster: List[Character]) -> Character:
                                      age=18 * 52 + randint(0, 299),
                                      gold=90 + randint(0, 99),
                                      sc=spell_caster,
-                                     conditions=[])
+                                     conditions=[],
+                                     speed=30,
+                                     haste_timer=0,
+                                     hasted=False,
+                                     st_advantages=[]                                     )
     exit_message()
     return character
 
