@@ -28,12 +28,16 @@
 - Character:
   - Gather position/status of hero: `H` key
 - Drink potion:
-  - `P` key or `LEFT CLICK` on potion
+  - Healing: `P` key or `LEFT CLICK` on potion
+  - Speed: `S` key or `LEFT CLICK` on potion
+  - Strength: `LEFT CLICK` on potion
 - Save current game & character state:
-  - `S` key
+  - `CMD-S (Apple) - Windows-S (PC)` key
 - Recover spell slots/gain level: *MOVE* to fountain
 - Quit Game (without saving current game):
   - `ESC` key or `event_close` window
+- Show this help:
+  - `H` key
 
 # Tips
 - les sorts de niveau 0 ne consomment pas d'unité de sort (*spell_slot*)
