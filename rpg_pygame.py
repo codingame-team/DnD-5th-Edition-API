@@ -16,6 +16,11 @@ WHITE = (255, 255, 255)
 BLUE = (0, 0, 255)
 RED = (255, 0, 0)
 
+directions = {
+    0: (0, -1), 1: (1, -1), 2: (1, 0), 3: (1, 1),
+    4: (0, 1), 5: (-1, 1), 6: (-1, 0), 7: (-1, -1)
+}
+
 
 # AnimatedSprite class for animated enemies or the player
 class AnimatedSprite(pygame.sprite.Sprite):
@@ -52,6 +57,7 @@ class AnimatedSprite(pygame.sprite.Sprite):
             self.current_frame = (self.current_frame + 1) % len(self.images)
             self.image = self.images[self.current_frame]
             self.mask = pygame.mask.from_surface(self.image)  # Update mask
+
 
 # Player class
 class Player(AnimatedSprite):
@@ -98,8 +104,21 @@ class Player(AnimatedSprite):
             dx *= 1 / math.sqrt(2)  # 1/√2
             dy *= 1 / math.sqrt(2)
 
+        # Get screen dimensions
+        screen_width, screen_height = pygame.display.get_surface().get_size()
+        margin = 10  # Add a small margin to keep player fully visible
+
         # Try moving on X axis
         self.rect.x += dx
+        # Check screen boundaries for X movement
+        if self.rect.left < margin:
+            self.rect.left = margin
+            dx = 0
+        elif self.rect.right > screen_width - margin:
+            self.rect.right = screen_width - margin
+            dx = 0
+
+        # Check enemy collisions on X axis
         for enemy in enemies:
             if check_mask_collision(self, enemy):
                 # Move back and add slight push-back
@@ -113,6 +132,15 @@ class Player(AnimatedSprite):
 
         # Try moving on Y axis
         self.rect.y += dy
+        # Check screen boundaries for Y movement
+        if self.rect.top < margin:
+            self.rect.top = margin
+            dy = 0
+        elif self.rect.bottom > screen_height - margin:
+            self.rect.bottom = screen_height - margin
+            dy = 0
+
+        # Check enemy collisions on Y axis
         for enemy in enemies:
             if check_mask_collision(self, enemy):
                 # Move back and add slight push-back
@@ -133,26 +161,125 @@ class Player(AnimatedSprite):
 class Enemy(AnimatedSprite):
     def __init__(self, animation_frames: dict[str, List[Surface]], pos: tuple = (400, 300)):
         super().__init__(animation_frames, pos)
-        self.speed = 3
-        self.direction = pygame.math.Vector2()
+        self.speed = randint(1, 7)
+        self.direction = pygame.math.Vector2(0, 0)  # or whatever class you're using for vectors
+        self.dir = randint(0, 7)
+        dx, dy = directions[self.dir]
+        self.direction.x = dx
+        self.direction.y = dy
         self.hp = randint(1, 6)  # Random initial HP between 1 and 6
 
     def hit(self):
         """Handle enemy hit."""
         self.hp -= 1
 
-
     def update(self):
+        # Get current screen dimensions
+        screen_width, screen_height = pygame.display.get_surface().get_size()
+        margin = 10  # Margin to keep enemy visible
+
+        # Randomly change direction
+        if random() < 0.01:  # 1% chance to change direction
+            self.dir = randint(0, 7)
+            dx, dy = directions[self.dir]
+            self.direction.x = dx
+            self.direction.y = dy
+
+        # Calculate new position
+        new_x = self.rect.x + (self.direction.x * self.speed)
+        new_y = self.rect.y + (self.direction.y * self.speed)
+
+        # Handle X boundaries
+        if new_x < margin:
+            new_x = margin
+            self.direction.x *= -1  # Reverse horizontal direction
+        elif new_x > screen_width - self.rect.width - margin:
+            new_x = screen_width - self.rect.width - margin
+            self.direction.x *= -1
+
+        # Handle Y boundaries
+        if new_y < margin:
+            new_y = margin
+            self.direction.y *= -1  # Reverse vertical direction
+        elif new_y > screen_height - self.rect.height - margin:
+            new_y = screen_height - self.rect.height - margin
+            self.direction.y *= -1
+
+        # Update position
+        self.rect.x = new_x
+        self.rect.y = new_y
+
+        # Update animation based on movement direction
+        if abs(self.direction.x) > abs(self.direction.y):
+            if self.direction.x > 0:
+                self.change_animation('right')
+            elif self.direction.x < 0:
+                self.change_animation('left')
+        else:
+            if self.direction.y > 0:
+                self.change_animation('down')
+            elif self.direction.y < 0:
+                self.change_animation('up')
+
+        # Update the animation
+        self.update_animation()
+
+        # If enemy is somehow outside screen (e.g., after resize), force it back in
+        if self.rect.right > screen_width:
+            self.rect.right = screen_width - margin
+        if self.rect.bottom > screen_height:
+            self.rect.bottom = screen_height - margin
+        if self.rect.left < 0:
+            self.rect.left = margin
+        if self.rect.top < 0:
+            self.rect.top = margin
+
+    def update_old(self):
+        # Randomly change direction
+        if random() < 0.01:  # 1% chance to change direction
+            self.dir = randint(0, 7)
+            # Get the new direction vector from the directions dictionary
+            dx, dy = directions[self.dir]
+            self.direction.x = dx
+            self.direction.y = dy
+
+        # Move in the current direction
+        previous_pos = self.rect.copy()  # Save previous position
+
+        # Update position based on direction
+        self.rect.x += self.direction.x * self.speed
+        self.rect.y += self.direction.y * self.speed
+
+        # Update animation based on movement direction
+        if abs(self.direction.x) > abs(self.direction.y):
+            if self.direction.x > 0:
+                self.change_animation('right')
+            elif self.direction.x < 0:
+                self.change_animation('left')
+        else:
+            if self.direction.y > 0:
+                self.change_animation('down')
+            elif self.direction.y < 0:
+                self.change_animation('up')
+
+        # Revert position if out of bounds
+        if not screen_rect.contains(self.rect):
+            self.rect = previous_pos  # Revert to the last valid position
+            self.dir = randint(0, 7)  # Change to a random new direction
+            # Get the new direction vector after hitting boundary
+            dx, dy = directions[self.dir]
+            self.direction.x = dx
+            self.direction.y = dy
+
+        # Animate enemy
+        self.update_animation()
+
+    def update_old(self):
         """Update enemy position and animation."""
         # Randomly change direction
         if random() < 0.01:  # 1% chance to change direction
             self.dir = randint(0, 7)
 
-        # Move in the current direction
-        directions = {
-            0: (0, -1), 1: (1, -1), 2: (1, 0), 3: (1, 1),
-            4: (0, 1), 5: (-1, 1), 6: (-1, 0), 7: (-1, -1)
-        }
         previous_pos = self.rect.copy()  # Save previous position
 
         # Update position based on direction
@@ -178,7 +305,6 @@ class Enemy(AnimatedSprite):
 
         # Animate enemy
         self.update_animation()
-
 
 
 # Helper function to check mask collision
@@ -240,7 +366,8 @@ def run():
     global screen_rect
 
     pygame.init()
-    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.RESIZABLE)
+
     clock = pygame.time.Clock()
     screen_rect = pygame.display.get_surface().get_rect()
 
