@@ -11,7 +11,9 @@ Usage to run:
     - python ./main_pexpect.py (inside Python IDE - emulate a pseudo Terminal using pexpect) -> preferred method for debugging (still includes some minor display bugs)
   - [Tkinter version](manual/manual_tk_version.md): (simple graphical arena with basic fights and moving enemies, and limited DnD rules)
     - python ./dungeon_tk.py
-  - [Pygame version](manual/manual_pygame_version.md): (more complex version using spell's casting, inventory management, melee & ranged attacks following *main_game_loop.py* DnD 5th rules)
+  - [Pygame version](manual/manual_pygame_version.md): (more complex version using spell's casting, inventory management, melee & ranged attacks following advanced DnD 5th rules)
+  - [RPG Pygame demo version](manual/manual_rpg_pygame_demo_version.md) (basic gameplay using collision inspired from `Simplon` gamejam's classroom)
+    - python ./rpg_pygame.py
   - pyQT5 version:
     - python /pyQT5App/wizardry.py [under construction...]
 
