@@ -26,7 +26,7 @@ class AnimatedSprite(pygame.sprite.Sprite):
         self.images = self.animations[self.current_direction]
         self.current_frame = 0
         self.image = self.images[self.current_frame]
-        self.rect = self.image.get_rect(topleft=pos)
+        self.rect = self.image.get_rect(center=pos)
         self.mask = pygame.mask.from_surface(self.image)  # Create a mask
         self.frame_rate = frame_rate  # Frames per second
         self.last_update = pygame.time.get_ticks()
@@ -59,7 +59,7 @@ class Player(AnimatedSprite):
         super().__init__(animation_frames, pos)
         self.previous_pos = pos
         self.speed = 5
-        self.push_back_distance = 10
+        self.push_back_distance = 0
 
     def update(self, keys, enemies):
         """Update with smooth collision response."""
@@ -249,7 +249,7 @@ def run():
     collision_sound.set_volume(0.4)  # Adjust volume
 
     # Add collision cooldown
-    collision_cooldown = 200  # milliseconds
+    collision_cooldown = 20  # milliseconds
     last_collision_time = 0
 
     # Create player and enemies
