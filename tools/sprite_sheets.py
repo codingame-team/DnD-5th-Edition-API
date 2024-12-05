@@ -4,9 +4,8 @@ from typing import List
 from pygame import Surface
 import hashlib
 
-from dungeon_menu_pygame import SCREEN_HEIGHT
-from dungeon_pygame import SCREEN_WIDTH
-
+# from dungeon_menu_pygame import SCREEN_HEIGHT
+# from dungeon_pygame import SCREEN_WIDTH
 
 def extract_sprites(spritesheet_path, columns, rows) -> List[Surface]:
     # Load the spritesheet
