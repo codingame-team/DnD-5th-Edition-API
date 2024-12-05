@@ -446,10 +446,10 @@ def reset_game():
     # Create player and enemies
     player = Player(animation_frames=get_animation_frames('goblinsword'), x=pos_1[0], y=pos_1[1])
     enemies = pygame.sprite.Group(
-        Enemy(animation_frames=get_animation_frames('minion'), x=pos_2[0], y=pos_2[1]),
+        # Enemy(animation_frames=get_animation_frames('minion'), x=pos_2[0], y=pos_2[1]),
         Enemy(animation_frames=get_animation_frames('bat'), x=pos_3[0], y=pos_3[1]),
         Enemy(animation_frames=get_animation_frames('goblin'), x=pos_4[0], y=pos_4[1]),
-        Enemy(animation_frames=get_animation_frames('minion'), x=pos_5[0], y=pos_5[1]),
+        # Enemy(animation_frames=get_animation_frames('minion'), x=pos_5[0], y=pos_5[1]),
         Enemy(animation_frames=get_animation_frames('bat'), x=pos_6[0], y=pos_6[1])
         # Enemy(animation_frames=get_animation_frames('aerocephal'), pos=(600, 100)),
         # Enemy(animation_frames=get_animation_frames('arcana_drake'), pos=(100, 400)),
@@ -473,9 +473,13 @@ def run():
     global screen_rect
 
     pygame.init()
-    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.RESIZABLE)
+    screen = pygame.display.set_mode((SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2), pygame.RESIZABLE)
     clock = pygame.time.Clock()
     screen_rect = pygame.display.get_surface().get_rect()
+
+    # Add camera coordinates
+    camera_x = 0
+    camera_y = 0
 
     # Initialize game objects
     collision_sound = pygame.mixer.Sound('sounds/Sword Impact Hit 1.wav')
@@ -491,6 +495,10 @@ def run():
     running = True
     paused = False
     while running:
+        # Update camera position to follow player
+        camera_x = player.rect.centerx - (SCREEN_WIDTH // 4)  # Center horizontally
+        camera_y = player.rect.centery - (SCREEN_HEIGHT // 4)  # Center vertically
+
         current_time = pygame.time.get_ticks()
 
         for event in pygame.event.get():
@@ -527,7 +535,14 @@ def run():
 
         # Draw everything
         screen.fill(WHITE)
-        all_sprites.draw(screen)
+        # all_sprites.draw(screen)
+
+        # Draw all sprites with camera offset
+        for sprite in all_sprites:
+            screen_pos = sprite.rect.copy()
+            screen_pos.x -= camera_x
+            screen_pos.y -= camera_y
+            screen.blit(sprite.image, screen_pos)
 
         # Draw health bar
         health_bar_width = 200
