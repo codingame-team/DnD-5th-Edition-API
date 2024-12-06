@@ -1,4 +1,6 @@
 import os
+import sys
+
 import pygame
 from typing import List
 from pygame import Surface
@@ -7,9 +9,25 @@ import hashlib
 # from dungeon_menu_pygame import SCREEN_HEIGHT
 # from dungeon_pygame import SCREEN_WIDTH
 
+def resource_path(relative_path):
+    """ Get the absolute path to a resource, works for dev and for PyInstaller """
+    if hasattr(sys, '_MEIPASS'):
+        # Running as bundled executable
+        return os.path.join(sys._MEIPASS, relative_path)
+    else:
+        # Running in development environment
+        # Get the directory of the current file
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+
+        # Navigate up to the project root (assuming this file is in a subdirectory)
+        project_root = os.path.dirname(current_dir)
+
+        # Join the project root with the relative path
+        return os.path.join(project_root, relative_path)
+
 def extract_sprites(spritesheet_path, columns, rows) -> List[Surface]:
     # Load the spritesheet
-    spritesheet = pygame.image.load(spritesheet_path).convert_alpha()
+    spritesheet = pygame.image.load(resource_path(spritesheet_path)).convert_alpha()
 
     # Calculate the size of each sprite
     sheet_width, sheet_height = spritesheet.get_size()

@@ -1,5 +1,7 @@
 import json
 import math
+import os
+import sys
 from random import random, randint, choice
 from typing import List
 
@@ -56,6 +58,21 @@ class Tile(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(topleft=pos)
         self.mask = pygame.mask.from_surface(self.image)
 
+def resource_path(relative_path):
+    """ Get the absolute path to a resource, works for dev and for PyInstaller """
+    if hasattr(sys, '_MEIPASS'):
+        # Running as bundled executable
+        return os.path.join(sys._MEIPASS, relative_path)
+    else:
+        # Running in development environment
+        # Get the directory of the current file
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+
+        # Navigate up to the project root (assuming this file is in a subdirectory)
+        project_root = os.path.dirname(current_dir)
+
+        # Join the project root with the relative path
+        return os.path.join(project_root, relative_path)
 
 def create_level(grid: List[List[int]]):
     walls = pygame.sprite.Group()
@@ -300,14 +317,14 @@ def check_mask_collision(sprite1, sprite2):
 # Function to save sprite configuration to JSON
 def save_sprite_config(config):
     filename = f'{sprites_images_dir}/sprite_config.json'
-    with open(filename, 'w') as f:
+    with open(resource_path(filename), 'w') as f:
         json.dump(config, f, indent=4)
 
 
 # Function to load sprite configuration from JSON
 def load_sprite_config():
     filename = f'{sprites_images_dir}/sprite_config.json'
-    with open(filename, 'r') as f:
+    with open(resource_path(filename), 'r') as f:
         return json.load(f)
 
 
@@ -443,11 +460,14 @@ def reset_game():
     pos_6 = choice(walkable_tiles)
     walkable_tiles.remove(pos_6)
 
+
     # Create player and enemies
     player = Player(animation_frames=get_animation_frames('goblinsword'), x=pos_1[0], y=pos_1[1])
     enemies = pygame.sprite.Group(
         # Enemy(animation_frames=get_animation_frames('minion'), x=pos_2[0], y=pos_2[1]),
         Enemy(animation_frames=get_animation_frames('bat'), x=pos_3[0], y=pos_3[1]),
+        Enemy(animation_frames=get_animation_frames('goblin'), x=pos_2[0], y=pos_2[1]),
+        Enemy(animation_frames=get_animation_frames('bat'), x=pos_5[0], y=pos_5[1]),
         Enemy(animation_frames=get_animation_frames('goblin'), x=pos_4[0], y=pos_4[1]),
         # Enemy(animation_frames=get_animation_frames('minion'), x=pos_5[0], y=pos_5[1]),
         Enemy(animation_frames=get_animation_frames('bat'), x=pos_6[0], y=pos_6[1])
@@ -482,7 +502,7 @@ def run():
     camera_y = 0
 
     # Initialize game objects
-    collision_sound = pygame.mixer.Sound('sounds/Sword Impact Hit 1.wav')
+    collision_sound = pygame.mixer.Sound(resource_path('sounds/Sword Impact Hit 1.wav'))
     collision_sound.set_volume(0.4)
     collision_cooldown = 20
     last_collision_time = 0
@@ -523,7 +543,7 @@ def run():
                     if check_mask_collision(player, enemy):
                         print("Player collided with an enemy!")
                         # Player takes damage instead of dying
-                        player.take_damage(enemy.damage if hasattr(enemy, 'damage') else 50)
+                        player.take_damage(enemy.damage if hasattr(enemy, 'damage') else 30)
                         collision_sound.play()
                         last_collision_time = current_time
 
