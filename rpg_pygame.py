@@ -10,7 +10,7 @@ from pygame import Surface
 
 from tools.sprite_sheets import load_sprites
 
-TILE_SIZE = 64
+TILE_SIZE = 64 + 20
 
 # Screen dimensions
 # SCREEN_WIDTH, SCREEN_HEIGHT = 1200, 900
@@ -58,6 +58,7 @@ class Tile(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(topleft=pos)
         self.mask = pygame.mask.from_surface(self.image)
 
+
 def resource_path(relative_path):
     """ Get the absolute path to a resource, works for dev and for PyInstaller """
     if hasattr(sys, '_MEIPASS'):
@@ -73,6 +74,7 @@ def resource_path(relative_path):
 
         # Join the project root with the relative path
         return os.path.join(project_root, relative_path)
+
 
 def create_level(grid: List[List[int]]):
     walls = pygame.sprite.Group()
@@ -99,9 +101,9 @@ class AnimatedSprite(pygame.sprite.Sprite):
         self.frame_rate = frame_rate  # Frames per second
         self.last_update = pygame.time.get_ticks()
 
-    @property
-    def pos(self):
-        return self.rect.topleft
+    # @property
+    # def pos(self):
+    #     return self.rect.topleft
 
     def change_animation(self, direction: str):
         """Change the animation sequence based on direction."""
@@ -129,7 +131,7 @@ class Player(AnimatedSprite):
         pos = (x * TILE_SIZE, y * TILE_SIZE)
         self.previous_pos = pos
         self.speed = 5
-        self.push_back_distance = 0
+        self.push_back_distance = 10
         # New features
         self.hp = 100  # Starting health
         self.max_hp = 100
@@ -137,6 +139,13 @@ class Player(AnimatedSprite):
         self.invulnerable_timer = 0
         self.invulnerable_duration = 1000  # 1 second of invulnerability after hit
         self.damage_taken = 10  # Damage taken from enemies
+        # Added
+        self.velocity = pygame.math.Vector2(0, 0)
+        self.pos = pygame.math.Vector2(x * TILE_SIZE, y * TILE_SIZE)
+        self.acceleration = 5  # 0.5
+        self.max_speed = 40  # 8.0
+        self.friction = 0.5  # 0.92
+        self.knockback_friction = 0 #0.85
 
     def take_damage(self, amount):
         if not self.invulnerable:
@@ -146,90 +155,147 @@ class Player(AnimatedSprite):
             # Prevent HP from going below 0
             self.hp = max(0, self.hp)
 
-    def get_input(self):
-        keys = pygame.key.get_pressed()
-        dx = dy = 0
-        # Calculate movement
-        if keys[pygame.K_UP]:
-            dy -= self.speed
-            if self.current_direction in ('up', 'down', 'right', 'left'):
-                if self.current_direction != 'up':
-                    self.change_animation('up')
-                    self.current_direction = 'up'
-        if keys[pygame.K_DOWN]:
-            dy += self.speed
-            if self.current_direction in ('up', 'down', 'right', 'left'):
-                if self.current_direction != 'down':
-                    self.change_animation('down')
-                    self.current_direction = 'down'
-        if keys[pygame.K_LEFT]:
-            dx -= self.speed
-            if self.current_direction in ('up', 'down', 'right', 'left'):
-                if self.current_direction != 'left':
-                    self.change_animation('left')
-                    self.current_direction = 'left'
-        if keys[pygame.K_RIGHT]:
-            dx += self.speed
-            if self.current_direction in ('up', 'down', 'right', 'left'):
-                if self.current_direction != 'right':
-                    self.change_animation('right')
-                    self.current_direction = 'right'
-        return dx, dy
+    def move_with_collision(self, dx, dy, walls, enemies):
+        """Handle movement with stable collision detection"""
+        if dx == 0 and dy == 0:
+            return
 
-    def update(self, enemies, walls):
+        # Save original position
+        original_x = self.rect.x
+        original_y = self.rect.y
+
+        # Check wall collisions after movement
+        can_move = True
+        if pygame.sprite.spritecollideany(self, walls):
+            # If collision occurred, handle it
+            handle_wall_collision(self, walls)
+            can_move = False
+
+        if can_move:
+            self.rect.x += dx
+            self.rect.y += dy
+
+        # Handle enemy collisions only if we actually moved
+        if can_move:
+            self.handle_enemy_collision(enemies, original_x, original_y, walls)
+
+    def handle_enemy_collision(self, enemies, original_x, original_y, walls):
+        """Handle enemy collisions with push back"""
+        for enemy in enemies:
+            if not check_mask_collision(self, enemy):
+                continue
+
+            if not self.invulnerable:
+                self.take_damage(self.damage_taken)
+
+                # Calculate push back direction
+                push_dx = self.rect.centerx - enemy.rect.centerx
+                push_dy = self.rect.centery - enemy.rect.centery
+
+                # Only push back if there's a valid direction
+                if push_dx == 0 and push_dy == 0:
+                    continue
+
+                # Normalize push back vector
+                length = math.sqrt(push_dx ** 2 + push_dy ** 2)
+                push_dx = (push_dx / length) * self.push_back_distance
+                push_dy = (push_dy / length) * self.push_back_distance
+
+                # Test new position
+                test_rect = self.rect.copy()
+                test_rect.x += push_dx
+                test_rect.y += push_dy
+
+                # Check if push back position would cause wall collision
+                wall_collision = False
+                for wall in walls:
+                    if wall.rect.colliderect(test_rect):
+                        wall_collision = True
+                        break
+
+                if not wall_collision:
+                    # Apply push back if no wall collision would occur
+                    self.rect.x = test_rect.x
+                    self.rect.y = test_rect.y
+                else:
+                    # If push back would cause wall collision, just revert to pre-collision position
+                    self.rect.x = original_x
+                    self.rect.y = original_y
+            break
+
+    def update(self, keys, walls):
         current_time = pygame.time.get_ticks()
 
-        # Check invulnerability
+        # Update invulnerability
         if self.invulnerable:
             if current_time - self.invulnerable_timer > self.invulnerable_duration:
                 self.invulnerable = False
 
-        # Save previous position for collision handling
-        self.previous_pos = self.rect.copy()
+        # Store previous position
+        old_pos = pygame.math.Vector2(self.pos)
 
-        # Get movement input
-        dx, dy = self.get_input()
+        # Apply velocity
+        self.pos += self.velocity
+        self.rect.center = self.pos
 
-        # Try moving on X axis
-        self.rect.x += dx
-        # Check wall collisions on X axis
-        for wall in walls:
-            if check_mask_collision(self, wall):
-                if dx > 0:  # Moving right
-                    self.rect.right = wall.rect.left
-                else:  # Moving left
-                    self.rect.left = wall.rect.right
-                dx = 0
-                break
+        # Check wall collisions after movement
+        if pygame.sprite.spritecollideany(self, walls):
+            # If collision occurred, handle it
+            handle_wall_collision(self, walls)
 
-        # Check enemy collisions on X axis
-        for enemy in enemies:
-            if check_mask_collision(self, enemy):
-                self.rect.x = self.previous_pos.x
-                dx = 0
-                break
+        # Apply friction to velocity
+        self.velocity *= self.knockback_friction
 
-        # Try moving on Y axis
-        self.rect.y += dy
-        # Check wall collisions on Y axis
-        for wall in walls:
-            if check_mask_collision(self, wall):
-                if dy > 0:  # Moving down
-                    self.rect.bottom = wall.rect.top
-                else:  # Moving up
-                    self.rect.top = wall.rect.bottom
-                dy = 0
-                break
+        # Normal movement if velocity is minimal
+        if self.velocity.length() < 0.5:
+            # Calculate acceleration based on input
+            acceleration = pygame.math.Vector2(0, 0)
 
-        # Check enemy collisions on Y axis
-        for enemy in enemies:
-            if check_mask_collision(self, enemy):
-                self.rect.y = self.previous_pos.y
-                dy = 0
-                break
+            if keys[pygame.K_LEFT]:
+                acceleration.x = -self.acceleration
+                if self.current_direction in ('up', 'down', 'right', 'left'):
+                    if self.current_direction != 'left':
+                        self.change_animation('left')
+                        self.current_direction = 'left'
+            if keys[pygame.K_RIGHT]:
+                acceleration.x = self.acceleration
+                if self.current_direction in ('up', 'down', 'right', 'left'):
+                    if self.current_direction != 'right':
+                        self.change_animation('right')
+                        self.current_direction = 'right'
+            if keys[pygame.K_UP]:
+                acceleration.y = -self.acceleration
+                if self.current_direction in ('up', 'down', 'right', 'left'):
+                    if self.current_direction != 'up':
+                        self.change_animation('up')
+                        self.current_direction = 'up'
+            if keys[pygame.K_DOWN]:
+                acceleration.y = self.acceleration
+                if self.current_direction in ('up', 'down', 'right', 'left'):
+                    if self.current_direction != 'down':
+                        self.change_animation('down')
+                        self.current_direction = 'down'
 
-        # Update animation if moved
-        if dx != 0 or dy != 0:
+            # Normalize diagonal movement
+            if acceleration.length() > 0:
+                acceleration.normalize_ip()
+                acceleration *= self.acceleration
+
+            # Apply acceleration to velocity
+            self.velocity += acceleration
+
+            # Apply friction when no input
+            if not (keys[pygame.K_LEFT] or keys[pygame.K_RIGHT]):
+                self.velocity.x *= self.friction
+            if not (keys[pygame.K_UP] or keys[pygame.K_DOWN]):
+                self.velocity.y *= self.friction
+
+            # Limit maximum speed
+            if self.velocity.length() > self.max_speed:
+                self.velocity.scale_to_length(self.max_speed)
+
+        # Update animation only if actually moved
+        if self.velocity.length() > 0:
             self.update_animation()
 
 
@@ -308,12 +374,6 @@ class Enemy(AnimatedSprite):
         self.update_animation()
 
 
-# Helper function to check mask collision
-def check_mask_collision(sprite1, sprite2):
-    offset = (sprite2.rect.x - sprite1.rect.x, sprite2.rect.y - sprite1.rect.y)
-    return sprite1.mask.overlap(sprite2.mask, offset) is not None
-
-
 # Function to save sprite configuration to JSON
 def save_sprite_config(config):
     filename = f'{sprites_images_dir}/sprite_config.json'
@@ -323,7 +383,7 @@ def save_sprite_config(config):
 
 # Function to load sprite configuration from JSON
 def load_sprite_config():
-    filename = f'{sprites_images_dir}/sprite_config.json'
+    filename = f'{base_dir}/{sprites_images_dir}/sprite_config.json'
     with open(resource_path(filename), 'r') as f:
         return json.load(f)
 
@@ -460,7 +520,6 @@ def reset_game():
     pos_6 = choice(walkable_tiles)
     walkable_tiles.remove(pos_6)
 
-
     # Create player and enemies
     player = Player(animation_frames=get_animation_frames('goblinsword'), x=pos_1[0], y=pos_1[1])
     enemies = pygame.sprite.Group(
@@ -489,6 +548,54 @@ def reset_game():
     return player, enemies, all_sprites
 
 
+def handle_wall_collision(player, walls):
+    # Check collisions with walls
+    wall_hits = pygame.sprite.spritecollide(player, walls, False)
+    if wall_hits:
+        for wall in wall_hits:
+            # Calculate overlap and direction
+            dx = player.rect.centerx - wall.rect.centerx
+            dy = player.rect.centery - wall.rect.centery
+
+            # Convert to vector for easier handling
+            push_vector = pygame.math.Vector2(dx, dy)
+            if push_vector.length() > 0:
+                push_vector.normalize_ip()
+
+            # Strong immediate push back
+            push_strength = 5
+            player.velocity = push_vector * push_strength
+
+            # Move player out of wall
+            while pygame.sprite.spritecollideany(player, walls):
+                player.pos += push_vector
+                player.rect.center = player.pos
+
+
+# Function to Handle Collision
+def handle_collision(player, enemy):
+    # Calculate direction vector from enemy to player
+    direction = pygame.math.Vector2(
+        player.rect.centerx - enemy.rect.centerx,
+        player.rect.centery - enemy.rect.centery
+    )
+
+    # Normalize the direction vector
+    if direction.length() > 0:
+        direction = direction.normalize()
+
+    # Push back settings
+    push_strength = 10
+    player.velocity = direction * push_strength
+    # print("Player collided with an enemy!")
+
+
+# Helper function to check mask collision
+def check_mask_collision(sprite1, sprite2):
+    offset = (sprite2.rect.x - sprite1.rect.x, sprite2.rect.y - sprite1.rect.y)
+    return sprite1.mask.overlap(sprite2.mask, offset) is not None
+
+
 def run():
     global screen_rect
 
@@ -502,7 +609,9 @@ def run():
     camera_y = 0
 
     # Initialize game objects
-    collision_sound = pygame.mixer.Sound(resource_path('sounds/Sword Impact Hit 1.wav'))
+    # Get the directory where your script is located
+    sound_path = os.path.join(base_dir, 'sounds', 'Sword Impact Hit 1.wav')
+    collision_sound = pygame.mixer.Sound(resource_path(sound_path))
     collision_sound.set_volume(0.4)
     collision_cooldown = 20
     last_collision_time = 0
@@ -533,7 +642,12 @@ def run():
         # Only update game if not paused
         if not paused:
             # Update game objects
-            player.update(enemies, walls)
+            # player.update(enemies, walls)
+
+            keys = pygame.key.get_pressed()
+            # Update player with walls reference
+            player.update(keys, walls)
+
             for enemy in enemies:
                 enemy.update(walls)
 
@@ -543,6 +657,7 @@ def run():
                     if check_mask_collision(player, enemy):
                         print("Player collided with an enemy!")
                         # Player takes damage instead of dying
+                        handle_collision(player, enemy)
                         player.take_damage(enemy.damage if hasattr(enemy, 'damage') else 30)
                         collision_sound.play()
                         last_collision_time = current_time
@@ -599,5 +714,6 @@ def run():
 if __name__ == "__main__":
     # Récupération du personnage choisi par l'utilisateur
     # character_name = sys.argv[1] if len(sys.argv) > 1 else 'Brottor'
+    base_dir = os.path.dirname(os.path.abspath(__file__))
     sprites_images_dir = f'sprites/Animations'
     run()
