@@ -30,6 +30,13 @@ directions = {
     4: (0, 1), 5: (-1, 1), 6: (-1, 0), 7: (-1, -1)
 }
 
+directions_dict = {
+    pygame.K_LEFT: 'left',
+    pygame.K_RIGHT: 'right',
+    pygame.K_UP: 'up',
+    pygame.K_DOWN: 'down'
+}
+
 # 0 = empty, 1 = wall
 level_map = [
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
@@ -123,6 +130,14 @@ class AnimatedSprite(pygame.sprite.Sprite):
             self.image = self.images[self.current_frame]
             self.mask = pygame.mask.from_surface(self.image)  # Update mask
 
+    def change_direction(self, key_pressed: int):
+        if self.current_direction not in directions.items():
+            return
+        direction: str = directions_dict[key_pressed]
+        if self.current_direction != direction:
+            self.change_animation(direction)
+            self.current_direction = direction
+
 
 # Player class
 class Player(AnimatedSprite):
@@ -145,7 +160,7 @@ class Player(AnimatedSprite):
         self.acceleration = 5  # 0.5
         self.max_speed = 40  # 8.0
         self.friction = 0.5  # 0.92
-        self.knockback_friction = 0 #0.85
+        self.knockback_friction = 0  # 0.85
 
     def take_damage(self, amount):
         if not self.invulnerable:
@@ -253,28 +268,16 @@ class Player(AnimatedSprite):
 
             if keys[pygame.K_LEFT]:
                 acceleration.x = -self.acceleration
-                if self.current_direction in ('up', 'down', 'right', 'left'):
-                    if self.current_direction != 'left':
-                        self.change_animation('left')
-                        self.current_direction = 'left'
+                self.change_direction(pygame.K_LEFT)
             if keys[pygame.K_RIGHT]:
                 acceleration.x = self.acceleration
-                if self.current_direction in ('up', 'down', 'right', 'left'):
-                    if self.current_direction != 'right':
-                        self.change_animation('right')
-                        self.current_direction = 'right'
+                self.change_direction(pygame.K_RIGHT)
             if keys[pygame.K_UP]:
                 acceleration.y = -self.acceleration
-                if self.current_direction in ('up', 'down', 'right', 'left'):
-                    if self.current_direction != 'up':
-                        self.change_animation('up')
-                        self.current_direction = 'up'
+                self.change_direction(pygame.K_UP)
             if keys[pygame.K_DOWN]:
                 acceleration.y = self.acceleration
-                if self.current_direction in ('up', 'down', 'right', 'left'):
-                    if self.current_direction != 'down':
-                        self.change_animation('down')
-                        self.current_direction = 'down'
+                self.change_direction(pygame.K_DOWN)
 
             # Normalize diagonal movement
             if acceleration.length() > 0:
@@ -361,14 +364,14 @@ class Enemy(AnimatedSprite):
         # Update animation based on movement direction
         if abs(self.direction.x) > abs(self.direction.y):
             if self.direction.x > 0:
-                self.change_animation('right')
+                self.change_direction(pygame.K_RIGHT)
             elif self.direction.x < 0:
-                self.change_animation('left')
+                self.change_direction(pygame.K_LEFT)
         else:
             if self.direction.y > 0:
-                self.change_animation('down')
+                self.change_direction(pygame.K_DOWN)
             elif self.direction.y < 0:
-                self.change_animation('up')
+                self.change_direction(pygame.K_UP)
 
         # Update the animation
         self.update_animation()
