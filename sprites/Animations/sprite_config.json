@@ -88,7 +88,7 @@
         },
         {
             "name": "minion",
-            "filename": "minion-45x66.png",
+            "filename": "minion.png",
             "path": "sprites/Animations",
             "columns": 3,
             "rows": 2,
@@ -177,6 +177,34 @@
             "columns": 4,
             "rows": 1,
             "cache_dir": "sprites/cache/demonic_essence",
+            "animations": {
+                "default": {
+                    "start": 0,
+                    "end": 3
+                }
+            }
+        },
+        {
+            "name": "spider",
+            "filename": "spider.png",
+            "path": "sprites/Animations",
+            "columns": 4,
+            "rows": 1,
+            "cache_dir": "sprites/cache/spider",
+            "animations": {
+                "default": {
+                    "start": 0,
+                    "end": 3
+                }
+            }
+        },
+        {
+            "name": "scorpion",
+            "filename": "scorpion.png",
+            "path": "sprites/Animations",
+            "columns": 4,
+            "rows": 1,
+            "cache_dir": "sprites/cache/scorpion",
             "animations": {
                 "default": {
                     "start": 0,
