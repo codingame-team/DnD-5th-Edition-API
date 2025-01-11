@@ -567,7 +567,7 @@ class Game:
 
     def feet_inches_to_m_cm(self, height_feet: int, height_inches: int) -> tuple[float, float]:
         total_inches = height_feet * 12 + height_inches
-        height_meters = total_inches * 2.54 / 100
+        height_meters = total_inches * 2.54 // 100
         height_centimeters = total_inches * 2.54 % 100
         return height_meters, height_centimeters
 
@@ -1588,28 +1588,28 @@ def handle_keyboard_events(game, event):
     elif event.key == pygame.K_h:
         # print available commands
         display_available_commands(game)
-    elif event.key == pygame.K_UP:
+    elif event.key in (pygame.K_UP, pygame.K_z):
         move_position = (game.hero.x, game.hero.y - 1)
         monsters = [m for m in game.level.monsters if m.pos == move_position]
         if monsters:
             attack_monster(game=game, monster=monsters[0])
         elif game.can_move(char=game.hero, dir=UP):
             handle_combat(game=game, monsters=game.monsters_in_view_range, move_position=(game.hero.x, game.hero.y - 1))
-    elif event.key == pygame.K_DOWN:
+    elif event.key in (pygame.K_DOWN, pygame.K_s):
         move_position = (game.hero.x, game.hero.y + 1)
         monsters = [m for m in game.level.monsters if m.pos == move_position]
         if monsters:
             attack_monster(game=game, monster=monsters[0])
         elif game.can_move(char=game.hero, dir=DOWN):
             handle_combat(game=game, monsters=game.monsters_in_view_range, move_position=move_position)
-    elif event.key == pygame.K_LEFT:
+    elif event.key in (pygame.K_LEFT, pygame.K_q):
         move_position = (game.hero.x - 1, game.hero.y)
         monsters = [m for m in game.level.monsters if m.pos == move_position]
         if monsters:
             attack_monster(game=game, monster=monsters[0])
         elif game.can_move(char=game.hero, dir=LEFT):
             handle_combat(game=game, monsters=game.monsters_in_view_range, move_position=move_position)
-    elif event.key == pygame.K_RIGHT:
+    elif event.key in (pygame.K_RIGHT, pygame.K_d):
         move_position = (game.hero.x + 1, game.hero.y)
         monsters = [m for m in game.level.monsters if m.pos == move_position]
         if monsters:
