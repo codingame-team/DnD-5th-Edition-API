@@ -1244,32 +1244,28 @@ class Character(Sprite):
     def gain_level(self, tome_spells: List[Spell] = None) -> Optional[List[Spell]]:
         new_spells: List[Spell] = []
         self.level += 1
-        hp_gained = randint(1, 10) + \
-                    self.ability_modifiers.get_value_by_index('con')
-        self.max_hit_points += hp_gained
+        hp_gained = randint(1, self.class_type.hit_die) + self.ability_modifiers.con
+        self.max_hit_points += max(1, hp_gained)
         self.hit_points += hp_gained
         print(f'{color.BLUE}New level #{self.level} gained!!!{color.END}')
         print(f'{self.name} gained {hp_gained} hit points')
         #  PROCEDURE GAINLOST;  (* P010A20 *)
-        attributes: List[str] = ['Strength', 'Dexterity',
-                                 'Constitution', 'Intelligence', 'Wisdom', 'Charism']
-        for attr_name in attributes:
-            attr_value: int = self.abilities.get_value_by_name(name=attr_name)
+        attrs = ['Strength', 'Dexterity', 'Constitution', 'Intelligence', 'Wisdom', 'Charism']
+        for attr in attrs:
+            val = self.abilities.get_value_by_name(name=attr)
             if randint(0, 3) % 4:
                 if randint(0, 129) < self.age // 52:
-                    if attr_value == 18 and randint(0, 5) != 4:
-                        continue
-                    attr_value -= 1
-                    if attr_name == 'Constitution' and attr_value == 2:
+                    if val == 18 and randint(0, 5) != 4: continue
+                    val -= 1
+                    if attr == 'Constitution' and val == 2:
                         print('** YOU HAVE DIED OF OLD AGE **')
-                        self.status = 'LOST'
-                        self.hit_points = 0
+                        self.status, self.hit_points = 'LOST', 0
                     else:
-                        print(f'You lost {attr_name}')
-                elif attr_value < 18:
-                    attr_value += 1
-                    print(f'You gained {attr_name}')
-            self.abilities.set_value_by_name(name=attr_name, value=attr_value)
+                        print(f'You lost {attr}')
+                elif val < 18:
+                    val += 1
+                    print(f'You gained {attr}')
+            self.abilities.set_value_by_name(name=attr, value=val)
         if self.class_type.can_cast:
             available_spell_levels: List[int] = [i + 1 for i, slot in enumerate(self.class_type.spell_slots[self.level])
                                                  if slot > 0]
