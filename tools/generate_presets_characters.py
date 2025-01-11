@@ -109,7 +109,7 @@ def generate_character_preset(races: List[Race], subraces: List[SubRace], classe
 
     height, weight = get_height_and_weight(race, subrace)
 
-    hit_points = class_type.hit_die
+    hit_points = class_type.hit_die + ability_modifiers.con
 
     # Phase 2: Spell selection
     char_level: int = 1 # could be changed to create higher level characters
