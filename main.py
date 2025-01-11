@@ -426,7 +426,7 @@ def create_new_character(roster: List[Character]) -> Character:
     chosen_armor: str = read_choice(list(available_armors.keys()), f'Choose 1 armor to equip')
     chosen_armor: Armor = request_armor(available_armors[chosen_armor].index)
     chosen_armor.equipped = True
-    hit_points = class_type.hit_die
+    hit_points = class_type.hit_die + ability_modifiers.con
     # Add a set of healing potions to the starting equipment
     starting_equipment += [copy(choice(potions)) for _ in range(POTION_INITIAL_PACK)]
     # Assign sprite id for each item inside inventory
