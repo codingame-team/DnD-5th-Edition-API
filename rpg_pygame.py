@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import json
 import math
 import os
@@ -79,7 +81,7 @@ class Tile(pygame.sprite.Sprite):
         self.image = pygame.Surface((size, size))
         self.image.fill((100, 100, 100))  # Gray color for walls
         pos = (x * TILE_SIZE, y * TILE_SIZE)
-        self.rect = self.image.get_rect(topleft=pos)
+        self.rect = self.image.get_rect(center=pos)
         self.mask = pygame.mask.from_surface(self.image)
 
 
@@ -119,11 +121,16 @@ class AnimatedSprite(pygame.sprite.Sprite):
         self.images = self.animations[self.current_direction]
         self.current_frame = 0
         self.image = self.images[self.current_frame]
-        pos = (x * TILE_SIZE, y * TILE_SIZE)
-        self.rect = self.image.get_rect(topleft=pos)
+        pos = (x * self.size, y * self.size)
+        self.rect = self.image.get_rect(center=pos)
         self.mask = pygame.mask.from_surface(self.image)  # Create a mask
         self.frame_rate = frame_rate  # Frames per second
         self.last_update = pygame.time.get_ticks()
+
+    @property
+    def size(self):
+        return TILE_SIZE
+        return max(self.image.get_width(), self.image.get_height())
 
     # @property
     # def pos(self):
@@ -148,7 +155,7 @@ class AnimatedSprite(pygame.sprite.Sprite):
             self.mask = pygame.mask.from_surface(self.image)  # Update mask
 
     def change_direction(self, key_pressed: int):
-        if self.current_direction not in directions.items():
+        if self.current_direction is None or self.current_direction not in directions_dict.values():
             return
         direction: str = directions_dict[key_pressed]
         if self.current_direction != direction:
@@ -160,7 +167,7 @@ class AnimatedSprite(pygame.sprite.Sprite):
 class Player(AnimatedSprite):
     def __init__(self, animation_frames: dict[str, List[Surface]], x: int, y: int):
         super().__init__(animation_frames, x, y)
-        pos = (x * TILE_SIZE, y * TILE_SIZE)
+        pos = (x * self.size, y * self.size)
         self.previous_pos = pos
         self.speed = 5
         self.push_back_distance = 10
@@ -173,7 +180,7 @@ class Player(AnimatedSprite):
         self.damage_taken = 10  # Damage taken from enemies
         # Added
         self.velocity = pygame.math.Vector2(0, 0)
-        self.pos = pygame.math.Vector2(x * TILE_SIZE, y * TILE_SIZE)
+        self.pos = pygame.math.Vector2(x * self.size, y * self.size)
         self.acceleration = 5  # 0.5
         self.max_speed = 40  # 8.0
         self.friction = 0.5  # 0.92
@@ -283,16 +290,16 @@ class Player(AnimatedSprite):
             # Calculate acceleration based on input
             acceleration = pygame.math.Vector2(0, 0)
 
-            if keys[pygame.K_LEFT]:
+            if keys[pygame.K_LEFT] or keys[pygame.K_q]:
                 acceleration.x = -self.acceleration
                 self.change_direction(pygame.K_LEFT)
-            if keys[pygame.K_RIGHT]:
+            if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
                 acceleration.x = self.acceleration
                 self.change_direction(pygame.K_RIGHT)
-            if keys[pygame.K_UP]:
+            if keys[pygame.K_UP] or keys[pygame.K_z]:
                 acceleration.y = -self.acceleration
                 self.change_direction(pygame.K_UP)
-            if keys[pygame.K_DOWN]:
+            if keys[pygame.K_DOWN] or keys[pygame.K_s]:
                 acceleration.y = self.acceleration
                 self.change_direction(pygame.K_DOWN)
 
@@ -321,9 +328,9 @@ class Player(AnimatedSprite):
 
 # Enemy class
 class Enemy(AnimatedSprite):
-    def __init__(self, animation_frames: dict[str, List[Surface]], x, y):
-        pos = (x * TILE_SIZE, y * TILE_SIZE)
+    def __init__(self, type: str, animation_frames: dict[str, List[Surface]], x, y):
         super().__init__(animation_frames, x, y)
+        self.type = type
         self.speed = randint(1, 3)
         self.direction = pygame.math.Vector2(0, 0)  # or whatever class you're using for vectors
         self.dir = randint(0, 7)
@@ -331,13 +338,15 @@ class Enemy(AnimatedSprite):
         self.direction.x = dx
         self.direction.y = dy
         self.hp = randint(1, 6)  # Random initial HP between 1 and 6
-        self.previous_pos = pos
+        self.previous_pos = pygame.math.Vector2(x * self.size, y * self.size)
+        self.pos = pygame.math.Vector2(x * self.size, y * self.size)
+
 
     def hit(self):
         """Handle enemy hit."""
         self.hp -= 1
 
-    def update(self, walls):
+    def update_old(self, walls):
         # Get current screen dimensions
         screen_width, screen_height = pygame.display.get_surface().get_size()
         margin = 10  # Margin to keep enemy visible
@@ -377,6 +386,48 @@ class Enemy(AnimatedSprite):
                 break
         if wall_collision:
             self.rect.y = self.previous_pos.y
+
+        # Update animation based on movement direction
+        if abs(self.direction.x) > abs(self.direction.y):
+            if self.direction.x > 0:
+                self.change_direction(pygame.K_RIGHT)
+            elif self.direction.x < 0:
+                self.change_direction(pygame.K_LEFT)
+        else:
+            if self.direction.y > 0:
+                self.change_direction(pygame.K_DOWN)
+            elif self.direction.y < 0:
+                self.change_direction(pygame.K_UP)
+
+        # Update the animation
+        self.update_animation()
+
+    def update(self, walls):
+        # Get current screen dimensions
+        screen_width, screen_height = pygame.display.get_surface().get_size()
+        margin = 10  # Margin to keep enemy visible
+
+        # Save previous position for collision handling
+        self.previous_pos = self.rect.copy()
+
+        # Randomly change direction
+        if random() < 0.01:  # 1% chance to change direction
+            self.dir = randint(0, 7)
+            dx, dy = directions[self.dir]
+            self.direction.x = dx
+            self.direction.y = dy
+
+
+        # Apply velocity
+        self.velocity = pygame.Vector2(self.direction.x * self.speed, self.direction.y * self.speed)
+
+        self.pos += self.velocity
+        self.rect.center = self.pos
+
+        # Check wall collisions after movement
+        if pygame.sprite.spritecollideany(self, walls):
+            # If collision occurred, handle it
+            handle_wall_collision(self, walls)
 
         # Update animation based on movement direction
         if abs(self.direction.x) > abs(self.direction.y):
@@ -527,36 +578,19 @@ def reset_game():
     rows, cols = len(level_map), len(level_map[0])
     walkable_tiles = [(x, y) for x in range(cols) for y in range(rows) if level_map[y][x] == 0]
 
-    pos_1 = choice(walkable_tiles)
-    walkable_tiles.remove(pos_1)
-    pos_2 = choice(walkable_tiles)
-    walkable_tiles.remove(pos_2)
-    pos_3 = choice(walkable_tiles)
-    walkable_tiles.remove(pos_3)
-    pos_4 = choice(walkable_tiles)
-    walkable_tiles.remove(pos_4)
-    pos_5 = choice(walkable_tiles)
-    walkable_tiles.remove(pos_5)
-    pos_6 = choice(walkable_tiles)
-    walkable_tiles.remove(pos_6)
+    # Get random positions
+    positions = [choice(walkable_tiles) for _ in range(7)]
+    for pos in positions:
+        walkable_tiles.remove(pos)
 
     # Create player and enemies
-    player = Player(animation_frames=get_animation_frames('goblinsword'), x=pos_1[0], y=pos_1[1])
+    player = Player(animation_frames=get_animation_frames('goblinsword'), x=positions[0][0], y=positions[0][1])
+
+    enemy_types = ['bat', 'goblin', 'bat', 'goblin', 'spider', 'scorpion', 'minion']
+    # enemy_types = ['minion'] * 7
     enemies = pygame.sprite.Group(
-        # Enemy(animation_frames=get_animation_frames('minion'), x=pos_2[0], y=pos_2[1]),
-        Enemy(animation_frames=get_animation_frames('bat'), x=pos_3[0], y=pos_3[1]),
-        Enemy(animation_frames=get_animation_frames('goblin'), x=pos_2[0], y=pos_2[1]),
-        Enemy(animation_frames=get_animation_frames('bat'), x=pos_5[0], y=pos_5[1]),
-        Enemy(animation_frames=get_animation_frames('goblin'), x=pos_4[0], y=pos_4[1]),
-        # Enemy(animation_frames=get_animation_frames('minion'), x=pos_5[0], y=pos_5[1]),
-        Enemy(animation_frames=get_animation_frames('bat'), x=pos_6[0], y=pos_6[1])
-        # Enemy(animation_frames=get_animation_frames('aerocephal'), pos=(600, 100)),
-        # Enemy(animation_frames=get_animation_frames('arcana_drake'), pos=(100, 400)),
-        # Enemy(animation_frames=get_animation_frames('aurum-drakueli'), pos=(600, 400)),
-        # Enemy(animation_frames=get_animation_frames('daemarbora'), pos=(300, 600)),
-        # Enemy(animation_frames=get_animation_frames('deceleon'), pos=(800, 200)),
-        # Enemy(animation_frames=get_animation_frames('demonic_essence'), pos=(600, 700)),
-        # Enemy(animation_frames=get_animation_frames('stygian_lizard'), pos=(100, 700))
+        Enemy(type=enemy_type, animation_frames=get_animation_frames(enemy_type), x=pos[0], y=pos[1])
+        for enemy_type, pos in zip(enemy_types, positions[1:])
     )
 
     # Create all_sprites group
@@ -568,14 +602,14 @@ def reset_game():
     return player, enemies, all_sprites
 
 
-def handle_wall_collision(player, walls):
+def handle_wall_collision(entity: Player|Enemy, walls):
     # Check collisions with walls
-    wall_hits = pygame.sprite.spritecollide(player, walls, False)
+    wall_hits = pygame.sprite.spritecollide(entity, walls, False)
     if wall_hits:
         for wall in wall_hits:
             # Calculate overlap and direction
-            dx = player.rect.centerx - wall.rect.centerx
-            dy = player.rect.centery - wall.rect.centery
+            dx = entity.rect.centerx - wall.rect.centerx
+            dy = entity.rect.centery - wall.rect.centery
 
             # Convert to vector for easier handling
             push_vector = pygame.math.Vector2(dx, dy)
@@ -584,12 +618,12 @@ def handle_wall_collision(player, walls):
 
             # Strong immediate push back
             push_strength = 2
-            player.velocity = push_vector * push_strength
+            entity.velocity = push_vector * push_strength
 
             # Move player out of wall
-            while pygame.sprite.spritecollideany(player, walls):
-                player.pos += push_vector
-                player.rect.center = player.pos
+            while pygame.sprite.spritecollideany(entity, walls):
+                entity.pos += push_vector
+                entity.rect.center = entity.pos
 
 
 # Function to Handle Collision
