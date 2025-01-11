@@ -1,20 +1,18 @@
 """ Needs to separate presentation layer from data layer """
-import glob
 import math
-import os
-import sys
-import termios
-import tty
 from enum import Enum
 from pathlib import Path
 from random import randint, choice
 from time import time
-from typing import List
 import numpy as np
-
 # from tools.dungeon_perl import create_dungeon
 from tools import cell_bits_dnd as cb
 from tools.parse_json_dungeon import parse_dungeon_json
+import sys
+import os
+import termios
+import tty
+import select
 
 # Dimensions de la fenêtre du menu principal
 SCREEN_WIDTH, SCREEN_HEIGHT = 400, 300
@@ -101,7 +99,7 @@ def resource_path(relative_path):
         # Join the project root with the relative path
         return os.path.join(project_root, relative_path)
 
-
+# nicola: Dans Linusque, tu peux utiliser f'{Path.home()}/.config/{folder_name}'.
 def get_save_game_path(folder_name="Saved_Games_DnD_5th"):
     """
     Retourne le chemin d'un dossier pour sauvegarder les jeux en cours en fonction du système d'exploitation.
@@ -118,12 +116,6 @@ def get_save_game_path(folder_name="Saved_Games_DnD_5th"):
         raise OSError("Système d'exploitation non supporté")
 
     return save_path
-
-import sys
-import os
-import termios
-import tty
-import select
 
 def is_tty():
     return sys.stdin.isatty()
