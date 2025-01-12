@@ -9,4 +9,4 @@ if %errorlevel% neq 0 (
 )
 
 rem Create the executable
-pyinstaller --onefile rpg_ncurses.exe
+pyinstaller --onefile rpg_ncurses.py
