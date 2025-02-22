@@ -46,7 +46,9 @@ def draw_category_items(screen, equipments, scroll_offset, selected_item_index, 
     for index, item in enumerate(equipments):
         y_position = 50 + (index * LINE_HEIGHT) - scroll_offset
         if 0 <= y_position < 500:
-            option_text = f"{item.name} ({cost(item)} gp)"
+            #option_text = f"{item.name} ({cost(item)} gp)"
+            cost = item.cost if isinstance(item, Equipment) else f'{item.cost} gp'
+            option_text = f"{item.name} ({cost})"
             color = (255, 255, 0) if index == selected_item_index else RED
             option = font.render(option_text, True, color)
             rect = option.get_rect(topleft=(20, y_position))
@@ -65,7 +67,9 @@ def draw_hero_equipment(screen, hero, scroll_offset, selected_item_index, font):
             if not item:
                 option = font.render("<Free slot>", True, RED)
             else:
-                option_text = f"{item.name} ({cost(item) // 2} gp)"
+                cost = item.cost.quantity // 2
+                unit = item.cost.unit
+                option_text = f"{item.name} ({cost} {unit})"
                 color = (255, 255, 0) if index == selected_item_index else RED
                 option = font.render(option_text, True, color)
             rect = option.get_rect(topleft=(400, y_position))
@@ -84,13 +88,13 @@ def handle_buy(hero, selected_item_index, selected_category):
 
         if len(items_in_inventory) == 20 or not empty_slots:
             cprint('Your inventory is full!')
-        elif cost(item) > hero.gold:
+        elif item.cost.value > hero.gold * 100:
             cprint(f'Not enough Gold to buy {item.name}!')
         elif isinstance(item, Potion) and hero.level < item.min_level:
             cprint(f'You need to be level {item.min_level} to buy {item.name}!')
         else:
             cprint(f'You bought {item.name}!')
-            hero.gold -= cost(item)
+            hero.gold -= item.cost.value // 100
             if isinstance(item, Potion):
                 bought_item = copy(item)
             elif isinstance(item, Armor):
@@ -108,9 +112,9 @@ def handle_sell(hero, selected_item_index):
                 cprint("There's no item in this slot to sell!")
                 return
 
-            sell_price = cost(item) // 2
-            cprint(f'You sold {item.name} for {sell_price} gp!')
-            hero.gold += sell_price
+            sell_price = item.cost.quantity // 2
+            cprint(f'You sold {item.name} for {sell_price} {item.cost.unit}!')
+            hero.gold += sell_price // 100
             hero.inventory[selected_item_index] = None
         except (AttributeError, IndexError) as e:
             print(f'Error: {e}')
@@ -208,8 +212,8 @@ def load_game_data(character_name):
     try:
         saved_game = load_character_gamestate(character_name, gamestate_dir)
         hero = saved_game.hero if saved_game else load_character(character_name, characters_dir)
-        weapons = sorted(hero.allowed_weapons, key=cost)
-        armors = sorted(hero.allowed_armors, key=cost)
+        weapons = sorted(hero.allowed_weapons, key=lambda x: x.cost.value)
+        armors = sorted(hero.allowed_armors, key=lambda x: x.cost.value)
         potions = load_potions_collections()
         return saved_game, hero, [weapons, armors, potions]
     except Exception as e:
@@ -222,8 +226,6 @@ def run(character_name: str = 'Brottor'):
     saved_game, hero, equipments = load_game_data(character_name)
     main_game_loop(saved_game, hero, equipments, f'{get_save_game_path()}/characters')
 
-
-cost = lambda x: int(x.cost) if isinstance(x, Potion) else int(x.cost['quantity'])
 
 if __name__ == "__main__":
     run()

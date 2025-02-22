@@ -13,7 +13,7 @@ import re
 from dao_classes import CategoryType, DamageDice, Monster, Armor, RangeType, SpecialAbility, SpellCaster, Weapon, Race, \
     SubRace, Proficiency, ClassType, Language, Equipment, WeaponProperty, WeaponRange, AbilityType, WeaponThrowRange, \
     Trait, EquipmentCategory, \
-    Abilities, Action, Damage, ActionType, DamageType, Spell, ProfType, Condition, Inventory, AreaOfEffect
+    Abilities, Action, Damage, ActionType, DamageType, Spell, ProfType, Condition, Inventory, AreaOfEffect, Cost
 from populate_rpg_functions import load_armor_image_name, load_weapon_image_name
 from tools.common import parse_challenge_rating, resource_path
 
@@ -2260,7 +2260,7 @@ def request_armor(index_name: str) -> Armor:
                      category=request_equipment_category(
                          data['equipment_category']['index']),
                      stealth_disadvantage=data['stealth_disadvantage'],
-                     cost=data['cost'],
+                     cost=Cost(data['cost']['quantity'], data['cost']['unit']),
                      weight=data['weight'],
                      desc=None,
                      equipped=False)
@@ -2314,7 +2314,7 @@ def request_weapon(index_name: str) -> Weapon:
                       range=WeaponRange(normal=data['range']['normal'], long=data['range']['long']),
                       throw_range=throw_range,
                       is_magic=False,
-                      cost=data['cost'],
+                      cost=Cost(data['cost']['quantity'], data['cost']['unit']),
                       weight=data['weight'],
                       properties=weapon_properties,
                       desc=None,
@@ -2516,7 +2516,7 @@ def request_equipment(index_name: str) -> Optional[Equipment]:
                                  index=data['index'],
                                  name=data['name'],
                                  category=request_equipment_category(equipment_category),
-                                 cost=data['cost'],
+                                 cost=Cost(data['cost']['quantity'], data['cost']['unit']),
                                  weight=data.get('weight'),
                                  desc=data.get('desc'),
                                  equipped=False)
