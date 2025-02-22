@@ -1,19 +1,14 @@
 from __future__ import annotations
 
-import os
 import pickle
 import sys
 from fractions import Fraction
 
-import pygame
 from numpy import array
 
 from collections import namedtuple
-from copy import copy, deepcopy
-from os import listdir
-from os.path import isfile, join
-from random import randint, seed, sample, shuffle
-from time import sleep, time
+from random import seed, sample, shuffle
+from time import sleep
 
 from PyQt5.QtWidgets import QApplication, QDialog
 
@@ -122,6 +117,69 @@ def read_choice(choice_list: List[str], message: str = None) -> str:
             print(err_msg)
             continue
     return choice_list[choice - 1]
+
+def read_choice_or_exit(choice_list: List[str], message: str = None) -> str:
+    choice = None
+    while choice not in range(1, len(choice_list) + 1):
+        items_list = '\n'.join([f'{i + 1}) {item}' for i, item in enumerate(choice_list)])
+        items_list += '\n0) Exit'
+        if message:
+            print(message)
+        print(f'{items_list}')
+        err_msg = f'Bad value! Please enter a number between 1 and {len(choice_list)}'
+        try:
+            choice = int(input())
+            if choice == 0:
+                return 'Exit'
+            elif choice not in range(1, len(choice_list) + 1):
+                raise ValueError
+        except ValueError:
+            print(err_msg)
+            continue
+    return choice_list[choice - 1]
+
+def read_choice_or_escape_old(options: List[str], prompt: str) -> str:
+    while True:
+        print(prompt)
+        for i, option in enumerate(options, 1):
+            if option.lower() != 'esc':  # Don't show ESC in the menu
+                print(f'{i}) {option}')
+
+        key = get_key()
+        if key == 'escape':  # Handle Esc key
+            return 'Exit'
+        try:
+            choice = int(key)
+            if 1 <= choice <= len(options):
+                return options[choice - 1]
+        except ValueError:
+            continue
+
+def read_choice_or_escape(options: List[str], prompt: str) -> str:
+    while True:
+        print(prompt)
+        for i, option in enumerate(options, 1):
+            if option.lower() != 'esc':  # Don't show ESC in the menu
+                print(f'{i}) {option}')
+
+        buffer = ''
+        while True:
+            key = get_key()
+            if key == 'escape':  # Handle Esc key
+                return 'Exit'
+            elif key == 'return':  # Process the number when Enter is pressed
+                if buffer:  # Only try to process if buffer is not empty
+                    try:
+                        choice = int(buffer)
+                        if 1 <= choice <= len(options):
+                            return options[choice - 1]
+                    except ValueError:
+                        pass
+                break  # Break inner loop to show menu again
+            elif key.isdigit():  # Add digits to buffer
+                buffer += key
+            elif key == 'backspace' and buffer:  # Allow correction
+                buffer = buffer[:-1]
 
 
 def read_value(choice_list: List[int], message: str = None) -> int:
@@ -559,14 +617,21 @@ def display_character_sheet(char: Character):
         rarity: str = rarity_types[p.rarity]
         potions[rarity] += 1
     potions = dict(filter(lambda p: p[1] > 0, potions.items()))
-    sheet += '|{:^51}|\n'.format(f'healing potions = {potions}')
+    sheet += '|{:^51}|\n'.format(f'healing potions = {potions}') if potions else ''
+    strength_potions: List[StrengthPotion] = [item for item in char.inventory if isinstance(item, StrengthPotion)]
+    sheet += '|{:^51}|\n'.format(f'strength potions = {len(strength_potions)}') if strength_potions else ''
+    speed_potions: List[SpeedPotion] = [item for item in char.inventory if isinstance(item, SpeedPotion)]
+    sheet += '|{:^51}|\n'.format(f'speed potions = {len(speed_potions)}') if speed_potions else ''
     # sheet += '|{:^51}|\n'.format(f'healing potions = {len(char.healing_potions)}')
     armors: List[Armor] = [item for item in char.inventory if isinstance(item, Armor) and item.equipped]
     weapons: List[Weapon] = [item for item in char.inventory if isinstance(item, Weapon) and item.equipped]
-    armors_list: str = ' + '.join([a.name.title() for a in armors])
+    armors_list: str = ' + '.join([a.name.title() for a in armors]) if armors else 'None'
     sheet += '|{:^51}|\n'.format(f'armors in use = {armors_list}')
-    for w in weapons:
-        sheet += '|{:^51}|\n'.format(f'weapon in use = {w.name.title()} - Damage = {w.damage_dice.dice}')
+    if weapons:
+        for w in weapons:
+            sheet += '|{:^51}|\n'.format(f'weapon in use = {w.name.title()} - Damage = {w.damage_dice.dice}')
+    else:
+        sheet += '|{:^51}|\n'.format(f'weapon in use = None')
     sheet += '|{:^51}|\n'.format(f'gold = {char.gold} gp')
     sheet += '+{:-^51}+\n'.format('')
     if char.is_spell_caster:
@@ -902,6 +967,89 @@ def temple_of_cant(party: List[Character, roster: List[Character]]):
                 save_character(char_to_save, _dir=characters_dir)
                 sleep(2)
 
+
+def buy_items(char: Character):
+    exit_buy: bool = False
+    while not exit_buy:
+        efface_ecran()
+        print('+--------------------------------+')
+        print('|    ** BOLTAC\'S TRADING POST **    |')
+        print('+--------------------------------+')
+        print(f'Welcome, {char.name}!')
+        items = char.allowed_armors + char.allowed_weapons
+        items = sorted(items, key=lambda i: i.cost.value)
+        item_names: List[str] = [f'{i.name} ({i.cost})' for i in items]
+        choice: str = read_choice_or_exit(item_names, 'What do You Want to Buy?')
+        if choice == 'Exit':
+            exit_buy = True
+        else:
+            efface_ecran()
+            item_name: str = choice.split('(')[0].strip()
+            item: Equipment = [e for e in items if e.name == item_name][0]
+            if char.gold * 100 < item.cost.value:
+                print('Go away! You don\'t have enough of money!')
+                sleep(2)
+            else:
+                char.gold -= item.cost.value // 100
+                free_slots = [i for i, item in enumerate(char.inventory) if not item]
+                if free_slots:
+                    char.inventory[free_slots[0]] = item
+                    print(f'{char.name} buys {item.name} for {item.cost}')
+                else:
+                    print(f'Inventory is full!')
+                save_character(char, _dir=characters_dir)
+                sleep(2)
+
+
+def sell_items(char):
+    exit_sell: bool = False
+    while not exit_sell:
+        efface_ecran()
+        print('+--------------------------------+')
+        print('|    ** BOLTAC\'S TRADING POST **    |')
+        print('+--------------------------------+')
+        print(f'Welcome, {char.name}!')
+        item_names: List[str] = [f'{i.name} ({i.cost.value // 200} {i.cost.unit})' for i in char.inventory if i]
+        choice: str = read_choice_or_exit(item_names, 'What do You Want to Sell?')
+        if choice == 'Exit':
+            exit_sell = True
+        else:
+            efface_ecran()
+            item_name: str = choice.split('(')[0].strip()
+            item: Equipment = [e for e in char.inventory if e and e.name == item_name][0]
+            if item:
+                char.gold += item.cost.value // 200
+                char.inventory[char.inventory.index(item)] = None
+                print(f'{char.name} sells {item.name} for {item.cost}')
+                save_character(char, _dir=characters_dir)
+                sleep(2)
+
+
+def boltac_trading_post(party):
+    exit_trading_post: bool = False
+    while not exit_trading_post:
+        efface_ecran()
+        print('+--------------------------------+')
+        print('|    ** BOLTAC\'S TRADING POST **    |')
+        print('+--------------------------------+')
+        print('Welcome to Boltac\'s Trading Post!')
+        choice: str = read_choice_or_exit([c.name for c in party], 'Who will Enter?')
+        if choice == 'Exit':
+            exit_trading_post = True
+        else:
+            efface_ecran()
+            char: Character = get_character(choice, party)
+            print(f'Welcome, {char.name}!')
+            choice: str = read_choice_or_exit(['Buy', 'Sell'], 'What do You Want to Do?')
+            match choice:
+                case 'Buy':
+                    buy_items(char)
+                case 'Sell':
+                    sell_items(char)
+                case 'Exit':
+                    exit_trading_post = True
+                case _:
+                    continue
 
 def adventurer_inn(party):
     exit_inn: bool = False
@@ -1295,7 +1443,8 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
                         if attacker.hit_points < 0.3 * attacker.max_hit_points and attacker.healing_potions:
                             p: HealingPotion = attacker.choose_best_potion()
                             attacker.drink(p)
-                            attacker.inventory.remove(p)
+                            p_idx = attacker.inventory.index(p)
+                            attacker.inventory[p_idx] = None
                             cprint(f'{attacker.name} has {len(attacker.healing_potions)} remaining potions')
                         else:
                             # Character attacks the weakest alive monster or the restraining creature
@@ -1434,6 +1583,11 @@ if __name__ == '__main__':
     # delete_armors_weapons(roster)
     # give_best_armors_weapons(roster)
 
+    # Set TERM if it's not already set
+    if 'TERM' not in os.environ:
+        # os.environ['TERM'] = 'xterm'  # or another appropriate terminal type
+        os.environ['TERM'] = 'xterm-256color'  # or another appropriate terminal type
+
     while True:
         efface_ecran()
         if location == 'Castle':
@@ -1461,7 +1615,8 @@ if __name__ == '__main__':
                         continue
                     temple_of_cant(roster)
                 case 'Boltac\'s Trading Post':
-                    input('not yet created!... [Return] to Castle')
+                    boltac_trading_post(roster)
+                    # input('not yet created!... [Return] to Castle')
                 case 'Edge of Town':
                     location = 'Edge of Town'
                     continue
