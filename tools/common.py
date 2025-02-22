@@ -121,10 +121,11 @@ def is_tty():
     return sys.stdin.isatty()
 
 def get_key():
-    if is_tty():
-        return get_key_tty()
-    else:
-        return get_key_non_tty()
+    return get_key_tty()
+    # if is_tty():
+    #     return get_key_tty()
+    # else:
+    #     return get_key_non_tty()
 
 def get_key_tty():
     old_settings = termios.tcgetattr(sys.stdin)
@@ -161,7 +162,7 @@ def cprint(message: str, color: Color = None):
 
 
 
-def exit_message(message: str = None):
+def exit_message_old(message: str = None):
     if message:
         print(message)
     print('[Return] to continue')
@@ -169,6 +170,37 @@ def exit_message(message: str = None):
         k = get_key()
         if k == 'return':
             break
+
+
+def exit_message(message: str = None):
+    """
+    Display a message and wait for user to press Return/Enter to continue.
+
+    Args:
+        message (str, optional): Message to display before the prompt
+    """
+    try:
+        if message:
+            print(message)
+        print('[Return] to continue')
+
+        while True:
+            try:
+                k = get_key()
+                # Check for both 'return' and '\r' as different systems might return different values
+                if k.lower() in ('return', '\r', '\n', '\r\n'):
+                    break
+            except (AttributeError, TypeError) as e:
+                # If get_key() fails, fall back to input()
+                input()
+                break
+            except KeyboardInterrupt:
+                print("\nExiting...")
+                break
+    except Exception as e:
+        print(f"An error occurred: {str(e)}")
+        # Ensure the program doesn't hang even if there's an error
+        input("Press Enter to continue...")
 
 
 # Cave generation algorithm
