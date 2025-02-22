@@ -88,16 +88,21 @@ def read_choice_tuple(choice_list: List, message: str = None) -> str:
     choice = None
     while choice not in range(1, len(choice_list) + 1):
         items_list = '\n'.join([f'{i + 1}) {" ".join(map(str, item))}' for i, item in enumerate(choice_list)])
+        items_list += '\n0) Exit'
         if message:
             print(message)
         print(f'{items_list}')
         err_msg = f'Bad value! Please enter a number between 1 and {len(choice_list)}'
         try:
             choice = int(input())
-            if choice not in range(1, len(choice_list) + 1):
+            if choice == 0:
+                return 'Exit'
+            elif choice not in range(1, len(choice_list) + 1):
                 raise ValueError
         except ValueError:
             print(err_msg)
+            sleep(2)
+            efface_ecran()
             continue
     return choice_list[choice - 1][0]
 
@@ -115,6 +120,8 @@ def read_choice(choice_list: List[str], message: str = None) -> str:
                 raise ValueError
         except ValueError:
             print(err_msg)
+            sleep(2)
+            efface_ecran()
             continue
     return choice_list[choice - 1]
 
@@ -135,6 +142,8 @@ def read_choice_or_exit(choice_list: List[str], message: str = None) -> str:
                 raise ValueError
         except ValueError:
             print(err_msg)
+            sleep(2)
+            efface_ecran()
             continue
     return choice_list[choice - 1]
 
@@ -758,7 +767,7 @@ def arena(character: Character):
     display_character_sheet(character)
 
 
-def display_party(party: List[Character]):
+def display(party: List[Character]) -> str:
     CharacterTable = namedtuple('CharacterTable', ['name', 'level', 'class_type', 'AC', 'hits', 'status', 'age'])
     c: CharacterTable = CharacterTable(name=15, level=3, class_type=10, AC=3, hits=8, status=8, age=3)
     n_cols: int = sum(c) + 3 * len(c) - 1
@@ -774,7 +783,7 @@ def display_party(party: List[Character]):
     for char in dead_chars:
         sheet += f"| {str(char.name).ljust(c.name)} | {str(char.level).center(c.level)} | {str(char.class_type).title().center(c.class_type)} | {str(char.armor_class).center(c.AC)} | {f'{char.hit_points}/{char.max_hit_points}'.center(c.hits)} | {str(char.status).center(c.status)} | {str(char.age // 52).center(c.age)} |\n"
     sheet += formatter.format('')
-    print(sheet)
+    return sheet
 
 
 def add_member_to_party(roster: List[Character], party: List[Character]):
@@ -794,6 +803,8 @@ def add_member_to_party(roster: List[Character], party: List[Character]):
         sleep(2)
         return
     name: str = read_choice_tuple(char_names, 'Select character to add in party')
+    if name == 'Exit':
+        return
     char: Character = get_character(name, roster)
     if char:
         party.append(char)
@@ -810,7 +821,9 @@ def delete_member_from_party(roster: List[Character], party: List[Character]):
         sleep(1)
         return
     char_names: List[str] = [c.name for c in party]
-    char_name: str = read_choice(char_names, 'Select character to remove from party')
+    char_name: str = read_choice_or_exit(char_names, 'Select character to remove from party')
+    if char_name == 'Exit':
+        return
     char: Character = get_character(char_name, party)
     if char:
         party.remove(char)
@@ -825,12 +838,12 @@ def gilgamesh_tavern(party: List[Character], roster: List[Character]):
     exit_tavern: bool = False
     while not exit_tavern:
         efface_ecran()
-        print('+-----------------------------+')
-        print('|  ** GILGAMESH\'S TAVERN **  |')
-        print('+-----------------------------+')
-        display_party(party)
+        message = '+-----------------------------+\n'
+        message += '|  ** GILGAMESH\'S TAVERN **   |\n'
+        message += '+-----------------------------+\n'
+        message += display(party)
         gt_options: List[str] = ['Add Member', 'Remove Member', 'Character Status', 'Reorder', 'Divvy Gold', 'Exit Tavern']
-        option: str = read_choice(gt_options)
+        option: str = read_choice(gt_options, message)
         match option:
             case 'Add Member':
                 add_member_to_party(roster, party)
@@ -915,10 +928,11 @@ def temple_of_cant(party: List[Character, roster: List[Character]]):
     exit_temple: bool = False
     while not exit_temple:
         efface_ecran()
-        print('+----------------------------+')
-        print('|    ** TEMPLE OF CANT **    |')
-        print('+----------------------------+')
-        print('Temple of Cant -- Praise God!!!')
+        message = '+----------------------------+\n'
+        message += '|    ** TEMPLE OF CANT **    |\n'
+        message += '+----------------------------+\n'
+        message += 'Temple of Cant -- Praise God!!!'
+        print(message)
         cures_costs_per_level: dict() = {'PARALYZED': 100, 'STONED': 200, 'DEAD': 250, 'ASHES': 500}
         cures_candidates: dict() = [f'{c.name} ({cures_costs_per_level[c.status] * c.level} GP)' for c in roster if c.status not in ('OK', 'LOST')]
         if not cures_candidates:
@@ -926,14 +940,17 @@ def temple_of_cant(party: List[Character, roster: List[Character]]):
             exit_temple = True
             sleep(3)
             continue
-        choice: str = read_choice(cures_candidates + ['Exit Temple'], 'Who do You Want to Save?')
-        if choice == 'Exit Temple':
+        choice: str = read_choice_or_exit(cures_candidates, 'Who do You Want to Save?')
+        if choice == 'Exit':
             exit_temple = True
         else:
             efface_ecran()
             char_to_save: Character = get_character(choice.split()[0], roster + party)
             contributor_names: List[str] = [c.name for c in party if c.status == 'OK']
-            char_name: str = read_choice(contributor_names, 'Who will Contribute?')
+            char_name: str = read_choice_or_exit(contributor_names, 'Who will Contribute?')
+            if char_name == 'Exit':
+                exit_temple = True
+                continue
             char_to_contribute: Character = get_character(char_name, party)
             if not party:
                 print('No character remains in the party.')
@@ -972,10 +989,11 @@ def buy_items(char: Character):
     exit_buy: bool = False
     while not exit_buy:
         efface_ecran()
-        print('+--------------------------------+')
-        print('|    ** BOLTAC\'S TRADING POST **    |')
-        print('+--------------------------------+')
-        print(f'Welcome, {char.name}!')
+        message = '+--------------------------------+\n'
+        message += '|    ** BOLTAC\'S TRADING POST **    |\n'
+        message += '+--------------------------------+\n'
+        message += f'Welcome, {char.name}!'
+        print(message)
         items = char.allowed_armors + char.allowed_weapons
         items = sorted(items, key=lambda i: i.cost.value)
         item_names: List[str] = [f'{i.name} ({i.cost})' for i in items]
@@ -1005,10 +1023,11 @@ def sell_items(char):
     exit_sell: bool = False
     while not exit_sell:
         efface_ecran()
-        print('+--------------------------------+')
-        print('|    ** BOLTAC\'S TRADING POST **    |')
-        print('+--------------------------------+')
-        print(f'Welcome, {char.name}!')
+        message = '+--------------------------------+\n'
+        message += '|    ** BOLTAC\'S TRADING POST **    |\n'
+        message += '+--------------------------------+\n'
+        message += f'Welcome, {char.name}!'
+        print(message)
         item_names: List[str] = [f'{i.name} ({i.cost.value // 200} {i.cost.unit})' for i in char.inventory if i]
         choice: str = read_choice_or_exit(item_names, 'What do You Want to Sell?')
         if choice == 'Exit':
@@ -1029,10 +1048,11 @@ def boltac_trading_post(party):
     exit_trading_post: bool = False
     while not exit_trading_post:
         efface_ecran()
-        print('+--------------------------------+')
-        print('|    ** BOLTAC\'S TRADING POST **    |')
-        print('+--------------------------------+')
-        print('Welcome to Boltac\'s Trading Post!')
+        message = '+--------------------------------+\n'
+        message += '|    ** BOLTAC\'S TRADING POST **    |\n'
+        message += '+--------------------------------+\n'
+        message += 'Welcome to Boltac\'s Trading Post!'
+        print(message)
         choice: str = read_choice_or_exit([c.name for c in party], 'Who will Enter?')
         if choice == 'Exit':
             exit_trading_post = True
@@ -1055,23 +1075,25 @@ def adventurer_inn(party):
     exit_inn: bool = False
     while not exit_inn:
         efface_ecran()
-        print('+-----------------------------+')
-        print('|   ** ADVENTURER\'S INN **   |')
-        print('+-----------------------------+')
-        print('Welcome to Adventurer\'s Inn!')
-        choice: str = read_choice([c.name for c in party] + ['Exit Adventurer\'s Inn'], 'Who will Enter?')
-        if choice == 'Exit Adventurer\'s Inn':
+        message = '+-----------------------------+\n'
+        message += '|   ** ADVENTURER\'S INN **   |\n'
+        message += '+-----------------------------+\n'
+        message += 'Welcome to Adventurer\'s Inn!'
+        print(message)
+        choice: str = read_choice_or_exit([c.name for c in party], 'Who will Enter?')
+        if choice == 'Exit':
             exit_inn = True
         else:
             efface_ecran()
             char: Character = get_character(choice, party)
-            print(f'Welcome, {char.name}!')
             rooms: List[str] = ['The Stables (Free!)', 'A Cot (10 GP / Week)', 'Economy Room (100 GP / Week)', 'Merchant Suites (200 GP / Week)',
                                 'The Royal Suites (500 GP / Week)']
             fees: List[int] = [0, 10, 100, 200, 500]
             weeks: List[int] = [0, 1, 3, 7, 10]
-            room: str = read_choice(rooms, f'Hello {char.name}.')
-            room_number: int = rooms.index(room)
+            room_select: str = read_choice_or_exit(rooms, f'Welcome {char.name}.')
+            if room_select == 'Exit':
+                continue
+            room_number: int = rooms.index(room_select)
             if fees[room_number] > char.gold:
                 print(f'You Don\'t Have Enough Gold.')
                 sleep(2)
@@ -1146,10 +1168,10 @@ def training_grounds(roster: List[Character]):
     exit_training_grounds: bool = False
     while not exit_training_grounds:
         efface_ecran()
-        print('+------------------------+')
-        print('| ** TRAINING GROUNDS ** |')
-        print('+------------------------+')
-        option: str = read_choice(tg_options)
+        message = '+------------------------+\n'
+        message += '| ** TRAINING GROUNDS ** |\n'
+        message += '+------------------------+'
+        option: str = read_choice(tg_options, message)
         char_names: List[str] = [c.name for c in roster]
         match option:
             case 'Create a New Character':
@@ -1362,7 +1384,7 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
                 cprint(f'{color.DARKCYAN} Round {round_num} results:{color.END}')
                 display_group_of_monsters(monsters)
                 cprint('-------------------------------------------------------')
-                display_party(party)
+                print(display(party))
             message: str = 'engage' if not round_num else 'continue'
             if not continue_message(f'Do you want to {message} combat? (Y/N)'):
                 flee_combat = True
@@ -1591,10 +1613,10 @@ if __name__ == '__main__':
     while True:
         efface_ecran()
         if location == 'Castle':
-            print('+----------------------+')
-            print('|     ** CASTLE **     |')
-            print('+----------------------+')
-            destination: str = read_choice(castle_destinations)
+            message = '+----------------------+\n'
+            message += '|     ** CASTLE **     |\n'
+            message += '+----------------------+'
+            destination: str = read_choice(castle_destinations, message)
             for c in party:
                 if c.status != 'OK':
                     c.id_party = -1
@@ -1623,10 +1645,10 @@ if __name__ == '__main__':
                 case _:
                     continue
         else:
-            print('+----------------------+')
-            print('|  ** EDGE OF TOWN **  |')
-            print('+----------------------+')
-            destination: str = read_choice(edge_of_town_destinations)
+            message = '+----------------------+\n'
+            message += '|  ** EDGE OF TOWN **  |\n'
+            message += '+----------------------+'
+            destination: str = read_choice(edge_of_town_destinations, message)
             match destination:
                 case 'Training Grounds':
                     efface_ecran()
@@ -1643,7 +1665,7 @@ if __name__ == '__main__':
                         location = 'Castle'
                     else:
                         if party:
-                            display_party(party)
+                            print(display(party))
                             explore_dungeon(party, monsters)
                             for char in party:
                                 if char.hit_points <= 0:
