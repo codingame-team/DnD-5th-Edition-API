@@ -2257,8 +2257,7 @@ def request_armor(index_name: str) -> Armor:
                      name=data['name'],
                      armor_class=data['armor_class'],
                      str_minimum=data['str_minimum'],
-                     category=request_equipment_category(
-                         data['equipment_category']['index']),
+                     category=request_equipment_category(data['equipment_category']['index']),
                      stealth_disadvantage=data['stealth_disadvantage'],
                      cost=Cost(data['cost']['quantity'], data['cost']['unit']),
                      weight=data['weight'],
@@ -2438,8 +2437,7 @@ def request_proficiency(index_name: str) -> Proficiency:
         case 'equipment':
             ref: Equipment = request_equipment(index_name=index_name)
         case 'equipment-categories':
-            ref: List[Equipment] = list_equipment_category(
-                index_name=index_name)
+            ref: List[Equipment] = list_equipment_category(index_name=index_name)
         case 'ability-scores':
             ref: AbilityType = AbilityType(index_name)
 
