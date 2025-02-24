@@ -153,7 +153,7 @@ def read_choice_or_exit(choice_list: List[str], message: str = None) -> str:
         items_list = "\n".join(
             [f"{i + 1}) {item}" for i, item in enumerate(choice_list)]
         )
-        items_list += "\n0) Exit"
+        items_list += "\n--------\n0) Exit"
         if message:
             print(message)
         print(f"{items_list}")
@@ -874,6 +874,17 @@ def load_char_to_party(_dir: str) -> List[Char2Party]:
     except FileNotFoundError:
         return []
 
+def load_party(_dir: str) -> List[Character]:
+    try:
+        with open(f"{_dir}/party.dmp", "rb") as f1:
+            return pickle.load(f1)
+    except FileNotFoundError:
+        return []
+
+def save_party(party: List[Character], _dir: str):
+    with open(f"{_dir}/party.dmp", "wb") as f1:
+        pickle.dump(party, f1)
+
 
 def save_character(char: Character, _dir: str):
     # print(f'Sauvegarde personnage {char.name}')
@@ -960,38 +971,27 @@ def display_character_sheet(char: Character):
         potions[rarity] += 1
     potions = dict(filter(lambda p: p[1] > 0, potions.items()))
     sheet += "|{:^51}|\n".format(f"healing potions = {potions}") if potions else ""
-    strength_potions: List[StrengthPotion] = [
-        item for item in char.inventory if isinstance(item, StrengthPotion)
-    ]
+    strength_potions: List[StrengthPotion] = [item for item in char.inventory if isinstance(item, StrengthPotion)]
     sheet += (
         "|{:^51}|\n".format(f"strength potions = {len(strength_potions)}")
         if strength_potions
         else ""
     )
-    speed_potions: List[SpeedPotion] = [
-        item for item in char.inventory if isinstance(item, SpeedPotion)
-    ]
+    speed_potions: List[SpeedPotion] = [item for item in char.inventory if isinstance(item, SpeedPotion)]
     sheet += (
         "|{:^51}|\n".format(f"speed potions = {len(speed_potions)}")
         if speed_potions
         else ""
     )
     # sheet += '|{:^51}|\n'.format(f'healing potions = {len(char.healing_potions)}')
-    armors: List[Armor] = [
-        item for item in char.inventory if isinstance(item, Armor) and item.equipped
-    ]
-    weapons: List[Weapon] = [
-        item for item in char.inventory if isinstance(item, Weapon) and item.equipped
-    ]
-    armors_list: str = (
-        " + ".join([a.name.title() for a in armors]) if armors else "None"
-    )
+    armors: List[Armor] = [item for item in char.inventory if isinstance(item, Armor) and item.equipped]
+    weapons: List[Weapon] = [item for item in char.inventory if isinstance(item, Weapon) and item.equipped]
+    armors_list: str = " + ".join([a.name.title() for a in armors]) if armors else "None"
     sheet += "|{:^51}|\n".format(f"armors in use = {armors_list}")
+    sheet += "|{:^51}|\n".format(f"shield in use = {char.used_shield}")
     if weapons:
         for w in weapons:
-            sheet += "|{:^51}|\n".format(
-                f"weapon in use = {w.name.title()} - Damage = {w.damage_dice.dice}"
-            )
+            sheet += "|{:^51}|\n".format(f"weapon in use = {w.name.title()} - Damage = {w.damage_dice.dice}")
     else:
         sheet += "|{:^51}|\n".format(f"weapon in use = None")
     sheet += "|{:^51}|\n".format(f"gold = {char.gold} gp")
@@ -1032,25 +1032,16 @@ def display_character_sheet_pyQT(char: Character):
 
 def select_character(roster: List[Character]) -> Character:
     """Select Character"""
-    character_name: str = read_choice(
-        [c.name for c in roster],
-        f"Choose a character to {Color.GREEN}* Begin adventure *{Color.END}",
-    )
+    character_name: str = read_choice([c.name for c in roster],f"Choose a character to {Color.GREEN}* Begin adventure *{Color.END}")
     character = [c for c in roster if c.name == character_name][0]
     return character
 
 
 def arena(character: Character):
     """Combat simulation"""
-    print(
-        f"{color.PURPLE}-----------------------------------------------------------{color.END}"
-    )
-    print(
-        f"{color.PURPLE} Combat simulation engine based on DnD 5th edition API{color.END}"
-    )
-    print(
-        f"{color.PURPLE}-----------------------------------------------------------{color.END}"
-    )
+    print(f"{color.PURPLE}-----------------------------------------------------------{color.END}")
+    print(f"{color.PURPLE} Combat simulation engine based on DnD 5th edition API{color.END}")
+    print(f"{color.PURPLE}-----------------------------------------------------------{color.END}")
     attack_count: int = 0
     killed_monsters: int = 0
     previous_level: int = character.level
@@ -1061,18 +1052,12 @@ def arena(character: Character):
     match arena_level:
         case "HARD":
             # monsters_to_fight = [m for m in monsters if m.level > character.level]
-            monsters_to_fight = [
-                m for m in monsters if m.challenge_rating > character.level
-            ]
+            monsters_to_fight = [m for m in monsters if m.challenge_rating > character.level]
         case "MEDIUM":
             # monsters_to_fight = [m for m in monsters if m.level < character.level + 5]
-            monsters_to_fight = [
-                m for m in monsters if m.challenge_rating == character.level
-            ]
+            monsters_to_fight = [m for m in monsters if m.challenge_rating == character.level]
         case "EASY":
-            monsters_to_fight = [
-                m for m in monsters if m.challenge_rating < character.level
-            ]
+            monsters_to_fight = [m for m in monsters if m.challenge_rating < character.level]
         case "KIDDIE":
             monsters_to_fight = [m for m in monsters if m.level < character.level + 5]
 
@@ -1081,26 +1066,17 @@ def arena(character: Character):
         # if character.level < len(xp_levels) and character.xp > xp_levels[character.level]:
         #     character.gain_level(pause=PAUSE_ON_RAISE_LEVEL)
         monster: Monster = copy(choice(monsters_to_fight))
-        cprint(
-            f"{color.PURPLE}-------------------------------------------------------------------------------------------------------------------------------------------{color.END}"
-        )
+        cprint(f"{color.PURPLE}-------------------------------------------------------------------------------------------------------------------------------------------{color.END}")
         cprint(f"{color.PURPLE} New encounter! {character} vs {monster}{color.END}")
-        cprint(
-            f"{color.PURPLE}-------------------------------------------------------------------------------------------------------------------------------------------{color.END}"
-        )
+        cprint(f"{color.PURPLE}-------------------------------------------------------------------------------------------------------------------------------------------{color.END}")
         round_num = 0
         monster_max_hp = monster.hit_points
         while monster.hit_points > 0:
             round_num += 1
             cprint("-------------------------------------------------------")
-            cprint(
-                f"Round {round_num}: {character.name} ({character.hit_points}/{character.max_hit_points}) vs {monster.name} ({monster.hit_points}/{monster_max_hp})"
-            )
+            cprint(f"Round {round_num}: {character.name} ({character.hit_points}/{character.max_hit_points}) vs {monster.name} ({monster.hit_points}/{monster_max_hp})")
             cprint("-------------------------------------------------------")
-            if (
-                character.hit_points < 0.5 * character.max_hit_points
-                and character.healing_potions
-            ):
+            if character.hit_points < 0.5 * character.max_hit_points and character.healing_potions:
                 cprint(f"{len(character.healing_potions)} remaining potions")
                 character.drink_potion()
             attack_count += 1
@@ -1137,9 +1113,7 @@ def arena(character: Character):
     )
 
     if character.hit_points <= 0:
-        print(
-            f"{character.name} has been killed by a {monster.name} after {attack_count} attack rounds and {killed_monsters} monsters kills{level_up_msg}"
-        )
+        print(f"{character.name} has been killed by a {monster.name} after {attack_count} attack rounds and {killed_monsters} monsters kills{level_up_msg}")
     else:
         print(f"{character.name} has killed {killed_monsters} monsters{level_up_msg}")
 
@@ -1149,24 +1123,20 @@ def arena(character: Character):
 
 
 def display(party: List[Character]) -> str:
-    CharacterTable = namedtuple(
-        "CharacterTable", ["name", "level", "class_type", "AC", "hits", "status", "age"]
-    )
-    c: CharacterTable = CharacterTable(
-        name=15, level=3, class_type=10, AC=3, hits=8, status=8, age=3
-    )
-    n_cols: int = sum(c) + 3 * len(c) - 1
+    FormatTable = namedtuple("CharacterTable", ["name", "level", "class_type", "AC", "hits", "status", "age"])
+    ft: FormatTable = FormatTable(name=15, level=3, class_type=10, AC=3, hits=8, status=8, age=3)
+    n_cols: int = sum(ft) + 3 * len(ft) - 1
     formatter: str = "+{:-^" + str(n_cols) + "}+\n"
     sheet = formatter.format(f" Party")
-    sheet += f"| {str('Name').ljust(c.name)} | {str('LVL').center(c.level)} | {str('Class').center(c.class_type)} | {str('AC').center(c.AC)} | {str('Hits').center(c.hits)} | {str('Status').center(c.status)} | {str('Age').center(c.age)} |\n"
+    sheet += f"| {str('Name').ljust(ft.name)} | {str('LVL').center(ft.level)} | {str('Class').center(ft.class_type)} | {str('AC').center(ft.AC)} | {str('Hits').center(ft.hits)} | {str('Status').center(ft.status)} | {str('Age').center(ft.age)} |\n"
     if party:
         sheet += formatter.format("")
     dead_chars: List[Character] = [c for c in party if c.status == "DEAD"]
     alive_chars: List[Character] = [c for c in party if c.status != "DEAD"]
     for char in alive_chars:
-        sheet += f"| {str(char.name).ljust(c.name)} | {str(char.level).center(c.level)} | {str(char.class_type).title().center(c.class_type)} | {str(char.armor_class).center(c.AC)} | {f'{char.hit_points}/{char.max_hit_points}'.center(c.hits)} | {str(char.status).center(c.status)} | {str(char.age // 52).center(c.age)} |\n"
+        sheet += f"| {str(char.name).ljust(ft.name)} | {str(char.level).center(ft.level)} | {str(char.class_type).title().center(ft.class_type)} | {str(char.armor_class).center(ft.AC)} | {f'{char.hit_points}/{char.max_hit_points}'.center(ft.hits)} | {str(char.status).center(ft.status)} | {str(char.age // 52).center(ft.age)} |\n"
     for char in dead_chars:
-        sheet += f"| {str(char.name).ljust(c.name)} | {str(char.level).center(c.level)} | {str(char.class_type).title().center(c.class_type)} | {str(char.armor_class).center(c.AC)} | {f'{char.hit_points}/{char.max_hit_points}'.center(c.hits)} | {str(char.status).center(c.status)} | {str(char.age // 52).center(c.age)} |\n"
+        sheet += f"| {str(char.name).ljust(ft.name)} | {str(char.level).center(ft.level)} | {str(char.class_type).title().center(ft.class_type)} | {str(char.armor_class).center(ft.AC)} | {f'{char.hit_points}/{char.max_hit_points}'.center(ft.hits)} | {str(char.status).center(ft.status)} | {str(char.age // 52).center(ft.age)} |\n"
     sheet += formatter.format("")
     return sheet
 
@@ -1200,9 +1170,7 @@ def add_member_to_party(roster: List[Character], party: List[Character]):
         char.id_party = len(party) - 1
         save_character(char, _dir=characters_dir)
     else:
-        print(
-            f"Program error! {name} unknown in Castle - Please contact the administrator..."
-        )
+        print(f"Program error! {name} unknown in Castle - Please contact the administrator...")
         sleep(1)
 
 
@@ -1212,9 +1180,7 @@ def delete_member_from_party(roster: List[Character], party: List[Character]):
         sleep(1)
         return
     char_names: List[str] = [c.name for c in party]
-    char_name: str = read_choice_or_exit(
-        char_names, "Select character to remove from party"
-    )
+    char_name: str = read_choice_or_exit(char_names, "Select character to remove from party")
     if char_name == "Exit":
         return
     char: Character = get_character(char_name, party)
@@ -1223,10 +1189,22 @@ def delete_member_from_party(roster: List[Character], party: List[Character]):
         char.id_party = -1
         save_character(char, _dir=characters_dir)
     else:
-        print(
-            f"Program error! {char_name} not in the party - Please contact the administrator..."
-        )
+        print(f"Program error! {char_name} not in the party - Please contact the administrator...")
         sleep(1)
+
+
+def read_bool(param):
+    while True:
+        try:
+            value = input(param).lower()
+            if value == "y":
+                return True
+            elif value == "n":
+                return False
+            else:
+                raise ValueError
+        except ValueError:
+            print("Invalid input. Please enter 'y' or 'n'.")
 
 
 def gilgamesh_tavern(party: List[Character], roster: List[Character]):
@@ -1241,8 +1219,10 @@ def gilgamesh_tavern(party: List[Character], roster: List[Character]):
             "Add Member",
             "Remove Member",
             "Character Status",
+            "Character Equip",
             "Reorder",
             "Divvy Gold",
+            "Disband Party",
             "Exit Tavern",
         ]
         option: str = read_choice(gt_options, message)
@@ -1257,9 +1237,23 @@ def gilgamesh_tavern(party: List[Character], roster: List[Character]):
                     sleep(2)
                     continue
                 char_names: List[str] = [c.name for c in party]
-                name: str = read_choice(char_names, "Select a Character:")
-                char: Character = get_character(name, party)
+                select_name: str = read_choice_or_exit(char_names, "Select a Character:")
+                if select_name == "Exit":
+                    continue
+                char: Character = get_character(select_name, party)
                 display_character_sheet(char)
+                exit_message()
+            case "Character Equip":
+                if not party:
+                    print("No characters remains in the party!")
+                    sleep(2)
+                    continue
+                char_names: List[str] = [c.name for c in party]
+                select_name: str = read_choice_or_exit(char_names, "Select a Character:")
+                if select_name == "Exit":
+                    continue
+                char: Character = get_character(select_name, party)
+                display_character_sheet_pyQT(char)
                 exit_message()
             case "Reorder":
                 if not party:
@@ -1269,9 +1263,7 @@ def gilgamesh_tavern(party: List[Character], roster: List[Character]):
                 available_pos: List[int] = list(range(1, len(party) + 1))
                 new_pos: dict() = {}
                 for i, char in enumerate(party):
-                    order: int = read_value(
-                        available_pos, f"new img_pos for {char.name} {available_pos}:"
-                    )
+                    order: int = read_value(available_pos, f"new img_pos for {char.name} {available_pos}:")
                     available_pos.remove(order)
                     new_pos[char.name] = order
                 new_pos = dict(sorted(new_pos.items(), key=lambda x: x[1]))
@@ -1291,6 +1283,16 @@ def gilgamesh_tavern(party: List[Character], roster: List[Character]):
                 for char in party:
                     save_character(char, _dir=characters_dir)
                 sleep(1)
+            case "Disband Party":
+                if not party:
+                    print("No characters remains in the party!")
+                    sleep(2)
+                    continue
+                if read_bool("Are you sure?"):
+                    for char in party:
+                        char.id_party = -1
+                        save_character(char, _dir=characters_dir)
+                    party.clear()
             case "Exit Tavern":
                 exit_tavern = True
             case _:
@@ -1323,18 +1325,14 @@ def rest_character(char: Character, fee: int, weeks: int):
                 collection_name="spells", key_name="results"
             )
             all_spells: List[Spell] = [request_spell(name) for name in spell_names]
-            class_tome_spells = [
-                s
-                for s in all_spells
-                if s is not None and char.class_type.index in s.allowed_classes
-            ]
+            class_tome_spells = [s for s in all_spells if s is not None and char.class_type.index in s.allowed_classes]
             char.gain_level(tome_spells=class_tome_spells)
         else:
             char.gain_level()
     exit_message()
 
 
-def temple_of_cant(party: List[Character, roster : List[Character]]):
+def temple_of_cant(party: List[Character, roster: List[Character]]):
     exit_temple: bool = False
     while not exit_temple:
         efface_ecran()
@@ -1343,16 +1341,16 @@ def temple_of_cant(party: List[Character, roster : List[Character]]):
         message += "+----------------------------+\n"
         message += "Temple of Cant -- Praise God!!!"
         print(message)
-        cures_costs_per_level: dict() = {
+        cures_costs_per_level = {
             "PARALYZED": 100,
             "STONED": 200,
             "DEAD": 250,
             "ASHES": 500,
         }
-        cures_candidates: dict() = [
+        cures_candidates = [
             f"{c.name} ({cures_costs_per_level[c.status] * c.level} GP)"
             for c in roster
-            if c.status not in ("OK", "LOST")
+            if c.status not in ("OK", "LOST") or c.is_dead
         ]
         if not cures_candidates:
             print("No more character to save ** HERE! **")
@@ -1366,9 +1364,7 @@ def temple_of_cant(party: List[Character, roster : List[Character]]):
             efface_ecran()
             char_to_save: Character = get_character(choice.split()[0], roster + party)
             contributor_names: List[str] = [c.name for c in party if c.status == "OK"]
-            char_name: str = read_choice_or_exit(
-                contributor_names, "Who will Contribute?"
-            )
+            char_name: str = read_choice_or_exit(contributor_names, "Who will Contribute?")
             if char_name == "Exit":
                 exit_temple = True
                 continue
@@ -1377,10 +1373,7 @@ def temple_of_cant(party: List[Character, roster : List[Character]]):
                 print("No character remains in the party.")
                 sleep(2)
                 exit_temple = True
-            if (
-                char_to_contribute.gold
-                < cures_costs_per_level[char_to_save.status] * char_to_save.level
-            ):
+            if (char_to_contribute.gold < cures_costs_per_level[char_to_save.status] * char_to_save.level):
                 print("Go away! You don't have enough of money!")
                 sleep(2)
             elif char_to_save.status == "DEAD":
@@ -1413,15 +1406,15 @@ def buy_items(char: Character):
     exit_buy: bool = False
     while not exit_buy:
         efface_ecran()
-        message = "+--------------------------------+\n"
-        message += "|    ** BOLTAC'S TRADING POST **    |\n"
-        message += "+--------------------------------+\n"
-        message += f"Welcome, {char.name}!"
-        print(message)
+        # message = "+--------------------------------+\n"
+        # message += "|    ** BOLTAC'S TRADING POST **    |\n"
+        # message += "+--------------------------------+\n"
+        # print(message)
         items = char.allowed_armors + char.allowed_weapons
         items = sorted(items, key=lambda i: i.cost.value)
         item_names: List[str] = [f"{i.name} ({i.cost})" for i in items]
-        choice: str = read_choice_or_exit(item_names, "What do You Want to Buy?")
+        message = f"Which item to you want to buy?\n\tYou Have {char.gold} GP.\n"
+        choice: str = read_choice_or_exit(item_names, message)
         if choice == "Exit":
             exit_buy = True
         else:
@@ -1447,27 +1440,29 @@ def sell_items(char):
     exit_sell: bool = False
     while not exit_sell:
         efface_ecran()
-        message = "+--------------------------------+\n"
-        message += "|    ** BOLTAC'S TRADING POST **    |\n"
-        message += "+--------------------------------+\n"
-        message += f"Welcome, {char.name}!"
-        print(message)
-        item_names: List[str] = [
-            f"{i.name} ({i.cost.value // 200} {i.cost.unit})"
-            for i in char.inventory
-            if i
-        ]
-        choice: str = read_choice_or_exit(item_names, "What do You Want to Sell?")
+        # message = "+--------------------------------+\n"
+        # message += "|    ** BOLTAC'S TRADING POST **    |\n"
+        # message += "+--------------------------------+\n"
+        # print(message)
+        item_names: List[str] = []
+        for i in char.inventory:
+            if i:
+                # cost: str = f"{i.cost.value // 200} {i.cost.unit}" if isinstance(i.cost, Cost) else f"{i.cost} gp"
+                cost: str = str(i.cost) if isinstance(i.cost, Cost) else f"{i.cost['quantity']} {i.cost['unit']}" if isinstance(i.cost, dict) else f"{i.cost} gp"
+                item_name = f"{i.name} ({cost})"
+                item_names.append(item_name)
+        message = f"Which item to you want to sell?\n\tYou Have {char.gold} GP.\n"
+        choice: str = read_choice_or_exit(item_names, message)
         if choice == "Exit":
             exit_sell = True
         else:
             efface_ecran()
             item_name: str = choice.split("(")[0].strip()
-            item: Equipment = [e for e in char.inventory if e and e.name == item_name][
-                0
-            ]
+            item: Equipment = [e for e in char.inventory if e and e.name == item_name][0]
             if item:
-                char.gold += item.cost.value // 200
+                cost_value: int = item.cost.value if isinstance(item.cost, Cost) else int(item.cost['quantity']) if isinstance(item.cost, dict) else item.cost
+                char.gold += cost_value // 200
+                # char.gold += item.cost.value // 200
                 char.inventory[char.inventory.index(item)] = None
                 print(f"{char.name} sells {item.name} for {item.cost}")
                 save_character(char, _dir=characters_dir)
@@ -1478,30 +1473,36 @@ def boltac_trading_post(party):
     exit_trading_post: bool = False
     while not exit_trading_post:
         efface_ecran()
-        message = "+--------------------------------+\n"
-        message += "|    ** BOLTAC'S TRADING POST **    |\n"
-        message += "+--------------------------------+\n"
-        message += "Welcome to Boltac's Trading Post!"
-        print(message)
-        choice: str = read_choice_or_exit([c.name for c in party], "Who will Enter?")
-        if choice == "Exit":
+        banner = "+--------------------------------+\n"
+        banner += "|  ** BOLTAC'S TRADING POST **   |\n"
+        banner += "+--------------------------------+\n"
+        banner += "\tWelcome to Boltac's!\n"
+        message = "  Everyday, Everything Low Price!!\n\n\tWho will Enter?\n"
+        select_name: str = read_choice_or_exit([c.name for c in party], banner + message)
+        if select_name == "Exit":
             exit_trading_post = True
         else:
-            efface_ecran()
-            char: Character = get_character(choice, party)
-            print(f"Welcome, {char.name}!")
-            choice: str = read_choice_or_exit(
-                ["Buy", "Sell"], "What do You Want to Do?"
-            )
-            match choice:
-                case "Buy":
-                    buy_items(char)
-                case "Sell":
-                    sell_items(char)
-                case "Exit":
-                    exit_trading_post = True
-                case _:
-                    continue
+            char: Character = get_character(select_name, party)
+            exit_character_menu: bool = False
+            while not exit_character_menu:
+                efface_ecran()
+                message = f"\t  Hello, {char.name}!\n" # You have {char.gold} gp")
+                choice: str = read_choice_or_exit(["Buy", "Sell", "Pool Gold"], banner + message)
+                match choice:
+                    case "Buy":
+                        buy_items(char)
+                    case "Sell":
+                        sell_items(char)
+                    case "Pool Gold":
+                        total_gold: int = sum([c.gold for c in party])
+                        for ch in party:
+                            ch.gold = total_gold if ch == char else 0
+                        print("All Gold has Pooled.")
+                        sleep(1)
+                    case "Exit":
+                        exit_character_menu = True
+                    case _:
+                        continue
 
 
 def adventurer_inn(party):
@@ -1623,7 +1624,7 @@ def training_grounds(roster: List[Character]):
         message += "| ** TRAINING GROUNDS ** |\n"
         message += "+------------------------+"
         option: str = read_choice(tg_options, message)
-        char_names: List[str] = [c.name for c in roster]
+        char_names: List[str] = [c.name for c in roster if c not in party]
         match option:
             case "Create a New Character":
                 if len(roster) > MAX_ROSTER:
@@ -1638,6 +1639,7 @@ def training_grounds(roster: List[Character]):
                     continue
                 races, subraces, classes, alignments, equipments, proficiencies, names, human_names, spells = load_character_collections()
                 random_char: Character = generate_random_character(races, subraces, classes, names, human_names, spells)
+                roster.append(random_char)
                 save_character(random_char, _dir=characters_dir)
                 print(f'{random_char.name} successfully added to roster!')
                 sleep(2)
@@ -1645,21 +1647,35 @@ def training_grounds(roster: List[Character]):
                 exit_message()
             case "Character Status":
                 efface_ecran()
-                name: str = read_choice(char_names, "Select a Character.")
-                char: Character = get_character(name, roster)
+                roster = sorted(roster, key=lambda c: c.level)
+                # char_names: List[tuple] = [(c.name, c.class_type, f'Lvl {c.level}') for c in roster if c.status == 'OK' and c not in party and not c.in_dungeon]
+                char_names: List[tuple] = [
+                    (c.name, c.class_type, f"Lvl {c.level}")
+                    for c in roster
+                    if c.status == "OK" and c not in party
+                ]
+                select_name: str = read_choice_tuple(char_names, "Select a Character.")
+                # select_name: str = read_choice_or_exit(char_names, "Select a Character.")
+                if select_name == "Exit":
+                    continue
+                char: Character = get_character(select_name, roster)
                 display_character_sheet(char)
                 exit_message()
             case "Delete a Character":
-                name: str = read_choice(char_names, "Select a Character to Delete.")
-                char: Character = get_character(name, roster)
+                select_name: str = read_choice_or_exit(char_names, "Select a Character to Delete.")
+                if select_name == "Exit":
+                    continue
+                char: Character = get_character(select_name, roster)
                 display_character_sheet(char)
                 if delete_character_prompt_ok(char):
                     if char in party:
                         party.remove(char)
                     roster.remove(char)
             case "Rename a Character":
-                name: str = read_choice(char_names, "Select a Character to Rename.")
-                char: Character = get_character(name, roster + party)
+                select_name: str = read_choice_or_exit(char_names, "Select a Character to Rename.")
+                if select_name == "Exit":
+                    continue
+                char: Character = get_character(select_name, roster + party)
                 print(f"Current Name is {char.name}.")
                 name_ok: bool = False
                 while not name_ok:
@@ -1876,6 +1892,7 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
         # monsters_names_for_debug = ['aboleth']
         # monsters_names_for_debug = ['half-red-dragon-veteran']Ice Mephit
         # monsters_names_for_debug = ['ice-mephit']
+        # monsters_names_for_debug = ["dragon-turtle", "purple-worm"]
         # monsters: List[Monster] = [request_monster(index_name) for index_name in monsters_names_for_debug]
         cprint(
             f"{color.PURPLE}-------------------------------------------------------------------------------------------------------------------------------------------{color.END}"
@@ -1913,19 +1930,13 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
                 if attacker.hit_points > 0:
                     if isinstance(attacker, Monster):
                         # Monster attacks randomly
-                        melee_chars: List[Character] = [
-                            c for i, c in enumerate(alive_chars) if i < 3
-                        ]
-                        ranged_chars: List[Character] = [
-                            c for i, c in enumerate(alive_chars) if i >= 3
-                        ]
+                        melee_chars: List[Character] = [c for i, c in enumerate(alive_chars) if i < 3]
+                        ranged_chars: List[Character] = [c for i, c in enumerate(alive_chars) if i >= 3]
                         if not melee_chars + ranged_chars:
                             break
                         # Precalculate ready spells & special attacks
                         if attacker.can_cast:
-                            cantric_spells: List[Spell] = [
-                                s for s in attacker.sc.learned_spells if not s.level
-                            ]
+                            cantric_spells: List[Spell] = [s for s in attacker.sc.learned_spells if not s.level]
                             slot_spells: List[Spell] = [
                                 s
                                 for s in attacker.sc.learned_spells
@@ -1935,149 +1946,100 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
                         if attacker.sa and round_num > 0:  # ou 1? (à vérifier)
                             for special_attack in attacker.sa:
                                 if special_attack.recharge_on_roll:
-                                    special_attack.ready = (
-                                        special_attack.recharge_success
-                                    )
-                        available_special_attacks: List[SpecialAbility] = list(
-                            filter(lambda a: a.ready, attacker.sa)
-                        )
+                                    special_attack.ready = special_attack.recharge_success
+                        available_special_attacks: List[SpecialAbility] = list(filter(lambda a: a.ready, attacker.sa))
                         # Main loop
                         if attacker.can_cast and castable_spells:
-                            char: Character = (
+                            target_char: Character = (
                                 choice(ranged_chars)
                                 if ranged_chars
                                 else choice(melee_chars)
                             )
-                            attack_spell: Spell = max(
-                                castable_spells, key=lambda s: s.level
-                            )
-                            char.hit_points -= attacker.spell_attack(char, attack_spell)
-                            if char.hit_points <= 0:
-                                alive_chars.remove(char)
-                                char.status = "DEAD"
-                                cprint(f"{char.name} is ** KILLED **!")
+                            attack_spell: Spell = max(castable_spells, key=lambda s: s.level)
+                            target_char.hit_points -= attacker.spell_attack(target_char, attack_spell)
+                            if target_char.hit_points <= 0:
+                                alive_chars.remove(target_char)
+                                target_char.status = "DEAD"
+                                cprint(f"{target_char.name} is ** KILLED **!")
                         elif available_special_attacks:
                             special_attack: SpecialAbility = max(
                                 available_special_attacks,
-                                key=lambda a: sum(
-                                    [
-                                        damage.dd.score(success_type=a.dc_success)
-                                        for damage in a.damages
-                                    ]
+                                key=lambda a: sum([damage.dd.score(success_type=a.dc_success) for damage in a.damages]
                                 ),
                             )
                             # cprint(special_attack)
                             if special_attack.targets_count >= len(party):
-                                cprint(
-                                    f"{color.GREEN}{attacker.name}{color.END} launches ** {special_attack.name.upper()} ** on whole party!"
-                                )
+                                cprint(f"{color.GREEN}{attacker.name}{color.END} launches ** {special_attack.name.upper()} ** on whole party!")
                                 target_chars: List[Character] = party
                             else:
                                 if special_attack.range == RangeType.MELEE:
-                                    target_chars: List[Character] = sample(
-                                        melee_chars, special_attack.targets_count
-                                    )
+                                    target_chars: List[Character] = sample(melee_chars, special_attack.targets_count)
                                 elif special_attack.range == RangeType.RANGED:
-                                    target_chars: List[Character] = sample(
-                                        ranged_chars, special_attack.targets_count
-                                    )
+                                    target_chars: List[Character] = sample(ranged_chars, special_attack.targets_count)
                                 else:
-                                    target_chars: List[Character] = sample(
-                                        party, special_attack.targets_count
-                                    )
-                                targets: str = ", ".join(
-                                    [char.name for char in target_chars]
-                                )
+                                    target_chars: List[Character] = sample(party, special_attack.targets_count)
+                                targets: str = ", ".join([char.name for char in target_chars])
                                 # Replace all ' and ' with ', ' except for the last one
-                                targets_split = targets.rsplit(
-                                    ", ", 1
-                                )  # Split at the last ', '
+                                targets_split = targets.rsplit(", ", 1)  # Split at the last ', '
                                 formatted_targets = " and ".join(targets_split)
-                                cprint(
-                                    f"{color.GREEN}{attacker.name}{color.END} launches ** {special_attack.name.upper()} ** on {formatted_targets}!"
-                                )
+                                cprint(f"{color.GREEN}{attacker.name}{color.END} launches ** {special_attack.name.upper()} ** on {formatted_targets}!")
                             # cprint('target chars: ' + '/'.join([c.name for c in target_chars]))
-                            for char in target_chars:
-                                if char in alive_chars:
-                                    char.hit_points -= attacker.special_attack(
-                                        char, special_attack
-                                    )
-                                    if char.hit_points <= 0:
+                            for target_char in target_chars:
+                                if target_char in alive_chars:
+                                    target_char.hit_points -= attacker.special_attack(target_char, special_attack)
+                                    if target_char.hit_points <= 0:
                                         # cprint('/'.join([c.name for c in alive_chars]))
                                         # cprint(f'removing {char.name}')
-                                        alive_chars.remove(char)
-                                        char.status = "DEAD"
-                                        cprint(f"{char.name} is ** KILLED **!")
+                                        alive_chars.remove(target_char)
+                                        target_char.status = "DEAD"
+                                        cprint(f"{target_char.name} is ** KILLED **!")
                         else:
-                            char: Character = choice(melee_chars)
+                            target_char: Character = choice(melee_chars)
                             melee_attacks: List[Action] = [
                                 a
                                 for a in attacker.actions
-                                if a in (ActionType.MELEE, ActionType.MIXED)
+                                if a.type in (ActionType.MELEE, ActionType.MIXED)
                             ]
                             if melee_attacks:
-                                char.hit_points -= attacker.attack(
-                                    character=char, actions=melee_attacks
-                                )
-                                if char.hit_points <= 0:
-                                    alive_chars.remove(char)
-                                    char.status = "DEAD"
-                                    cprint(f"{char.name} is ** KILLED **!")
+                                target_char.hit_points -= attacker.attack(character=target_char, actions=melee_attacks)
+                                if target_char.hit_points <= 0:
+                                    alive_chars.remove(target_char)
+                                    target_char.status = "DEAD"
+                                    cprint(f"{target_char.name} is ** KILLED **!")
                             else:
-                                cprint(
-                                    f"** {char.name} ** has no MELEE attacks implemented!"
-                                )
+                                cprint(f"** {attacker.name} ** has no MELEE attacks implemented!")
                     else:  # CHARACTER ATTACKS
                         if not alive_monsters:
                             break
-                        if (
-                            attacker.hit_points < 0.3 * attacker.max_hit_points
-                            and attacker.healing_potions
-                        ):
+                        if attacker.hit_points < 0.3 * attacker.max_hit_points and attacker.healing_potions:
                             p: HealingPotion = attacker.choose_best_potion()
                             attacker.drink(p)
-                            p_idx = attacker.inventory.index(p)
+                            p_idx = next(i for i, item in enumerate(attacker.inventory) if item is not None and item == p)
                             attacker.inventory[p_idx] = None
-                            cprint(
-                                f"{attacker.name} has {len(attacker.healing_potions)} remaining potions"
-                            )
+                            cprint(f"{attacker.name} has {len(attacker.healing_potions)} remaining potions")
                         else:
                             # Character attacks the weakest alive monster or the restraining creature
                             # order: int = alive_chars.index(attacker)
-                            restrained_effects: List[Condition] = [
-                                e
-                                for e in attacker.conditions
-                                if e.index == "restrained" and e.creature
-                            ]
+                            restrained_effects: List[Condition] = [e for e in attacker.conditions if e.index == "restrained" and e.creature]
                             if restrained_effects:
                                 effect = restrained_effects[0]
                                 # Make ability check to escape
                                 try:
-                                    if attacker.saving_throw(
-                                        effect.dc_type.value, effect.dc_value
-                                    ):
-                                        cprint(
-                                            f"{color.RED}{attacker.name}{color.END} is not restrained anymore from {effect.creature.name}!"
-                                        )
+                                    if attacker.saving_throw(effect.dc_type.value, effect.dc_value):
+                                        cprint(f"{color.RED}{attacker.name}{color.END} is not restrained anymore from {effect.creature.name}!")
                                         attacker.conditions.clear()
-                                        monster: Monster = min(
-                                            alive_monsters, key=lambda m: m.hit_points
-                                        )
+                                        monster: Monster = min(alive_monsters, key=lambda m: m.hit_points)
                                     else:
                                         monster: Monster = effect.creature
                                 except AttributeError:
                                     print(f"{effect}")
                             else:
-                                monster: Monster = min(
-                                    alive_monsters, key=lambda m: m.hit_points
-                                )
+                                monster: Monster = min(alive_monsters, key=lambda m: m.hit_points)
                             monster.hit_points -= attacker.attack(monster=monster)
                             if monster.hit_points <= 0:
                                 alive_monsters.remove(monster)
                                 # attacker.victory(monster)
-                                cprint(
-                                    f"{color.RED}{monster.name}{color.END} is ** KILLED **!"
-                                )
+                                cprint(f"{color.RED}{monster.name}{color.END} is ** KILLED **!")
                                 attacker.treasure(weapons, armors, equipments, potions)
                                 attacker.monster_kills += 1
             # End of Round
@@ -2085,21 +2047,19 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
             alive_monsters: List[Monster] = [c for c in monsters if c.hit_points > 0]
 
         if not alive_chars:
-            for char in party:
-                char.conditions.clear()
+            for target_char in party:
+                target_char.conditions.clear()
             exit_message(f"** DEFEAT! ALL PARTY HAS BEEN KILLED **")
             break
         elif not alive_monsters:
             exit_message(f"** VICTORY! **")
             earned_gold: int = encounter_gold_table[party_level - 1]
             xp_gained: int = sum([m.xp for m in monsters])
-            for char in alive_chars:
-                char.gold += earned_gold // len(party)
-                char.xp += xp_gained // len(alive_chars)
-                char.conditions.clear()
-            exit_message(
-                f"Party has earned {earned_gold} GP and gained {xp_gained} XP!"
-            )
+            for target_char in alive_chars:
+                target_char.gold += earned_gold // len(party)
+                target_char.xp += xp_gained // len(alive_chars)
+                target_char.conditions.clear()
+            exit_message(f"Party has earned {earned_gold} GP and gained {xp_gained} XP!")
         elif flee_combat:
             exit_message(f"** Party successfully escaped! **")
 
@@ -2138,11 +2098,11 @@ def delete_armors_weapons(roster: List[Character]):
 
 def give_best_armors_weapons(roster: List[Character]):
     for char in roster:
-        char.weapon = max(char.allowed_weapons, key=lambda w: w.damage_dice.max_score)
+        weapon = char.inventory[0] = max(char.allowed_weapons, key=lambda w: w.damage_dice.max_score)
+        weapon.equipped = True
         if char.allowed_armors:
-            char.armor = max(
-                char.allowed_armors, key=lambda a: int(a.armor_class["base"])
-            )
+            armor = char.inventory[1] = max(char.allowed_armors, key=lambda a: int(a.armor_class["base"]))
+            armor.equipped = True
 
 
 def load_xp_levels() -> List[int]:
@@ -2162,14 +2122,15 @@ if __name__ == "__main__":
     # characters_dir = f'{abspath}/gameState/characters'
     game_path = get_save_game_path()
     characters_dir = f"{game_path}/characters"
+    # cprint(characters_dir)
+    # exit()
 
     """ Load XP Levels """
     xp_levels: List[int] = load_xp_levels()
 
     """ Load Monster, Armor, Weapon databases """
-    monsters, armors, weapons, equipments, equipment_categories, potions = (
-        load_dungeon_collections()
-    )
+    monsters, armors, weapons, equipments, equipment_categories, potions = load_dungeon_collections()
+
     armors = list(filter(lambda a: a, armors))
     weapons = list(filter(lambda w: w, weapons))
 
@@ -2190,31 +2151,31 @@ if __name__ == "__main__":
     roster: List[Character] = get_roster(characters_dir)
     # party_ids: List[int] = set([c.id_party for c in roster if c.in_dungeon])
     # adventurer_groups: dict() = {p_id: [c for c in roster if c.id_party == p_id] for p_id in party_ids}
-    char_to_party: List[Char2Party] = load_char_to_party(_dir=game_path)
-    if not char_to_party:
-        for c in roster:
-            char_to_party.append(Char2Party(char_name=c.name))
-    party: List[Character] = [
-        c
-        for c in roster
-        for c2p in char_to_party
-        if c2p.char_name == c.name and c2p.id != -1
-    ]
-    party.sort(key=lambda c: c.id_party)
+    # char_to_party: List[Char2Party] = load_char_to_party(_dir=game_path)
+    # if not char_to_party:
+    #     for c in roster:
+    #         char_to_party.append(Char2Party(char_name=c.name))
+    # party: List[Character] = [c for c in roster for c2p in char_to_party if c2p.char_name == c.name and c2p.id != -1]
+    # party.sort(key=lambda c: c.id_party)
+
+    party: List[Character] = load_party(_dir=game_path)
 
     encounter_table: dict() = load_encounter_table()
     encounter_gold_table: List[int] = load_encounter_gold_table()
-    available_crs: List[Fraction] = [
-        Fraction(str(m.challenge_rating)) for m in monsters
-    ]
+    available_crs: List[Fraction] = [Fraction(str(m.challenge_rating)) for m in monsters]
 
     location = "Castle"
 
-    # cheat_function(roster)
+    # cheat_function(party)
     restore_all_roster(roster)
     # delete_all_potions(roster)
     # delete_armors_weapons(roster)
-    # give_best_armors_weapons(roster)
+    give_best_armors_weapons(party)
+    for c in party:
+        c.xp = 400000
+    for c in party:
+        while c.level < 20:
+            rest_character(c, 0, 1)
 
     # Set TERM if it's not already set
     if "TERM" not in os.environ:
@@ -2230,7 +2191,7 @@ if __name__ == "__main__":
             destination: str = read_choice(castle_destinations, message)
             for c in party:
                 if c.status != "OK":
-                    c.id_party = -1
+                    party.remove(c)
             # party = [c for c in party if c.status == 'OK']
             match destination:
                 case "Gilgamesh's Tavern":
@@ -2248,7 +2209,7 @@ if __name__ == "__main__":
                         continue
                     temple_of_cant(roster)
                 case "Boltac's Trading Post":
-                    boltac_trading_post(roster)
+                    boltac_trading_post(party)
                     # input('not yet created!... [Return] to Castle')
                 case "Edge of Town":
                     location = "Edge of Town"
@@ -2273,13 +2234,9 @@ if __name__ == "__main__":
                     ]
                     game_mode: str = read_choice(game_modes, "Choose game mode:")
                     if game_mode == "ARENA (Simulation)":
-                        display_adventurers(
-                            roster=roster, party=party, location=location
-                        )
+                        display_adventurers(roster=roster, party=party, location=location)
                         # simulate_arena(roster)
-                        exit_message(
-                            message="*** NOT MAINTAINED ANYMORE (Sorry) - please return to Castle! ***"
-                        )
+                        exit_message(message="*** NOT MAINTAINED ANYMORE (Sorry) - please return to Castle! ***")
                         location = "Castle"
                     else:
                         if party:
@@ -2292,22 +2249,19 @@ if __name__ == "__main__":
                             location = "Castle"
                         else:
                             if roster:
-                                print(
-                                    f"** NO PARTY FOUND! ** Return to {Color.RED}Castle{Color.END} to recruit adventurers!"
-                                )
+                                print(f"** NO PARTY FOUND! ** Return to {Color.RED}Castle{Color.END} to recruit adventurers!")
                                 location = "Castle"
                                 sleep(2)
                             else:
-                                print(
-                                    f"** NO CHARACTERS FOUND! ** Return to {Color.RED}Training grounds{Color.END} to create one or more adventurer(s)!"
-                                )
+                                print(f"** NO CHARACTERS FOUND! ** Return to {Color.RED}Training grounds{Color.END} to create one or more adventurer(s)!")
                                 sleep(2)
                 case "Leave Game":
-                    for c in party:
-                        for c2p in char_to_party:
-                            if c2p.char_name == c.name:
-                                c2p.id = c.id_party
-                    save_char_to_party(char_to_party=char_to_party, _dir=game_path)
+                    save_party(party=party, _dir=game_path)
+                    # for c in party:
+                    #     for c2p in char_to_party:
+                    #         if c2p.char_name == c.name:
+                    #             c2p.id = c.id_party
+                    # save_char_to_party(char_to_party=char_to_party, _dir=game_path)
                     print(f"Bye, see you in a next adventure :-)")
                     exit(0)
                 case "Castle":
