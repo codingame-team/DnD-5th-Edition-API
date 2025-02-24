@@ -88,11 +88,11 @@ def display_char_sheet(dialog: QDialog, ui: Ui_character_Dialog, char: Character
         elif isinstance(equipment, Armor):
             ui.armor_cbx.addItem(equipment.name)
 
-    weapon_index = ui.weapon_cbx.findText(char.weapon.name)
+    weapon_index = ui.weapon_cbx.findText(char.weapon.name) if char.weapon else -1
     ui.weapon_cbx.setCurrentIndex(weapon_index)
 
     if hasattr(char, 'armor'):
-        armor_index = ui.armor_cbx.findText(char.armor.name)
+        armor_index = ui.armor_cbx.findText(char.armor.name) if char.armor else -1
         ui.armor_cbx.setCurrentIndex(armor_index)
 
     # ui.weapon_cbx.currentTextChanged.connect(lambda: change_weapon(char))
