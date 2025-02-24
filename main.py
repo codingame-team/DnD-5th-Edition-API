@@ -1839,15 +1839,9 @@ def generate_encounter_levels(party_level: int) -> List[int]:
 
 def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
     """Combat simulation"""
-    print(
-        f"{color.PURPLE}-----------------------------------------------------------{color.END}"
-    )
-    print(
-        f"{color.PURPLE} Combat simulation engine based on DnD 5th edition API{color.END}"
-    )
-    print(
-        f"{color.PURPLE}-----------------------------------------------------------{color.END}"
-    )
+    print(f"{color.PURPLE}-----------------------------------------------------------{color.END}")
+    print(f"{color.PURPLE} Combat simulation engine based on DnD 5th edition API{color.END}")
+    print(f"{color.PURPLE}-----------------------------------------------------------{color.END}")
     # encounters_count: int = 0
     # killed_monsters: int = 0
 
@@ -1876,9 +1870,7 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
             return
         monster_groups_count: int = randint(1, 2)
         if not encounter_levels:
-            encounter_levels: List[int] = generate_encounter_levels(
-                party_level=party_level
-            )
+            encounter_levels: List[int] = generate_encounter_levels(party_level=party_level)
         encounter_level: int = encounter_levels.pop()
         monsters: List[Monster] = generate_encounter(
             encounter_level=encounter_level,
@@ -1892,16 +1884,12 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
         # monsters_names_for_debug = ['aboleth']
         # monsters_names_for_debug = ['half-red-dragon-veteran']Ice Mephit
         # monsters_names_for_debug = ['ice-mephit']
-        # monsters_names_for_debug = ["dragon-turtle", "purple-worm"]
+        # monsters_names_for_debug = ["copper-dragon-wyrmling", "warhorse-skeleton"]
         # monsters: List[Monster] = [request_monster(index_name) for index_name in monsters_names_for_debug]
-        cprint(
-            f"{color.PURPLE}-------------------------------------------------------------------------------------------------------------------------------------------{color.END}"
-        )
+        cprint(f"{color.PURPLE}-------------------------------------------------------------------------------------------------------------------------------------------{color.END}")
         cprint(f"{color.PURPLE} New encounter!{color.END}")
         display_group_of_monsters(monsters)
-        cprint(
-            f"{color.PURPLE}-------------------------------------------------------------------------------------------------------------------------------------------{color.END}"
-        )
+        cprint(f"{color.PURPLE}-------------------------------------------------------------------------------------------------------------------------------------------{color.END}")
         attack_queue = [(c, randint(1, c.abilities.dex)) for c in party] + [
             (m, randint(1, m.abilities.dex)) for m in monsters
         ]
@@ -2038,7 +2026,7 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
                             monster.hit_points -= attacker.attack(monster=monster)
                             if monster.hit_points <= 0:
                                 alive_monsters.remove(monster)
-                                # attacker.victory(monster)
+                                attacker.victory(monster)
                                 cprint(f"{color.RED}{monster.name}{color.END} is ** KILLED **!")
                                 attacker.treasure(weapons, armors, equipments, potions)
                                 attacker.monster_kills += 1
@@ -2170,12 +2158,14 @@ if __name__ == "__main__":
     restore_all_roster(roster)
     # delete_all_potions(roster)
     # delete_armors_weapons(roster)
-    give_best_armors_weapons(party)
-    for c in party:
-        c.xp = 400000
-    for c in party:
-        while c.level < 20:
-            rest_character(c, 0, 1)
+    # Automatic level up
+    # give_best_armors_weapons(party)
+    # for c in party:
+    #     if c.level < 20:
+    #         c.xp = 400000
+    # for c in party:
+    #     while c.level < 20:
+    #         rest_character(c, 0, 1)
 
     # Set TERM if it's not already set
     if "TERM" not in os.environ:
