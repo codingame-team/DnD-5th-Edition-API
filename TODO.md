@@ -1,8 +1,14 @@
-- [ ] Character class's missing attributes: alignment, spells
 - [ ] Management: inventory, combat, treasure, etc...
 - [x] Gilgamesh Tavern (party creation, char inspection)
 - [ ] Temple of Cant: raise dead, cure poison/paralysis/stone (to be fixed)
 - [x] Adventurer's inn: healing (stables, etc...)
 - [ ] Boltac's trading post
+  - [x] Armor/Weapon Buy & Sell
+  - [ ] Other items Buy & Sell
 - [ ] Coder un explorateur de cartes pour déplacer le groupe d'aventuriers
 - [ ] Coder un mode Combat avec positions du groupe et monstres dans la zone (mode Zoom) et actions pour chaque personnage
+- [ ] Character class's missing attributes:
+  - [ ] Alignment
+  - [ ] Spells
+  - [ ] Condition
+  - [ ] Level up: improve skills
