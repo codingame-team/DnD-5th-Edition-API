@@ -278,31 +278,21 @@ class Monster(Sprite):
 
         if sa.dc_type is None:
             # No saving throw available for this attack!
-            cprint(
-                f"{color.RED}{character.name}{color.END} is hit for {total_damage} hit points!"
-            )
+            cprint(f"{color.RED}{character.name}{color.END} is hit for {total_damage} hit points!")
         else:
-            st_success: bool = character.saving_throw(
-                dc_type=sa.dc_type, dc_value=sa.dc_value
-            )
+            st_success: bool = character.saving_throw(dc_type=sa.dc_type, dc_value=sa.dc_value)
             if st_success:
                 cprint(f"{color.RED}{character.name}{color.END} resists!")
                 if sa.dc_success == "half":
                     total_damage //= 2
-                    cprint(
-                        f"{color.RED}{character.name}{color.END} is hit for {total_damage} hit points!"
-                    )
+                    cprint(f"{color.RED}{character.name}{color.END} is hit for {total_damage} hit points!")
                 elif sa.dc_success == "none":
                     total_damage = 0
             else:
-                cprint(
-                    f"{color.RED}{character.name}{color.END} is hit for {total_damage} hit points!"
-                )
+                cprint(f"{color.RED}{character.name}{color.END} is hit for {total_damage} hit points!")
         return total_damage
 
-    def attack(
-        self, character: Character, actions: List[Action], distance: float = UNIT_SIZE
-    ) -> int:
+    def attack(self, character: Character, actions: List[Action], distance: float = UNIT_SIZE) -> int:
         """
             MELEE/RANGED/SA Attacks only
         :param character:
@@ -312,15 +302,11 @@ class Monster(Sprite):
         """
         total_damage: int = 0
         if not actions:
-            cprint(
-                f"{color.RED}{self.name}{color.END} has no attack implemented!{color.END}"
-            )
+            cprint(f"{color.RED}{self.name}{color.END} has no attack implemented!{color.END}")
         else:
             action: Action = choice(actions)
             if action.multi_attack:
-                cprint(
-                    f"{color.RED}{self.name}{color.END} multi-attacks {color.GREEN}{character.name}!{color.END}"
-                )
+                cprint(f"{color.RED}{self.name}{color.END} multi-attacks {color.GREEN}{character.name}!{color.END}")
                 attacks: List[Action] = [a for a in action.multi_attack]
             else:
                 attacks: List[Action] = [action]
@@ -334,35 +320,26 @@ class Monster(Sprite):
                         except:
                             attack_roll = randint(1, 20)
                     else:
-                        disadvantage: bool = (
-                            True if distance <= attack.normal_range else False
-                        )
+                        disadvantage: bool = (True if distance <= attack.normal_range else False)
                         # https://roll20.net/compendium/dnd5e/Ability%20Scores?expansion=0#toc_2
                         if not disadvantage:
                             attack_roll = randint(1, 20) + attack.attack_bonus
                         else:
-                            attack_roll = min(
-                                [randint(1, 20) + attack.attack_bonus for _ in range(2)]
-                            )
+                            attack_roll = min([randint(1, 20) + attack.attack_bonus for _ in range(2)])
                     if attack_roll >= character.armor_class:
                         if attack.damages:
                             for damage in attack.damages:
                                 damage_given = damage.dd.roll()
                                 total_damage += damage_given
-                                cprint(
-                                    f"{color.RED}{self.name}{color.END} {damage.type.index.replace('ing', 'es')} {color.GREEN}{character.name}{color.END} for {damage_given} hit points!"
-                                )
+                                cprint(f"{color.RED}{self.name}{color.END} {damage.type.index.replace('ing', 'es')} {color.GREEN}{character.name}{color.END} for {damage_given} hit points!")
                         if attack.effects:
                             character.conditions = [copy(e) for e in attack.effects]
                             for e in character.conditions:
                                 if e.index == "restrained":
                                     e.creature = self
-                            effects: str = " and ".join(
-                                [e.index for e in attack.effects]
-                            )
-                            cprint(
-                                f"{color.RED}{character.name}{color.END} is {effects}!"
-                            )
+                            effects: str = " and ".join([e.index for e in attack.effects])
+                            cprint(f"{color.RED}{character.name}{color.END} is {effects}!"
+)
                     else:
                         cprint(f"{self.name} misses {character.name}!")
         return total_damage
@@ -531,8 +508,9 @@ class Equipment(Sprite):
     equipped: bool
 
     @property
-    def prize(self):
-        return self.cost.quantity
+    def price(self):
+        # buy value in cp
+        return self.cost.value
 
     def __hash__(self):
         return hash(self.id)
@@ -613,7 +591,7 @@ class Potion(ABC, Sprite):
         self.min_cost = min_cost
         self.max_cost = max_cost
         self.min_level = min_level
-        self.cost = randint(self.min_cost, self.max_cost)
+        self.cost = Cost(randint(self.min_cost, self.max_cost), 'gp')
 
     def __copy__(self):
         cls = self.__class__
@@ -1196,16 +1174,12 @@ class Character(Sprite):
 
     @property
     def weapon(self) -> Optional[Weapon]:
-        equipped_weapons: List[Weapon] = [
-            item for item in self.inventory if isinstance(item, Weapon) if item.equipped
-        ]
+        equipped_weapons: List[Weapon] = [item for item in self.inventory if isinstance(item, Weapon) if item.equipped]
         return equipped_weapons[0] if equipped_weapons else None
 
     @property
     def armor(self) -> Optional[Armor]:
-        equipped_armors: List[Armor] = [
-            item for item in self.inventory if isinstance(item, Armor) if item.equipped
-        ]
+        equipped_armors: List[Armor] = [item for item in self.inventory if isinstance(item, Armor) if item.equipped]
         return equipped_armors[0] if equipped_armors else None
 
     @property
@@ -1213,9 +1187,7 @@ class Character(Sprite):
         return self.hit_points <= 0
 
     def can_equip(self, eq: Equipment) -> bool:
-        return (eq.category.index == "armor" and eq in self.allowed_armors) or (
-            eq.category.index == "armor" and eq in self.allowed_weapons
-        )
+        return (eq.category.index == "armor" and eq in self.allowed_armors) or (eq.category.index == "armor" and eq in self.allowed_weapons)
 
     def can_drink(self, eq: Equipment) -> bool:
         return eq.category.index == "potion"
@@ -1246,11 +1218,7 @@ class Character(Sprite):
         def prof_bonus_char(x):
             return x // 4 + 1
 
-        spell_casting_ability_modifier: int = int(
-            self.ability_modifiers.get_value_by_index(
-                name=self.class_type.spellcasting_ability
-            )
-        )
+        spell_casting_ability_modifier: int = int(self.ability_modifiers.get_value_by_index(name=self.class_type.spellcasting_ability))
         prof_bonus: int = prof_bonus_char(self.level)
         return 8 + spell_casting_ability_modifier + prof_bonus
 
@@ -1329,11 +1297,7 @@ class Character(Sprite):
 
     @property
     def multi_attacks(self) -> int:
-        attack_counts: int = (
-            1
-            if self.level < 5
-            else 2 if self.level < 11 else 3 if self.level < 20 else 4
-        )
+        attack_counts: int = (1 if self.level < 5 else 2 if self.level < 11 else 3 if self.level < 20 else 4)
         return (
             attack_counts + self.multi_attack_bonus
             if hasattr(self, "multi_attack_bonus")
@@ -1425,15 +1389,11 @@ class Character(Sprite):
             self.st_advantages = ["dex"]
         if "dex" in self.st_advantages:
             self.st_advantages.remove("dex")
-        cprint(
-            f"{self.name} is no longer {color.PURPLE}{color.BOLD}*hasted*{color.END}!"
-        )
+        cprint(f"{self.name} is no longer {color.PURPLE}{color.BOLD}*hasted*{color.END}!")
 
     def cancel_strength_effect(self):
         self.str_effect_modifier = -1
-        cprint(
-            f"{self.name} is no longer {color.PURPLE}{color.BOLD}*strong*{color.END}!"
-        )
+        cprint(f"{self.name} is no longer {color.PURPLE}{color.BOLD}*strong*{color.END}!")
 
     def drink(self, potion: Potion) -> bool:
         if not hasattr(potion, "min_level"):
@@ -1454,28 +1414,18 @@ class Character(Sprite):
                 if not hasattr(self, "st_advantages"):
                     self.st_advantages = []
                 self.st_advantages += ["dex"]
-                cprint(
-                    f"{self.name} drinks {potion.name} potion and is {color.PURPLE}{color.BOLD}*hasted*{color.END}!"
-                )
+                cprint(f"{self.name} drinks {potion.name} potion and is {color.PURPLE}{color.BOLD}*hasted*{color.END}!")
             else:
                 """Healing (??? check rules): A Healing potion repairs one six-sided die, plus one, (2-7) points of damage, just like a Cure Light Wounds spell."""
                 hp_to_recover = self.max_hit_points - self.hit_points
                 dice_count, roll_dice = map(int, potion.hit_dice.split("d"))
-                hp_restored = potion.bonus + sum(
-                    [randint(1, roll_dice) for _ in range(dice_count)]
-                )
-                self.hit_points = min(
-                    self.hit_points + hp_restored, self.max_hit_points
-                )
+                hp_restored = potion.bonus + sum([randint(1, roll_dice) for _ in range(dice_count)])
+                self.hit_points = min(self.hit_points + hp_restored, self.max_hit_points)
                 if hp_to_recover <= hp_restored:
-                    cprint(
-                        f"{self.name} drinks {potion.name} (id={potion.id}) potion and is {color.BOLD}*fully*{color.END} healed!"
-                    )
+                    cprint(f"{self.name} drinks {potion.name} potion and is {color.BOLD}*fully*{color.END} healed!")
                 else:
-                    cprint(
-                        f"{self.name} drinks {potion.name} (id={potion.id}) potion and has {min(hp_to_recover, hp_restored)} hit points restored!"
-                    )
-            cprint(potion.effect())
+                    cprint(f"{self.name} drinks {potion.name} potion and has {min(hp_to_recover, hp_restored)} hit points restored!")
+            # cprint(potion.effect())
             return True
 
     def victory(self, monster: Monster, solo_mode=False):
@@ -1508,42 +1458,36 @@ class Character(Sprite):
                 armors += p.ref if isinstance(p.ref, List) else [p.ref]
         return list(filter(None, armors))
 
-    def treasure(
-        self, weapons, armors, equipments: List[Equipment], potions, solo_mode=False
-    ):
+    def treasure(self, weapons, armors, equipments: List[Equipment], potions, solo_mode=False):
         if self.is_full:
             cprint(f"{self.name}'s inventory is full - no treasure!!!")
             return
+        free_slot = min([i for i, item in enumerate(self.inventory) if item is None])
         treasure_dice = randint(1, 3)
         if treasure_dice == 1:
             potion = choice(potions)
             cprint(f"{self.name} found a {potion.name} potion!")
-            self.healing_potions.append(choice(potions))
+            self.inventory[free_slot] = choice(potions)
         elif treasure_dice == 2:
             new_weapon: Weapon = choice(self.allowed_weapons)
             if not self.weapon or new_weapon.damage_dice > self.weapon.damage_dice:
                 cprint(f"{self.name} found a better weapon {new_weapon.name}!")
-                self.inventory.append(new_weapon)
                 new_weapon.equipped = True
             else:
-                cprint(
-                    f"{self.name} found a lesser weapon {new_weapon.name}! ** SKIPPING IT **"
-                )
+                cprint(f"{self.name} found a lesser weapon {new_weapon.name}!")
+            self.inventory[free_slot] = new_weapon
         else:
             if self.allowed_armors:
                 new_armor: Armor = choice(self.allowed_armors)
                 if new_armor.armor_class["base"] > self.armor_class:
                     cprint(f"{self.name} found a better armor {new_armor.name}!")
-                    self.inventory.append(new_armor)
+                    for item in self.inventory:
+                        if isinstance(item, Armor) and item.equipped:
+                            item.equipped = False
                     new_armor.equipped = True
                 else:
-                    cprint(
-                        f"{self.name} found a lesser armor {new_armor.name}! ** SKIPPING IT **"
-                    )
-            else:
-                cprint(
-                    f"{self.class_type.name} not allowed to wear an armor! ** SKIPPING IT **"
-                )
+                    cprint(f"{self.name} found a lesser armor {new_armor.name}!")
+                self.inventory[free_slot] = new_armor
 
     def gain_level_arena(self, pause: bool):
         self.level += 1
@@ -1553,9 +1497,7 @@ class Character(Sprite):
         print(f"{color.BLUE}New level #{self.level} gained!!!{color.END}")
         print(f"{self.name} gained {hp_gained} hit points")
         if pause:
-            input(
-                f"{color.UNDERLINE}{color.DARKCYAN}hit Enter to continue adventure :-) (potions remaining: {len(self.healing_potions)}){color.END}"
-            )
+            input(f"{color.UNDERLINE}{color.DARKCYAN}hit Enter to continue adventure :-) (potions remaining: {len(self.healing_potions)}){color.END}")
 
     def gain_level(self, tome_spells: List[Spell] = None) -> Optional[List[Spell]]:
         new_spells: List[Spell] = []
@@ -1682,16 +1624,14 @@ class Character(Sprite):
                 )
         return damage_roll
 
-    def attack(self, monster: Monster, cast: bool = True) -> int:
+    def attack(self, monster: Monster, action_type: ActionType = ActionType.MELEE, cast: bool = True) -> int:
         """
         :return: damage generated
         """
         damage_roll = 0
         castable_spells: List[Spell] = []
         if self.is_spell_caster:
-            cantric_spells: List[Spell] = [
-                s for s in self.sc.learned_spells if not s.level
-            ]
+            cantric_spells: List[Spell] = [s for s in self.sc.learned_spells if not s.level]
             slot_spells: List[Spell] = [
                 s
                 for s in self.sc.learned_spells
@@ -1709,9 +1649,7 @@ class Character(Sprite):
             for _ in range(self.multi_attacks):
                 if self.hit_points <= 0:
                     break
-                attack_roll = randint(
-                    1, 20
-                ) + self.ability_modifiers.get_value_by_index("str")
+                attack_roll = randint(1, 20) + self.ability_modifiers.get_value_by_index("str")
                 if attack_roll >= monster.armor_class:
                     damage_roll = self.damage_dice.roll()
                 if damage_roll:
@@ -1721,15 +1659,11 @@ class Character(Sprite):
                         if self.weapon
                         else "punches"
                     )
-                    cprint(
-                        f"{color.RED}{self.name}{color.END} {attack_type} {color.GREEN}{monster.name}{color.END} for {damage_roll} hit points!"
-                    )
+                    cprint(f"{color.RED}{self.name}{color.END} {attack_type} {color.GREEN}{monster.name}{color.END} for {damage_roll} hit points!")
                     if any([e for e in self.conditions if e.index == "restrained"]):
                         damage_roll //= 2
                         self.hit_points -= damage_roll
-                        cprint(
-                            f"{self.name} inflicts himself {damage_roll} hit points!"
-                        )
+                        cprint(f"{self.name} inflicts himself {damage_roll} hit points!")
                         if self.hit_points <= 0:
                             cprint(f"{self.name} *** IS DEAD ***!")
                     damage_multi += damage_roll
@@ -1755,18 +1689,14 @@ class Character(Sprite):
             return x // 5 + 2 if x < 5 else (x - 5) // 4 + 3
 
         st_type: str = f"saving-throw-{dc_type}"
-        prof_modifiers: List[int] = [
-            p.value for p in self.proficiencies if st_type == p.index
-        ]
+        prof_modifiers: List[int] = [p.value for p in self.proficiencies if st_type == p.index]
         if prof_modifiers:
             ability_modifier: int = prof_modifiers[0]
         else:
-            ability_modifier: int = ability_mod(
-                self.abilities.get_value_by_index(dc_type)
-            ) + prof_bonus(self.level)
+            ability_modifier: int = ability_mod(self.abilities.get_value_by_index(dc_type)) + prof_bonus(self.level)
         return (
             any(randint(1, 20) + ability_modifier > dc_value for _ in range(2))
-            if dc_type in self.st_advantages
+            if hasattr(self, 'st_advantages') and dc_type in self.st_advantages
             else randint(1, 20) + ability_modifier > dc_value
         )
 
