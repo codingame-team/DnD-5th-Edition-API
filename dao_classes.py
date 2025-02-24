@@ -1297,7 +1297,12 @@ class Character(Sprite):
 
     @property
     def multi_attacks(self) -> int:
-        attack_counts: int = (1 if self.level < 5 else 2 if self.level < 11 else 3 if self.level < 20 else 4)
+        if self.class_type.index == 'fighter':
+            attack_counts: int = (1 if self.level < 5 else 2 if self.level < 11 else 3)
+        elif self.class_type.index in ('paladin', 'ranger', 'monk', 'barbarian'):
+            attack_counts: int = (1 if self.level < 5 else 2)
+        else:
+            attack_counts: int = 1
         return (
             attack_counts + self.multi_attack_bonus
             if hasattr(self, "multi_attack_bonus")
