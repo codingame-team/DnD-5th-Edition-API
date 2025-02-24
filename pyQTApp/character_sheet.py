@@ -30,18 +30,32 @@ def save_character(char: Character, dialog: QDialog):
     dialog.accept()
 
 
-@pyqtSlot(Character, Ui_character_Dialog,  str)
+@pyqtSlot(Character, Ui_character_Dialog, str)
 def change_weapon(char: Character, ui: Ui_character_Dialog, weapon_name: str):
-    weapon: Weapon = [e for e in char.inventory if isinstance(e, Weapon) and e.name == weapon_name][0]
-    weapon.equipped = True
-    ui.damage_label.setText(str(weapon.damage_dice.dice))
+    weapons = [e for e in char.inventory if isinstance(e, Weapon)]
+    selected_weapon = next(w for w in weapons if w.name == weapon_name)
+
+    for weapon in weapons:
+        weapon.equipped = False
+
+    for weapon in weapons:
+        weapon.equipped = (weapon == selected_weapon)
+
+    ui.damage_label.setText(str(selected_weapon.damage_dice.dice))
 
 
 @pyqtSlot(Character, Ui_character_Dialog, str)
 def change_armor(char: Character, ui: Ui_character_Dialog, armor_name: str):
-    armor: Armor = [e for e in char.inventory if isinstance(e, Armor) and e.name == armor_name][0]
-    armor.equipped = True
-    ui.ac_label.setText(str(armor.armor_class['base']))
+    armors = [e for e in char.inventory if isinstance(e, Armor)]
+    selected_armor = next(a for a in armors if a.name == armor_name)
+
+    for armor in armors:
+        armor.equipped = False
+
+    for armor in armors:
+        armor.equipped = (armor == selected_armor)
+
+    ui.ac_label.setText(str(char.armor_class))
 
 def display_char_sheet(dialog: QDialog, ui: Ui_character_Dialog, char: Character):
     dialog.setModal(False)
