@@ -168,6 +168,44 @@ def request_other_actions(index_name: str) -> List[Action]:
             actions.append(action)
             return actions
 
+def extract_recharge_on_roll_from(action) -> Optional[int]:
+    action_name: str = action['name']
+    if "usage" in action:
+        if action['usage'].get('type') == 'recharge on roll':
+            return action['usage']['min_value']
+    elif 'Recharge' in action_name:
+        pattern = r"Recharge (\d+)"
+        match = re.search(pattern, action_name)
+        if match:
+            action_name = action_name.split('(')[0].strip()
+            return int(match.group(1))
+
+def extract_special_ability_from(action: str, recharge_on_roll: int) -> Optional[SpecialAbility]:
+    damages: List[Damage] = []
+    for damage in action['damage']:
+        if "damage_type" in damage:
+            can_attack = True
+            damage_type: DamageType = request_damage_type(index_name=damage['damage_type']['index'])
+            if '+' in damage['damage_dice']:
+                damage_dice, bonus = damage['damage_dice'].split('+')
+                bonus = int(bonus)
+            elif '-' in damage['damage_dice']:
+                damage_dice, bonus = damage['damage_dice'].split('-')
+                bonus = -int(bonus)
+            else:
+                damage_dice, bonus = damage['damage_dice'], 0
+            damages.append(Damage(type=damage_type, dd=DamageDice(damage_dice, bonus)))
+    area_of_effect: AreaOfEffect = AreaOfEffect(type='sphere', size=5)
+    if damages:
+        return SpecialAbility(name=action['name'],
+                                desc=action.get('desc'),
+                                damages=damages,
+                                dc_type=action['dc']['dc_type']['index'],
+                                dc_value=action['dc']['dc_value'],
+                                dc_success=action['dc']['success_type'],
+                                recharge_on_roll=recharge_on_roll,
+                                area_of_effect=area_of_effect)
+
 
 def request_monster(index_name: str) -> Monster:
     """
@@ -252,36 +290,37 @@ def request_monster(index_name: str) -> Monster:
         # Melee attacks
         for action in data['actions']:
             # print(f"{data['name']} - action = {action}")
-            if action['name'] != 'Multiattack' and "damage" in action:
-                normal_range = long_range = 5
-                is_melee_attack = re.search("Melee.*Attack", action['desc'])
-                is_ranged_attack = re.search("Ranged.*Attack", action['desc'])
-                if is_ranged_attack:
-                    # desc = "Ranged Weapon Attack: +7 to hit, range 150/600 ft., one target. Hit: 7 (1d8 + 3) piercing damage plus 13 (3d8) poison damage, and the target must succeed on a DC 14 Constitution saving throw or be poisoned. The poison lasts until it is removed by the lesser restoration spell or similar magic."
-                    range_pattern = r"range\s+(\d+)/(\d+)\s*ft\."
-                    match = re.search(range_pattern, action['desc'])
-                    if match:
-                        normal_range = int(match.group(1))
-                        long_range = int(match.group(2))
-                    else:
-                        normal_range = 5
-                        long_range = None
-                damages: List[Damage] = []
-                for damage in action['damage']:
-                    # print(f'damage = {damage}')
-                    if "choose" in damage and damage['type'] == 'damage':
-                        actions_count = int(damage['choose'])
-                        damages_list = damage['from']
-                        for damage_dict in damages_list:
-                            damage_type: DamageType = request_damage_type(index_name=damage_dict['damage_type']['index'])
-                            damage_choice = Damage(type=damage_type, dd=DamageDice(damage_dict['damage_dice']))
-                            action_type = ActionType.MIXED if is_melee_attack and is_ranged_attack else ActionType.MELEE if is_melee_attack else ActionType.RANGED
-                            actions.append(Action(name=action['name'], desc=action['desc'], type=action_type, normal_range=normal_range, long_range=long_range,
-                                                  attack_bonus=action.get('attack_bonus'),
-                                                  multi_attack=None, damages=[damage_choice]))
-                    elif "damage_type" in damage:
-                        damage_type: DamageType = request_damage_type(index_name=damage['damage_type']['index'])
-                        damages.append(Damage(type=damage_type, dd=DamageDice(damage['damage_dice'])))
+            if action['name'] != 'Multiattack':
+                if "damage" in action:
+                    normal_range = long_range = 5
+                    is_melee_attack = re.search("Melee.*Attack", action['desc'])
+                    is_ranged_attack = re.search("Ranged.*Attack", action['desc'])
+                    if is_ranged_attack:
+                        # desc = "Ranged Weapon Attack: +7 to hit, range 150/600 ft., one target. Hit: 7 (1d8 + 3) piercing damage plus 13 (3d8) poison damage, and the target must succeed on a DC 14 Constitution saving throw or be poisoned. The poison lasts until it is removed by the lesser restoration spell or similar magic."
+                        range_pattern = r"range\s+(\d+)/(\d+)\s*ft\."
+                        match = re.search(range_pattern, action['desc'])
+                        if match:
+                            normal_range = int(match.group(1))
+                            long_range = int(match.group(2))
+                        else:
+                            normal_range = 5
+                            long_range = None
+                    damages: List[Damage] = []
+                    for damage in action['damage']:
+                        # print(f'damage = {damage}')
+                        if "choose" in damage and damage['type'] == 'damage':
+                            actions_count = int(damage['choose'])
+                            damages_list = damage['from']
+                            for damage_dict in damages_list:
+                                damage_type: DamageType = request_damage_type(index_name=damage_dict['damage_type']['index'])
+                                damage_choice = Damage(type=damage_type, dd=DamageDice(damage_dict['damage_dice']))
+                                action_type = ActionType.MIXED if is_melee_attack and is_ranged_attack else ActionType.MELEE if is_melee_attack else ActionType.RANGED
+                                actions.append(Action(name=action['name'], desc=action['desc'], type=action_type, normal_range=normal_range, long_range=long_range,
+                                                      attack_bonus=action.get('attack_bonus'),
+                                                      multi_attack=None, damages=[damage_choice]))
+                        elif "damage_type" in damage:
+                            damage_type: DamageType = request_damage_type(index_name=damage['damage_type']['index'])
+                            damages.append(Damage(type=damage_type, dd=DamageDice(damage['damage_dice'])))
 
                 if damages:
                     can_attack = True
@@ -295,20 +334,16 @@ def request_monster(index_name: str) -> Monster:
                 can_attack = True
                 multi_attack: List[Action] = []
                 # Todo: verify if there could be more than one choice...
+                VALID_TYPES = {ActionType.MELEE, ActionType.RANGED}
                 choose_count: int = action['options']['choose']
                 for action_dict in action['options']['from'][0]:
-                    multi_action: List[Action] = [a for a in actions if a.name == action_dict['name']]
                     try:
-                        count: int = int(action_dict['count'])
-                    except:
+                        count = int(action_dict['count'])
+                        action_match = next((a for a in actions if a.name == action_dict['name']), None)
+                        if action_match and action_match.type in VALID_TYPES:
+                            multi_attack.extend([action_match] * count)
+                    except (ValueError, KeyError):
                         print(f"invalid count option for {index_name} : {action_dict['name']}")
-                        continue
-                    if not isinstance(count, int):
-                        continue
-                    # if multi_action[0].type == ActionType.MELEE:
-                    if multi_action and multi_action[0].type in (ActionType.MELEE, ActionType.RANGED):
-                        for _ in range(count):
-                            multi_attack.append(multi_action[0])
                 # action_type: str = ActionType.MELEE if 'Melee' in action['desc'] else ActionType.RANGED if 'Ranged' in action['desc']
                 actions.append(
                     Action(name=action['name'], desc=action['desc'], type=ActionType.MELEE, attack_bonus=None,
@@ -316,43 +351,25 @@ def request_monster(index_name: str) -> Monster:
         # Special abilities
         for action in data['actions']:
             if 'dc' in action:
-                damages: List[Damage] = []
-                for damage in action['damage']:
-                    if "damage_type" in damage:
-                        can_attack = True
-                        damage_type: DamageType = request_damage_type(index_name=damage['damage_type']['index'])
-                        if '+' in damage['damage_dice']:
-                            damage_dice, bonus = damage['damage_dice'].split('+')
-                            bonus = int(bonus)
-                        elif '-' in damage['damage_dice']:
-                            damage_dice, bonus = damage['damage_dice'].split('-')
-                            bonus = -int(bonus)
-                        else:
-                            damage_dice, bonus = damage['damage_dice'], 0
-                        damages.append(Damage(type=damage_type, dd=DamageDice(damage_dice, bonus)))
-                # print(index_name)
-                recharge_on_roll: int = None
-                action_name: str = action['name']
-                if "usage" in action:
-                    if action['usage'].get('type') == 'recharge on roll':
-                        recharge_on_roll = action['usage']['min_value']
-                elif 'Recharge' in action_name:
-                    pattern = r"Recharge (\d+)"
-                    match = re.search(pattern, action_name)
-                    if match:
-                        action_name = action_name.split('(')[0].strip()
-                        recharge_on_roll = int(match.group(1))
+                recharge_on_roll: Optional[int] = extract_recharge_on_roll_from(action)
+                if 'damage' in action:
+                    sa: Optional[SpecialAbility] = extract_special_ability_from(action, recharge_on_roll)
+                    if sa: special_abilities.append(sa)
+            elif 'attack_options' in action:
+                recharge_on_roll: Optional[int] = extract_recharge_on_roll_from(action)
+                options: str = action['attack_options']
+                if options.get('type') == 'attack':
+                    choose_count: int = int(options.get('choose'))
+                    if choose_count == 1:
+                        for a in options.get('from'):
+                            if 'dc' in a:
+                                if 'damage' in a:
+                                    sa: Optional[SpecialAbility] = extract_special_ability_from(a, recharge_on_roll)
+                                    if sa: special_abilities.append(sa)
+                    else:
+                        # TODO: check if there are multi-attack defined in some monster json
+                        continue
 
-                area_of_effect: AreaOfEffect = AreaOfEffect(type='sphere', size=5)
-                if damages:
-                    special_abilities.append(SpecialAbility(name=action_name,
-                                                            desc=action['desc'],
-                                                            damages=damages,
-                                                            dc_type=action['dc']['dc_type']['index'],
-                                                            dc_value=action['dc']['dc_value'],
-                                                            dc_success=action['dc']['success_type'],
-                                                            recharge_on_roll=recharge_on_roll,
-                                                            area_of_effect=area_of_effect))
 
     # TODO Check if there are other special abilities that we did not cover...
     if not actions:
