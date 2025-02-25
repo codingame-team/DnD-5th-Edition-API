@@ -984,14 +984,15 @@ def display_character_sheet(char: Character):
         else ""
     )
     # sheet += '|{:^51}|\n'.format(f'healing potions = {len(char.healing_potions)}')
-    armors: List[Armor] = [item for item in char.inventory if isinstance(item, Armor) and item.equipped]
-    weapons: List[Weapon] = [item for item in char.inventory if isinstance(item, Weapon) and item.equipped]
-    armors_list: str = " + ".join([a.name.title() for a in armors]) if armors else "None"
+    char_armors: List[Armor] = [item for item in char.inventory if isinstance(item, Armor) and item.equipped]
+    char_weapons: List[Weapon] = [item for item in char.inventory if isinstance(item, Weapon) and item.equipped]
+    armors_list: str = " + ".join([a.name.title() for a in char_armors]) if char_armors else "None"
     sheet += "|{:^51}|\n".format(f"armors in use = {armors_list}")
     sheet += "|{:^51}|\n".format(f"shield in use = {char.used_shield}")
-    if weapons:
-        for w in weapons:
-            sheet += "|{:^51}|\n".format(f"weapon in use = {w.name.title()} - Damage = {w.damage_dice.dice}")
+    if char_weapons:
+        for w in char_weapons:
+            prof_label = '*' if w not in char.prof_weapons else ''
+            sheet += "|{:^51}|\n".format(f"weapon in use = {w.name.title()}{prof_label} - Damage = {w.damage_dice.dice}")
     else:
         sheet += "|{:^51}|\n".format(f"weapon in use = None")
     sheet += "|{:^51}|\n".format(f"gold = {char.gold} gp")
@@ -1410,9 +1411,12 @@ def buy_items(char: Character):
         # message += "|    ** BOLTAC'S TRADING POST **    |\n"
         # message += "+--------------------------------+\n"
         # print(message)
-        items = char.allowed_armors + char.allowed_weapons
-        items = sorted(items, key=lambda i: i.cost.value)
-        item_names: List[str] = [f"{i.name} ({i.cost})" for i in items]
+        # items = char.allowed_armors + char.allowed_weapons
+        items = sorted(weapons, key=lambda i: i.cost.value) + sorted(char.prof_armors, key=lambda i: i.cost.value)
+        item_names: List[str] = []
+        for i in items:
+            prof_label: str = ' **' if isinstance(i, Weapon) and i not in char.prof_weapons else ''
+            item_names.append(f"{i.name} ({i.cost}){prof_label}")
         message = f"Which item to you want to buy?\n\tYou Have {char.gold} GP.\n"
         choice: str = read_choice_or_exit(item_names, message)
         if choice == "Exit":
@@ -1447,9 +1451,11 @@ def sell_items(char):
         item_names: List[str] = []
         for i in char.inventory:
             if i:
+                prof_label: str = ' **' if isinstance(i, Weapon) and i not in char.prof_weapons else ''
+                equipped_label: str = ' (E)' if (isinstance(i, Weapon) or isinstance(i, Armor)) and i.equipped else ''
                 # cost: str = f"{i.cost.value // 200} {i.cost.unit}" if isinstance(i.cost, Cost) else f"{i.cost} gp"
                 cost: str = str(i.cost) if isinstance(i.cost, Cost) else f"{i.cost['quantity']} {i.cost['unit']}" if isinstance(i.cost, dict) else f"{i.cost} gp"
-                item_name = f"{i.name} ({cost})"
+                item_name = f"{i.name} ({cost}){prof_label}{equipped_label}"
                 item_names.append(item_name)
         message = f"Which item to you want to sell?\n\tYou Have {char.gold} GP.\n"
         choice: str = read_choice_or_exit(item_names, message)
@@ -2023,7 +2029,7 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
                                     print(f"{effect}")
                             else:
                                 monster: Monster = min(alive_monsters, key=lambda m: m.hit_points)
-                            monster.hit_points -= attacker.attack(monster=monster)
+                            monster.hit_points -= attacker.attack(monster=monster, in_melee=(attacker in alive_chars[:3]))
                             if monster.hit_points <= 0:
                                 alive_monsters.remove(monster)
                                 attacker.victory(monster)
@@ -2086,10 +2092,10 @@ def delete_armors_weapons(roster: List[Character]):
 
 def give_best_armors_weapons(roster: List[Character]):
     for char in roster:
-        weapon = char.inventory[0] = max(char.allowed_weapons, key=lambda w: w.damage_dice.max_score)
+        weapon = char.inventory[0] = max(char.prof_weapons, key=lambda w: w.damage_dice.max_score)
         weapon.equipped = True
-        if char.allowed_armors:
-            armor = char.inventory[1] = max(char.allowed_armors, key=lambda a: int(a.armor_class["base"]))
+        if char.prof_armors:
+            armor = char.inventory[1] = max(char.prof_armors, key=lambda a: int(a.armor_class["base"]))
             armor.equipped = True
 
 
@@ -2155,7 +2161,7 @@ if __name__ == "__main__":
     location = "Castle"
 
     # cheat_function(party)
-    restore_all_roster(roster)
+    # restore_all_roster(roster)
     # delete_all_potions(roster)
     # delete_armors_weapons(roster)
     # Automatic level up
