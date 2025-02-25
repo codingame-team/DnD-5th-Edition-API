@@ -1187,7 +1187,7 @@ class Character(Sprite):
         return self.hit_points <= 0
 
     def can_equip(self, eq: Equipment) -> bool:
-        return (eq.category.index == "armor" and eq in self.allowed_armors) or (eq.category.index == "armor" and eq in self.allowed_weapons)
+        return (eq.category.index == "armor" and eq in self.prof_armors) or (eq.category.index == "armor" and eq in self.prof_weapons)
 
     def can_drink(self, eq: Equipment) -> bool:
         return eq.category.index == "potion"
@@ -1448,7 +1448,7 @@ class Character(Sprite):
         cprint(f"{self.name} gained {monster.xp} XP{gold_msg}!")
 
     @property
-    def allowed_weapons(self) -> List[Weapon]:
+    def prof_weapons(self) -> List[Weapon]:
         weapons: List[Weapon] = []
         for p in self.proficiencies:
             if p.type == ProfType.WEAPON:
@@ -1456,7 +1456,7 @@ class Character(Sprite):
         return list(filter(None, weapons))
 
     @property
-    def allowed_armors(self) -> List[Armor]:
+    def prof_armors(self) -> List[Armor]:
         armors: List[Armor] = []
         for p in self.proficiencies:
             if p.type == ProfType.ARMOR:
@@ -1474,7 +1474,7 @@ class Character(Sprite):
             cprint(f"{self.name} found a {potion.name} potion!")
             self.inventory[free_slot] = choice(potions)
         elif treasure_dice == 2:
-            new_weapon: Weapon = choice(self.allowed_weapons)
+            new_weapon: Weapon = choice(self.prof_weapons)
             if not self.weapon or new_weapon.damage_dice > self.weapon.damage_dice:
                 cprint(f"{self.name} found a better weapon {new_weapon.name}!")
                 new_weapon.equipped = True
@@ -1482,8 +1482,8 @@ class Character(Sprite):
                 cprint(f"{self.name} found a lesser weapon {new_weapon.name}!")
             self.inventory[free_slot] = new_weapon
         else:
-            if self.allowed_armors:
-                new_armor: Armor = choice(self.allowed_armors)
+            if self.prof_armors:
+                new_armor: Armor = choice(self.prof_armors)
                 if new_armor.armor_class["base"] > self.armor_class:
                     cprint(f"{self.name} found a better armor {new_armor.name}!")
                     for item in self.inventory:
@@ -1507,7 +1507,8 @@ class Character(Sprite):
     def gain_level(self, tome_spells: List[Spell] = None) -> Optional[List[Spell]]:
         new_spells: List[Spell] = []
         self.level += 1
-        hp_gained = randint(1, self.class_type.hit_die) + self.ability_modifiers.con
+        level_up_hit_die = {12: 7, 10: 6, 8: 5, 6: 4}
+        hp_gained = randint(1, level_up_hit_die[self.class_type.hit_die]) + self.ability_modifiers.con
         self.max_hit_points += max(1, hp_gained)
         self.hit_points += hp_gained
         print(f"{color.BLUE}New level #{self.level} gained!!!{color.END}")
@@ -1629,10 +1630,13 @@ class Character(Sprite):
                 )
         return damage_roll
 
-    def attack(self, monster: Monster, action_type: ActionType = ActionType.MELEE, cast: bool = True) -> int:
+    def attack(self, monster: Monster, in_melee: bool, cast: bool = True) -> int:
         """
         :return: damage generated
         """
+        def prof_bonus(x):
+            return x // 5 + 2 if x < 5 else (x - 5) // 4 + 3
+
         damage_roll = 0
         castable_spells: List[Spell] = []
         if self.is_spell_caster:
@@ -1643,7 +1647,7 @@ class Character(Sprite):
                 if s.level and self.sc.spell_slots[s.level - 1] > 0
             ]
             castable_spells = cantric_spells + slot_spells
-        if cast and castable_spells:
+        if cast and castable_spells and not in_melee:
             # TODO modify spell_slots to [] for non casters
             attack_spell: Spell = max(castable_spells, key=lambda s: s.level)
             damage_roll = self.cast(attack_spell, monster)
@@ -1654,7 +1658,7 @@ class Character(Sprite):
             for _ in range(self.multi_attacks):
                 if self.hit_points <= 0:
                     break
-                attack_roll = randint(1, 20) + self.ability_modifiers.get_value_by_index("str")
+                attack_roll = randint(1, 20) + self.ability_modifiers.get_value_by_index("str") + prof_bonus(self.level)
                 if attack_roll >= monster.armor_class:
                     damage_roll = self.damage_dice.roll()
                 if damage_roll:
