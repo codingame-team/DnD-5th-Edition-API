@@ -1333,7 +1333,7 @@ def rest_character(char: Character, fee: int, weeks: int):
     exit_message()
 
 
-def temple_of_cant(party: List[Character, roster: List[Character]]):
+def temple_of_cant(party: List[Character], roster: List[Character]):
     exit_temple: bool = False
     while not exit_temple:
         efface_ecran()
@@ -1363,7 +1363,7 @@ def temple_of_cant(party: List[Character, roster: List[Character]]):
             exit_temple = True
         else:
             efface_ecran()
-            char_to_save: Character = get_character(choice.split()[0], roster + party)
+            char_to_save: Character = get_character(choice.split('(')[0].strip(), roster + party)
             contributor_names: List[str] = [c.name for c in party if c.status == "OK"]
             char_name: str = read_choice_or_exit(contributor_names, "Who will Contribute?")
             if char_name == "Exit":
@@ -1415,7 +1415,7 @@ def buy_items(char: Character):
         items = sorted(weapons, key=lambda i: i.cost.value) + sorted(char.prof_armors, key=lambda i: i.cost.value)
         item_names: List[str] = []
         for i in items:
-            prof_label: str = ' **' if isinstance(i, Weapon) and i not in char.prof_weapons else ''
+            prof_label: str = f'{Color.RED} ** NOT PROFICIENT **{Color.END}' if isinstance(i, Weapon) and i not in char.prof_weapons else ''
             item_names.append(f"{i.name} ({i.cost}){prof_label}")
         message = f"Which item to you want to buy?\n\tYou Have {char.gold} GP.\n"
         choice: str = read_choice_or_exit(item_names, message)
@@ -1451,11 +1451,11 @@ def sell_items(char):
         item_names: List[str] = []
         for i in char.inventory:
             if i:
-                prof_label: str = ' **' if isinstance(i, Weapon) and i not in char.prof_weapons else ''
-                equipped_label: str = ' (E)' if (isinstance(i, Weapon) or isinstance(i, Armor)) and i.equipped else ''
+                prof_label: str = f'{Color.RED} ** NOT PROFICIENT **{Color.END}' if isinstance(i, Weapon) and i not in char.prof_weapons else ''
+                equipped_label: str = ' (Equipped)' if (isinstance(i, Weapon) or isinstance(i, Armor)) and i.equipped else ''
                 # cost: str = f"{i.cost.value // 200} {i.cost.unit}" if isinstance(i.cost, Cost) else f"{i.cost} gp"
                 cost: str = str(i.cost) if isinstance(i.cost, Cost) else f"{i.cost['quantity']} {i.cost['unit']}" if isinstance(i.cost, dict) else f"{i.cost} gp"
-                item_name = f"{i.name} ({cost}){prof_label}{equipped_label}"
+                item_name = f"{i.name} ({cost}){equipped_label}{prof_label}"
                 item_names.append(item_name)
         message = f"Which item to you want to sell?\n\tYou Have {char.gold} GP.\n"
         choice: str = read_choice_or_exit(item_names, message)
@@ -1465,14 +1465,16 @@ def sell_items(char):
             efface_ecran()
             item_name: str = choice.split("(")[0].strip()
             item: Equipment = [e for e in char.inventory if e and e.name == item_name][0]
-            if item:
+            if not item.equipped:
                 cost_value: int = item.cost.value if isinstance(item.cost, Cost) else int(item.cost['quantity']) if isinstance(item.cost, dict) else item.cost
                 char.gold += cost_value // 200
                 # char.gold += item.cost.value // 200
                 char.inventory[char.inventory.index(item)] = None
                 print(f"{char.name} sells {item.name} for {item.cost}")
                 save_character(char, _dir=characters_dir)
-                sleep(2)
+            else:
+                print(f"Please un-equip {item.name} first!")
+            sleep(2)
 
 
 def boltac_trading_post(party):
@@ -2203,7 +2205,7 @@ if __name__ == "__main__":
                         print("No characters remains in the party!")
                         sleep(2)
                         continue
-                    temple_of_cant(roster)
+                    temple_of_cant(party, roster)
                 case "Boltac's Trading Post":
                     boltac_trading_post(party)
                     # input('not yet created!... [Return] to Castle')
