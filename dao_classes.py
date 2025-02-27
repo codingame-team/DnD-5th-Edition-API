@@ -12,7 +12,7 @@ from random import randint, choice
 import pygame
 from pygame import Surface, SurfaceType
 
-from tools.common import cprint, UNIT_SIZE
+from tools.common import cprint, UNIT_SIZE, Color
 
 """ Needs to separate presentation layer from data layer """
 
@@ -546,8 +546,7 @@ class Weapon(Equipment):
         self.category_range = f"{self.category_type.value} {self.range_type.value}"
 
     def __repr__(self):
-        return f"#{self.id} {self.index} ({self.category})"
-
+        return self.name
 
 @dataclass
 class Armor(Equipment):
@@ -556,7 +555,7 @@ class Armor(Equipment):
     stealth_disadvantage: bool
 
     def __repr__(self):
-        return f"#{self.id} {self.index} ({self.category})"
+        return self.name
 
 
 class PotionRarity(Enum):
@@ -1187,7 +1186,7 @@ class Character(Sprite):
         return self.hit_points <= 0
 
     def can_equip(self, eq: Equipment) -> bool:
-        return (eq.category.index == "armor" and eq in self.prof_armors) or (eq.category.index == "armor" and eq in self.prof_weapons)
+        return (eq.category.index == "armor" and eq in self.prof_armors)# or (eq.category.index == "armor" and eq in self.prof_weapons)
 
     def can_drink(self, eq: Equipment) -> bool:
         return eq.category.index == "potion"
@@ -1432,6 +1431,64 @@ class Character(Sprite):
                     cprint(f"{self.name} drinks {potion.name} potion and has {min(hp_to_recover, hp_restored)} hit points restored!")
             # cprint(potion.effect())
             return True
+
+    def equip(self, item) -> bool:
+        if isinstance(item, Armor):
+            if item.index == 'shield':
+                if self.used_shield:
+                    if item == self.used_shield:
+                        # un-equip shield
+                        item.equipped = not item.equipped
+                        return True
+                    else:
+                        cprint(f'Hero cannot equip {Color.RED}{item.name}{Color.END}> - Please un-equip <{self.used_shield.name}> first!')
+                else:
+                    if self.used_weapon:
+                        is_two_handed = [p for p in self.used_weapon.properties if p.index == 'two-handed']
+                        if is_two_handed:
+                            cprint(f'Hero cannot equip <{item.name}> with a 2-handed weapon - Please un-equip <{self.used_weapon}> first!')
+                        else:
+                            # equip shield
+                            item.equipped = not item.equipped
+                            return True
+                    else:
+                        # equip shield
+                        item.equipped = not item.equipped
+                        return True
+            else:
+                if self.used_armor:
+                    if item == self.used_armor:
+                        # un-equip armor
+                        item.equipped = not item.equipped
+                        return True
+                    else:
+                        cprint(f'Hero cannot equip <{item.name}> - Please un-equip <{self.used_armor.name}> first!')
+                else:
+                    if self.strength < item.str_minimum:
+                        cprint(f'Hero cannot equip <{item.name}> - Minimum strength required is <{item.str_minimum}>!')
+                    else:
+                        # equip armor
+                        item.equipped = not item.equipped
+                        return True
+        elif isinstance(item, Weapon):
+            if self.used_weapon:
+                if item == self.used_weapon:
+                    # un-equip weapon
+                    item.equipped = not item.equipped
+                    return True
+                else:
+                    cprint(f'Hero cannot equip <{item.name}> - Please un-equip <{self.used_weapon.name}> first!')
+            else:
+                is_two_handed = [p for p in item.properties if p.index == 'two-handed']
+                if is_two_handed and self.used_shield:
+                    cprint(f'Hero cannot equip <{item.name}> with a shield - Please un-equip <{self.used_shield}> first!')
+                else:
+                    # equip weapon
+                    item.equipped = not item.equipped
+                    return True
+        else:
+            cprint(f'Hero cannot equip <{item.name}>!')
+        return False
 
     def victory(self, monster: Monster, solo_mode=False):
         self.xp += monster.xp
