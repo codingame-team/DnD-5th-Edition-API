@@ -316,8 +316,7 @@ def request_monster(index_name: str) -> Monster:
                                 damage_choice = Damage(type=damage_type, dd=DamageDice(damage_dict['damage_dice']))
                                 action_type = ActionType.MIXED if is_melee_attack and is_ranged_attack else ActionType.MELEE if is_melee_attack else ActionType.RANGED
                                 actions.append(Action(name=action['name'], desc=action['desc'], type=action_type, normal_range=normal_range, long_range=long_range,
-                                                      attack_bonus=action.get('attack_bonus'),
-                                                      multi_attack=None, damages=[damage_choice]))
+                                                      attack_bonus=action.get('attack_bonus'), multi_attack=None, damages=[damage_choice]))
                         elif "damage_type" in damage:
                             damage_type: DamageType = request_damage_type(index_name=damage['damage_type']['index'])
                             damages.append(Damage(type=damage_type, dd=DamageDice(damage['damage_dice'])))
@@ -326,8 +325,7 @@ def request_monster(index_name: str) -> Monster:
                     can_attack = True
                     action_type = ActionType.MIXED if is_melee_attack and is_ranged_attack else ActionType.MELEE if is_melee_attack else ActionType.RANGED
                     actions.append(Action(name=action['name'], desc=action['desc'], type=action_type, normal_range=normal_range, long_range=long_range,
-                                          attack_bonus=action.get('attack_bonus'),
-                                          multi_attack=None, damages=damages))
+                                          attack_bonus=action.get('attack_bonus'), multi_attack=None, damages=damages))
         # Multiattacks
         for action in data['actions']:
             if action['name'] == 'Multiattack':
@@ -345,9 +343,7 @@ def request_monster(index_name: str) -> Monster:
                     except (ValueError, KeyError):
                         print(f"invalid count option for {index_name} : {action_dict['name']}")
                 # action_type: str = ActionType.MELEE if 'Melee' in action['desc'] else ActionType.RANGED if 'Ranged' in action['desc']
-                actions.append(
-                    Action(name=action['name'], desc=action['desc'], type=ActionType.MELEE, attack_bonus=None,
-                           multi_attack=multi_attack, damages=None))
+                actions.append(Action(name=action['name'], desc=action['desc'], type=ActionType.MELEE, attack_bonus=None, multi_attack=multi_attack, damages=None))
         # Special abilities
         for action in data['actions']:
             if 'dc' in action:
@@ -378,8 +374,7 @@ def request_monster(index_name: str) -> Monster:
     proficiencies: List[Proficiency] = []
     if 'proficiencies' in data:
         for prof in data['proficiencies']:
-            proficiency: Proficiency = request_proficiency(
-                index_name=prof['proficiency']['index'])
+            proficiency: Proficiency = request_proficiency(index_name=prof['proficiency']['index'])
             proficiency.value = prof.get('value')
             proficiencies.append(proficiency)
 
@@ -2214,8 +2209,7 @@ def request_spell(index_name: str) -> Optional[Spell]:
         # print(data['index'], data['damage'])
         damage_type = data['damage']['damage_type']['index'] if "damage_type" in data['damage'] else None
         damage_at_slot_level = data['damage'].get('damage_at_slot_level')
-        damage_at_character_level = data['damage'].get(
-            'damage_at_character_level')
+        damage_at_character_level = data['damage'].get('damage_at_character_level')
         # print(f"{data['index']} - damage_at_character_level={damage_at_character_level}")
         # print(f"{data['index']} - damage_at_slot_level={damage_at_slot_level}")
 
@@ -2306,12 +2300,10 @@ def request_weapon(index_name: str) -> Weapon:
         data = json.loads(f.read())
     weapon_properties = None
     if 'properties' in data:
-        weapon_properties: List[WeaponProperty] = [
-            request_weapon_property(d['index']) for d in data['properties']]
+        weapon_properties: List[WeaponProperty] = [request_weapon_property(d['index']) for d in data['properties']]
     throw_range = None
     if 'throw_range' in data:
-        throw_range = WeaponThrowRange(
-            data['throw_range']['normal'], data['throw_range']['long'])
+        throw_range = WeaponThrowRange(data['throw_range']['normal'], data['throw_range']['long'])
     if "damage" in data:
         damage_dice_two_handed: DamageDice = None
         if "two_handed_damage" in data:
@@ -2359,23 +2351,18 @@ def request_race(index_name: str) -> Race:
     """
     with open(resource_path(f"data/races/{index_name}.json"), "r") as f:
         data = json.loads(f.read())
-        ability_bonuses = dict([(ability_bonus['ability_score']['index'], ability_bonus['bonus'])
-                                for ability_bonus in data['ability_bonuses']])
+        ability_bonuses = dict([(ability_bonus['ability_score']['index'], ability_bonus['bonus']) for ability_bonus in data['ability_bonuses']])
         starting_proficiencies: List[Proficiency] = [request_proficiency(
             d['index']) for d in data.get('starting_proficiencies')]
         starting_proficiency_options: List[Tuple[List[Proficiency], int]] = []
         if data.get('starting_proficiency_options'):
             dat = data.get('starting_proficiency_options')
             choose: int = dat['choose']
-            proficiencies_choose: List[Proficiency] = [
-                request_proficiency(d['index']) for d in dat['from']]
+            proficiencies_choose: List[Proficiency] = [request_proficiency(d['index']) for d in dat['from']]
             starting_proficiency_options.append((choose, proficiencies_choose))
-        languages: List[Language] = [lang['index']
-                                     for lang in data['languages']]
-        traits: List[Trait] = [request_trait(
-            d['index']) for d in data['traits']]
-        subraces: List[SubRace] = [request_subrace(
-            d['index']) for d in data['subraces']]
+        languages: List[Language] = [lang['index']for lang in data['languages']]
+        traits: List[Trait] = [request_trait(d['index']) for d in data['traits']]
+        subraces: List[SubRace] = [request_subrace(d['index']) for d in data['subraces']]
         subraces: List[str] = [d['index'] for d in data['subraces']]
         return Race(index=data['index'],
                     name=data['name'],
@@ -2403,10 +2390,8 @@ def request_subrace(index_name: str) -> SubRace:
         data = json.loads(f.read())
         ability_bonuses = dict([(ability_bonus['ability_score']['index'], ability_bonus['bonus'])
                                 for ability_bonus in data['ability_bonuses']])
-        starting_proficiencies: List[Proficiency] = [request_proficiency(
-            d['index']) for d in data['starting_proficiencies']]
-        racial_traits: List[Trait] = [request_trait(
-            d['index']) for d in data['racial_traits']]
+        starting_proficiencies: List[Proficiency] = [request_proficiency(d['index']) for d in data['starting_proficiencies']]
+        racial_traits: List[Trait] = [request_trait(d['index']) for d in data['racial_traits']]
         return SubRace(index=data['index'],
                        name=data['name'],
                        desc=data['desc'],
@@ -2601,8 +2586,7 @@ def get_spell_slots(class_name: str) -> Tuple[dict(), List[int], List[int]]:
             for line in data:
                 # Lvl;Proficiency Bonus;Features;Cantrips Known;Spells Known;Spell Slots;Slot Level;Invocations Known
                 char_level, prof_bonus, features, ct_known, sp_known, spell_slots_count, slot_level, inv_known = line
-                spell_slots[int(char_level)] = [int(spell_slots_count)] * \
-                                               int(slot_level) + [0] * (5 - int(slot_level))
+                spell_slots[int(char_level)] = [int(spell_slots_count)] * int(slot_level) + [0] * (5 - int(slot_level))
                 cantrips_known.append(str2int(ct_known))
                 spells_known.append(str2int(sp_known))
     return spell_slots, spells_known, cantrips_known
@@ -2617,8 +2601,7 @@ def request_class(index_name: str, known_proficiencies: List[Proficiency] = None
     """
     with open(resource_path(f"data/classes/{index_name}.json"), "r") as f:
         data = json.loads(f.read())
-        proficiencies: List[Proficiency] = [request_proficiency(
-            d['index']) for d in data['proficiencies']]
+        proficiencies: List[Proficiency] = [request_proficiency(d['index']) for d in data['proficiencies']]
         proficiency_choices: List[Tuple[List[Proficiency], int]] = []
         for dat in data['proficiency_choices']:
             choose: int = dat['choose']

@@ -35,23 +35,13 @@ def continue_message(message: str = "Do you want to continue? (Y/N)") -> bool:
 def welcome_message_old():
     global PAUSE_ON_RAISE_LEVEL
     if PAUSE_ON_RAISE_LEVEL:
-        print(
-            f"{color.PURPLE}-----------------------------------------------------------{color.END}"
-        )
-        print(
-            f"{color.PURPLE} Combat simulation engine based on DnD 5th edition API{color.END}"
-        )
-        print(
-            f"{color.PURPLE}-----------------------------------------------------------{color.END}"
-        )
-        print(
-            f"{color.DARKCYAN}Do you want to pause output after new level? (Y/N){color.END}"
-        )
+        print(f"{color.PURPLE}-----------------------------------------------------------{color.END}")
+        print(f"{color.PURPLE} Combat simulation engine based on DnD 5th edition API{color.END}")
+        print(f"{color.PURPLE}-----------------------------------------------------------{color.END}")
+        print(f"{color.DARKCYAN}Do you want to pause output after new level? (Y/N){color.END}")
         response = input()
         while response not in ["y", "n", "Y", "N"]:
-            print(
-                f"{color.DARKCYAN} Do you want to pause output after new level? (Y/N){color.END}"
-            )
+            print(f"{color.DARKCYAN} Do you want to pause output after new level? (Y/N){color.END}")
             response = input()
         PAUSE_ON_RAISE_LEVEL = True if response in ["y", "Y"] else False
 
@@ -76,9 +66,7 @@ def read_name(race: str, gender: str, names: dict(), reserved_names):
         ethnic = read_choice(list(names.keys()), "Choose ethnic:")
         names_list = names[ethnic][gender]
         if len(names[ethnic]) > 2:
-            other_key = [key for key in names[ethnic] if key not in ["male", "female"]][
-                0
-            ]
+            other_key = [key for key in names[ethnic] if key not in ["male", "female"]][0]
             names_list += names[ethnic][other_key]
         names: List[str] = [name for name in names_list if name not in reserved_names]
         name = read_choice(names, "Choose name:")
@@ -100,12 +88,7 @@ def read_name(race: str, gender: str, names: dict(), reserved_names):
 def read_choice_tuple(choice_list: List, message: str = None) -> str:
     choice = None
     while choice not in range(1, len(choice_list) + 1):
-        items_list = "\n".join(
-            [
-                f'{i + 1}) {" ".join(map(str, item))}'
-                for i, item in enumerate(choice_list)
-            ]
-        )
+        items_list = "\n".join([f'{i + 1}) {" ".join(map(str, item))}' for i, item in enumerate(choice_list)])
         items_list += "\n0) Exit"
         if message:
             print(message)
@@ -128,9 +111,7 @@ def read_choice_tuple(choice_list: List, message: str = None) -> str:
 def read_choice(choice_list: List[str], message: str = None) -> str:
     choice = None
     while choice not in range(1, len(choice_list) + 1):
-        items_list = "\n".join(
-            [f"{i + 1}) {item}" for i, item in enumerate(choice_list)]
-        )
+        items_list = "\n".join([f"{i + 1}) {item}" for i, item in enumerate(choice_list)])
         if message:
             print(message)
         print(f"{items_list}")
@@ -150,9 +131,7 @@ def read_choice(choice_list: List[str], message: str = None) -> str:
 def read_choice_or_exit(choice_list: List[str], message: str = None) -> str:
     choice = None
     while choice not in range(1, len(choice_list) + 1):
-        items_list = "\n".join(
-            [f"{i + 1}) {item}" for i, item in enumerate(choice_list)]
-        )
+        items_list = "\n".join([f"{i + 1}) {item}" for i, item in enumerate(choice_list)])
         items_list += "\n--------\n0) Exit"
         if message:
             print(message)
@@ -236,9 +215,7 @@ def read_value(choice_list: List[int], message: str = None) -> int:
 def read_char_choice(message: str, party: List[Character]) -> Character:
     choice = None
     while choice not in range(1, len(party) + 1):
-        char_names: str = "\n".join(
-            [f"{i + 1}) {char.name}" for i, char in enumerate(party)]
-        )
+        char_names: str = "\n".join([f"{i + 1}) {char.name}" for i, char in enumerate(party)])
         print(f"{message}:\n{char_names}")
         err_msg = f"Bad value! Please enter a number between 1 and {len(party)}"
         try:
@@ -259,9 +236,7 @@ def choose_equipment_from(starting_equipment_options: List[List[Inventory]]):
         for inv in inv_options:
             try:
                 if isinstance(inv, list):
-                    label: str = ", ".join(
-                        [f"{i.quantity} {i.equipment.index}" for i in inv]
-                    )
+                    label: str = ", ".join([f"{i.quantity} {i.equipment.index}" for i in inv])
                 else:
                     # print(f'inv: {inv} - type: {type(inv)}')
                     label: str = inv.equipment.index
@@ -271,32 +246,18 @@ def choose_equipment_from(starting_equipment_options: List[List[Inventory]]):
                 exit(0)
             inv_choices[label] = inv
         plural: str = "" if inv_count == 1 else "s"
-        inv_choice: str = read_choice(
-            list(inv_choices.keys()), f"Choose {inv_count} equipment{plural}:"
-        )
+        inv_choice: str = read_choice(list(inv_choices.keys()), f"Choose {inv_count} equipment{plural}:")
         chosen_inv: Inventory | List[Inventory] = inv_choices[inv_choice]
         if type(chosen_inv) is list:
-            starting_equipment += [
-                inv.equipment for inv in chosen_inv for _ in range(inv.quantity)
-            ]
+            starting_equipment += [inv.equipment for inv in chosen_inv for _ in range(inv.quantity)]
         else:
             if isinstance(chosen_inv.equipment, EquipmentCategory):
-                inv_options_cat: List[str] = populate(
-                    collection_name=chosen_inv.equipment.index,
-                    key_name="equipment",
-                    collection_path="data/equipment-categories",
-                )
+                inv_options_cat: List[str] = populate(collection_name=chosen_inv.equipment.index, key_name="equipment", collection_path="data/equipment-categories", )
                 plural: str = "" if inv_count == 1 else "s"
-                inv_choice: str = read_choice(
-                    inv_options_cat,
-                    f"Choose {inv_count} {chosen_inv.equipment.name}{plural}:",
-                )
+                inv_choice: str = read_choice(inv_options_cat, f"Choose {inv_count} {chosen_inv.equipment.name}{plural}:", )
                 starting_equipment.append(request_equipment(inv_choice))
             else:
-                starting_equipment.append(request_equipment(chosen_inv.equipment.index))
-        # print(f'removing chosen_inv: {chosen_inv}')
-        # inv_options.remove(chosen_inv)
-        # inv_count -= 1
+                starting_equipment.append(request_equipment(chosen_inv.equipment.index))  # print(f'removing chosen_inv: {chosen_inv}')  # inv_options.remove(chosen_inv)  # inv_count -= 1
     return starting_equipment
 
 
@@ -306,9 +267,7 @@ def get_height_and_weight(race, subrace):
     found_record = [x for x in hw_conv_table if x[0] == race_name]
     if not found_record:
         found_record = [x for x in hw_conv_table if x[0] == race.name]
-    race_name, base_height, height_modifier, base_weight, weight_modifier = (
-        found_record[0]
-    )
+    race_name, base_height, height_modifier, base_weight, weight_modifier = (found_record[0])
     feet2inch = lambda ft, inches: 12 * ft + inches
     inch2feet = lambda inches: f"{inches // 12}'{inches - (inches // 12) * 12}"
     height = feet2inch(*tuple((map(int, tuple(base_height.split("'"))))))
@@ -325,16 +284,7 @@ def get_height_and_weight(race, subrace):
     return inch2feet(height), f"{weight} {unit}"
 
 
-def create_new_character_start(
-    races: List[Race],
-    subraces: List[SubRace],
-    classes: List[ClassType],
-    proficiencies: List[Proficiency],
-    equipments: List[Equipment],
-    names: dict(),
-    human_names: dict(),
-    roster: List[Character],
-) -> tuple:
+def create_new_character_start(races: List[Race], subraces: List[SubRace], classes: List[ClassType], proficiencies: List[Proficiency], equipments: List[Equipment], names: dict(), human_names: dict(), roster: List[Character], ) -> tuple:
     """
         Character selection on 1st set of attributes
     :param races: list of available races
@@ -347,24 +297,15 @@ def create_new_character_start(
     :param reserved_names: list of names assigned to existing characters
     :return: tuple (race, subrace, class_type, abilities, ability_modifiers, name, gender, ethnic, height, weight, starting_equipment)
     """
-    print(
-        f"{color.PURPLE}-------------------------------------------------------{color.END}"
-    )
+    print(f"{color.PURPLE}-------------------------------------------------------{color.END}")
     print(f"{color.PURPLE} Character creation based on DnD 5th edition API{color.END}")
-    print(
-        f"{color.PURPLE}-------------------------------------------------------{color.END}"
-    )
+    print(f"{color.PURPLE}-------------------------------------------------------{color.END}")
     char_proficiencies: List[Proficiency] = []
     """ 1. Choose a race """
     races_names: List[str] = [r.index for r in races]
     race: str = read_choice(races_names, "Choose race:")
     race: Race = [r for r in races if r.index == race][0]
-    subraces_names: List[str] = [
-        s.index
-        for s in subraces
-        for r in races
-        if r.index == race.index and r.index in s.index
-    ]
+    subraces_names: List[str] = [s.index for s in subraces for r in races if r.index == race.index and r.index in s.index]
     subrace = None
     if subraces_names:
         subrace: str = read_choice(subraces_names, "Choose subrace")
@@ -373,22 +314,16 @@ def create_new_character_start(
     chosen_proficiencies: List[str] = []
     for starting_proficiency_option in race.starting_proficiency_options:
         choose, prof_list = starting_proficiency_option
-        prof_count = min(
-            choose, len(prof_list)
-        )  # Ensure we don't try to choose more than available
+        prof_count = min(choose, len(prof_list))  # Ensure we don't try to choose more than available
         prof_indexes: List[str] = [prof.index for prof in prof_list]
         while prof_count:
             prof_label = "proficiency" if prof_count == 1 else "proficiencies"
-            prof_index: str = read_choice(
-                prof_indexes, f"Choose {prof_count} race's {prof_label}:"
-            )
+            prof_index: str = read_choice(prof_indexes, f"Choose {prof_count} race's {prof_label}:")
             chosen_proficiencies.append(prof_index)
             prof_indexes.remove(prof_index)
             prof_count -= 1
     for chosen_prof_index in chosen_proficiencies:
-        chosen_prof: Proficiency = [
-            prof for prof in proficiencies if prof.index == chosen_prof_index
-        ][0]
+        chosen_prof: Proficiency = [prof for prof in proficiencies if prof.index == chosen_prof_index][0]
         char_proficiencies.append(chosen_prof)
     # should be deleted (duplicate with character.class_type.proficiencies)
     char_proficiencies += race.starting_proficiencies
@@ -400,22 +335,16 @@ def create_new_character_start(
     chosen_proficiencies: List[str] = []
     for proficiency_choice in class_type.proficiency_choices:
         choose, prof_list = proficiency_choice
-        prof_count = min(
-            choose, len(prof_list)
-        )  # Ensure we don't try to choose more than available
+        prof_count = min(choose, len(prof_list))  # Ensure we don't try to choose more than available
         prof_indexes: List[str] = [prof.index for prof in prof_list]
         while prof_count:
             prof_label = "proficiency" if prof_count == 1 else "proficiencies"
-            prof_name: str = read_choice(
-                prof_indexes, f"Choose {prof_count} class' {prof_label}:"
-            )
+            prof_name: str = read_choice(prof_indexes, f"Choose {prof_count} class' {prof_label}:")
             chosen_proficiencies.append(prof_name)
             prof_indexes.remove(prof_name)
             prof_count -= 1
     for chosen_prof_index in chosen_proficiencies:
-        chosen_prof: Proficiency = [
-            prof for prof in proficiencies if prof.index == chosen_prof_index
-        ][0]
+        chosen_prof: Proficiency = [prof for prof in proficiencies if prof.index == chosen_prof_index][0]
         char_proficiencies.append(chosen_prof)
     # should be deleted (duplicate with character.class_type.proficiencies)
     char_proficiencies += class_type.proficiencies
@@ -433,18 +362,9 @@ def create_new_character_start(
     wisdom: int = read_choice(ability_scores, "Choose wisdom:")
     ability_scores.remove(wisdom)
     charisma: int = read_choice(ability_scores, "Choose charisma:")
-    abilities: Abilities = Abilities(
-        strength, dexterity, constitution, intelligence, wisdom, charisma
-    )
+    abilities: Abilities = Abilities(strength, dexterity, constitution, intelligence, wisdom, charisma)
     mod = lambda x: (x - 10) // 2
-    ability_modifiers: Abilities = Abilities(
-        mod(strength),
-        mod(dexterity),
-        mod(constitution),
-        mod(intelligence),
-        mod(wisdom),
-        mod(charisma),
-    )
+    ability_modifiers: Abilities = Abilities(mod(strength), mod(dexterity), mod(constitution), mod(intelligence), mod(wisdom), mod(charisma), )
 
     """ 4. Describe your character (name, gender, clan/family/virtue/ethnic, height/weight, ...) """
     genders = ["male", "female"]
@@ -459,28 +379,9 @@ def create_new_character_start(
 
     """ 5. Choose equipment """
     # Choose starting equipment within the class
-    starting_equipment: List[Equipment] = choose_equipment_from(
-        class_type.starting_equipment_options
-    )
-    starting_equipment += [
-        inv.equipment
-        for inv in class_type.starting_equipment
-        for _ in range(inv.quantity)
-    ]
-    return (
-        race,
-        subrace,
-        class_type,
-        char_proficiencies,
-        abilities,
-        ability_modifiers,
-        name,
-        gender,
-        ethnic,
-        height,
-        weight,
-        starting_equipment,
-    )
+    starting_equipment: List[Equipment] = choose_equipment_from(class_type.starting_equipment_options)
+    starting_equipment += [inv.equipment for inv in class_type.starting_equipment for _ in range(inv.quantity)]
+    return (race, subrace, class_type, char_proficiencies, abilities, ability_modifiers, name, gender, ethnic, height, weight, starting_equipment,)
 
 
 def load_character_collections() -> Tuple:
@@ -497,28 +398,14 @@ def load_character_collections() -> Tuple:
     classes: List[str] = populate(collection_name="classes", key_name="results")
     classes = [request_class(name) for name in classes]
     alignments: List[str] = populate(collection_name="alignments", key_name="results")
-    equipment_names: List[str] = populate(
-        collection_name="equipment", key_name="results"
-    )
+    equipment_names: List[str] = populate(collection_name="equipment", key_name="results")
     equipments = [request_equipment(name) for name in equipment_names]
-    proficiencies_names: List[str] = populate(
-        collection_name="proficiencies", key_name="results"
-    )
+    proficiencies_names: List[str] = populate(collection_name="proficiencies", key_name="results")
     proficiencies = [request_proficiency(name) for name in proficiencies_names]
     spell_names: List[str] = populate(collection_name="spells", key_name="results")
     spells: List[Spell] = [request_spell(name) for name in spell_names]
     spells = [s for s in spells if s is not None]
-    return (
-        races,
-        subraces,
-        classes,
-        alignments,
-        equipments,
-        proficiencies,
-        names,
-        human_names,
-        spells,
-    )
+    return (races, subraces, classes, alignments, equipments, proficiencies, names, human_names, spells,)
 
 
 def load_dungeon_collections() -> Tuple:
@@ -529,61 +416,34 @@ def load_dungeon_collections() -> Tuple:
     armors: List[Armor] = [request_armor(name) for name in armor_names]
     weapon_names: List[str] = populate(collection_name="weapons", key_name="equipment")
     weapons: List[Weapon] = [request_weapon(name) for name in weapon_names]
-    equipment_names: List[str] = populate(
-        collection_name="equipment", key_name="results"
-    )
+    equipment_names: List[str] = populate(collection_name="equipment", key_name="results")
     equipments: List[Equipment] = [request_equipment(name) for name in equipment_names]
-    equipment_category_names: List[str] = populate(
-        collection_name="equipment-categories", key_name="results"
-    )
-    equipment_categories: List[EquipmentCategory] = [
-        request_equipment_category(name) for name in equipment_category_names
-    ]
+    equipment_category_names: List[str] = populate(collection_name="equipment-categories", key_name="results")
+    equipment_categories: List[EquipmentCategory] = [request_equipment_category(name) for name in equipment_category_names]
     healing_potions: List[HealingPotion] = load_potions_collections()
     return monsters, armors, weapons, equipments, equipment_categories, healing_potions
 
 
 def get_next_item_id(roster: List[Character]) -> int:
     # return max([item.id for c in roster for item in c.inventory if item]) + 1 if roster else MAX_ROSTER + 1
-    return (
-        max([item.id for c in roster for item in c.inventory if item]) + 1
-        if roster
-        else MAX_ROSTER + 1
-    )
+    return (max([item.id for c in roster for item in c.inventory if item]) + 1 if roster else MAX_ROSTER + 1)
 
 
 def get_spell_caster(class_type, char_level, spells) -> Optional[SpellCaster]:
     learned_spells: List[Spell] = []
     if class_type.can_cast:
-        learnable_spells: List[Spell] = [
-            s
-            for s in spells
-            if class_type.index in s.allowed_classes
-            and s.level <= char_level
-            and s.damage_type
-        ]
+        learnable_spells: List[Spell] = [s for s in spells if class_type.index in s.allowed_classes and s.level <= char_level and s.damage_type]
         if learnable_spells:
             cantrips_spells: List[Spell] = []
             if class_type.cantrips_known:
                 cantrips_spells = [s for s in learnable_spells if not s.level]
-                n_cantric_spells: int = min(
-                    len(cantrips_spells), class_type.cantrips_known[char_level - 1]
-                )
+                n_cantric_spells: int = min(len(cantrips_spells), class_type.cantrips_known[char_level - 1])
                 cantrips_spells = sample(cantrips_spells, n_cantric_spells)
             slot_spells: List[Spell] = [s for s in learnable_spells if s.level]
-            n_slot_spells: int = min(
-                len(slot_spells), class_type.spells_known[char_level - 1]
-            )
+            n_slot_spells: int = min(len(slot_spells), class_type.spells_known[char_level - 1])
             slot_spells = sample(slot_spells, n_slot_spells)
             learned_spells = cantrips_spells + slot_spells
-        return SpellCaster(
-            level=char_level,
-            spell_slots=copy(class_type.spell_slots.get(char_level)),
-            learned_spells=learned_spells,
-            dc_type=class_type.spellcasting_ability,
-            dc_value=None,
-            ability_modifier=None,
-        )
+        return SpellCaster(level=char_level, spell_slots=copy(class_type.spell_slots.get(char_level)), learned_spells=learned_spells, dc_type=class_type.spellcasting_ability, dc_value=None, ability_modifier=None, )
 
 
 def get_char_image(class_type) -> str:
@@ -610,9 +470,7 @@ def generate_random_proficiencies(race, class_type) -> List[str]:
 
     for starting_proficiency_option in race.starting_proficiency_options:
         choose, prof_list = starting_proficiency_option
-        prof_count = min(
-            choose, len(prof_list)
-        )  # Ensure we don't try to choose more than available
+        prof_count = min(choose, len(prof_list))  # Ensure we don't try to choose more than available
 
         # Randomly select proficiencies
         chosen_profs = sample(prof_list, prof_count)
@@ -621,9 +479,7 @@ def generate_random_proficiencies(race, class_type) -> List[str]:
     # Choose proficiencies within the class
     for proficiency_choice in class_type.proficiency_choices:
         choose, prof_list = proficiency_choice
-        prof_count = min(
-            choose, len(prof_list)
-        )  # Ensure we don't try to choose more than available
+        prof_count = min(choose, len(prof_list))  # Ensure we don't try to choose more than available
 
         # Randomly select proficiencies
         chosen_profs = sample(prof_list, prof_count)
@@ -657,6 +513,7 @@ def generate_random_name(race: str, gender: str, names: dict(), reserved_names):
         names: List[str] = [name for name in names_list if name not in reserved_names]
         name = choice(names)
         return name
+
 
 def generate_random_character(races: List[Race], subraces: List[SubRace], classes: List[ClassType], names: dict[str, List[str]], human_names, spells: list[Spell]) -> Character:
     """
@@ -710,38 +567,12 @@ def generate_random_character(races: List[Race], subraces: List[SubRace], classe
     hit_points = class_type.hit_die + ability_modifiers.con
 
     # Phase 2: Spell selection
-    char_level: int = 1 # could be changed to create higher level characters
+    char_level: int = 1  # could be changed to create higher level characters
     spell_caster: Optional[SpellCaster] = get_spell_caster(class_type, char_level, spells)
 
     free_id = max([c.id for c in roster]) + 1 if roster else 1
-    return Character(id=free_id,
-                     image_name=get_char_image(class_type),
-                     x=-1, y=-1, old_x=-1, old_y=-1,
-                     race=race,
-                     subrace=subrace,
-                     class_type=class_type,
-                     proficiencies=char_proficiencies,
-                     # proficiencies=class_type.proficiencies + race.starting_proficiencies,
-                     abilities=abilities,
-                     ability_modifiers=ability_modifiers,
-                     gender=gender,
-                     name=name,
-                     ethnic=ethnic,
-                     height=height,
-                     weight=weight,
-                     inventory=[None] * 20,
-                     hit_points=hit_points,
-                     max_hit_points=hit_points,
-                     xp=0, level=1,
-                     monster_kills=0,
-                     age=18 * 52 + randint(0, 299),
-                     gold=90 + randint(0, 99),
-                     sc=spell_caster,
-                     conditions=[],
-                     speed=30,
-                     haste_timer=0,
-                     hasted=False,
-                     st_advantages=[])
+    return Character(id=free_id, image_name=get_char_image(class_type), x=-1, y=-1, old_x=-1, old_y=-1, race=race, subrace=subrace, class_type=class_type, proficiencies=char_proficiencies,  # proficiencies=class_type.proficiencies + race.starting_proficiencies,
+                     abilities=abilities, ability_modifiers=ability_modifiers, gender=gender, name=name, ethnic=ethnic, height=height, weight=weight, inventory=[None] * 20, hit_points=hit_points, max_hit_points=hit_points, xp=0, level=1, monster_kills=0, age=18 * 52 + randint(0, 299), gold=90 + randint(0, 99), sc=spell_caster, conditions=[], speed=30, haste_timer=0, hasted=False, st_advantages=[])
 
 
 def create_new_character(roster: List[Character]) -> Character:
@@ -752,59 +583,19 @@ def create_new_character(roster: List[Character]) -> Character:
     """
     # Phase 1: character selection
     # TODO: do not load spell data collections if class_type cannot perform spell casting
-    (
-        races,
-        subraces,
-        classes,
-        alignments,
-        equipments,
-        proficiencies,
-        names,
-        human_names,
-        spells,
-    ) = load_character_collections()
+    (races, subraces, classes, alignments, equipments, proficiencies, names, human_names, spells,) = load_character_collections()
     prof_types: set() = set([p.type for p in proficiencies])
     # reserved_names: List[str] = [c.name for c in roster]
-    (
-        race,
-        subrace,
-        class_type,
-        char_proficiencies,
-        abilities,
-        ability_modifiers,
-        name,
-        gender,
-        ethnic,
-        height,
-        weight,
-        starting_equipment,
-    ) = create_new_character_start(
-        races=races,
-        subraces=subraces,
-        classes=classes,
-        equipments=equipments,
-        proficiencies=proficiencies,
-        names=names,
-        human_names=human_names,
-        roster=roster,
-    )
+    (race, subrace, class_type, char_proficiencies, abilities, ability_modifiers, name, gender, ethnic, height, weight, starting_equipment,) = create_new_character_start(races=races, subraces=subraces, classes=classes, equipments=equipments, proficiencies=proficiencies, names=names, human_names=human_names, roster=roster, )
     # Equip the character with a weapon and an armor from the starting equipment list of the class
-    available_weapons = {
-        e.index: e for e in starting_equipment if e.category.index == "weapon"
-    }
-    available_armors = {
-        e.index: e for e in starting_equipment if e.category.index == "armor"
-    }
-    chosen_weapon: str = read_choice(
-        list(available_weapons.keys()), f"Choose 1 weapon to equip:"
-    )
+    available_weapons = {e.index: e for e in starting_equipment if e.category.index == "weapon"}
+    available_armors = {e.index: e for e in starting_equipment if e.category.index == "armor"}
+    chosen_weapon: str = read_choice(list(available_weapons.keys()), f"Choose 1 weapon to equip:")
     chosen_weapon: Weapon = request_weapon(available_weapons[chosen_weapon].index)
     chosen_weapon.equipped = True
     if not available_armors:
         available_armors = {"skin-armor": request_armor("skin-armor")}
-    chosen_armor: str = read_choice(
-        list(available_armors.keys()), f"Choose 1 armor to equip"
-    )
+    chosen_armor: str = read_choice(list(available_armors.keys()), f"Choose 1 armor to equip")
     chosen_armor: Armor = request_armor(available_armors[chosen_armor].index)
     chosen_armor.equipped = True
     hit_points = class_type.hit_die + ability_modifiers.con
@@ -818,46 +609,12 @@ def create_new_character(roster: List[Character]) -> Character:
 
     # Phase 2: Spell selection
     char_level: int = 1  # could be changed to create higher level characters
-    spell_caster: Optional[SpellCaster] = get_spell_caster(
-        class_type, char_level, spells
-    )
+    spell_caster: Optional[SpellCaster] = get_spell_caster(class_type, char_level, spells)
 
     # sorted_roster_by_id = sorted(roster, key=lambda c: c.id)
     free_id = max([c.id for c in roster]) + 1 if roster else 1
-    character: Character = Character(
-        id=free_id,
-        image_name=get_char_image(class_type),
-        x=-1,
-        y=-1,
-        old_x=-1,
-        old_y=-1,
-        race=race,
-        subrace=subrace,
-        class_type=class_type,
-        proficiencies=char_proficiencies,
-        # proficiencies=class_type.proficiencies + race.starting_proficiencies,
-        abilities=abilities,
-        ability_modifiers=ability_modifiers,
-        gender=gender,
-        name=name,
-        ethnic=ethnic,
-        height=height,
-        weight=weight,
-        inventory=starting_equipment + [None] * (20 - len(starting_equipment)),
-        hit_points=hit_points,
-        max_hit_points=hit_points,
-        xp=0,
-        level=1,
-        monster_kills=0,
-        age=18 * 52 + randint(0, 299),
-        gold=90 + randint(0, 99),
-        sc=spell_caster,
-        conditions=[],
-        speed=30,
-        haste_timer=0,
-        hasted=False,
-        st_advantages=[],
-    )
+    character: Character = Character(id=free_id, image_name=get_char_image(class_type), x=-1, y=-1, old_x=-1, old_y=-1, race=race, subrace=subrace, class_type=class_type, proficiencies=char_proficiencies, # proficiencies=class_type.proficiencies + race.starting_proficiencies,
+        abilities=abilities, ability_modifiers=ability_modifiers, gender=gender, name=name, ethnic=ethnic, height=height, weight=weight, inventory=starting_equipment + [None] * (20 - len(starting_equipment)), hit_points=hit_points, max_hit_points=hit_points, xp=0, level=1, monster_kills=0, age=18 * 52 + randint(0, 299), gold=90 + randint(0, 99), sc=spell_caster, conditions=[], speed=30, haste_timer=0, hasted=False, st_advantages=[], )
     exit_message()
     return character
 
@@ -916,36 +673,22 @@ def display_adventurers(roster: List[Character], party: List[Character], locatio
     for char in roster:
         if char.in_dungeon:
             char_status: str = f" ({char.status})" if char.status != "OK" else ""
-            toc += "|{:^51}|\n".format(
-                f"{char.name}{char_status} -> {char.hit_points}/{char.max_hit_points}  (Level {char.level})"
-            )
+            toc += "|{:^51}|\n".format(f"{char.name}{char_status} -> {char.hit_points}/{char.max_hit_points}  (Level {char.level})")
     toc += "{:-^53}\n".format(f" ** AVAILABLE ** ")
     for char in roster:
         if not char.in_dungeon:
             char_status: str = f" ({char.status})" if char.status != "OK" else ""
-            toc += "|{:^51}|\n".format(
-                f"{char.name}{char_status} -> {char.hit_points}/{char.max_hit_points}  (Level {char.level})"
-            )
+            toc += "|{:^51}|\n".format(f"{char.name}{char_status} -> {char.hit_points}/{char.max_hit_points}  (Level {char.level})")
     toc += "|{:-^51}|\n".format("")
     print(toc)
 
 
 def adventure_prompt_ok() -> bool:
-    print(f"{color.DARKCYAN}Do you want to continue adventure? (Y/N){color.END}")
-    response = input()
-    while response not in ["y", "n", "Y", "N"]:
-        print(f"{color.DARKCYAN}Do you want to continue adventure? (Y/N){color.END}")
-        response = input()
-    return True if response in ["Y", "y"] else False
+    return input(f"{color.DARKCYAN}Do you want to continue adventure? (Y/N){color.END}").lower() == 'y'
 
 
 def location_prompt_ok(location: str) -> bool:
-    print(f"{color.DARKCYAN}Do you want to go to {location}? (Y/N){color.END}")
-    response = input()
-    while response not in ["y", "n", "Y", "N"]:
-        print(f"{color.DARKCYAN}Do you want to go to {location}? (Y/N){color.END}")
-        response = input()
-    return True if response in ["Y", "y"] else False
+    return input(f"{color.DARKCYAN}Do you want to go to {location}? (Y/N){color.END}").lower() == 'y'
 
 
 def display_character_sheet(char: Character):
@@ -960,16 +703,9 @@ def display_character_sheet(char: Character):
         sheet += "|{:^51}|\n".format(f"kills = {char.monster_kills}")
 
         # Potions section
-        rarity_types: dict() = {
-            PotionRarity.COMMON: "C",
-            PotionRarity.UNCOMMON: "U",
-            PotionRarity.RARE: "R",
-            PotionRarity.VERY_RARE: "VR",
-        }
+        rarity_types: dict() = {PotionRarity.COMMON: "C", PotionRarity.UNCOMMON: "U", PotionRarity.RARE: "R", PotionRarity.VERY_RARE: "VR", }
         potions: dict() = {"C": 0, "U": 0, "R": 0, "VR": 0}
-        healing_potions: List[HealingPotion] = [
-            item for item in char.inventory if isinstance(item, HealingPotion)
-        ]
+        healing_potions: List[HealingPotion] = [item for item in char.inventory if isinstance(item, HealingPotion)]
         for p in healing_potions:
             rarity: str = rarity_types[p.rarity]
             potions[rarity] += 1
@@ -977,18 +713,10 @@ def display_character_sheet(char: Character):
         sheet += "|{:^51}|\n".format(f"healing potions = {potions}") if potions else ""
 
         strength_potions: List[StrengthPotion] = [item for item in char.inventory if isinstance(item, StrengthPotion)]
-        sheet += (
-            "|{:^51}|\n".format(f"strength potions = {len(strength_potions)}")
-            if strength_potions
-            else ""
-        )
+        sheet += ("|{:^51}|\n".format(f"strength potions = {len(strength_potions)}") if strength_potions else "")
 
         speed_potions: List[SpeedPotion] = [item for item in char.inventory if isinstance(item, SpeedPotion)]
-        sheet += (
-            "|{:^51}|\n".format(f"speed potions = {len(speed_potions)}")
-            if speed_potions
-            else ""
-        )
+        sheet += ("|{:^51}|\n".format(f"speed potions = {len(speed_potions)}") if speed_potions else "")
 
         # Equipment section
         char_armors: List[Armor] = [item for item in char.inventory if isinstance(item, Armor) and item.equipped]
@@ -1032,6 +760,7 @@ def display_character_sheet(char: Character):
             available_armors = [item for item in char.inventory if isinstance(item, Armor)]
             if not available_armors:
                 print("\nNo armor available in inventory!")
+                sleep(2)
                 continue
 
             print("\nAvailable Armor:")
@@ -1060,7 +789,7 @@ def display_character_sheet(char: Character):
             for i, weapon in enumerate(available_weapons, 1):
                 prof_label: str = f'{Color.RED} ** NOT PROFICIENT **{Color.END}' if not any(w.index == weapon.index for w in char.prof_weapons) else ''
                 status = f"{Color.GREEN}equipped{Color.END}{prof_label}" if weapon.equipped else f"unequipped{prof_label}"
-                print(f"{i}. {weapon.name.title()}{prof_label} (Damage: {weapon.damage_dice.dice}) - {status}")
+                print(f"{i}. {weapon.name.title()} (Damage: {weapon.damage_dice.dice}) - {status}")
 
             try:
                 weapon_choice = int(input("\nChoose weapon to equip/unequip (0 to cancel): "))
@@ -1175,11 +904,7 @@ def arena(character: Character):
                     character.status = "DEAD"
                     break
 
-    level_up_msg: str = (
-        f" and reached level #{character.level}"
-        if previous_level > character.level
-        else ""
-    )
+    level_up_msg: str = (f" and reached level #{character.level}" if previous_level > character.level else "")
 
     if character.hit_points <= 0:
         print(f"{character.name} has been killed by a {monster.name} after {attack_count} attack rounds and {killed_monsters} monsters kills{level_up_msg}")
@@ -1221,11 +946,7 @@ def add_member_to_party(roster: List[Character], party: List[Character]):
         return
     roster = sorted(roster, key=lambda c: c.level)
     # char_names: List[tuple] = [(c.name, c.class_type, f'Lvl {c.level}') for c in roster if c.status == 'OK' and c not in party and not c.in_dungeon]
-    char_names: List[tuple] = [
-        (c.name, c.class_type, f"Lvl {c.level}")
-        for c in roster
-        if c.status == "OK" and c not in party
-    ]
+    char_names: List[tuple] = [(c.name, c.class_type, f"Lvl {c.level}") for c in roster if c.status == "OK" and c not in party]
     if not char_names:
         print(f"No available character to join party!")
         sleep(2)
@@ -1263,17 +984,10 @@ def delete_member_from_party(roster: List[Character], party: List[Character]):
 
 
 def read_bool(param):
-    while True:
-        try:
-            value = input(param).lower()
-            if value == "y":
-                return True
-            elif value == "n":
-                return False
-            else:
-                raise ValueError
-        except ValueError:
-            print("Invalid input. Please enter 'y' or 'n'.")
+    while (value := input(param).lower()) not in {'y', 'n'}:
+        print("Invalid input. Please enter 'y' or 'n'.")
+    return value == 'y'
+
 
 
 def gilgamesh_tavern(party: List[Character], roster: List[Character]):
@@ -1388,9 +1102,7 @@ def rest_character(char: Character, fee: int, weeks: int):
             char.sc.spell_slots = copy(char.class_type.spell_slots[char.level])
     if char.level < len(xp_levels) and char.xp >= xp_levels[char.level]:
         if char.class_type.can_cast:
-            spell_names: List[str] = populate(
-                collection_name="spells", key_name="results"
-            )
+            spell_names: List[str] = populate(collection_name="spells", key_name="results")
             all_spells: List[Spell] = [request_spell(name) for name in spell_names]
             class_tome_spells = [s for s in all_spells if s is not None and char.class_type.index in s.allowed_classes]
             char.gain_level(tome_spells=class_tome_spells)
@@ -1408,17 +1120,8 @@ def temple_of_cant(party: List[Character], roster: List[Character]):
         message += "+----------------------------+\n"
         message += "Temple of Cant -- Praise God!!!"
         print(message)
-        cures_costs_per_level = {
-            "PARALYZED": 100,
-            "STONED": 200,
-            "DEAD": 250,
-            "ASHES": 500,
-        }
-        cures_candidates = [
-            f"{c.name} ({cures_costs_per_level[c.status] * c.level} GP)"
-            for c in roster
-            if c.status not in ("OK", "LOST") or c.is_dead
-        ]
+        cures_costs_per_level = {"PARALYZED": 100, "STONED": 200, "DEAD": 250, "ASHES": 500, }
+        cures_candidates = [f"{c.name} ({cures_costs_per_level[c.status] * c.level} GP)" for c in roster if c.status not in ("OK", "LOST") or c.is_dead]
         if not cures_candidates:
             print("No more character to save ** HERE! **")
             exit_temple = True
@@ -1440,7 +1143,7 @@ def temple_of_cant(party: List[Character], roster: List[Character]):
                 print("No character remains in the party.")
                 sleep(2)
                 exit_temple = True
-            if (char_to_contribute.gold < cures_costs_per_level[char_to_save.status] * char_to_save.level):
+            if char_to_contribute.gold < cures_costs_per_level[char_to_save.status] * char_to_save.level:
                 print("Go away! You don't have enough of money!")
                 sleep(2)
             elif char_to_save.status == "DEAD":
@@ -1632,9 +1335,7 @@ def simulate_arena(roster: List[Character]):
         print(f"{char.name} is ** {char.status} ** - Please select another character!")
         char: Character = select_character(roster)
     display_character_sheet(char)
-    while continue_message(
-        message="Do you want to start a new combat simulation? (Y/N)"
-    ):
+    while continue_message(message="Do you want to start a new combat simulation? (Y/N)"):
         # efface_ecran()
         # display_character_sheet_pyQT(character)
         ok_roster: List[Character] = [c for c in roster if c.status != "DEAD"]
@@ -1643,9 +1344,7 @@ def simulate_arena(roster: List[Character]):
             exit_message()
             return
         while char.status != "OK":
-            print(
-                f"{char.name} is ** {char.status} ** - Please select another character!"
-            )
+            print(f"{char.name} is ** {char.status} ** - Please select another character!")
             char: Character = select_character(ok_roster)
             continue
         arena(char)
@@ -1653,44 +1352,25 @@ def simulate_arena(roster: List[Character]):
 
 def rename_character_prompt_ok(char: Character, new_name: str) -> bool:
     print(f"Are you sure you want to rename {char.name} to {new_name} (Y/N)?")
-    while True:
-        key = get_key()
-        if key in ["y", "Y"]:
-            print(f"{char.name} has been ** RENAMED ** to {new_name}")
-            sleep(2)
-            return True
-        elif key in ["n", "N"]:
-            print(f"Renaming of {char.name} cancelled.")
-            sleep(2)
-            return False
+    response: bool = get_key().lower() == 'y'
+    print(f"{char.name} has been ** RENAMED ** to {new_name}" if response else f"Renaming of {char.name} cancelled.")
+    sleep(2)
+    return response
+
 
 
 def delete_character_prompt_ok(char: Character) -> bool:
     print(f"Are you sure you want to delete {char.name} (Y/N)?")
-    while True:
-        key = get_key()
-        if key in ["y", "Y"]:
-            os.remove(f"{characters_dir}/{char.name}.dmp")
-            print(f"{char.name} has been ** DELETED **")
-            sleep(2)
-            return True
-        elif key in ["n", "N"]:
-            print(f"Deletion cancelled :-) {char.name} ** STILL IN GAME **")
-            sleep(2)
-            return False
+    response: bool = get_key().lower() == 'y'
+    if response:
+        os.remove(f"{characters_dir}/{char.name}.dmp")
+    print(f"{char.name} has been ** DELETED **" if response else f"Deletion cancelled :-) {char.name} ** STILL IN GAME **")
+    sleep(2)
+    return response
 
 
 def training_grounds(roster: List[Character]):
-    tg_options: List[str] = [
-        "Create a New Character",
-        "Create a Random Character",
-        "Character Status",
-        "Delete a Character",
-        "Rename a Character",
-        "Change a Character's class",
-        "System",
-        "Return to Castle",
-    ]
+    tg_options: List[str] = ["Create a New Character", "Create a Random Character", "Character Status", "Delete a Character", "Rename a Character", "Change a Character's class", "System", "Return to Castle", ]
     exit_training_grounds: bool = False
     while not exit_training_grounds:
         efface_ecran()
@@ -1722,11 +1402,7 @@ def training_grounds(roster: List[Character]):
                 efface_ecran()
                 roster = sorted(roster, key=lambda c: c.level)
                 # char_names: List[tuple] = [(c.name, c.class_type, f'Lvl {c.level}') for c in roster if c.status == 'OK' and c not in party and not c.in_dungeon]
-                char_names: List[tuple] = [
-                    (c.name, c.class_type, f"Lvl {c.level}")
-                    for c in roster
-                    if c.status == "OK" and c not in party
-                ]
+                char_names: List[tuple] = [(c.name, c.class_type, f"Lvl {c.level}") for c in roster if c.status == "OK" and c not in party]
                 select_name: str = read_choice_tuple(char_names, "Select a Character.")
                 # select_name: str = read_choice_or_exit(char_names, "Select a Character.")
                 if select_name == "Exit":
@@ -1794,16 +1470,9 @@ def load_encounter_gold_table() -> List[int]:
     return [int(gold) for enc_level, gold in data]
 
 
-def generate_encounter(
-    encounter_level: int,
-    monsters: List[Monster],
-    monster_groups_count: int,
-    spell_casters_only: bool = False,
-) -> List[Monster]:
+def generate_encounter(encounter_level: int, monsters: List[Monster], monster_groups_count: int, spell_casters_only: bool = False, ) -> List[Monster]:
     if monster_groups_count > 2:
-        exit_message(
-            "System Error!... only 2 groups of monsters allowed here. Please contact the Dungeon Master :-)"
-        )
+        exit_message("System Error!... only 2 groups of monsters allowed here. Please contact the Dungeon Master :-)")
         return
     encounter_level = min(19, encounter_level)
     if not spell_casters_only and monster_groups_count == 2:
@@ -1811,22 +1480,14 @@ def generate_encounter(
         # print(f'(cr_1, cr2) = {(cr1, cr2)}')
         if cr1 not in available_crs:
             cr1 = min(available_crs, key=lambda cr: cr - cr1)
-        cr1_monsters: List[Monster] = [
-            m for m in monsters if Fraction(str(m.challenge_rating)) == cr1
-        ]
+        cr1_monsters: List[Monster] = [m for m in monsters if Fraction(str(m.challenge_rating)) == cr1]
         # print(f'{len(cr1_monsters)} cr_1_monsters = {cr1_monsters}')
         if cr2 not in available_crs:
             cr2 = min(available_crs, key=lambda cr: cr - cr2)
         if spell_casters_only:
-            cr2_monsters: List[Monster] = [
-                m
-                for m in monsters
-                if Fraction(str(m.challenge_rating)) == cr2 and m.can_cast
-            ]
+            cr2_monsters: List[Monster] = [m for m in monsters if Fraction(str(m.challenge_rating)) == cr2 and m.can_cast]
         else:
-            cr2_monsters: List[Monster] = [
-                m for m in monsters if Fraction(str(m.challenge_rating)) == cr2
-            ]
+            cr2_monsters: List[Monster] = [m for m in monsters if Fraction(str(m.challenge_rating)) == cr2]
         # print(f'{len(cr2_monsters)} cr2_monsters = {cr2_monsters}')
         monster_1: Monster = choice(cr1_monsters)
         monster_2: Monster = choice(cr2_monsters)
@@ -1838,21 +1499,11 @@ def generate_encounter(
             monsters_count: int = choice(list(map(int, enc_key.split("-"))))
             if encounter_level == 20:
                 cr: int = cr_list[0]
-                matching_monsters += [
-                    (m, monsters_count)
-                    for m in monsters
-                    if Fraction(str(m.challenge_rating)) >= cr and m.can_cast
-                ]
+                matching_monsters += [(m, monsters_count) for m in monsters if Fraction(str(m.challenge_rating)) >= cr and m.can_cast]
             else:
-                matching_monsters += [
-                    (m, monsters_count)
-                    for m in monsters
-                    if Fraction(str(m.challenge_rating)) in cr_list and m.can_cast
-                ]
+                matching_monsters += [(m, monsters_count) for m in monsters if Fraction(str(m.challenge_rating)) in cr_list and m.can_cast]
         monster, monster_count = choice(matching_monsters)
-        group_of_monsters: List[Monster] = [
-            request_monster(monster.index) for m in matching_monsters
-        ]
+        group_of_monsters: List[Monster] = [request_monster(monster.index) for m in matching_monsters]
         for _ in range(monster_count - 1):
             m: Monster = request_monster(monster.index)
             dice_count, roll_dice = map(int, m.hit_dice.split("d"))
@@ -1866,18 +1517,12 @@ def display_group_of_monsters(monsters: List[Monster]):
     alive_monsters = list(filter(lambda m: m.hit_points > 0, monsters))
     if not mixed_pair:
         monsters.sort(key=lambda m: m.hit_points, reverse=True)
-        hp_display: str = " - ".join(
-            [f"HP {m.hit_points}" for m in monsters if m.hit_points > 0]
-        )
-        cprint(
-            f"{color.PURPLE}Group of {len(alive_monsters)} {monsters[0].name} ({hp_display}){color.END}"
-        )
+        hp_display: str = " - ".join([f"HP {m.hit_points}" for m in monsters if m.hit_points > 0])
+        cprint(f"{color.PURPLE}Group of {len(alive_monsters)} {monsters[0].name} ({hp_display}){color.END}")
     else:
         for i, monster in enumerate(monsters):
             if monster.hit_points > 0:
-                cprint(
-                    f"{color.PURPLE} Monster #{i} : {monster.name} ({monster.hit_points} HP){color.END}"
-                )
+                cprint(f"{color.PURPLE} Monster #{i} : {monster.name} ({monster.hit_points} HP){color.END}")
 
 
 def generate_encounter_levels(party_level: int) -> List[int]:
@@ -1891,20 +1536,13 @@ def generate_encounter_levels(party_level: int) -> List[int]:
     for i, stat_number in enumerate(diff_stats):
         match i:
             case 0:
-                encounter_levels += [
-                    (randint(1, party_level - 1) if party_level > 1 else 1)
-                    for _ in range(stat_number)
-                ]
+                encounter_levels += [(randint(1, party_level - 1) if party_level > 1 else 1) for _ in range(stat_number)]
             case 1:
                 encounter_levels += [party_level] * stat_number
             case 2:
-                encounter_levels += [
-                    (party_level + randint(1, 4)) for _ in range(stat_number)
-                ]
+                encounter_levels += [(party_level + randint(1, 4)) for _ in range(stat_number)]
             case 3:
-                encounter_levels += [
-                    (party_level + randint(5, 20)) for _ in range(stat_number)
-                ]
+                encounter_levels += [(party_level + randint(5, 20)) for _ in range(stat_number)]
     shuffle(encounter_levels)
     return encounter_levels
 
@@ -1944,12 +1582,7 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
         if not encounter_levels:
             encounter_levels: List[int] = generate_encounter_levels(party_level=party_level)
         encounter_level: int = encounter_levels.pop()
-        monsters: List[Monster] = generate_encounter(
-            encounter_level=encounter_level,
-            monsters=monsters_db,
-            monster_groups_count=monster_groups_count,
-            spell_casters_only=spell_casters_only,
-        )
+        monsters: List[Monster] = generate_encounter(encounter_level=encounter_level, monsters=monsters_db, monster_groups_count=monster_groups_count, spell_casters_only=spell_casters_only, )
         # monsters: List[Monster] = [request_monster(index_name='swarm-of-centipedes') for _ in range(randint(1, 2))]
         # To debug monster multi-attacks
         # monsters_names_for_debug = ['rug-of-smothering']
@@ -1962,9 +1595,7 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
         cprint(f"{color.PURPLE} New encounter!{color.END}")
         display_group_of_monsters(monsters)
         cprint(f"{color.PURPLE}-------------------------------------------------------------------------------------------------------------------------------------------{color.END}")
-        attack_queue = [(c, randint(1, c.abilities.dex)) for c in party] + [
-            (m, randint(1, m.abilities.dex)) for m in monsters
-        ]
+        attack_queue = [(c, randint(1, c.abilities.dex)) for c in party] + [(m, randint(1, m.abilities.dex)) for m in monsters]
         attack_queue.sort(key=lambda x: x[1], reverse=True)
         attackers = [c for c, init_roll in attack_queue]
         alive_monsters: List[Monster] = [c for c in monsters if c.hit_points > 0]
@@ -1997,11 +1628,7 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
                         # Precalculate ready spells & special attacks
                         if attacker.can_cast:
                             cantric_spells: List[Spell] = [s for s in attacker.sc.learned_spells if not s.level]
-                            slot_spells: List[Spell] = [
-                                s
-                                for s in attacker.sc.learned_spells
-                                if s.level and attacker.sc.spell_slots[s.level - 1] > 0
-                            ]
+                            slot_spells: List[Spell] = [s for s in attacker.sc.learned_spells if s.level and attacker.sc.spell_slots[s.level - 1] > 0]
                             castable_spells: List[Spell] = cantric_spells + slot_spells
                         if attacker.sa and round_num > 0:  # ou 1? (à vérifier)
                             for special_attack in attacker.sa:
@@ -2010,11 +1637,7 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
                         available_special_attacks: List[SpecialAbility] = list(filter(lambda a: a.ready, attacker.sa))
                         # Main loop
                         if attacker.can_cast and castable_spells:
-                            target_char: Character = (
-                                choice(ranged_chars)
-                                if ranged_chars
-                                else choice(melee_chars)
-                            )
+                            target_char: Character = (choice(ranged_chars) if ranged_chars else choice(melee_chars))
                             attack_spell: Spell = max(castable_spells, key=lambda s: s.level)
                             target_char.hit_points -= attacker.spell_attack(target_char, attack_spell)
                             if target_char.hit_points <= 0:
@@ -2022,11 +1645,7 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
                                 target_char.status = "DEAD"
                                 cprint(f"{target_char.name} is ** KILLED **!")
                         elif available_special_attacks:
-                            special_attack: SpecialAbility = max(
-                                available_special_attacks,
-                                key=lambda a: sum([damage.dd.score(success_type=a.dc_success) for damage in a.damages]
-                                ),
-                            )
+                            special_attack: SpecialAbility = max(available_special_attacks, key=lambda a: sum([damage.dd.score(success_type=a.dc_success) for damage in a.damages]), )
                             # cprint(special_attack)
                             if special_attack.targets_count >= len(party):
                                 cprint(f"{color.GREEN}{attacker.name}{color.END} launches ** {special_attack.name.upper()} ** on whole party!")
@@ -2055,11 +1674,7 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
                                         cprint(f"{target_char.name} is ** KILLED **!")
                         else:
                             target_char: Character = choice(melee_chars)
-                            melee_attacks: List[Action] = [
-                                a
-                                for a in attacker.actions
-                                if a.type in (ActionType.MELEE, ActionType.MIXED)
-                            ]
+                            melee_attacks: List[Action] = [a for a in attacker.actions if a.type in (ActionType.MELEE, ActionType.MIXED)]
                             if melee_attacks:
                                 target_char.hit_points -= attacker.attack(character=target_char, actions=melee_attacks)
                                 if target_char.hit_points <= 0:
