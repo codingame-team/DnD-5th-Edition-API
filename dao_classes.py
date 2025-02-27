@@ -59,41 +59,17 @@ class Sprite:
     def check_collision(self, other: Sprite):
         return self.x == other.x and self.y == other.y
 
-    def draw(
-        self,
-        screen,
-        image,
-        tile_size,
-        viewport_x,
-        viewport_y,
-        viewport_width,
-        viewport_height,
-    ):
+    def draw(self, screen, image, tile_size, viewport_x, viewport_y, viewport_width, viewport_height, ):
         if self.image_name:
             # Calculate the position of the sprite relative to the viewport
             draw_x = (self.x - viewport_x) * tile_size
             draw_y = (self.y - viewport_y) * tile_size
 
             # Check if the sprite is within the viewport boundaries
-            if (
-                0 <= draw_x <= viewport_width * tile_size
-                and 0 <= draw_y <= viewport_height * tile_size
-            ):
+            if (0 <= draw_x <= viewport_width * tile_size and 0 <= draw_y <= viewport_height * tile_size):
                 screen.blit(image, (draw_x, draw_y))
 
-    def draw_effect(
-        self,
-        screen,
-        sprites,
-        tile_size,
-        fps,
-        viewport_x,
-        viewport_y,
-        viewport_width,
-        viewport_height,
-        sound_file=None,
-        reduce_ratio=1,
-    ):
+    def draw_effect(self, screen, sprites, tile_size, fps, viewport_x, viewport_y, viewport_width, viewport_height, sound_file=None, reduce_ratio=1, ):
         # Calculate the position of the sprite relative to the viewport
         draw_x = (self.x - viewport_x) * tile_size
         draw_y = (self.y - viewport_y) * tile_size
@@ -120,10 +96,7 @@ class Sprite:
             original_width, original_height = original_sprite.get_size()
 
             # Create a new surface with half the dimensions
-            reduced_sprite = pygame.transform.scale(
-                original_sprite,
-                (original_width // reduce_ratio, original_height // reduce_ratio),
-            )
+            reduced_sprite = pygame.transform.scale(original_sprite, (original_width // reduce_ratio, original_height // reduce_ratio), )
 
             # Calculate the offset to center the sprite on the tile
             offset_x = (tile_size - reduced_sprite.get_width()) // 2
@@ -192,26 +165,12 @@ class Monster(Sprite):
 
     @property
     def level(self) -> int:
-        hit_dice, bonus = (
-            self.hit_dice.split(" + ") if "+" in self.hit_dice else (self.hit_dice, "0")
-        )
+        hit_dice, bonus = (self.hit_dice.split(" + ") if "+" in self.hit_dice else (self.hit_dice, "0"))
         dice_count, roll_dice = map(int, hit_dice.split("d"))
         return dice_count * roll_dice + int(bonus)
 
     def __copy__(self):
-        return Monster(
-            self.name,
-            self.abilities,
-            self.proficiencies,
-            self.armor_class,
-            self.hit_points,
-            self.hit_dice,
-            self.xp,
-            self.challenge_rating,
-            self.actions,
-            copy(self.sc),
-            self.sa,
-        )
+        return Monster(self.name, self.abilities, self.proficiencies, self.armor_class, self.hit_points, self.hit_dice, self.xp, self.challenge_rating, self.actions, copy(self.sc), self.sa, )
 
     def saving_throw(self, dc_type: str, dc_value: int) -> bool:
         """
@@ -222,9 +181,7 @@ class Monster(Sprite):
         """
         # 2 - Calculate saving throw of monster
         st_type: str = f"saving-throw-{dc_type}"
-        prof_modifiers: List[int] = [
-            p.value for p in self.proficiencies if st_type == p.index
-        ]
+        prof_modifiers: List[int] = [p.value for p in self.proficiencies if st_type == p.index]
         ability_modifier: int = prof_modifiers[0] if prof_modifiers else 0
         return randint(1, 20) + ability_modifier > dc_value
 
@@ -236,36 +193,24 @@ class Monster(Sprite):
         total_damage: int = 0
         if spell.level > 0:
             self.sc.spell_slots[spell.level - 1] -= 1
-        damage_dices: List[DamageDice] = spell.get_spell_damages(
-            caster_level=self.sc.level, ability_modifier=self.sc.ability_modifier
-        )
+        damage_dices: List[DamageDice] = spell.get_spell_damages(caster_level=self.sc.level, ability_modifier=self.sc.ability_modifier)
         for dd in damage_dices:
             total_damage += dd.roll()
-        cprint(
-            f"{color.GREEN}{self.name}{color.END} CAST SPELL ** {spell.name.upper()} ** on {character.name}"
-        )
+        cprint(f"{color.GREEN}{self.name}{color.END} CAST SPELL ** {spell.name.upper()} ** on {character.name}")
         if spell.dc_type is None:
             # No saving throw available for this spell!
-            cprint(
-                f"{color.RED}{character.name}{color.END} is hit for {total_damage} hit points!"
-            )
+            cprint(f"{color.RED}{character.name}{color.END} is hit for {total_damage} hit points!")
         else:
-            st_success: bool = character.saving_throw(
-                dc_type=spell.dc_type, dc_value=self.sc.dc_value
-            )
+            st_success: bool = character.saving_throw(dc_type=spell.dc_type, dc_value=self.sc.dc_value)
             if st_success:
                 cprint(f"{color.RED}{character.name}{color.END} resists the Spell!")
                 if spell.dc_success == "half":
                     total_damage //= 2
-                    cprint(
-                        f"{color.RED}{character.name}{color.END} is hit for {total_damage} hit points!"
-                    )
+                    cprint(f"{color.RED}{character.name}{color.END} is hit for {total_damage} hit points!")
                 elif spell.dc_success == "none":
                     total_damage = 0
             else:
-                cprint(
-                    f"{color.RED}{character.name}{color.END} is hit for {total_damage} hit points!"
-                )
+                cprint(f"{color.RED}{character.name}{color.END} is hit for {total_damage} hit points!")
         return total_damage
 
     def special_attack(self, character, sa: SpecialAbility) -> int:
@@ -338,8 +283,7 @@ class Monster(Sprite):
                                 if e.index == "restrained":
                                     e.creature = self
                             effects: str = " and ".join([e.index for e in attack.effects])
-                            cprint(f"{color.RED}{character.name}{color.END} is {effects}!"
-)
+                            cprint(f"{color.RED}{character.name}{color.END} is {effects}!")
                     else:
                         cprint(f"{self.name} misses {character.name}!")
         return total_damage
@@ -468,17 +412,8 @@ class Cost:
 
     @property
     def value(self) -> int:
-        # return value in cp
-        if self.unit == "sp":
-            return self.quantity * 10
-        elif self.unit == "ep":
-            return self.quantity * 50
-        elif self.unit == "gp":
-            return self.quantity * 100
-        elif self.unit == "pp":
-            return self.quantity * 1000
-        else:
-            return self.quantity
+        rates = {"sp": 10, "ep": 50, "gp": 100, "pp": 1000}
+        return self.quantity * rates.get(self.unit, 1)  # value in copper pieces
 
     def __repr__(self):
         return f"{self.quantity} {self.unit}"
@@ -548,6 +483,7 @@ class Weapon(Equipment):
     def __repr__(self):
         return self.name
 
+
 @dataclass
 class Armor(Equipment):
     armor_class: dict()
@@ -567,20 +503,7 @@ class PotionRarity(Enum):
 
 
 class Potion(ABC, Sprite):
-    def __init__(
-        self,
-        id: int,
-        image_name: str,
-        x: int,
-        y: int,
-        old_x: int,
-        old_y: int,
-        name: str,
-        rarity: PotionRarity,
-        min_cost: int,
-        max_cost: int,
-        min_level: int = 1,
-    ):
+    def __init__(self, id: int, image_name: str, x: int, y: int, old_x: int, old_y: int, name: str, rarity: PotionRarity, min_cost: int, max_cost: int, min_level: int = 1, ):
         # Initialize Sprite class
         super().__init__(id, image_name, x, y, old_x, old_y)
 
@@ -590,7 +513,7 @@ class Potion(ABC, Sprite):
         self.min_cost = min_cost
         self.max_cost = max_cost
         self.min_level = min_level
-        self.cost = Cost(randint(self.min_cost, self.max_cost), 'gp')
+        self.cost = Cost(randint(self.min_cost, self.max_cost), "gp")
 
     def __copy__(self):
         cls = self.__class__
@@ -606,35 +529,8 @@ class Potion(ABC, Sprite):
 
 
 class StrengthPotion(Potion):
-    def __init__(
-        self,
-        id: int,
-        image_name: str,
-        x: int,
-        y: int,
-        old_x: int,
-        old_y: int,
-        name: str,
-        rarity: PotionRarity,
-        min_cost: int,
-        max_cost: int,
-        value: int,
-        duration: int,
-        min_level: int = 1,
-    ):
-        super().__init__(
-            id,
-            image_name,
-            x,
-            y,
-            old_x,
-            old_y,
-            name,
-            rarity,
-            min_cost,
-            max_cost,
-            min_level,
-        )
+    def __init__(self, id: int, image_name: str, x: int, y: int, old_x: int, old_y: int, name: str, rarity: PotionRarity, min_cost: int, max_cost: int, value: int, duration: int, min_level: int = 1, ):
+        super().__init__(id, image_name, x, y, old_x, old_y, name, rarity, min_cost, max_cost, min_level, )
         self.value = value
         self.duration = duration
 
@@ -643,34 +539,8 @@ class StrengthPotion(Potion):
 
 
 class SpeedPotion(Potion):
-    def __init__(
-        self,
-        id: int,
-        image_name: str,
-        x: int,
-        y: int,
-        old_x: int,
-        old_y: int,
-        name: str,
-        rarity: PotionRarity,
-        min_cost: int,
-        max_cost: int,
-        duration: int,
-        min_level: int = 1,
-    ):
-        super().__init__(
-            id,
-            image_name,
-            x,
-            y,
-            old_x,
-            old_y,
-            name,
-            rarity,
-            min_cost,
-            max_cost,
-            min_level,
-        )
+    def __init__(self, id: int, image_name: str, x: int, y: int, old_x: int, old_y: int, name: str, rarity: PotionRarity, min_cost: int, max_cost: int, duration: int, min_level: int = 1, ):
+        super().__init__(id, image_name, x, y, old_x, old_y, name, rarity, min_cost, max_cost, min_level, )
         self.duration = duration
 
     def effect(self):
@@ -678,35 +548,8 @@ class SpeedPotion(Potion):
 
 
 class HealingPotion(Potion):
-    def __init__(
-        self,
-        id: int,
-        image_name: str,
-        x: int,
-        y: int,
-        old_x: int,
-        old_y: int,
-        name: str,
-        rarity: PotionRarity,
-        hit_dice: str,
-        bonus: int,
-        min_cost: int,
-        max_cost: int,
-        min_level: int = 1,
-    ):
-        super().__init__(
-            id,
-            image_name,
-            x,
-            y,
-            old_x,
-            old_y,
-            name,
-            rarity,
-            min_cost,
-            max_cost,
-            min_level,
-        )
+    def __init__(self, id: int, image_name: str, x: int, y: int, old_x: int, old_y: int, name: str, rarity: PotionRarity, hit_dice: str, bonus: int, min_cost: int, max_cost: int, min_level: int = 1, ):
+        super().__init__(id, image_name, x, y, old_x, old_y, name, rarity, min_cost, max_cost, min_level, )
         self.hit_dice = hit_dice
         self.bonus = bonus
 
@@ -727,97 +570,6 @@ class HealingPotion(Potion):
     def score(self) -> float:
         return (self.min_hp_restored + self.max_hp_restored) / 2 + self.bonus
 
-
-#
-# class PotionRarity(Enum):
-#     COMMON = 60
-#     UNCOMMON = 80
-#     RARE = 95
-#     VERY_RARE = 100
-#
-# @dataclass
-# class StrengthPotion(Sprite):
-#     name: str
-#     duration: int
-#     rarity: PotionRarity
-#     min_cost: int
-#     max_cost: int
-#     min_level: int = 1
-#     cost: int = field(init=False)
-#
-#     def __post_init__(self):
-#         self.cost = randint(self.min_cost, self.max_cost)
-#
-#     def __copy__(self):
-#         # Create a shallow copy of the object
-#         cls = self.__class__
-#         result = cls.__new__(cls)
-#         result.__dict__.update(self.__dict__)
-#         # For each attribute that should be deep-copied, use copy.copy
-#         result.rarity = copy(self.rarity)
-#         result.cost = copy(self.cost)
-#         return result
-#
-# @dataclass
-# class SpeedPotion(Sprite):
-#     name: str
-#     duration: int
-#     rarity: PotionRarity
-#     min_cost: int = 5001
-#     max_cost: int = 50000
-#     min_level: int = 11
-#     cost: int = field(init=False)
-#
-#     def __post_init__(self):
-#         self.cost = randint(self.min_cost, self.max_cost)
-#
-#     def __copy__(self):
-#         # Create a shallow copy of the object
-#         cls = self.__class__
-#         result = cls.__new__(cls)
-#         result.__dict__.update(self.__dict__)
-#         # For each attribute that should be deep-copied, use copy.copy
-#         result.rarity = copy(self.rarity)
-#         result.cost = copy(self.cost)
-#         return result
-#
-# @dataclass
-# class HealingPotion(Sprite):
-#     name: str
-#     hit_dice: str
-#     bonus: int
-#     rarity: PotionRarity
-#     min_cost: int
-#     max_cost: int
-#     min_level: int = 1
-#     cost: int = field(init=False)
-#
-#     def __post_init__(self):
-#         self.cost = randint(self.min_cost, self.max_cost)
-#
-#     def __copy__(self):
-#         # Create a shallow copy of the object
-#         cls = self.__class__
-#         result = cls.__new__(cls)
-#         result.__dict__.update(self.__dict__)
-#         # For each attribute that should be deep-copied, use copy.copy
-#         result.rarity = copy(self.rarity)
-#         result.cost = copy(self.cost)
-#         return result
-#
-#     @property
-#     def min_hp_restored(self):
-#         dice_count, roll_dice = map(int, self.hit_dice.split('d'))
-#         return self.bonus + dice_count
-#
-#     @property
-#     def max_hp_restored(self):
-#         dice_count, roll_dice = map(int, self.hit_dice.split('d'))
-#         return self.bonus + dice_count * roll_dice
-#
-#     @property
-#     def score(self) -> float:
-#         return (self.min_hp_restored + self.max_hp_restored) / 2 + self.bonus
 
 
 class AbilityType(Enum):
@@ -894,64 +646,18 @@ class Abilities:
     cha: int
 
     def get_value_by_name(self, name) -> int:
-        match name:
-            case "Strength":
-                return self.str
-            case "Dexterity":
-                return self.dex
-            case "Constitution":
-                return self.con
-            case "Intelligence":
-                return self.int
-            case "Wisdom":
-                return self.wis
-            case "Charism":
-                return self.cha
+        attr_map = {"Strength": "str", "Dexterity": "dex", "Constitution": "con", "Intelligence": "int", "Wisdom": "wis", "Charism": "cha"}
+        return getattr(self, attr_map[name])
 
     def set_value_by_name(self, name, value):
-        match name:
-            case "Strength":
-                self.str = value
-            case "Dexterity":
-                self.dex = value
-            case "Constitution":
-                self.con = value
-            case "Intelligence":
-                self.int = value
-            case "Wisdom":
-                self.wis = value
-            case "Charism":
-                self.cha = value
+        attr_map = {"Strength": "str", "Dexterity": "dex", "Constitution": "con", "Intelligence": "int", "Wisdom": "wis", "Charism": "cha"}
+        setattr(self, attr_map[name], value)
 
     def get_value_by_index(self, name) -> int:
-        match name:
-            case "str":
-                return self.str
-            case "dex":
-                return self.dex
-            case "con":
-                return self.con
-            case "int":
-                return self.int
-            case "wis":
-                return self.wis
-            case "cha":
-                return self.cha
+        return getattr(self, name)
 
     def set_value_by_index(self, name, value):
-        match name:
-            case "str":
-                self.str = value
-            case "dex":
-                self.dex = value
-            case "con":
-                self.con = value
-            case "int":
-                self.int = value
-            case "wis":
-                self.wis = value
-            case "cha":
-                self.cha = value
+        setattr(self, name, value)
 
     def __repr__(self):
         return f"str: {self.str} dex: {self.dex} con: {self.con} int: {self.int} wis: {self.wis} cha: {self.cha}"
@@ -973,9 +679,7 @@ class Condition:
     creature: Monster = None
 
     def __copy__(self):
-        return Condition(
-            self.index, self.name, self.desc, self.dc_type, self.dc_value, self.creature
-        )
+        return Condition(self.index, self.name, self.desc, self.dc_type, self.dc_value, self.creature)
 
 
 @dataclass
@@ -1012,9 +716,7 @@ class Spell:
     def is_cantrip(self) -> bool:
         return self.level == 0
 
-    def get_spell_damages(
-        self, caster_level: int, ability_modifier: int
-    ) -> List[DamageDice]:
+    def get_spell_damages(self, caster_level: int, ability_modifier: int) -> List[DamageDice]:
         # TODO modify request_class() in populate_functions to put int instead of str
         damage_dices: List[DamageDice] = []
         if self.damage_at_slot_level:
@@ -1025,9 +727,7 @@ class Spell:
             else:
                 for level in range(caster_level, -1, -1):
                     if str(level) in self.damage_at_character_level:
-                        damage_dice: str = self.damage_at_character_level.get(
-                            str(level)
-                        )
+                        damage_dice: str = self.damage_at_character_level.get(str(level))
                         break
         # print(f'{self.index} -> damage_dice = {damage_dice}')
         if damage_dice and "+" in damage_dice:
@@ -1094,14 +794,7 @@ class SpellCaster:
     ability_modifier: int | None
 
     def __copy__(self):
-        return SpellCaster(
-            self.level,
-            self.spell_slots[:],
-            self.learned_spells,
-            self.dc_type,
-            self.dc_value,
-            self.ability_modifier,
-        )
+        return SpellCaster(self.level, self.spell_slots[:], self.learned_spells, self.dc_type, self.dc_value, self.ability_modifier)
 
 
 @dataclass
@@ -1111,9 +804,7 @@ class Action:
     type: ActionType
     damages: List[Damage] = None
     effects: List[Condition] = None
-    multi_attack: List[Action | SpecialAbility] = (
-        None  # used for MELEE and RANGED attacks
-    )
+    multi_attack: List[Action | SpecialAbility] = None  # used for MELEE and RANGED attacks
     attack_bonus: int = 0
     normal_range: int = 5
     long_range: float = None
@@ -1186,7 +877,7 @@ class Character(Sprite):
         return self.hit_points <= 0
 
     def can_equip(self, eq: Equipment) -> bool:
-        return (eq.category.index == "armor" and eq in self.prof_armors)# or (eq.category.index == "armor" and eq in self.prof_weapons)
+        return eq.category.index == "armor" and eq in self.prof_armors  # or (eq.category.index == "armor" and eq in self.prof_weapons)
 
     def can_drink(self, eq: Equipment) -> bool:
         return eq.category.index == "potion"
@@ -1205,11 +896,7 @@ class Character(Sprite):
         return self.sc is not None
 
     def can_cast(self, spell: Spell) -> bool:
-        return (
-            self.is_spell_caster
-            and spell in self.sc.learned_spells
-            and (self.sc.spell_slots[spell.level - 1] > 0 or spell.is_cantrip)
-        )
+        return self.is_spell_caster and spell in self.sc.learned_spells and (self.sc.spell_slots[spell.level - 1] > 0 or spell.is_cantrip)
 
     @property
     def dc_value(self):
@@ -1222,69 +909,35 @@ class Character(Sprite):
         return 8 + spell_casting_ability_modifier + prof_bonus
 
     @property
-    def in_dungeon(self):
-        return self.id_party != -1
+    def in_dungeon(self): return self.id_party != -1
 
     @property
     def attributes(self):
-        return [
-            self.strength,
-            self.dexterity,
-            self.constitution,
-            self.intelligence,
-            self.wisdom,
-            self.charism,
-        ]
+        return [self.strength, self.dexterity, self.constitution, self.intelligence, self.wisdom, self.charism]
+
+    def _get_ability(self, attr: str) -> int:
+        return getattr(self.abilities, attr) + self.race.ability_bonuses.get(attr, 0)
 
     @property
     def strength(self):
-        if self.str_effect_modifier != -1:
-            return self.str_effect_modifier
-        return (
-            self.abilities.str
-            if "str" not in self.race.ability_bonuses
-            else self.abilities.str + self.race.ability_bonuses["str"]
-        )
+        return self.str_effect_modifier if self.str_effect_modifier != -1 else self._get_ability("str")
 
     @property
     def dexterity(self):
-        return (
-            self.abilities.dex
-            if "dex" not in self.race.ability_bonuses
-            else self.abilities.dex + self.race.ability_bonuses["dex"]
-        )
+        dex_bonus = self.used_armor.armor_class['max_bonus'] if self.used_armor and self.used_armor.armor_class['dex_bonus'] != 'False' else 0
+        return self._get_ability("dex") + int(0 if dex_bonus == 'None' else dex_bonus)
 
     @property
-    def constitution(self):
-        return (
-            self.abilities.con
-            if "con" not in self.race.ability_bonuses
-            else self.abilities.con + self.race.ability_bonuses["con"]
-        )
+    def constitution(self): return self._get_ability("con")
 
     @property
-    def intelligence(self):
-        return (
-            self.abilities.int
-            if "int" not in self.race.ability_bonuses
-            else self.abilities.int + self.race.ability_bonuses["int"]
-        )
+    def intelligence(self): return self._get_ability("int")
 
     @property
-    def wisdom(self):
-        return (
-            self.abilities.wis
-            if "wis" not in self.race.ability_bonuses
-            else self.abilities.wis + self.race.ability_bonuses["wis"]
-        )
+    def wisdom(self): return self._get_ability("wis")
 
     @property
-    def charism(self):
-        return (
-            self.abilities.cha
-            if "cha" not in self.race.ability_bonuses
-            else self.abilities.cha + self.race.ability_bonuses["cha"]
-        )
+    def charism(self): return self._get_ability("cha")
 
     def __repr__(self):
         # return f'{self.id} {self.name} {self.class_type} {self.image_name}'
@@ -1296,35 +949,19 @@ class Character(Sprite):
 
     @property
     def multi_attacks(self) -> int:
-        if self.class_type.index == 'fighter':
-            attack_counts: int = (1 if self.level < 5 else 2 if self.level < 11 else 3)
-        elif self.class_type.index in ('paladin', 'ranger', 'monk', 'barbarian'):
-            attack_counts: int = (1 if self.level < 5 else 2)
+        if self.class_type.index == "fighter":
+            attack_counts: int = 1 if self.level < 5 else 2 if self.level < 11 else 3
+        elif self.class_type.index in ("paladin", "ranger", "monk", "barbarian"):
+            attack_counts: int = 1 if self.level < 5 else 2
         else:
             attack_counts: int = 1
-        return (
-            attack_counts + self.multi_attack_bonus
-            if hasattr(self, "multi_attack_bonus")
-            else attack_counts
-        )
+        return (attack_counts + self.multi_attack_bonus if hasattr(self, "multi_attack_bonus") else attack_counts)
 
     @property
     def armor_class(self):
-        equipped_armors: List[Armor] = [
-            item
-            for item in self.inventory
-            if isinstance(item, Armor) and item.equipped and item.name != "Shield"
-        ]
-        equipped_shields: List[Armor] = [
-            item
-            for item in self.inventory
-            if isinstance(item, Armor) and item.name == "Shield" and item.equipped
-        ]
-        ac: int = (
-            sum([item.armor_class["base"] for item in equipped_armors])
-            if equipped_armors
-            else 10
-        )
+        equipped_armors: List[Armor] = [item for item in self.inventory if isinstance(item, Armor) and item.equipped and item.name != "Shield"]
+        equipped_shields: List[Armor] = [item for item in self.inventory if isinstance(item, Armor) and item.name == "Shield" and item.equipped]
+        ac: int = (sum([item.armor_class["base"] for item in equipped_armors]) if equipped_armors else 10)
         ac += sum([item.armor_class["base"] for item in equipped_shields])
         return ac + self.ac_bonus if hasattr(self, "ac_bonus") else ac
 
@@ -1332,37 +969,21 @@ class Character(Sprite):
     def damage_dice(self) -> DamageDice:
         """TODO Two handed weapon not possible with a shield"""
         # print(f'error {self.weapon}')
-        return (
-            self.weapon.damage_dice_two_handed
-            if self.weapon and self.weapon.damage_dice_two_handed
-            else self.weapon.damage_dice if self.weapon else DamageDice("1d2")
-        )
+        return (self.weapon.damage_dice_two_handed if self.weapon and self.weapon.damage_dice_two_handed else self.weapon.damage_dice if self.weapon else DamageDice("1d2"))
 
     @property
     def used_armor(self) -> Optional[Armor]:
-        equipped_armors: List[Armor] = [
-            item
-            for item in self.inventory
-            if isinstance(item, Armor) and item.equipped and item.name != "Shield"
-        ]
+        equipped_armors: List[Armor] = [item for item in self.inventory if isinstance(item, Armor) and item.equipped and item.name != "Shield"]
         return equipped_armors[0] if equipped_armors else None
 
     @property
     def used_shield(self) -> Optional[Armor]:
-        equipped_shields: List[Armor] = [
-            item
-            for item in self.inventory
-            if isinstance(item, Armor) and item.name == "Shield" and item.equipped
-        ]
+        equipped_shields: List[Armor] = [item for item in self.inventory if isinstance(item, Armor) and item.name == "Shield" and item.equipped]
         return equipped_shields[0] if equipped_shields else None
 
     @property
     def used_weapon(self) -> Optional[Weapon]:
-        equipped_weapons: List[Weapon] = [
-            item
-            for item in self.inventory
-            if isinstance(item, Weapon) and item.equipped
-        ]
+        equipped_weapons: List[Weapon] = [item for item in self.inventory if isinstance(item, Weapon) and item.equipped]
         return equipped_weapons[0] if equipped_weapons else None
 
     @property
@@ -1371,18 +992,8 @@ class Character(Sprite):
 
     def choose_best_potion(self) -> HealingPotion:
         hp_to_recover = self.max_hit_points - self.hit_points
-        available_potions = [
-            p
-            for p in self.healing_potions
-            if p.max_hp_restored >= hp_to_recover
-            and hasattr(p, "min_level")
-            and self.level >= p.min_level
-        ]
-        return (
-            min(available_potions, key=lambda p: p.max_hp_restored)
-            if available_potions
-            else max(self.healing_potions, key=lambda p: p.max_hp_restored)
-        )
+        available_potions = [p for p in self.healing_potions if p.max_hp_restored >= hp_to_recover and hasattr(p, "min_level") and self.level >= p.min_level]
+        return (min(available_potions, key=lambda p: p.max_hp_restored) if available_potions else max(self.healing_potions, key=lambda p: p.max_hp_restored))
 
     def cancel_haste_effect(self):
         self.hasted = False
@@ -1434,19 +1045,19 @@ class Character(Sprite):
 
     def equip(self, item) -> bool:
         if isinstance(item, Armor):
-            if item.index == 'shield':
+            if item.index == "shield":
                 if self.used_shield:
                     if item == self.used_shield:
                         # un-equip shield
                         item.equipped = not item.equipped
                         return True
                     else:
-                        cprint(f'Hero cannot equip {Color.RED}{item.name}{Color.END}> - Please un-equip <{self.used_shield.name}> first!')
+                        cprint(f"Hero cannot equip {Color.RED}{item.name}{Color.END}> - Please un-equip <{self.used_shield.name}> first!")
                 else:
                     if self.used_weapon:
-                        is_two_handed = [p for p in self.used_weapon.properties if p.index == 'two-handed']
+                        is_two_handed = [p for p in self.used_weapon.properties if p.index == "two-handed"]
                         if is_two_handed:
-                            cprint(f'Hero cannot equip <{item.name}> with a 2-handed weapon - Please un-equip <{self.used_weapon}> first!')
+                            cprint(f"Hero cannot equip <{item.name}> with a 2-handed weapon - Please un-equip <{self.used_weapon}> first!")
                         else:
                             # equip shield
                             item.equipped = not item.equipped
@@ -1462,10 +1073,10 @@ class Character(Sprite):
                         item.equipped = not item.equipped
                         return True
                     else:
-                        cprint(f'Hero cannot equip <{item.name}> - Please un-equip <{self.used_armor.name}> first!')
+                        cprint(f"Hero cannot equip <{item.name}> - Please un-equip <{self.used_armor.name}> first!")
                 else:
                     if self.strength < item.str_minimum:
-                        cprint(f'Hero cannot equip <{item.name}> - Minimum strength required is <{item.str_minimum}>!')
+                        cprint(f"Hero cannot equip <{item.name}> - Minimum strength required is <{item.str_minimum}>!")
                     else:
                         # equip armor
                         item.equipped = not item.equipped
@@ -1477,17 +1088,17 @@ class Character(Sprite):
                     item.equipped = not item.equipped
                     return True
                 else:
-                    cprint(f'Hero cannot equip <{item.name}> - Please un-equip <{self.used_weapon.name}> first!')
+                    cprint(f"Hero cannot equip <{item.name}> - Please un-equip <{self.used_weapon.name}> first!")
             else:
-                is_two_handed = [p for p in item.properties if p.index == 'two-handed']
+                is_two_handed = [p for p in item.properties if p.index == "two-handed"]
                 if is_two_handed and self.used_shield:
-                    cprint(f'Hero cannot equip <{item.name}> with a shield - Please un-equip <{self.used_shield}> first!')
+                    cprint(f"Hero cannot equip <{item.name}> with a shield - Please un-equip <{self.used_shield}> first!")
                 else:
                     # equip weapon
                     item.equipped = not item.equipped
                     return True
         else:
-            cprint(f'Hero cannot equip <{item.name}>!')
+            cprint(f"Hero cannot equip <{item.name}>!")
         return False
 
     def victory(self, monster: Monster, solo_mode=False):
@@ -1565,20 +1176,13 @@ class Character(Sprite):
         new_spells: List[Spell] = []
         self.level += 1
         level_up_hit_die = {12: 7, 10: 6, 8: 5, 6: 4}
-        hp_gained = randint(1, level_up_hit_die[self.class_type.hit_die]) + self.ability_modifiers.con
+        hp_gained = (randint(1, level_up_hit_die[self.class_type.hit_die]) + self.ability_modifiers.con)
         self.max_hit_points += max(1, hp_gained)
         self.hit_points += hp_gained
         print(f"{color.BLUE}New level #{self.level} gained!!!{color.END}")
         print(f"{self.name} gained {hp_gained} hit points")
         #  PROCEDURE GAINLOST;  (* P010A20 *)
-        attrs = [
-            "Strength",
-            "Dexterity",
-            "Constitution",
-            "Intelligence",
-            "Wisdom",
-            "Charism",
-        ]
+        attrs = ["Strength", "Dexterity", "Constitution", "Intelligence", "Wisdom", "Charism", ]
         for attr in attrs:
             val = self.abilities.get_value_by_name(name=attr)
             if randint(0, 3) % 4:
@@ -1596,34 +1200,16 @@ class Character(Sprite):
                     print(f"You gained {attr}")
             self.abilities.set_value_by_name(name=attr, value=val)
         if self.class_type.can_cast:
-            available_spell_levels: List[int] = [
-                i + 1
-                for i, slot in enumerate(self.class_type.spell_slots[self.level])
-                if slot > 0
-            ]
-            new_spells_known_count: int = (
-                self.class_type.spells_known[self.level - 1]
-                - self.class_type.spells_known[self.level - 2]
-            )
+            available_spell_levels: List[int] = [i + 1 for i, slot in enumerate(self.class_type.spell_slots[self.level]) if slot > 0]
+            new_spells_known_count: int = (self.class_type.spells_known[self.level - 1] - self.class_type.spells_known[self.level - 2])
             new_cantric_spells_count: int = 0
             if self.class_type.cantrips_known:
-                new_cantric_spells_count = (
-                    self.class_type.cantrips_known[self.level - 1]
-                    - self.class_type.cantrips_known[self.level - 2]
-                )
-            learnable_spells: List[Spell] = [
-                s
-                for s in tome_spells
-                if s.level <= max(available_spell_levels)
-                and s not in self.sc.learned_spells
-                and s.damage_type
-            ]
+                new_cantric_spells_count = (self.class_type.cantrips_known[self.level - 1] - self.class_type.cantrips_known[self.level - 2])
+            learnable_spells: List[Spell] = [s for s in tome_spells if s.level <= max(available_spell_levels) and s not in self.sc.learned_spells and s.damage_type]
             self.sc.spell_slots = deepcopy(self.class_type.spell_slots[self.level])
             learnable_spells.sort(key=lambda s: s.level)
             new_spells_count: int = 0
-            while learnable_spells and (
-                new_spells_known_count or new_cantric_spells_count
-            ):
+            while learnable_spells and (new_spells_known_count or new_cantric_spells_count):
                 learned_spell: Spell = learnable_spells.pop()
                 if learned_spell.level == 0 and new_cantric_spells_count > 0:
                     new_cantric_spells_count -= 1
@@ -1649,48 +1235,33 @@ class Character(Sprite):
 
     def cast(self, spell: Spell, monster: Monster) -> int:
         # print(attack_spell)
-        ability_modifier: int = int(
-            self.ability_modifiers.get_value_by_index(
-                name=self.class_type.spellcasting_ability
-            )
-        )
-        damage_dices: List[DamageDice] = spell.get_spell_damages(
-            caster_level=self.level, ability_modifier=ability_modifier
-        )
+        ability_modifier: int = int(self.ability_modifiers.get_value_by_index(name=self.class_type.spellcasting_ability))
+        damage_dices: List[DamageDice] = spell.get_spell_damages(caster_level=self.level, ability_modifier=ability_modifier)
         damage_roll: int = 0
         for dd in damage_dices:
             damage_roll += dd.roll()
-        cprint(
-            f"{color.GREEN}{self.name}{color.END} ** CAST SPELL ** {spell.name.upper()}"
-        )
+        cprint(f"{color.GREEN}{self.name}{color.END} ** CAST SPELL ** {spell.name.upper()}")
         if spell.dc_type is None:
             # No saving throw available for this spell!
-            cprint(
-                f"{color.RED}{monster.name}{color.END} is hit for {damage_roll} hit points!"
-            )
+            cprint(f"{color.RED}{monster.name}{color.END} is hit for {damage_roll} hit points!")
         else:
-            st_success: bool = monster.saving_throw(
-                dc_type=self.class_type.spellcasting_ability, dc_value=self.dc_value
-            )
+            st_success: bool = monster.saving_throw(dc_type=self.class_type.spellcasting_ability, dc_value=self.dc_value)
             if st_success:
                 cprint(f"{color.RED}{monster.name}{color.END} resists the Spell!")
                 if spell.dc_success == "half":
                     damage_roll //= 2
-                    cprint(
-                        f"{color.RED}{monster.name}{color.END} is hit for {damage_roll} hit points!"
-                    )
+                    cprint(f"{color.RED}{monster.name}{color.END} is hit for {damage_roll} hit points!")
                 elif spell.dc_success == "none":
                     damage_roll = 0
             else:
-                cprint(
-                    f"{color.RED}{monster.name}{color.END} is hit for {damage_roll} hit points!"
-                )
+                cprint(f"{color.RED}{monster.name}{color.END} is hit for {damage_roll} hit points!")
         return damage_roll
 
     def attack(self, monster: Monster, in_melee: bool, cast: bool = True) -> int:
         """
         :return: damage generated
         """
+
         def prof_bonus(x):
             return x // 5 + 2 if x < 5 else (x - 5) // 4 + 3
 
@@ -1698,11 +1269,7 @@ class Character(Sprite):
         castable_spells: List[Spell] = []
         if self.is_spell_caster:
             cantric_spells: List[Spell] = [s for s in self.sc.learned_spells if not s.level]
-            slot_spells: List[Spell] = [
-                s
-                for s in self.sc.learned_spells
-                if s.level and self.sc.spell_slots[s.level - 1] > 0
-            ]
+            slot_spells: List[Spell] = [s for s in self.sc.learned_spells if s.level and self.sc.spell_slots[s.level - 1] > 0]
             castable_spells = cantric_spells + slot_spells
         if cast and castable_spells and not in_melee:
             # TODO modify spell_slots to [] for non casters
@@ -1715,16 +1282,12 @@ class Character(Sprite):
             for _ in range(self.multi_attacks):
                 if self.hit_points <= 0:
                     break
-                attack_roll = randint(1, 20) + self.ability_modifiers.get_value_by_index("str") + prof_bonus(self.level)
+                attack_roll = (randint(1, 20) + self.ability_modifiers.get_value_by_index("str") + prof_bonus(self.level))
                 if attack_roll >= monster.armor_class:
                     damage_roll = self.damage_dice.roll()
                 if damage_roll:
                     # cprint(f'{color.GREEN}{self.name}{color.END} hits {color.RED}{monster.name}{color.END} for {damage_roll} hit points!'
-                    attack_type: str = (
-                        self.weapon.damage_type.index.replace("ing", "es")
-                        if self.weapon
-                        else "punches"
-                    )
+                    attack_type: str = (self.weapon.damage_type.index.replace("ing", "es") if self.weapon else "punches")
                     cprint(f"{color.RED}{self.name}{color.END} {attack_type} {color.GREEN}{monster.name}{color.END} for {damage_roll} hit points!")
                     if any([e for e in self.conditions if e.index == "restrained"]):
                         damage_roll //= 2
@@ -1760,11 +1323,7 @@ class Character(Sprite):
             ability_modifier: int = prof_modifiers[0]
         else:
             ability_modifier: int = ability_mod(self.abilities.get_value_by_index(dc_type)) + prof_bonus(self.level)
-        return (
-            any(randint(1, 20) + ability_modifier > dc_value for _ in range(2))
-            if hasattr(self, 'st_advantages') and dc_type in self.st_advantages
-            else randint(1, 20) + ability_modifier > dc_value
-        )
+        return (any(randint(1, 20) + ability_modifier > dc_value for _ in range(2)) if hasattr(self, "st_advantages") and dc_type in self.st_advantages else randint(1, 20) + ability_modifier > dc_value)
 
 
 @dataclass
@@ -1794,15 +1353,11 @@ class DamageDice:
             if "+" in self.dice:
                 damage_dice, bonus_damage = self.dice.split("+")
                 dice_count, damage_dice = map(int, damage_dice.split("d"))
-                return sum([randint(1, damage_dice) for _ in range(dice_count)]) + int(
-                    bonus_damage
-                )
+                return sum([randint(1, damage_dice) for _ in range(dice_count)]) + int(bonus_damage)
             elif "-" in self.dice:
                 damage_dice, bonus_damage = self.dice.split("-")
                 dice_count, damage_dice = map(int, damage_dice.split("d"))
-                return sum([randint(1, damage_dice) for _ in range(dice_count)]) - int(
-                    bonus_damage
-                )
+                return sum([randint(1, damage_dice) for _ in range(dice_count)]) - int(bonus_damage)
             else:
                 dice_count, damage_dice = map(int, self.dice.split("d"))
                 return sum([randint(1, damage_dice) for _ in range(dice_count)])
