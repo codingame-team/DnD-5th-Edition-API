@@ -856,12 +856,12 @@ class Game:
                 case 1:
                     item: Potion = copy(choice(potions))  # work on a copy to avoid sprite id colliding...
                 case 2:
-                    if self.hero.allowed_armors:
-                        item: Armor = request_armor(index_name=choice(self.hero.allowed_armors).index)
+                    if self.hero.prof_armors:
+                        item: Armor = request_armor(index_name=choice(self.hero.prof_armors).index)
                     else:
                         item: Potion = copy(choice(potions))  # work on a copy to avoid sprite id colliding...
                 case 3:
-                    item: Weapon = request_weapon(index_name=choice(self.hero.allowed_weapons).index)
+                    item: Weapon = request_weapon(index_name=choice(self.hero.prof_weapons).index)
                     # item: Weapon = request_weapon('halberd')
             print(f'Hero found a {item.name}!')
             image: Surface = pygame.image.load(f"{item_sprites_dir}/{item.image_name}")
@@ -873,54 +873,6 @@ class Game:
                 # Drop item to the ground
                 print(f'Inventory is full!')
                 self.add_to_level(item, image, level_sprites)
-
-    def equip(self, item):
-        if isinstance(item, Armor):
-            if item.index == 'shield':
-                if self.hero.used_shield:
-                    if item.id == self.hero.used_shield.id:
-                        # un-equip shield
-                        item.equipped = not item.equipped
-                    else:
-                        cprint(f'Hero cannot equip <{item.name}> - Please un-equip <{self.hero.used_shield.name}> first!')
-                else:
-                    if self.hero.used_weapon:
-                        is_two_handed = [p for p in self.hero.used_weapon.properties if p.index == 'two-handed']
-                        if is_two_handed:
-                            cprint(f'Hero cannot equip <{item.name}> with a 2-handed weapon - Please un-equip <{self.hero.used_weapon}> first!')
-                        else:
-                            # equip shield
-                            item.equipped = not item.equipped
-                    else:
-                        # equip shield
-                        item.equipped = not item.equipped
-            else:
-                if self.hero.used_armor:
-                    if item.id == self.hero.used_armor.id:
-                        # un-equip armor
-                        item.equipped = not item.equipped
-                    else:
-                        cprint(f'Hero cannot equip <{item.name}> - Please un-equip <{self.hero.used_armor.name}> first!')
-                else:
-                    if self.hero.strength < item.str_minimum:
-                        cprint(f'Hero cannot equip <{item.name}> - Minimum strength required is <{item.str_minimum}>!')
-                    else:
-                        # equip armor
-                        item.equipped = not item.equipped
-        elif isinstance(item, Weapon):
-            if self.hero.used_weapon:
-                if item.id == self.hero.used_weapon.id:
-                    # un-equip weapon
-                    item.equipped = not item.equipped
-                else:
-                    cprint(f'Hero cannot equip <{item.name}> - Please un-equip <{self.hero.used_weapon.name}> first!')
-            else:
-                is_two_handed = [p for p in item.properties if p.index == 'two-handed']
-                if is_two_handed and self.hero.used_shield:
-                    cprint(f'Hero cannot equip <{item.name}> with a shield - Please un-equip <{self.hero.used_shield}> first!')
-                else:
-                    # equip weapon
-                    item.equipped = not item.equipped
 
     def use(self, item, sprites):
         if isinstance(item, Potion):
@@ -1286,7 +1238,7 @@ def handle_outside_map_click(game, event):
             if icon_rect.collidepoint(event.pos):
                 if event.button == 1:  # Left mouse button
                     if isinstance(item, (Armor, Weapon)):
-                        game.equip(item)
+                        game.hero.equip(item)
                     else:
                         game.use(item, sprites)
                 elif event.button == 3:  # Right mouse button
