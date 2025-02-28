@@ -724,7 +724,10 @@ def select_equipment_in_inventory(char: Character, action: str = 'trade') -> Opt
     for i, item in enumerate(items, 1):
         prof_items = char.prof_weapons if isinstance(item, Weapon) else char.prof_armors if isinstance(item, Weapon) else None
         prof = f'{Color.RED} ** NOT PROFICIENT **{Color.END}' if prof_items and not any(x.index == item.index for x in prof_items) else ''
-        print(f"{i}. {item.name.title()} - {Color.GREEN if item.equipped else ''}{'equipped' if item.equipped else 'unequipped'}{Color.END}{prof}")
+        if isinstance(item, (Weapon, Armor)):
+            print(f"{i}. {item.name.title()} - {Color.GREEN if item.equipped else ''}{'equipped' if item.equipped else 'unequipped'}{Color.END}{prof}")
+        else:
+            print(f"{i}. {item.name.title()} ({type(item).__name__})")
 
     try:
         if (choice := int(input(f"\nChoose equipment to {action} (0 to cancel): "))) in range(1, len(items) + 1):
@@ -770,7 +773,7 @@ def view_equipment(char):
     for i, item in enumerate(items, 1):
         prof_items = char.prof_weapons if isinstance(item, Weapon) else char.prof_armors if isinstance(item, Weapon) else None
         prof = f'{Color.RED} ** NOT PROFICIENT **{Color.END}' if prof_items and not any(x.index == item.index for x in prof_items) else ''
-        if isinstance(item, Weapon) or isinstance(item, Armor):
+        if isinstance(item, (Weapon, Armor)):
             print(f"{i}. {item.name.title()} - {Color.GREEN if item.equipped else ''}{'equipped' if item.equipped else 'unequipped'}{Color.END}{prof}")
         else:
             print(f"{i}. {item.name.title()} ({type(item).__name__})")
@@ -1314,7 +1317,7 @@ def sell_items(char):
             efface_ecran()
             item_name: str = choice.split("(")[0].strip()
             item: Equipment = [e for e in char.inventory if e and e.name == item_name][0]
-            if not item.equipped:
+            if not isinstance(item, (Weapon, Armor)) or not item.equipped:
                 cost_value: int = item.cost.value if isinstance(item.cost, Cost) else int(item.cost['quantity']) if isinstance(item.cost, dict) else item.cost
                 char.gold += cost_value // 200
                 # char.gold += item.cost.value // 200
@@ -1856,6 +1859,11 @@ def delete_armors_weapons(roster: List[Character]):
         char.weapon = dagger
         char.armor = skin
 
+def delete_weapons(char):
+    for item in char.inventory:
+        if isinstance(item, Weapon):
+            char.inventory[char.inventory.index(item)] = None
+    save_character(char, _dir=characters_dir)
 
 def give_best_armors_weapons(roster: List[Character]):
     for char in roster:
@@ -1939,6 +1947,7 @@ if __name__ == "__main__":
     # for c in party:
     #     while c.level < 20:
     #         rest_character(c, 0, 1)
+    # delete_weapons(char=get_character(name="Iados", roster=party))
 
     # Set TERM if it's not already set
     if "TERM" not in os.environ:
