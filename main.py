@@ -713,77 +713,99 @@ def handle_equipment(char, items, item_type, display_info):
     except ValueError:
         print("\nInvalid input!")
 
+def select_equipment_in_inventory(char: Character, action: str = 'trade') -> Optional[Equipment]:
+    items = list(filter(None, char.inventory))
+    if not items:
+        print("\nNo equipment available in inventory!")
+        return None
 
-def display_character_sheet(char: Character):
+    print("\nAvailable equipment:")
+    items = list(items)  # Convert filter object to list
+    for i, item in enumerate(items, 1):
+        prof_items = char.prof_weapons if isinstance(item, Weapon) else char.prof_armors if isinstance(item, Weapon) else None
+        prof = f'{Color.RED} ** NOT PROFICIENT **{Color.END}' if prof_items and not any(x.index == item.index for x in prof_items) else ''
+        print(f"{i}. {item.name.title()} - {Color.GREEN if item.equipped else ''}{'equipped' if item.equipped else 'unequipped'}{Color.END}{prof}")
+
+    try:
+        if (choice := int(input(f"\nChoose equipment to {action} (0 to cancel): "))) in range(1, len(items) + 1):
+            selected = items[choice - 1]
+            if selected.equipped:
+                print(f"\nInvalid action! Please un-equip {selected} first")
+                sleep(2)
+                return None
+            return selected
+    except ValueError:
+        print("\nInvalid input!")
+        sleep(4)
+
+
+def trade_equipment(char: Character, party: List[Character], equipment: Equipment) -> bool:
+    print("\nAvailable party members:")
+    other_party_members = [c for c in party if c != char]
+    for i, member in enumerate(other_party_members, 1):
+        print(f"{i}. {member.name}")
+    try:
+        if (choice := int(input("\nChoose party member to trade with (0 to cancel): "))) in range(1, len(other_party_members) + 1):
+            selected = other_party_members[choice - 1]
+            if selected.is_full:
+                cprint(f"{selected.name}'s inventory is full - no trade!!!")
+                return False
+            free_slot: int = [i for i, item in enumerate(char.inventory) if item is None][0]
+            selected.inventory[free_slot] = equipment
+            char.inventory[char.inventory.index(equipment)] = None
+            print(f"\n{equipment.name} traded with {selected.name}!")
+            sleep(4)
+    except ValueError:
+        print("\nInvalid input!")
+
+def drop_equipment(char: Character, equipment: Equipment) -> bool:
+    char.inventory[char.inventory.index(equipment)] = None
+    print(f"\n{equipment.name} dropped!")
+    sleep(4)
+
+
+def view_equipment(char):
+    print("\nAvailable equipment:")
+    items = list(filter(None, char.inventory))
+    for i, item in enumerate(items, 1):
+        prof_items = char.prof_weapons if isinstance(item, Weapon) else char.prof_armors if isinstance(item, Weapon) else None
+        prof = f'{Color.RED} ** NOT PROFICIENT **{Color.END}' if prof_items and not any(x.index == item.index for x in prof_items) else ''
+        if isinstance(item, Weapon) or isinstance(item, Armor):
+            print(f"{i}. {item.name.title()} - {Color.GREEN if item.equipped else ''}{'equipped' if item.equipped else 'unequipped'}{Color.END}{prof}")
+        else:
+            print(f"{i}. {item.name.title()} ({type(item).__name__})")
+    exit_message()
+
+
+def menu_read_options(char: Character, party: List[Character]):
     while True:
         efface_ecran()
-        # print(char.id)
-        # Attributes section
-        sheet = "+{:-^51}+\n".format(f" {char.name} (age: {char.age // 52})")
-        sheet += f"| str: {str(char.strength).rjust(2)} | int: {str(char.strength).rjust(2)} | hp: {str(char.hit_points).rjust(3)} / {str(char.max_hit_points).ljust(4)}| {str(char.class_type).upper().ljust(14)}|\n"
-        sheet += f"| dex: {str(char.dexterity).rjust(2)} | wis: {str(char.wisdom).rjust(2)} | xp: {str(char.xp).ljust(10)}| {str(char.race).title().ljust(14)}|\n"
-        sheet += f"| con: {str(char.constitution).rjust(2)} | cha: {str(char.charism).rjust(2)} | level: {str(char.level).ljust(7)}| AC: {str(char.armor_class).ljust(10)}|\n"
-        sheet += "+{:-^51}+\n".format("")
-        sheet += "|{:^51}|\n".format(f"kills = {len(char.kills)}")
-
-        # Potions section
-        rarity_types: dict() = {PotionRarity.COMMON: "C", PotionRarity.UNCOMMON: "U", PotionRarity.RARE: "R", PotionRarity.VERY_RARE: "VR", }
-        potions: dict() = {"C": 0, "U": 0, "R": 0, "VR": 0}
-        healing_potions: List[HealingPotion] = [item for item in char.inventory if isinstance(item, HealingPotion)]
-        for p in healing_potions:
-            rarity: str = rarity_types[p.rarity]
-            potions[rarity] += 1
-        potions = dict(filter(lambda p: p[1] > 0, potions.items()))
-        sheet += "|{:^51}|\n".format(f"healing potions = {potions}") if potions else ""
-
-        strength_potions: List[StrengthPotion] = [item for item in char.inventory if isinstance(item, StrengthPotion)]
-        sheet += ("|{:^51}|\n".format(f"strength potions = {len(strength_potions)}") if strength_potions else "")
-
-        speed_potions: List[SpeedPotion] = [item for item in char.inventory if isinstance(item, SpeedPotion)]
-        sheet += ("|{:^51}|\n".format(f"speed potions = {len(speed_potions)}") if speed_potions else "")
-
-        # Equipment section
-        char_armors: List[Armor] = [item for item in char.inventory if isinstance(item, Armor) and item.equipped]
-        char_weapons: List[Weapon] = [item for item in char.inventory if isinstance(item, Weapon) and item.equipped]
-        armors_list: str = " + ".join([a.name.title() for a in char_armors]) if char_armors else "None"
-        sheet += "|{:^51}|\n".format(f"armors in use = {armors_list}")
-        # sheet += "|{:^51}|\n".format(f"shield in use = {char.used_shield}")
-        if char_weapons:
-            for weapon in char_weapons:
-                prof_label = '*' if not any(weapon.index == w.index for w in char.prof_weapons) else ''
-                sheet += "|{:^51}|\n".format(f"weapon in use = {weapon.name.title()}{prof_label} - Damage = {weapon.damage_dice.dice}")
-        else:
-            sheet += "|{:^51}|\n".format(f"weapon in use = None")
-
-        sheet += "|{:^51}|\n".format(f"gold = {char.gold} gp")
-        sheet += "+{:-^51}+\n".format("")
-
-        # Spells section
-        if char.is_spell_caster:
-            slots: str = "/".join(map(str, char.sc.spell_slots))
-            sheet += "|{:^51}|\n".format(f"spell slots: {slots}")
-            known_spells: int = len(char.sc.learned_spells)
-            sheet += "|{:^51}|\n".format(f"{known_spells} known spells:")
-            learned_spells: List[Spell] = [s for s in char.sc.learned_spells]
-            learned_spells.sort(key=lambda s: s.level)
-            for spell in learned_spells:
-                sheet += "|{:^51}|\n".format(str(spell))
-            sheet += "+{:-^51}+\n".format("")
-
-        print(sheet)
-
+        display_character_sheet(char)
         # Menu
-        print("\nOptions:", *[f"\n{i}. {opt}" for i, opt in enumerate(["Equip/Unequip Armor", "Equip/Unequip Weapon", "Monster kills", "Return"], 1)])
+        options_menu = ["View Inventory", "Equip/Unequip Armor", "Equip/Unequip Weapon", "Trade Equipment", "Drop Equipment", "Monster kills", "Return"]
+        print("\nOptions:", *[f"\n{i}. {opt}" for i, opt in enumerate(options_menu, 1)])
 
-        choice = input("\nEnter your choice (1-4): ")
+        choice = input("\nEnter your choice (1-7): ")
 
-        if choice == "1":
+        if choice == '1':
+            view_equipment(char)
+        elif choice == '2':
             items = [item for item in char.inventory if isinstance(item, Armor)]
             handle_equipment(char, items, "armor", lambda x: f"AC: {x.armor_class}")
-        elif choice == "2":
+        elif choice == '3':
             items = [item for item in char.inventory if isinstance(item, Weapon)]
             handle_equipment(char, items, "weapon", lambda x: f"Damage: {x.damage_dice.dice}")
-        elif choice == "3":
+        elif choice == '4':
+            selected = select_equipment_in_inventory(char, 'trade')
+            if not selected:
+                continue
+            trade_equipment(char, party, selected)
+        elif choice == '5':
+            selected = select_equipment_in_inventory(char, 'drop')
+            if not selected:
+                continue
+            drop_equipment(char, selected)
+        elif choice == '6':
             print(f"\nMonster kills: {len(char.kills)}")
             if hasattr(char, "kills"):
                 monsters_count = Counter([m.name for m in char.kills])
@@ -794,10 +816,68 @@ def display_character_sheet(char: Character):
                 for k, (cr, count) in monsters.items():
                     print(f"{count} {k} (cr {cr})")
             exit_message()
-        elif choice == "4":
+        elif choice == '7':
             break
         else:
             print("\nInvalid choice!")
+
+def display_character_sheet(char: Character):
+    efface_ecran()
+    # print(char.id)
+    # Attributes section
+    sheet = "+{:-^51}+\n".format(f" {char.name} (age: {char.age // 52})")
+    sheet += f"| str: {str(char.strength).rjust(2)} | int: {str(char.strength).rjust(2)} | hp: {str(char.hit_points).rjust(3)} / {str(char.max_hit_points).ljust(4)}| {str(char.class_type).upper().ljust(14)}|\n"
+    sheet += f"| dex: {str(char.dexterity).rjust(2)} | wis: {str(char.wisdom).rjust(2)} | xp: {str(char.xp).ljust(10)}| {str(char.race).title().ljust(14)}|\n"
+    sheet += f"| con: {str(char.constitution).rjust(2)} | cha: {str(char.charism).rjust(2)} | level: {str(char.level).ljust(7)}| AC: {str(char.armor_class).ljust(10)}|\n"
+    sheet += "+{:-^51}+\n".format("")
+    sheet += "|{:^51}|\n".format(f"kills = {len(char.kills)}")
+
+    # Potions section
+    rarity_types: dict() = {PotionRarity.COMMON: "C", PotionRarity.UNCOMMON: "U", PotionRarity.RARE: "R", PotionRarity.VERY_RARE: "VR", }
+    potions: dict() = {"C": 0, "U": 0, "R": 0, "VR": 0}
+    healing_potions: List[HealingPotion] = [item for item in char.inventory if isinstance(item, HealingPotion)]
+    for p in healing_potions:
+        rarity: str = rarity_types[p.rarity]
+        potions[rarity] += 1
+    potions = dict(filter(lambda p: p[1] > 0, potions.items()))
+    sheet += "|{:^51}|\n".format(f"healing potions = {potions}") if potions else ""
+
+    strength_potions: List[StrengthPotion] = [item for item in char.inventory if isinstance(item, StrengthPotion)]
+    sheet += ("|{:^51}|\n".format(f"strength potions = {len(strength_potions)}") if strength_potions else "")
+
+    speed_potions: List[SpeedPotion] = [item for item in char.inventory if isinstance(item, SpeedPotion)]
+    sheet += ("|{:^51}|\n".format(f"speed potions = {len(speed_potions)}") if speed_potions else "")
+
+    # Equipment section
+    char_armors: List[Armor] = [item for item in char.inventory if isinstance(item, Armor) and item.equipped]
+    char_weapons: List[Weapon] = [item for item in char.inventory if isinstance(item, Weapon) and item.equipped]
+    armors_list: str = " + ".join([a.name.title() for a in char_armors]) if char_armors else "None"
+    sheet += "|{:^51}|\n".format(f"armors in use = {armors_list}")
+    # sheet += "|{:^51}|\n".format(f"shield in use = {char.used_shield}")
+    if char_weapons:
+        for weapon in char_weapons:
+            prof_label = '*' if not any(weapon.index == w.index for w in char.prof_weapons) else ''
+            sheet += "|{:^51}|\n".format(f"weapon in use = {weapon.name.title()}{prof_label} - Damage = {weapon.damage_dice.dice}")
+    else:
+        sheet += "|{:^51}|\n".format(f"weapon in use = None")
+
+    sheet += "|{:^51}|\n".format(f"gold = {char.gold} gp")
+    sheet += "+{:-^51}+\n".format("")
+
+    # Spells section
+    if char.is_spell_caster:
+        slots: str = "/".join(map(str, char.sc.spell_slots))
+        sheet += "|{:^51}|\n".format(f"spell slots: {slots}")
+        known_spells: int = len(char.sc.learned_spells)
+        sheet += "|{:^51}|\n".format(f"{known_spells} known spells:")
+        learned_spells: List[Spell] = [s for s in char.sc.learned_spells]
+        learned_spells.sort(key=lambda s: s.level)
+        for spell in learned_spells:
+            sheet += "|{:^51}|\n".format(str(spell))
+        sheet += "+{:-^51}+\n".format("")
+
+    print(sheet)
+
 
 
 def efface_ecran():
@@ -1023,7 +1103,7 @@ def gilgamesh_tavern(party: List[Character], roster: List[Character]):
                 if select_name == "Exit":
                     continue
                 char: Character = get_character(select_name, party)
-                display_character_sheet(char)
+                menu_read_options(char, party)
             case "Character Equip":
                 if not party:
                     print("No characters remains in the party!")
@@ -1120,13 +1200,13 @@ def temple_of_cant(party: List[Character], roster: List[Character]):
         message += "Temple of Cant -- Praise God!!!"
         print(message)
         cures_costs_per_level = {"PARALYZED": 100, "STONED": 200, "DEAD": 250, "ASHES": 500, }
-        cures_candidates = [f"{c.name} ({cures_costs_per_level[c.status] * c.level} GP)" for c in roster if c.status not in ("OK", "LOST") or c.is_dead]
-        if not cures_candidates:
+        candidates_to_cure = [f"{c.name} ({cures_costs_per_level[c.status] * c.level} GP)" for c in roster if c.status not in ("OK", "LOST")]
+        if not candidates_to_cure:
             print("No more character to save ** HERE! **")
             exit_temple = True
             sleep(3)
             continue
-        choice: str = read_choice_or_exit(cures_candidates, "Who do You Want to Save?")
+        choice: str = read_choice_or_exit(candidates_to_cure, "Who do You Want to Save?")
         if choice == "Exit":
             exit_temple = True
         else:
@@ -1393,11 +1473,16 @@ def training_grounds(roster: List[Character]):
                     continue
                 races, subraces, classes, alignments, equipments, proficiencies, names, human_names, spells = load_character_collections()
                 random_char: Character = generate_random_character(races, subraces, classes, names, human_names, spells)
-                roster.append(random_char)
-                save_character(random_char, _dir=characters_dir)
-                print(f'{random_char.name} successfully added to roster!')
-                sleep(2)
-                display_character_sheet(random_char)
+                display_character_sheet(char=random_char)
+                if input(f"\nKeep {random_char.name}? (y/n): ").lower() == 'y':
+                    roster.append(random_char)
+                    save_character(random_char, _dir=characters_dir)
+                    print(f'{random_char.name} successfully added to roster!')
+                    sleep(2)
+                else:
+                    print("Character discarded.")
+                    sleep(2)
+
             case "Character Status":
                 efface_ecran()
                 roster = sorted(roster, key=lambda c: c.level)
@@ -1408,7 +1493,7 @@ def training_grounds(roster: List[Character]):
                 if select_name == "Exit":
                     continue
                 char: Character = get_character(select_name, roster)
-                display_character_sheet(char)
+                menu_read_options(char)
             case "Delete a Character":
                 select_name: str = read_choice_or_exit(char_names, "Select a Character to Delete.")
                 if select_name == "Exit":
