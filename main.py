@@ -6,7 +6,7 @@ from fractions import Fraction
 
 from numpy import array
 
-from collections import namedtuple
+from collections import namedtuple, Counter
 from random import seed, sample, shuffle
 from time import sleep
 
@@ -572,7 +572,7 @@ def generate_random_character(races: List[Race], subraces: List[SubRace], classe
 
     free_id = max([c.id for c in roster]) + 1 if roster else 1
     return Character(id=free_id, image_name=get_char_image(class_type), x=-1, y=-1, old_x=-1, old_y=-1, race=race, subrace=subrace, class_type=class_type, proficiencies=char_proficiencies,  # proficiencies=class_type.proficiencies + race.starting_proficiencies,
-                     abilities=abilities, ability_modifiers=ability_modifiers, gender=gender, name=name, ethnic=ethnic, height=height, weight=weight, inventory=[None] * 20, hit_points=hit_points, max_hit_points=hit_points, xp=0, level=1, monster_kills=0, age=18 * 52 + randint(0, 299), gold=90 + randint(0, 99), sc=spell_caster, conditions=[], speed=30, haste_timer=0, hasted=False, st_advantages=[])
+                     abilities=abilities, ability_modifiers=ability_modifiers, gender=gender, name=name, ethnic=ethnic, height=height, weight=weight, inventory=[None] * 20, hit_points=hit_points, max_hit_points=hit_points, xp=0, level=1, age=18 * 52 + randint(0, 299), gold=90 + randint(0, 99), sc=spell_caster, conditions=[], speed=30, haste_timer=0, hasted=False, st_advantages=[])
 
 
 def create_new_character(roster: List[Character]) -> Character:
@@ -614,7 +614,7 @@ def create_new_character(roster: List[Character]) -> Character:
     # sorted_roster_by_id = sorted(roster, key=lambda c: c.id)
     free_id = max([c.id for c in roster]) + 1 if roster else 1
     character: Character = Character(id=free_id, image_name=get_char_image(class_type), x=-1, y=-1, old_x=-1, old_y=-1, race=race, subrace=subrace, class_type=class_type, proficiencies=char_proficiencies, # proficiencies=class_type.proficiencies + race.starting_proficiencies,
-        abilities=abilities, ability_modifiers=ability_modifiers, gender=gender, name=name, ethnic=ethnic, height=height, weight=weight, inventory=starting_equipment + [None] * (20 - len(starting_equipment)), hit_points=hit_points, max_hit_points=hit_points, xp=0, level=1, monster_kills=0, age=18 * 52 + randint(0, 299), gold=90 + randint(0, 99), sc=spell_caster, conditions=[], speed=30, haste_timer=0, hasted=False, st_advantages=[], )
+        abilities=abilities, ability_modifiers=ability_modifiers, gender=gender, name=name, ethnic=ethnic, height=height, weight=weight, inventory=starting_equipment + [None] * (20 - len(starting_equipment)), hit_points=hit_points, max_hit_points=hit_points, xp=0, level=1, age=18 * 52 + randint(0, 299), gold=90 + randint(0, 99), sc=spell_caster, conditions=[], speed=30, haste_timer=0, hasted=False, st_advantages=[], )
     exit_message()
     return character
 
@@ -691,16 +691,40 @@ def location_prompt_ok(location: str) -> bool:
     return input(f"{color.DARKCYAN}Do you want to go to {location}? (Y/N){color.END}").lower() == 'y'
 
 
+def handle_equipment(char, items, item_type, display_info):
+    if not items:
+        print(f"\nNo {item_type}s available in inventory!")
+        return
+
+    print(f"\nAvailable {item_type}s:")
+    for i, item in enumerate(items, 1):
+        prof_items = char.prof_weapons if isinstance(item, Weapon) else char.prof_armors
+        prof_label = f'{Color.RED} ** NOT PROFICIENT **{Color.END}' if not any(x.index == item.index for x in prof_items) else ''
+        status = f"{Color.GREEN}equipped{Color.END}{prof_label}" if item.equipped else f"unequipped{prof_label}"
+        print(f"{i}. {item.name.title()} ({display_info(item)}) - {status}")
+
+    try:
+        choice = int(input(f"\nChoose {item_type} to equip/unequip (0 to cancel): "))
+        if 0 < choice <= len(items):
+            selected = items[choice - 1]
+            if char.equip(selected):
+                print(f"\n{'Equipped' if selected.equipped else 'Unequipped'} {selected.name}")
+            sleep(4)
+    except ValueError:
+        print("\nInvalid input!")
+
+
 def display_character_sheet(char: Character):
     while True:
         efface_ecran()
-        print(char.id)
+        # print(char.id)
+        # Attributes section
         sheet = "+{:-^51}+\n".format(f" {char.name} (age: {char.age // 52})")
         sheet += f"| str: {str(char.strength).rjust(2)} | int: {str(char.strength).rjust(2)} | hp: {str(char.hit_points).rjust(3)} / {str(char.max_hit_points).ljust(4)}| {str(char.class_type).upper().ljust(14)}|\n"
         sheet += f"| dex: {str(char.dexterity).rjust(2)} | wis: {str(char.wisdom).rjust(2)} | xp: {str(char.xp).ljust(10)}| {str(char.race).title().ljust(14)}|\n"
         sheet += f"| con: {str(char.constitution).rjust(2)} | cha: {str(char.charism).rjust(2)} | level: {str(char.level).ljust(7)}| AC: {str(char.armor_class).ljust(10)}|\n"
         sheet += "+{:-^51}+\n".format("")
-        sheet += "|{:^51}|\n".format(f"kills = {char.monster_kills}")
+        sheet += "|{:^51}|\n".format(f"kills = {len(char.kills)}")
 
         # Potions section
         rarity_types: dict() = {PotionRarity.COMMON: "C", PotionRarity.UNCOMMON: "U", PotionRarity.RARE: "R", PotionRarity.VERY_RARE: "VR", }
@@ -748,60 +772,29 @@ def display_character_sheet(char: Character):
 
         print(sheet)
 
-        # Equipment options menu
-        print("\nOptions:")
-        print("1. Equip/Unequip Armor")
-        print("2. Equip/Unequip Weapon")
-        print("3. Return")
+        # Menu
+        print("\nOptions:", *[f"\n{i}. {opt}" for i, opt in enumerate(["Equip/Unequip Armor", "Equip/Unequip Weapon", "Monster kills", "Return"], 1)])
 
-        choice = input("\nEnter your choice (1-3): ")
+        choice = input("\nEnter your choice (1-4): ")
 
         if choice == "1":
-            available_armors = [item for item in char.inventory if isinstance(item, Armor)]
-            if not available_armors:
-                print("\nNo armor available in inventory!")
-                sleep(2)
-                continue
-
-            print("\nAvailable Armor:")
-            for i, armor in enumerate(available_armors, 1):
-                prof_label: str = f'{Color.RED} ** NOT PROFICIENT **{Color.END}' if not any(a.index == armor.index for a in char.prof_armors) else ''
-                status = f"{Color.GREEN}equipped{Color.END}{prof_label}" if armor.equipped else f"unequipped{prof_label}"
-                print(f"{i}. {armor.name.title()} (AC: {armor.armor_class}) - {status}")
-
-            try:
-                armor_choice = int(input("\nChoose armor to equip/unequip (0 to cancel): "))
-                if 0 < armor_choice <= len(available_armors):
-                    selected_armor = available_armors[armor_choice - 1]
-                    if char.equip(selected_armor):
-                        print(f"\n{'Equipped' if selected_armor.equipped else 'Unequipped'} {selected_armor.name}")
-                    sleep(4)
-            except ValueError:
-                print("\nInvalid input!")
-
+            items = [item for item in char.inventory if isinstance(item, Armor)]
+            handle_equipment(char, items, "armor", lambda x: f"AC: {x.armor_class}")
         elif choice == "2":
-            available_weapons = [item for item in char.inventory if isinstance(item, Weapon)]
-            if not available_weapons:
-                print("\nNo weapons available in inventory!")
-                continue
-
-            print("\nAvailable Weapons:")
-            for i, weapon in enumerate(available_weapons, 1):
-                prof_label: str = f'{Color.RED} ** NOT PROFICIENT **{Color.END}' if not any(w.index == weapon.index for w in char.prof_weapons) else ''
-                status = f"{Color.GREEN}equipped{Color.END}{prof_label}" if weapon.equipped else f"unequipped{prof_label}"
-                print(f"{i}. {weapon.name.title()} (Damage: {weapon.damage_dice.dice}) - {status}")
-
-            try:
-                weapon_choice = int(input("\nChoose weapon to equip/unequip (0 to cancel): "))
-                if 0 < weapon_choice <= len(available_weapons):
-                    selected_weapon = available_weapons[weapon_choice - 1]
-                    if char.equip(selected_weapon):
-                        print(f"\n{'Equipped' if selected_weapon.equipped else 'Unequipped'} {selected_weapon.name}")
-                    sleep(4)
-            except ValueError:
-                print("\nInvalid input!")
-
+            items = [item for item in char.inventory if isinstance(item, Weapon)]
+            handle_equipment(char, items, "weapon", lambda x: f"Damage: {x.damage_dice.dice}")
         elif choice == "3":
+            print(f"\nMonster kills: {len(char.kills)}")
+            if hasattr(char, "kills"):
+                monsters_count = Counter([m.name for m in char.kills])
+                # cprint(f"{len(monsters_count)} different types of monsters killed by {char.name} for a total of {len(char.kills)} kills")
+                monsters = {m.name: (m.challenge_rating, monsters_count[m.name]) for m in char.kills}
+                monsters = {m.name: (m.challenge_rating, monsters_count[m.name]) for m in char.kills}
+                monsters = dict(sorted(monsters.items(), key=lambda x: x[1], reverse=True))
+                for k, (cr, count) in monsters.items():
+                    print(f"{count} {k} (cr {cr})")
+            exit_message()
+        elif choice == "4":
             break
         else:
             print("\nInvalid choice!")
@@ -889,7 +882,7 @@ def arena(character: Character):
                 monster.hit_points -= character_hp_damage
                 if monster.hit_points <= 0:
                     character.victory(monster, solo_mode=True)
-                    killed_monsters += 1
+                    character.kills.append(monster)
                     character.treasure(weapons, armors, equipment_categories)
                     break
             else:  # character attacks first
@@ -907,33 +900,39 @@ def arena(character: Character):
     level_up_msg: str = (f" and reached level #{character.level}" if previous_level > character.level else "")
 
     if character.hit_points <= 0:
-        print(f"{character.name} has been killed by a {monster.name} after {attack_count} attack rounds and {killed_monsters} monsters kills{level_up_msg}")
+        print(f"{character.name} has been killed by a {monster.name} after {attack_count} attack rounds and {len(character.kills)} monsters kills{level_up_msg}")
     else:
-        print(f"{character.name} has killed {killed_monsters} monsters{level_up_msg}")
+        print(f"{character.name} has killed {len(character.kills)} monsters{level_up_msg}")
 
-    character.monster_kills += killed_monsters
+    character.kills.append(monster)
     save_character(character, _dir=characters_dir)
     display_character_sheet(character)
 
 
 def display(party: List[Character]) -> str:
-    FormatTable = namedtuple("CharacterTable", ["name", "level", "class_type", "AC", "hits", "status", "age"])
-    ft: FormatTable = FormatTable(name=15, level=3, class_type=10, AC=3, hits=8, status=8, age=3)
+    FormatTable = namedtuple("CharacterTable", ["name", "level", "class_type", "AC", "hits", "status", "age", "kills", "max_cr"])
+    max_cr = 15
+    if party: max_cr = max(max((len(str(m)) for m in char.kills), default=max_cr) for char in party if hasattr(char, "kills"))
+    ft: FormatTable = FormatTable(name=15, level=3, class_type=10, AC=3, hits=8, status=8, age=3, kills=5, max_cr=max_cr)
     n_cols: int = sum(ft) + 3 * len(ft) - 1
     formatter: str = "+{:-^" + str(n_cols) + "}+\n"
     sheet = formatter.format(f" Party")
-    sheet += f"| {str('Name').ljust(ft.name)} | {str('LVL').center(ft.level)} | {str('Class').center(ft.class_type)} | {str('AC').center(ft.AC)} | {str('Hits').center(ft.hits)} | {str('Status').center(ft.status)} | {str('Age').center(ft.age)} |\n"
+    sheet += f"| {str('Name').ljust(ft.name)} | {str('LVL').center(ft.level)} | {str('Class').center(ft.class_type)} | {str('AC').center(ft.AC)} | {str('Hits').center(ft.hits)} | {str('Status').center(ft.status)} | {str('Age').center(ft.age)} | {str('Kills').center(ft.kills)} | {str('Highest monster').center(ft.max_cr)} |\n"
     if party:
         sheet += formatter.format("")
     dead_chars: List[Character] = [c for c in party if c.status == "DEAD"]
     alive_chars: List[Character] = [c for c in party if c.status != "DEAD"]
     for char in alive_chars:
-        sheet += f"| {str(char.name).ljust(ft.name)} | {str(char.level).center(ft.level)} | {str(char.class_type).title().center(ft.class_type)} | {str(char.armor_class).center(ft.AC)} | {f'{char.hit_points}/{char.max_hit_points}'.center(ft.hits)} | {str(char.status).center(ft.status)} | {str(char.age // 52).center(ft.age)} |\n"
+        m: Optional[Monster] = max(char.kills, key=lambda m: m.challenge_rating, default=None) if hasattr(char, "kills") else None
+        #monster_killed: str = f'{m.name.title()} (cr {m.challenge_rating})' if m else ''
+        monster_killed = str(m)
+        sheet += f"| {str(char.name).ljust(ft.name)} | {str(char.level).center(ft.level)} | {str(char.class_type).title().center(ft.class_type)} | {str(char.armor_class).center(ft.AC)} | {f'{char.hit_points}/{char.max_hit_points}'.center(ft.hits)} | {str(char.status).center(ft.status)} | {str(char.age // 52).center(ft.age)} | {str(len(char.kills)).center(ft.kills)} | {monster_killed.center(ft.max_cr)} |\n"
     for char in dead_chars:
-        sheet += f"| {str(char.name).ljust(ft.name)} | {str(char.level).center(ft.level)} | {str(char.class_type).title().center(ft.class_type)} | {str(char.armor_class).center(ft.AC)} | {f'{char.hit_points}/{char.max_hit_points}'.center(ft.hits)} | {str(char.status).center(ft.status)} | {str(char.age // 52).center(ft.age)} |\n"
+        m: Optional[Monster] = max(char.kills, key=lambda m: m.challenge_rating, default=None) if hasattr(char, "kills") else None
+        monster_killed: str = f'{m.name.title()} (cr {m.challenge_rating})' if m else ''
+        sheet += f"| {str(char.name).ljust(ft.name)} | {str(char.level).center(ft.level)} | {str(char.class_type).title().center(ft.class_type)} | {str(char.armor_class).center(ft.AC)} | {f'{char.hit_points}/{char.max_hit_points}'.center(ft.hits)} | {str(char.status).center(ft.status)} | {str(char.age // 52).center(ft.age)} | {str(len(char.kills)).center(ft.kills)} | {monster_killed.center(ft.max_cr)} |\n"
     sheet += formatter.format("")
     return sheet
-
 
 def add_member_to_party(roster: List[Character], party: List[Character]):
     if len(party) == 6:
@@ -1143,6 +1142,7 @@ def temple_of_cant(party: List[Character], roster: List[Character]):
                 print("No character remains in the party.")
                 sleep(2)
                 exit_temple = True
+            # cprint(f'{char_to_save} -> {char_to_save.status}')
             if char_to_contribute.gold < cures_costs_per_level[char_to_save.status] * char_to_save.level:
                 print("Go away! You don't have enough of money!")
                 sleep(2)
@@ -1713,13 +1713,14 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
                             monster.hit_points -= attacker.attack(monster=monster, in_melee=(attacker in alive_chars[:3]))
                             if monster.hit_points <= 0:
                                 alive_monsters.remove(monster)
+                                cprint(f"{color.RED}{monster.name.title()}{color.END} is ** KILLED **!")
                                 attacker.victory(monster)
-                                cprint(f"{color.RED}{monster.name}{color.END} is ** KILLED **!")
                                 attacker.treasure(weapons, armors, equipments, potions)
-                                attacker.monster_kills += 1
+                                if not hasattr(attacker, "kills"): attacker.kills = []
+                                attacker.kills.append(monster)
             # End of Round
-            alive_chars: List[Character] = [c for c in party if c.hit_points > 0]
-            alive_monsters: List[Monster] = [c for c in monsters if c.hit_points > 0]
+            alive_chars: List[Character] = [c for c in party if c.hit_points >= 0]
+            alive_monsters: List[Monster] = [c for c in monsters if c.hit_points >= 0]
 
         if not alive_chars:
             for target_char in party:
@@ -1869,6 +1870,7 @@ if __name__ == "__main__":
             for c in party:
                 if c.status != "OK":
                     party.remove(c)
+                    roster.append(c)
             # party = [c for c in party if c.status == 'OK']
             match destination:
                 case "Gilgamesh's Tavern":
