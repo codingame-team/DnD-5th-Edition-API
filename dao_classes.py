@@ -53,8 +53,8 @@ class Sprite:
     def old_pos(self) -> tuple:
         return self.old_x, self.old_y
 
-    def __eq__(self, other: Sprite):
-        return self.id == other.id
+    # def __eq__(self, other: Sprite):
+    #     return self.id == other.id
 
     def check_collision(self, other: Sprite):
         return self.x == other.x and self.y == other.y
