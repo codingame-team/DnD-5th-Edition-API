@@ -144,7 +144,7 @@ class Monster(Sprite):
         self.max_hit_points = self.hit_points
 
     def __repr__(self):
-        return f"#{self.id} {self.name} (AC {self.armor_class} HD: {self.hit_dice} CR: {self.challenge_rating})"
+        return f"{self.name} (AC {self.armor_class} HD: {self.hit_dice} CR: {self.challenge_rating})"
 
     def __hash__(self):
         return self.name
@@ -838,7 +838,6 @@ class Character(Sprite):
     hasted: bool
     xp: int
     level: int
-    monster_kills: int
     inventory: List[Equipment]
     gold: int
     sc: SpellCaster | None
@@ -854,6 +853,7 @@ class Character(Sprite):
     status: str = "OK"
     id_party: int = -1
     OUT: bool = False
+    kills: List[Monster] = field(default_factory=list)
 
     def __eq__(self, other):
         if not isinstance(other, Character):
@@ -1103,7 +1103,7 @@ class Character(Sprite):
 
     def victory(self, monster: Monster, solo_mode=False):
         self.xp += monster.xp
-        self.monster_kills += 1
+        self.kills.append(monster)
         gold_msg: str = ""
         if solo_mode:
             gold_dice = randint(1, 3)
@@ -1112,7 +1112,6 @@ class Character(Sprite):
                 gold: int = randint(1, max_gold + 1)
                 gold_msg = f" and found {gold} gp!"
                 self.gold += gold
-        cprint(f"{monster.name.title()} is ** KILLED **!")
         cprint(f"{self.name} gained {monster.xp} XP{gold_msg}!")
 
     @property
