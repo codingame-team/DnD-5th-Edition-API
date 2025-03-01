@@ -431,7 +431,7 @@ def get_next_item_id(roster: List[Character]) -> int:
 
 def get_spell_caster(class_type, char_level, spells) -> Optional[SpellCaster]:
     learned_spells: List[Spell] = []
-    if class_type.is_spell_caster:
+    if class_type.can_cast:
         learnable_spells: List[Spell] = [s for s in spells if class_type.index in s.allowed_classes and s.level <= char_level and (s.damage_type or s.heal_at_slot_level)]
         if learnable_spells:
             cantrips_spells: List[Spell] = []
@@ -1796,7 +1796,7 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
                         if attacker.is_spell_caster:
                             healing_spells: List[Spell] = [s for s in attacker.sc.learned_spells if hasattr(s, 'heal_at_slot_level') and s.heal_at_slot_level and attacker.sc.spell_slots[s.level - 1] > 0]
                             # cprint(f"{color.GREEN}{attacker.name}{color.END} has {len(healing_spells)} healing spells available!")
-                        if any(c for c in alive_chars if c.hit_points < 0.5 * c.max_hit_points) and healing_spells:
+                        if attacker.is_spell_caster and healing_spells and any(c for c in alive_chars if c.hit_points < 0.5 * c.max_hit_points):
                             spell = max(healing_spells, key=lambda s: s.level) # choose strongest spell (to be refined)
                             char: Character = min(alive_chars, key=lambda c: c.hit_points) # consider weakest char for optimal healing
                             best_slot_level: int = char.get_best_slot_level(heal_spell=spell, target=char)
@@ -1830,6 +1830,7 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
                                     print(f"{effect}")
                             else:
                                 monster: Monster = min(alive_monsters, key=lambda m: m.hit_points)
+                            cprint(f"{color.GREEN}{attacker.name}{color.END} attacks {monster.name.title()}!")
                             monster.hit_points -= attacker.attack(monster=monster, in_melee=(attacker in alive_chars[:3]))
                             if monster.hit_points <= 0:
                                 alive_monsters.remove(monster)
