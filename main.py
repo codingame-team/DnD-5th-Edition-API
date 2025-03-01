@@ -431,8 +431,8 @@ def get_next_item_id(roster: List[Character]) -> int:
 
 def get_spell_caster(class_type, char_level, spells) -> Optional[SpellCaster]:
     learned_spells: List[Spell] = []
-    if class_type.can_cast:
-        learnable_spells: List[Spell] = [s for s in spells if class_type.index in s.allowed_classes and s.level <= char_level and s.damage_type]
+    if class_type.is_spell_caster:
+        learnable_spells: List[Spell] = [s for s in spells if class_type.index in s.allowed_classes and s.level <= char_level and (s.damage_type or s.heal_at_slot_level)]
         if learnable_spells:
             cantrips_spells: List[Spell] = []
             if class_type.cantrips_known:
@@ -1573,7 +1573,7 @@ def generate_encounter(encounter_level: int, monsters: List[Monster], monster_gr
         if cr2 not in available_crs:
             cr2 = min(available_crs, key=lambda cr: cr - cr2)
         if spell_casters_only:
-            cr2_monsters: List[Monster] = [m for m in monsters if Fraction(str(m.challenge_rating)) == cr2 and m.can_cast]
+            cr2_monsters: List[Monster] = [m for m in monsters if Fraction(str(m.challenge_rating)) == cr2 and m.is_spell_caster]
         else:
             cr2_monsters: List[Monster] = [m for m in monsters if Fraction(str(m.challenge_rating)) == cr2]
         # print(f'{len(cr2_monsters)} cr2_monsters = {cr2_monsters}')
@@ -1587,9 +1587,9 @@ def generate_encounter(encounter_level: int, monsters: List[Monster], monster_gr
             monsters_count: int = choice(list(map(int, enc_key.split("-"))))
             if encounter_level == 20:
                 cr: int = cr_list[0]
-                matching_monsters += [(m, monsters_count) for m in monsters if Fraction(str(m.challenge_rating)) >= cr and m.can_cast]
+                matching_monsters += [(m, monsters_count) for m in monsters if Fraction(str(m.challenge_rating)) >= cr and m.is_spell_caster]
             else:
-                matching_monsters += [(m, monsters_count) for m in monsters if Fraction(str(m.challenge_rating)) in cr_list and m.can_cast]
+                matching_monsters += [(m, monsters_count) for m in monsters if Fraction(str(m.challenge_rating)) in cr_list and m.is_spell_caster]
         monster, monster_count = choice(matching_monsters)
         group_of_monsters: List[Monster] = [request_monster(monster.index) for m in matching_monsters]
         for _ in range(monster_count - 1):
@@ -1677,7 +1677,7 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
         # monsters_names_for_debug = ['aboleth']
         # monsters_names_for_debug = ['half-red-dragon-veteran']Ice Mephit
         # monsters_names_for_debug = ['ice-mephit']
-        # monsters_names_for_debug = ["copper-dragon-wyrmling", "warhorse-skeleton"]
+        # monsters_names_for_debug = ["acolyte"] * randint(4, 6)
         # monsters: List[Monster] = [request_monster(index_name) for index_name in monsters_names_for_debug]
         cprint(f"{color.PURPLE}-------------------------------------------------------------------------------------------------------------------------------------------{color.END}")
         cprint(f"{color.PURPLE} New encounter!{color.END}")
@@ -1708,73 +1708,105 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
                 attacker = queue.pop()
                 if attacker.hit_points > 0:
                     if isinstance(attacker, Monster):
-                        # Monster attacks randomly
-                        melee_chars: List[Character] = [c for i, c in enumerate(alive_chars) if i < 3]
-                        ranged_chars: List[Character] = [c for i, c in enumerate(alive_chars) if i >= 3]
-                        if not melee_chars + ranged_chars:
-                            break
-                        # Precalculate ready spells & special attacks
-                        if attacker.can_cast:
-                            cantric_spells: List[Spell] = [s for s in attacker.sc.learned_spells if not s.level]
-                            slot_spells: List[Spell] = [s for s in attacker.sc.learned_spells if s.level and attacker.sc.spell_slots[s.level - 1] > 0]
-                            castable_spells: List[Spell] = cantric_spells + slot_spells
-                        if attacker.sa and round_num > 0:  # ou 1? (à vérifier)
-                            for special_attack in attacker.sa:
-                                if special_attack.recharge_on_roll:
-                                    special_attack.ready = special_attack.recharge_success
-                        available_special_attacks: List[SpecialAbility] = list(filter(lambda a: a.ready, attacker.sa))
-                        # Main loop
-                        if attacker.can_cast and castable_spells:
-                            target_char: Character = (choice(ranged_chars) if ranged_chars else choice(melee_chars))
-                            attack_spell: Spell = max(castable_spells, key=lambda s: s.level)
-                            target_char.hit_points -= attacker.spell_attack(target_char, attack_spell)
-                            if target_char.hit_points <= 0:
-                                alive_chars.remove(target_char)
-                                target_char.status = "DEAD"
-                                cprint(f"{target_char.name} is ** KILLED **!")
-                        elif available_special_attacks:
-                            special_attack: SpecialAbility = max(available_special_attacks, key=lambda a: sum([damage.dd.score(success_type=a.dc_success) for damage in a.damages]), )
-                            # cprint(special_attack)
-                            if special_attack.targets_count >= len(party):
-                                cprint(f"{color.GREEN}{attacker.name}{color.END} launches ** {special_attack.name.upper()} ** on whole party!")
-                                target_chars: List[Character] = party
+                        # check if character can heal party's members
+                        # cprint(f'{attacker}')
+                        healing_spells: List[Spell] = []
+                        if attacker.is_spell_caster:
+                            healing_spells: List[Spell] = [s for s in attacker.sc.learned_spells if s.heal_at_slot_level and attacker.sc.spell_slots[s.level - 1] > 0]
+                            # cprint(f"{color.GREEN}{attacker.name}{color.END} has {len(healing_spells)} healing spells available!")
+                        if any(c for c in alive_monsters if c.hit_points < 0.5 * c.max_hit_points) and healing_spells:
+                            spell = max(healing_spells, key=lambda s: s.level) # choose strongest spell (to be refined)
+                            monster: Monster = min(alive_monsters, key=lambda c: c.hit_points) # consider weakest char for optimal healing
+                            if spell.range == 5:
+                                attacker.cast_heal(spell, spell.level - 1, [monster])
                             else:
-                                if special_attack.range == RangeType.MELEE:
-                                    target_chars: List[Character] = sample(melee_chars, special_attack.targets_count)
-                                elif special_attack.range == RangeType.RANGED:
-                                    target_chars: List[Character] = sample(ranged_chars, special_attack.targets_count)
-                                else:
-                                    target_chars: List[Character] = sample(party, special_attack.targets_count)
-                                targets: str = ", ".join([char.name for char in target_chars])
-                                # Replace all ' and ' with ', ' except for the last one
-                                targets_split = targets.rsplit(", ", 1)  # Split at the last ', '
-                                formatted_targets = " and ".join(targets_split)
-                                cprint(f"{color.GREEN}{attacker.name}{color.END} launches ** {special_attack.name.upper()} ** on {formatted_targets}!")
-                            # cprint('target chars: ' + '/'.join([c.name for c in target_chars]))
-                            for target_char in target_chars:
-                                if target_char in alive_chars:
-                                    target_char.hit_points -= attacker.special_attack(target_char, special_attack)
-                                    if target_char.hit_points <= 0:
-                                        # cprint('/'.join([c.name for c in alive_chars]))
-                                        # cprint(f'removing {char.name}')
-                                        alive_chars.remove(target_char)
-                                        target_char.status = "DEAD"
-                                        cprint(f"{target_char.name} is ** KILLED **!")
+                                attacker.cast_heal(spell, spell.level - 1, alive_monsters)
+                            if not spell.is_cantrip:
+                                attacker.sc.spell_slots[spell.level - 1] -= 1
                         else:
-                            target_char: Character = choice(melee_chars)
-                            melee_attacks: List[Action] = [a for a in attacker.actions if a.type in (ActionType.MELEE, ActionType.MIXED)]
-                            if melee_attacks:
-                                target_char.hit_points -= attacker.attack(character=target_char, actions=melee_attacks)
+                            # Monster attacks randomly
+                            melee_chars: List[Character] = [c for i, c in enumerate(alive_chars) if i < 3]
+                            ranged_chars: List[Character] = [c for i, c in enumerate(alive_chars) if i >= 3]
+                            if not melee_chars + ranged_chars:
+                                break
+                            # Precalculate ready spells & special attacks
+                            if attacker.is_spell_caster:
+                                cantric_spells: List[Spell] = [s for s in attacker.sc.learned_spells if not s.level and s.damage_type]
+                                slot_spells: List[Spell] = [s for s in attacker.sc.learned_spells if s.level and attacker.sc.spell_slots[s.level - 1] > 0 and s.damage_type]
+                                castable_spells: List[Spell] = cantric_spells + slot_spells
+                            if attacker.sa and round_num > 0:  # ou 1? (à vérifier)
+                                for special_attack in attacker.sa:
+                                    if special_attack.recharge_on_roll:
+                                        special_attack.ready = special_attack.recharge_success
+                            available_special_attacks: List[SpecialAbility] = list(filter(lambda a: a.ready, attacker.sa))
+                            # Main loop
+                            if attacker.is_spell_caster and castable_spells:
+                                target_char: Character = (choice(ranged_chars) if ranged_chars else choice(melee_chars))
+                                attack_spell: Spell = max(castable_spells, key=lambda s: s.level)
+                                target_char.hit_points -= attacker.cast_attack(target_char, attack_spell)
                                 if target_char.hit_points <= 0:
                                     alive_chars.remove(target_char)
                                     target_char.status = "DEAD"
                                     cprint(f"{target_char.name} is ** KILLED **!")
+                            elif available_special_attacks:
+                                special_attack: SpecialAbility = max(available_special_attacks, key=lambda a: sum([damage.dd.score(success_type=a.dc_success) for damage in a.damages]), )
+                                # cprint(special_attack)
+                                if special_attack.targets_count >= len(party):
+                                    cprint(f"{color.GREEN}{attacker.name}{color.END} launches ** {special_attack.name.upper()} ** on whole party!")
+                                    target_chars: List[Character] = party
+                                else:
+                                    if special_attack.range == RangeType.MELEE:
+                                        target_chars: List[Character] = sample(melee_chars, special_attack.targets_count)
+                                    elif special_attack.range == RangeType.RANGED:
+                                        target_chars: List[Character] = sample(ranged_chars, special_attack.targets_count)
+                                    else:
+                                        target_chars: List[Character] = sample(party, special_attack.targets_count)
+                                    targets: str = ", ".join([char.name for char in target_chars])
+                                    # Replace all ' and ' with ', ' except for the last one
+                                    targets_split = targets.rsplit(", ", 1)  # Split at the last ', '
+                                    formatted_targets = " and ".join(targets_split)
+                                    cprint(f"{color.GREEN}{attacker.name}{color.END} launches ** {special_attack.name.upper()} ** on {formatted_targets}!")
+                                # cprint('target chars: ' + '/'.join([c.name for c in target_chars]))
+                                for target_char in target_chars:
+                                    if target_char in alive_chars:
+                                        target_char.hit_points -= attacker.special_attack(target_char, special_attack)
+                                        if target_char.hit_points <= 0:
+                                            # cprint('/'.join([c.name for c in alive_chars]))
+                                            # cprint(f'removing {char.name}')
+                                            alive_chars.remove(target_char)
+                                            target_char.status = "DEAD"
+                                            cprint(f"{target_char.name} is ** KILLED **!")
                             else:
-                                cprint(f"** {attacker.name} ** has no MELEE attacks implemented!")
+                                target_char: Character = choice(melee_chars)
+                                melee_attacks: List[Action] = [a for a in attacker.actions if a.type in (ActionType.MELEE, ActionType.MIXED)]
+                                if melee_attacks:
+                                    target_char.hit_points -= attacker.attack(character=target_char, actions=melee_attacks)
+                                    if target_char.hit_points <= 0:
+                                        alive_chars.remove(target_char)
+                                        target_char.status = "DEAD"
+                                        cprint(f"{target_char.name} is ** KILLED **!")
+                                else:
+                                    cprint(f"** {attacker.name} ** has no MELEE attacks implemented!")
                     else:  # CHARACTER ATTACKS
                         if not alive_monsters:
                             break
-                        if attacker.hit_points < 0.3 * attacker.max_hit_points and attacker.healing_potions:
+                        # check if character can heal party's members
+                        # cprint(f'{attacker}')
+                        healing_spells: List[Spell] = []
+                        if attacker.is_spell_caster:
+                            healing_spells: List[Spell] = [s for s in attacker.sc.learned_spells if hasattr(s, 'heal_at_slot_level') and s.heal_at_slot_level and attacker.sc.spell_slots[s.level - 1] > 0]
+                            # cprint(f"{color.GREEN}{attacker.name}{color.END} has {len(healing_spells)} healing spells available!")
+                        if any(c for c in alive_chars if c.hit_points < 0.5 * c.max_hit_points) and healing_spells:
+                            spell = max(healing_spells, key=lambda s: s.level) # choose strongest spell (to be refined)
+                            char: Character = min(alive_chars, key=lambda c: c.hit_points) # consider weakest char for optimal healing
+                            best_slot_level: int = char.get_best_slot_level(heal_spell=spell, target=char)
+                            if spell.range == 5:
+                                attacker.cast_heal(spell, best_slot_level, [char])
+                            else:
+                                attacker.cast_heal(spell, best_slot_level, party)
+                            if not spell.is_cantrip:
+                                attacker.update_spell_slots(spell, best_slot_level)
+                        elif attacker.hit_points < 0.3 * attacker.max_hit_points and attacker.healing_potions:
                             p: HealingPotion = attacker.choose_best_potion()
                             attacker.drink(p)
                             p_idx = next(i for i, item in enumerate(attacker.inventory) if item is not None and item == p)
@@ -1946,8 +1978,10 @@ if __name__ == "__main__":
     #         c.xp = 400000
     # for c in party:
     #     while c.level < 20:
-    #         rest_character(c, 0, 1)
-    # delete_weapons(char=get_character(name="Iados", roster=party))
+    # #         rest_character(c, 0, 1)
+    # # delete_weapons(char=get_character(name="Iados", roster=party))
+    # volen = get_character(name="Volen", roster=party)
+    # volen.gold = 10000
 
     # Set TERM if it's not already set
     if "TERM" not in os.environ:

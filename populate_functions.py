@@ -2199,12 +2199,25 @@ def request_spell(index_name: str) -> Optional[Spell]:
 
     allowed_classes: List[str] = [c['index'] for c in data['classes']]
 
-    if 'heal_at_slot_level' in data:
-        pass
+    range: int = int(data['range'].split()[0]) if 'feet' in data['range'] else 5
 
-    damage_type: DamageType = None
-    damage_at_slot_level: dict() = None
-    damage_at_character_level: dict() = None
+    if 'area_of_effect' in data:
+        area_of_effect = AreaOfEffect(type=data['area_of_effect']['type'], size=data['area_of_effect']['size'])
+    else:
+        area_of_effect = AreaOfEffect(type='sphere', size=range)
+
+    school: str = data['school']['index']
+
+
+    heal_at_slot_level: Optional[dict] = None
+    if 'heal_at_slot_level' in data and data['duration'] == 'Instantaneous':
+        heal_at_slot_level = data['heal_at_slot_level']
+
+    damage_type: Optional[DamageType] = None
+    damage_at_slot_level: Optional[dict] = None
+    damage_at_character_level: Optional[dict] = None
+    dc_type: Optional[str] = None
+    dc_success: Optional[str] = None
     if "damage" in data:
         # print(data['index'], data['damage'])
         damage_type = data['damage']['damage_type']['index'] if "damage_type" in data['damage'] else None
@@ -2213,42 +2226,27 @@ def request_spell(index_name: str) -> Optional[Spell]:
         # print(f"{data['index']} - damage_at_character_level={damage_at_character_level}")
         # print(f"{data['index']} - damage_at_slot_level={damage_at_slot_level}")
 
-        dc_type: str = None
-        dc_success: str = None
         # print(data)
         if "dc" in data:
             dc_type = data['dc']['dc_type']['index']
             dc_success = data['dc']['dc_success']
             # print(f"{data['index']} - dc_type = {dc_type}")
 
-        # range: int
-        # attack_type: str  # ranged, touch
-        # area_of_effet: AreaOfEffect
-        # school: str
-
-        # print(index_name)
-        range = int(data['range'].split()[0]) if 'feet' in data['range'] else 5
-        if 'area_of_effect' in data:
-            area_of_effect = AreaOfEffect(type=data['area_of_effect']['type'], size=data['area_of_effect']['size'])
-        else:
-            area_of_effect = AreaOfEffect(type='sphere', size=range)
-        # print(index_name, area_of_effect)
-        school: str = data['school']['index']
-
-        return Spell(index=data['index'],
-                     name=data['name'],
-                     desc=data['desc'],
-                     level=data['level'],
-                     allowed_classes=allowed_classes,
-                     damage_type=damage_type,
-                     damage_at_slot_level=damage_at_slot_level,
-                     damage_at_character_level=damage_at_character_level,
-                     dc_type=dc_type,
-                     dc_success=dc_success,
-                     range=range,
-                     area_of_effect=area_of_effect,
-                     school=school
-                     )
+    return Spell(index=data['index'],
+                 name=data['name'],
+                 desc=data['desc'],
+                 level=data['level'],
+                 allowed_classes=allowed_classes,
+                 heal_at_slot_level=heal_at_slot_level,
+                 damage_type=damage_type,
+                 damage_at_slot_level=damage_at_slot_level,
+                 damage_at_character_level=damage_at_character_level,
+                 dc_type=dc_type,
+                 dc_success=dc_success,
+                 range=range,
+                 area_of_effect=area_of_effect,
+                 school=school
+                 )
 
 
 def request_armor(index_name: str) -> Armor:

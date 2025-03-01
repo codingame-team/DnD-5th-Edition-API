@@ -19,8 +19,7 @@ from pygame import Surface
 
 from algo.brehensam import in_view_range
 from algo.lee import parcours_largeur, parcours_a_star
-from dao_classes import Character, Level, Spell, Weapon, Armor, HealingPotion, Monster, Equipment, Treasure, Sprite, SpecialAbility, color, ActionType, Action, SpeedPotion, Potion, \
-    StrengthPotion
+from dao_classes import Character, Level, Spell, Weapon, Armor, HealingPotion, Monster, Equipment, Treasure, Sprite, SpecialAbility, color, ActionType, Action, SpeedPotion, Potion, StrengthPotion, DamageDice
 from main import get_roster, save_character, load_xp_levels, load_character
 from populate_functions import populate, request_armor, request_weapon, request_monster, request_spell, request_monster_other
 from populate_rpg_functions import load_potions_collections
@@ -1256,7 +1255,7 @@ def handle_outside_map_click(game, event):
                 image: Surface = sprites[spell.id]
                 icon_rect = image.get_rect(topleft=(icon_x, icon_y))
                 if icon_rect.collidepoint(event.pos):
-                    if event.button == 1 and game.hero.can_cast(spell):  # Left mouse button
+                    if event.button == 1 and game.hero.is_spell_caster(spell):  # Left mouse button
                         cprint(f'hero pos: {game.hero.pos}')
                         cprint(f'select target for spell <{spell.name}>,  area of effect: {spell.area_of_effect}, range: {spell.range}')
                         frame_color = BLUE if game.hero.sc.spell_slots[i] > 0 else WHITE
@@ -1278,7 +1277,10 @@ def handle_in_map_click(game, event, x, y):
     game.target_pos = view_x + x, view_y + y
     if event.button == 3 and game.ready_spell:
         monsters_in_spell_range = [m for m in game.monsters_in_view_range if dist(game.hero.pos, m.pos) <= game.ready_spell.range // UNIT_SIZE]
-        handle_combat(game=game, monsters=monsters_in_spell_range, attack_spell=game.ready_spell)
+        if game.ready_spell.damage_type:
+            handle_combat(game=game, monsters=monsters_in_spell_range, attack_spell=game.ready_spell)
+        else:
+            handle_combat(game=game, monsters=monsters_in_spell_range, heal_spell=game.ready_spell)
     elif event.button == 1:
         handle_combat(game=game, monsters=game.monsters_in_view_range)
     game.last_round_time = time.time()
@@ -1338,11 +1340,28 @@ def draw_spell_animation(game, monster_pos, duration=0.5, color=(255, 255, 0)):
     # pygame.display.flip()
 
 
+def handle_right_click_spell_heal(game):
+    spell = game.ready_spell
+    if game.hero.hit_points == game.hero.max_hit_points:
+        cprint(f'{spell} not needed!', color=Color.RED)
+        game.ready_spell = None
+        return
+    best_slot_level: int = game.hero.get_best_slot_level(heal_spell=spell, target=game.hero)
+    dd: DamageDice = spell.get_heal_effect(slot_level=best_slot_level, ability_modifier=game.hero.sc.ability_modifier)
+    hp_gained = min(dd.roll(), game.hero.max_hit_points - game.hero.hit_points)
+    game.hero.hit_points += hp_gained
+    game.hero.draw_effect(screen, extract_sprites(f'{effects_images_dir}/flash_freeze.png', columns=8, rows=12), TILE_SIZE, FPS, *game.calculate_view_window(), f'{sound_effects_dir}/magic_words.mp3', 4)
+    cprint(f'healed {hp_gained} hp!')
+    if not spell.is_cantrip:
+        game.hero.update_spell_slots(spell, best_slot_level)
+    game.ready_spell = None
+
+
 def handle_right_click_spell_attack(game):
     monsters_in_range = [m for m in game.monsters_in_view_range if dist(game.hero.pos, m.pos) <= game.ready_spell.range // UNIT_SIZE]
     for monster in monsters_in_range:
         if game.target_pos in (monster.pos, monster.old_pos):
-            monster.hit_points -= game.hero.cast(game.ready_spell, monster)
+            monster.hit_points -= game.hero.cast_attack(game.ready_spell, monster)
             # Draw the spell animation
             # https://listfist.com/list-of-dungeons-dragons-5e-spells-by-damage?utm_content=cmp-true
             # damage_types = ["acid", "bludgeoning", "cold", "fire", "force", "lightning", "necrotic", "piercing", "poison", "psychic", "radiant", "slashing", "thunder", "variable"]
@@ -1676,7 +1695,7 @@ def draw_attack_effect(game: Game, char: [Character|Monster], damage: int):
     char.draw_effect(screen, sprites, TILE_SIZE, FPS, *view_port_tuple, sound_file)
 
 
-def handle_combat(game: Game, monsters: List[Monster], attack_spell: Spell = None, move_position: tuple = None):
+def handle_combat(game: Game, monsters: List[Monster], attack_spell: Spell = None, heal_spell: Spell = None, move_position: tuple = None):
     """
         Handle the combat against the monsters.
     :param game:
@@ -1698,6 +1717,8 @@ def handle_combat(game: Game, monsters: List[Monster], attack_spell: Spell = Non
                         cprint(f'Path is blocked!')
                 elif attack_spell:
                     handle_right_click_spell_attack(game)
+                elif heal_spell:
+                    handle_right_click_spell_heal(game)
                 else:
                     handle_left_click_action(game)
             else:
@@ -1722,7 +1743,7 @@ def handle_monster_actions(game: Game, monster: Monster) -> Optional[int]:
     # Precalculate ready spells & special attacks
     range = mh_dist(game.hero.pos, monster.pos) * UNIT_SIZE
     available_spells: List[Spell] = []
-    if monster.can_cast:
+    if monster.is_spell_caster:
         cantric_spells: List[Spell] = [s for s in monster.sc.learned_spells if not s.level]
         slot_spells: List[Spell] = [s for s in monster.sc.learned_spells if s.level and monster.sc.spell_slots[s.level - 1] > 0]
         castable_spells: List[Spell] = cantric_spells + slot_spells
@@ -1753,7 +1774,7 @@ def handle_monster_actions(game: Game, monster: Monster) -> Optional[int]:
         if available_spells:
             # print(f'{monster.name} - old spell slots: {monster.sc.spell_slots}')
             attack_spell: Spell = max(available_spells, key=lambda s: s.level)
-            damage = monster.spell_attack(game.hero, attack_spell)
+            damage = monster.cast_attack(game.hero, attack_spell)
             # print(f'{monster.name} - new spell slots: {monster.sc.spell_slots}')
         elif available_special_attacks:
             special_attack: SpecialAbility = max(available_special_attacks, key=lambda a: sum([damage.dd.score(success_type=a.dc_success) for damage in a.damages]))
@@ -1789,12 +1810,12 @@ def handle_fountains(game):
         sound_file: str = f'{sound_effects_dir}/magic_words.mp3'
         sound = pygame.mixer.Sound(sound_file)
         sound.play()
-        if char.class_type.can_cast:
+        if char.class_type.is_spell_caster:
             if char.sc.spell_slots != char.class_type.spell_slots[char.level]:
                 print(f'{char.name} has memorized all his spells')
                 char.sc.spell_slots = copy(char.class_type.spell_slots[char.level])
         if char.level < len(game.xp_levels) and char.xp >= game.xp_levels[char.level]:
-            if char.class_type.can_cast:
+            if char.class_type.is_spell_caster:
                 spell_names: List[str] = populate(collection_name='spells', key_name='results')
                 all_spells: List[Spell] = [request_spell(name) for name in spell_names]
                 class_tome_spells = [s for s in all_spells if s is not None and char.class_type.index in s.allowed_classes]
