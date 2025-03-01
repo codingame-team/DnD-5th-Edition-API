@@ -747,6 +747,8 @@ class Spell:
             damage_dice = self.damage_at_slot_level.get(str(self.level))
         else:
             level_str = str(caster_level)
+            # cprint(f"caster_level: {level_str} - spell: {self}")
+            # cprint(f"damage_at_character_level: {self.damage_at_character_level}")
             if level_str in self.damage_at_character_level:
                 damage_dice = self.damage_at_character_level.get(level_str)
             else:
@@ -1164,7 +1166,7 @@ class Character(Sprite):
             new_weapon: Weapon = choice(self.prof_weapons)
             if not self.weapon or new_weapon.damage_dice > self.weapon.damage_dice:
                 cprint(f"{self.name} found a better weapon {new_weapon.name}!")
-                new_weapon.equipped = True
+                #new_weapon.equipped = True
             else:
                 cprint(f"{self.name} found a lesser weapon {new_weapon.name}!")
             self.inventory[free_slot] = new_weapon
@@ -1176,7 +1178,7 @@ class Character(Sprite):
                     for item in self.inventory:
                         if isinstance(item, Armor) and item.equipped:
                             item.equipped = False
-                    new_armor.equipped = True
+                    # new_armor.equipped = True
                 else:
                     cprint(f"{self.name} found a lesser armor {new_armor.name}!")
                 self.inventory[free_slot] = new_armor
@@ -1318,7 +1320,7 @@ class Character(Sprite):
         castable_spells: List[Spell] = []
         if self.is_spell_caster:
             cantric_spells: List[Spell] = [s for s in self.sc.learned_spells if not s.level]
-            slot_spells: List[Spell] = [s for s in self.sc.learned_spells if s.level and self.sc.spell_slots[s.level - 1] > 0]
+            slot_spells: List[Spell] = [s for s in self.sc.learned_spells if s.level and self.sc.spell_slots[s.level - 1] > 0 and s.damage_type]
             castable_spells = cantric_spells + slot_spells
         if cast and castable_spells and not in_melee:
             # TODO modify spell_slots to [] for non casters
