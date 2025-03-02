@@ -1255,7 +1255,7 @@ def handle_outside_map_click(game, event):
                 image: Surface = sprites[spell.id]
                 icon_rect = image.get_rect(topleft=(icon_x, icon_y))
                 if icon_rect.collidepoint(event.pos):
-                    if event.button == 1 and game.hero.is_spell_caster(spell):  # Left mouse button
+                    if event.button == 1 and game.hero.can_cast(spell):  # Left mouse button
                         cprint(f'hero pos: {game.hero.pos}')
                         cprint(f'select target for spell <{spell.name}>,  area of effect: {spell.area_of_effect}, range: {spell.range}')
                         frame_color = BLUE if game.hero.sc.spell_slots[i] > 0 else WHITE
@@ -1810,12 +1810,12 @@ def handle_fountains(game):
         sound_file: str = f'{sound_effects_dir}/magic_words.mp3'
         sound = pygame.mixer.Sound(sound_file)
         sound.play()
-        if char.class_type.is_spell_caster:
+        if char.class_type.can_cast:
             if char.sc.spell_slots != char.class_type.spell_slots[char.level]:
                 print(f'{char.name} has memorized all his spells')
                 char.sc.spell_slots = copy(char.class_type.spell_slots[char.level])
         if char.level < len(game.xp_levels) and char.xp >= game.xp_levels[char.level]:
-            if char.class_type.is_spell_caster:
+            if char.class_type.can_cast:
                 spell_names: List[str] = populate(collection_name='spells', key_name='results')
                 all_spells: List[Spell] = [request_spell(name) for name in spell_names]
                 class_tome_spells = [s for s in all_spells if s is not None and char.class_type.index in s.allowed_classes]
