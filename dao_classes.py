@@ -1308,7 +1308,7 @@ class Character(Sprite):
                 cprint(f"{color.RED}{monster.name}{color.END} is hit for {damage_roll} hit points!")
         return damage_roll
 
-    def attack(self, monster: Monster, in_melee: bool, cast: bool = True) -> int:
+    def attack(self, monster: Monster, in_melee: bool = True, cast: bool = True) -> int:
         """
         :return: damage generated
         """
