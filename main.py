@@ -828,7 +828,7 @@ def display_character_sheet(char: Character):
     efface_ecran()
     # print(char.id)
     # Attributes section
-    sheet = "+{:-^51}+\n".format(f" {char.name} (age: {char.age // 52})")
+    sheet = "+{:-^51}+\n".format(f" {char.name} (age: {char.age // 52} - {char.status})")
     sheet += f"| str: {str(char.strength).rjust(2)} | int: {str(char.strength).rjust(2)} | hp: {str(char.hit_points).rjust(3)} / {str(char.max_hit_points).ljust(4)}| {str(char.class_type).upper().ljust(14)}|\n"
     sheet += f"| dex: {str(char.dexterity).rjust(2)} | wis: {str(char.wisdom).rjust(2)} | xp: {str(char.xp).ljust(10)}| {str(char.race).title().ljust(14)}|\n"
     sheet += f"| con: {str(char.constitution).rjust(2)} | cha: {str(char.charism).rjust(2)} | level: {str(char.level).ljust(7)}| AC: {str(char.armor_class).ljust(10)}|\n"
@@ -1214,8 +1214,8 @@ def temple_of_cant(party: List[Character], roster: List[Character]):
             exit_temple = True
         else:
             efface_ecran()
-            char_to_save: Character = get_character(choice.split('(')[0].strip(), roster + party)
-            contributor_names: List[str] = [c.name for c in party if c.status == "OK"]
+            char_to_save: Character = get_character(choice.split('(')[0].strip(), roster)
+            contributor_names: List[str] = [c.name for c in party]
             char_name: str = read_choice_or_exit(contributor_names, "Who will Contribute?")
             if char_name == "Exit":
                 exit_temple = True
@@ -1225,13 +1225,14 @@ def temple_of_cant(party: List[Character], roster: List[Character]):
                 print("No character remains in the party.")
                 sleep(2)
                 exit_temple = True
-            # cprint(f'{char_to_save} -> {char_to_save.status}')
+            # cprint(f'{char_to_save.hit_points}  -> {char_to_save.status} : \n{char_to_save}')
             if char_to_contribute.gold < cures_costs_per_level[char_to_save.status] * char_to_save.level:
                 print("Go away! You don't have enough of money!")
                 sleep(2)
             elif char_to_save.status == "DEAD":
                 success: bool = randint(1, 100) < 50 + 3 * char_to_save.constitution
                 if success:
+                    # cprint(f"{char_to_save.name} ** LIVES! ***", color.RED)
                     char_to_save.status = "OK"
                     char_to_save.hit_points = 1
                     char_to_save.age += randint(1, 52)
@@ -1490,13 +1491,13 @@ def training_grounds(roster: List[Character]):
                 efface_ecran()
                 roster = sorted(roster, key=lambda c: c.level)
                 # char_names: List[tuple] = [(c.name, c.class_type, f'Lvl {c.level}') for c in roster if c.status == 'OK' and c not in party and not c.in_dungeon]
-                char_names: List[tuple] = [(c.name, c.class_type, f"Lvl {c.level}") for c in roster if c.status == "OK" and c not in party]
+                char_names: List[tuple] = [(c.name, c.class_type, f"Lvl {c.level}") for c in roster if c not in party]
                 select_name: str = read_choice_tuple(char_names, "Select a Character.")
                 # select_name: str = read_choice_or_exit(char_names, "Select a Character.")
                 if select_name == "Exit":
                     continue
                 char: Character = get_character(select_name, roster)
-                menu_read_options(char)
+                menu_read_options(char, roster)
             case "Delete a Character":
                 select_name: str = read_choice_or_exit(char_names, "Select a Character to Delete.")
                 if select_name == "Exit":
@@ -1708,14 +1709,15 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
                 attacker = queue.pop()
                 if attacker.hit_points > 0:
                     if isinstance(attacker, Monster):
-                        # check if character can heal party's members
-                        # cprint(f'{attacker}')
+                        # check if monster can heal someone
                         healing_spells: List[Spell] = []
                         if attacker.is_spell_caster:
                             healing_spells: List[Spell] = [s for s in attacker.sc.learned_spells if s.heal_at_slot_level and attacker.sc.spell_slots[s.level - 1] > 0]
                             # cprint(f"{color.GREEN}{attacker.name}{color.END} has {len(healing_spells)} healing spells available!")
                         if any(c for c in alive_monsters if c.hit_points < 0.5 * c.max_hit_points) and healing_spells:
-                            spell = max(healing_spells, key=lambda s: s.level) # choose strongest spell (to be refined)
+                            # spell = max(healing_spells, key=lambda s: s.level) # choose strongest spell (to be refined)
+                            max_spell_level: int = max([s.level for s in healing_spells])
+                            spell = choice([s for s in healing_spells if s.level == max_spell_level])
                             monster: Monster = min(alive_monsters, key=lambda c: c.hit_points) # consider weakest char for optimal healing
                             if spell.range == 5:
                                 attacker.cast_heal(spell, spell.level - 1, [monster])
@@ -1797,9 +1799,11 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
                             healing_spells: List[Spell] = [s for s in attacker.sc.learned_spells if hasattr(s, 'heal_at_slot_level') and s.heal_at_slot_level and attacker.sc.spell_slots[s.level - 1] > 0]
                             # cprint(f"{color.GREEN}{attacker.name}{color.END} has {len(healing_spells)} healing spells available!")
                         if attacker.is_spell_caster and healing_spells and any(c for c in alive_chars if c.hit_points < 0.5 * c.max_hit_points):
-                            spell = max(healing_spells, key=lambda s: s.level) # choose strongest spell (to be refined)
+                            # spell = max(healing_spells, key=lambda s: s.level) # choose strongest spell (to be refined)
+                            max_spell_level: int = max([s.level for s in healing_spells])
+                            spell = choice([s for s in healing_spells if s.level == max_spell_level])
                             char: Character = min(alive_chars, key=lambda c: c.hit_points) # consider weakest char for optimal healing
-                            best_slot_level: int = char.get_best_slot_level(heal_spell=spell, target=char)
+                            best_slot_level: int = attacker.get_best_slot_level(heal_spell=spell, target=char)
                             if spell.range == 5:
                                 attacker.cast_heal(spell, best_slot_level, [char])
                             else:
@@ -1981,8 +1985,8 @@ if __name__ == "__main__":
     #     while c.level < 20:
     # #         rest_character(c, 0, 1)
     # # delete_weapons(char=get_character(name="Iados", roster=party))
-    # volen = get_character(name="Volen", roster=party)
-    # volen.gold = 10000
+    Iltazyara = get_character(name="Iltazyara", roster=roster)
+    Iltazyara.status = "DEAD"
 
     # Set TERM if it's not already set
     if "TERM" not in os.environ:
@@ -1999,7 +2003,8 @@ if __name__ == "__main__":
             for c in party:
                 if c.status != "OK":
                     party.remove(c)
-                    roster.append(c)
+                    if c not in roster:
+                        roster.append(c)
             # party = [c for c in party if c.status == 'OK']
             match destination:
                 case "Gilgamesh's Tavern":
@@ -2055,6 +2060,7 @@ if __name__ == "__main__":
                                     char.status = "DEAD"
                                 save_character(char, _dir=characters_dir)
                             location = "Castle"
+                            continue
                         else:
                             if roster:
                                 print(f"** NO PARTY FOUND! ** Return to {Color.RED}Castle{Color.END} to recruit adventurers!")
