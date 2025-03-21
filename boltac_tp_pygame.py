@@ -212,8 +212,8 @@ def load_game_data(character_name):
     try:
         saved_game = load_character_gamestate(character_name, gamestate_dir)
         hero = saved_game.hero if saved_game else load_character(character_name, characters_dir)
-        weapons = sorted(hero.allowed_weapons, key=lambda x: x.cost.value)
-        armors = sorted(hero.allowed_armors, key=lambda x: x.cost.value)
+        weapons = sorted(hero.prof_weapons, key=lambda x: x.cost.value)
+        armors = sorted(hero.prof_armors, key=lambda x: x.cost.value)
         potions = load_potions_collections()
         return saved_game, hero, [weapons, armors, potions]
     except Exception as e:
