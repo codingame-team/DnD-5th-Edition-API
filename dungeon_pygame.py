@@ -384,12 +384,10 @@ class Game:
     target_pos: tuple
     round_no: int
     last_combat_round: int
-    kills: List[Monster]
     target_pos: Optional[tuple]
 
     def __init__(self, char_name: str, char_dir: str, actions_panel=False, start_level=1):
         self.ready_spell = None
-        self.kills = []
         self.target_pos = None
         self.round_no = 0
         self.last_combat_round = 0
@@ -1400,7 +1398,7 @@ def handle_right_click_spell_attack(game):
             if monster.hit_points <= 0:
                 # cprint(f'{monster.name} at pos {monster.pos} is *KILLED*')
                 game.hero.victory(monster=monster, solo_mode=True)
-                game.kills.append(monster)
+                game.hero.kills.append(monster)
                 game.level.monsters.remove(monster)
                 room: Optional[Room] = game.level.room_at(monster.pos)
                 if room and monster in room.monsters:
@@ -1433,7 +1431,7 @@ def attack_monsters(game, monsters):
             if monster.hit_points <= 0:
                 # cprint(f'{monster.name} at pos {monster.pos} is *KILLED*')
                 game.hero.victory(monster=monster, solo_mode=True)
-                game.kills.append(monster)
+                game.hero.kills.append(monster)
                 if not hasattr(monster, 'speed'):
                     monster.speed = 15
                 game.level.monsters.remove(monster)
@@ -1457,7 +1455,7 @@ def attack_monster(game, monster):
     if monster.hit_points <= 0:
         # cprint(f'{monster.name} at pos {monster.pos} is *KILLED*')
         game.hero.victory(monster=monster, solo_mode=True)
-        game.kills.append(monster)
+        game.hero.kills.append(monster)
         game.level.monsters.remove(monster)
         rooms: List[Room] = [r for r in game.level.rooms if monster in r.monsters]
         if rooms:
@@ -1726,7 +1724,7 @@ def handle_combat(game: Game, monsters: List[Monster], attack_spell: Spell = Non
         else:
             if char.hit_points <= 0 and not any(a.can_use_after_death(char) for a in char.sa):
                 if isinstance(char, Monster):
-                    game.kills.append(char)
+                    game.hero.kills.append(char)
                 continue
             # Handle monster's attack
             damage = handle_monster_actions(game, char)
@@ -1842,7 +1840,7 @@ def handle_level_changes(game):
                 move_char(game, game.hero, choice(moves))
                 if response in ['y', 'Y']:
                     game.finished = True
-                    print(f"{Color.GREEN}Congratulations! You have vanquished {Color.RED}{len(game.kills)}{Color.END} monsters and can now return to a normal life :-){Color.END}")
+                    print(f"{Color.GREEN}Congratulations! You have vanquished {Color.RED}{len(game.hero.kills)}{Color.END} monsters and can now return to a normal life :-){Color.END}")
                     save_character(char=game.hero, _dir=characters_dir)
                     save_character_gamestate(char=game.hero, _dir=gamestate_dir, gamestate=game)
                     print("Returning to Castle :-)")
