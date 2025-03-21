@@ -10,5 +10,8 @@
 - [ ] Character class's missing attributes:
   - [ ] Alignment
   - [ ] Spells
+    - [ ] Attack:
+      - [ ] fix range and area
+    - [ ] Defense
   - [ ] Condition
   - [ ] Level up: improve skills
