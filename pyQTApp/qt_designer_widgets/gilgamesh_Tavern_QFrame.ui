@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>634</width>
-    <height>400</height>
+    <width>551</width>
+    <height>431</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -22,6 +22,12 @@
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="0" colspan="2">
     <widget class="QTableWidget" name="gilgameshTavern_tableWidget">
+     <property name="maximumSize">
+      <size>
+       <width>525</width>
+       <height>16777215</height>
+      </size>
+     </property>
      <property name="layoutDirection">
       <enum>Qt::LeftToRight</enum>
      </property>
@@ -44,7 +50,7 @@
       <enum>QAbstractItemView::SelectRows</enum>
      </property>
      <property name="columnCount">
-      <number>5</number>
+      <number>7</number>
      </property>
      <column>
       <property name="text">
@@ -53,7 +59,12 @@
      </column>
      <column>
       <property name="text">
-       <string>Class/Race</string>
+       <string>Class</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Race</string>
       </property>
      </column>
      <column>
@@ -64,6 +75,11 @@
      <column>
       <property name="text">
        <string>HP</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>HP Max</string>
       </property>
      </column>
      <column>

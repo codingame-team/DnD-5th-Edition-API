@@ -1,7 +1,7 @@
 from functools import partial
 from typing import List
 
-from PyQt5.QtCore import pyqtSlot, QItemSelection
+from PyQt5.QtCore import pyqtSlot, QItemSelection, Qt
 from PyQt5.QtWidgets import (
     QFrame,
     QTableWidget,
@@ -30,14 +30,21 @@ class Tavern_UI(QWidget):
         self.ui = Ui_tavernFrame()
         self.ui.setupUi(self.tavernFrame)
         layout = castle_window.layout()
+        layout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
         layout.addWidget(self.tavernFrame)
+        # layout.addWidget(self.tavernFrame, alignment=Qt.AlignmentFlag.AlignRight)
         self.tavernFrame.setGeometry(castle_ui.castleFrame.geometry())
 
         # Populate roster
         self.roster: List[Character] = get_roster(characters_dir)
         debug(f"{len(self.roster)} characters in roster: \n{self.roster}")
         self.tg_table: QTableWidget = self.ui.gilgameshTavern_tableWidget
+        self.tg_table.setSortingEnabled(True)
+        # If you want to set an initial sort on a specific column (e.g., column 0)
+        # self.tg_table.sortItems(0, Qt.SortOrder.AscendingOrder)  # or Qt.SortOrder.DescendingOrder
+        self.tg_table.verticalHeader().setVisible(False)  # This will hide the row numbers
+        self.tg_table.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         populate(self.tg_table, self.roster)
         self.tg_table.selectionModel().selectionChanged.connect(partial(self.disable_remove_button))
         self.ui.addToPartyButton.clicked.connect(self.add_character_from_button)
@@ -45,6 +52,7 @@ class Tavern_UI(QWidget):
         # Populate party
         self.party: List[Character] = load_party()
         self.party_table: QTableWidget = castle_ui.party_tableWidget
+        self.party_table.setSortingEnabled(True)
         # populate(party_table, party)
         self.party_table.selectionModel().selectionChanged.connect(self.disable_add_button)
         self.ui.removeFromPartyButton.clicked.connect(self.remove_char_from_party)
@@ -123,20 +131,6 @@ class Tavern_UI(QWidget):
         ui.setupUi(character_Dialog)
         display_char_sheet(character_Dialog, ui, char)
 
-    # @pyqtSlot(QTableWidgetItem)
-    # def inspect_char(self):
-    #     if self.party_table.selectedIndexes():
-    #         row: int = self.party_table.currentRow()
-    #         char_name: str = self.party_table.item(row, 0).text()
-    #         char: Character = [c for c in self.party if c.name == char_name][0]
-    #     else:
-    #         row: int = self.tg_table.currentRow()
-    #         char_name: str = self.tg_table.item(row, 0).text()
-    #         char: Character = [c for c in self.roster if c.name == char_name][0]
-    #     character_Dialog = QDialog()
-    #     ui = Ui_character_Dialog()
-    #     ui.setupUi(character_Dialog)
-    #     display_char_sheet(character_Dialog, ui, char)
 
     @pyqtSlot(QItemSelection, QItemSelection)
     def on_selection_changed(self, selected: QItemSelection, deselected: QItemSelection):

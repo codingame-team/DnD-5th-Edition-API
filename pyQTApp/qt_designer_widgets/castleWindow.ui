@@ -56,7 +56,7 @@
      <enum>Qt::DashLine</enum>
     </property>
     <property name="columnCount">
-     <number>5</number>
+     <number>7</number>
     </property>
     <column>
      <property name="text">
@@ -65,7 +65,12 @@
     </column>
     <column>
      <property name="text">
-      <string>Class/Race</string>
+      <string>Class</string>
+     </property>
+    </column>
+    <column>
+     <property name="text">
+      <string>Race</string>
      </property>
     </column>
     <column>
@@ -76,6 +81,11 @@
     <column>
      <property name="text">
       <string>HP</string>
+     </property>
+    </column>
+    <column>
+     <property name="text">
+      <string>HP Max</string>
      </property>
     </column>
     <column>
