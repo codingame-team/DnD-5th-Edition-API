@@ -1,5 +1,11 @@
 import os
+from typing import List
+from urllib.parse import quote
+
 import requests
+
+from dao_classes import Monster
+from populate_functions import populate, request_monster
 
 
 def download_image(url, save_folder, monster_name, filename=None) -> int:
@@ -45,5 +51,32 @@ if __name__ == "__main__":
     # Define the folder to save the image
     save_folder = "../images/monsters/tokens"
 
-    # Call the download_image function
-    download_image(image_url, save_folder)
+    monster_names: List[str] = populate(collection_name="monsters", key_name="results")
+    monsters: List[Monster] = [request_monster(name) for name in monster_names]
+    for m in monsters:
+        image_url = f"https://5e.tools/img/bestiary/tokens/MM/{quote(m.name, safe='')}.webp"
+        download_image(image_url, save_folder, m.name)
+    # # Call the download_image function
+    # download_image(image_url, save_folder)
+
+"""
+    invalid count option for hydra : Bite
+    invalid count option for violet-fungus : Rotting Touch
+    Giant Rat (Diseased) -> Failed to download image. HTTP Status code: 404
+    Succubus/Incubus -> Failed to download image. HTTP Status code: 404
+    Werebear, Bear Form -> Failed to download image. HTTP Status code: 404
+    Werebear, Human Form -> Failed to download image. HTTP Status code: 404
+    Werebear, Hybrid Form -> Failed to download image. HTTP Status code: 404
+    Wereboar, Boar Form -> Failed to download image. HTTP Status code: 404
+    Wereboar, Human Form -> Failed to download image. HTTP Status code: 404
+    Wereboar, Hybrid Form -> Failed to download image. HTTP Status code: 404
+    Wererat, Human Form -> Failed to download image. HTTP Status code: 404
+    Wererat, Hybrid Form -> Failed to download image. HTTP Status code: 404
+    Wererat, Rat Form -> Failed to download image. HTTP Status code: 404
+    Weretiger, Human Form -> Failed to download image. HTTP Status code: 404
+    Weretiger, Hybrid Form -> Failed to download image. HTTP Status code: 404
+    Weretiger, Tiger Form -> Failed to download image. HTTP Status code: 404
+    Werewolf, Human Form -> Failed to download image. HTTP Status code: 404
+    Werewolf, Hybrid Form -> Failed to download image. HTTP Status code: 404
+    Werewolf, Wolf Form -> Failed to download image. HTTP Status code: 404
+"""
