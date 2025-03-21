@@ -10,6 +10,7 @@ from typing import List, Optional, Tuple
 from random import randint, choice
 
 import pygame
+from numpy import sign
 from pygame import Surface, SurfaceType
 
 from tools.common import cprint, UNIT_SIZE, Color
@@ -1381,6 +1382,10 @@ class Character(Sprite):
 class DamageDice:
     dice: str
     bonus: int = 0
+
+    def __repr__(self):
+        bonus: str = '' if not self.bonus else f" {sign(self.bonus)}{self.bonus}"
+        return f"{self.dice}{bonus}"
 
     @property
     def max_score(self) -> int:
