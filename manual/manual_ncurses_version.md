@@ -1,6 +1,6 @@
 <!-- TOC -->
 * [Commandes](#commandes)
-* [Jeu](#jeu)
+* [Gameplay](#gameplay)
 <!-- TOC -->
 
 # Commandes
