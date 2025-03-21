@@ -1678,7 +1678,7 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
         # monsters_names_for_debug = ['aboleth']
         # monsters_names_for_debug = ['half-red-dragon-veteran']Ice Mephit
         # monsters_names_for_debug = ['ice-mephit']
-        # monsters_names_for_debug = ["acolyte"] * randint(4, 6)
+        # monsters_names_for_debug = ['frog'] * 4
         # monsters: List[Monster] = [request_monster(index_name) for index_name in monsters_names_for_debug]
         cprint(f"{color.PURPLE}-------------------------------------------------------------------------------------------------------------------------------------------{color.END}")
         cprint(f"{color.PURPLE} New encounter!{color.END}")
@@ -1780,7 +1780,7 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
                                             cprint(f"{target_char.name} is ** KILLED **!")
                             else:
                                 target_char: Character = choice(melee_chars)
-                                melee_attacks: List[Action] = [a for a in attacker.actions if a.type in (ActionType.MELEE, ActionType.MIXED)]
+                                melee_attacks: List[Action] = [a for a in attacker.actions if a.type in (ActionType.MELEE, ActionType.MIXED)] if attacker.actions else []
                                 if melee_attacks:
                                     target_char.hit_points -= attacker.attack(character=target_char, actions=melee_attacks)
                                     if target_char.hit_points <= 0:
@@ -1985,8 +1985,8 @@ if __name__ == "__main__":
     #     while c.level < 20:
     # #         rest_character(c, 0, 1)
     # # delete_weapons(char=get_character(name="Iados", roster=party))
-    Iltazyara = get_character(name="Iltazyara", roster=roster)
-    Iltazyara.status = "DEAD"
+    # Iltazyara = get_character(name="Iltazyara", roster=roster)
+    # Iltazyara.status = "DEAD"
 
     # Set TERM if it's not already set
     if "TERM" not in os.environ:
