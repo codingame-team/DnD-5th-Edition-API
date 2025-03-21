@@ -128,7 +128,7 @@ def run(character_name: str = 'Brottor'):
             game.kills = []
         monsters_count = Counter([m.name for m in game.kills])
         pygame.display.set_caption(f"{len(monsters_count)} different types of monsters killed by {character_name} for a total of {len(game.kills)} kills")
-        monsters = {m.name: (m.challenge_rating, monsters_count[m.name]) for m in game.kills}
+        monsters = {m.name: (m.challenge_rating, monsters_count[m.name]) for m in game.hero.kills}
         monsters = dict(sorted(monsters.items(), key=lambda x: x[1], reverse=True))
 
         monster_images = load_monsters_images(monsters)
@@ -140,6 +140,8 @@ def run(character_name: str = 'Brottor'):
             main(monsters)
     except IndexError:
         print(f"Character name <{character_name}> not found in roster")
+    except AttributeError:
+        print(f"Character name <{character_name}> has no saved game")
 
 
 if __name__ == "__main__":
