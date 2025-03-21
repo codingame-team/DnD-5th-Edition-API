@@ -31,7 +31,7 @@ def generate_random_proficiencies(race, class_type) -> List[str]:
 
     return chosen_proficiencies
 
-def generate_name(race: str, gender: str, names: dict(), reserved_names):
+def generate_random_name(race: str, gender: str, names: dict(), reserved_names):
     """
 
     :param race: name of the race
@@ -57,7 +57,7 @@ def generate_name(race: str, gender: str, names: dict(), reserved_names):
         name = random.choice(names)
         return name
 
-def generate_character_preset(races: List[Race], subraces: List[SubRace], classes: List[ClassType], names: Dict[str, List[str]]) -> Character:
+def generate_random_character(races: List[Race], subraces: List[SubRace], classes: List[ClassType], names: Dict[str, List[str]]) -> Character:
     """
     Generate a preset character with random selections.
 
@@ -66,9 +66,6 @@ def generate_character_preset(races: List[Race], subraces: List[SubRace], classe
     :param names: Dictionary of names by race
     :return: A new Character instance with randomly selected attributes
     """
-    print(f'{color.PURPLE}-------------------------------------------------------{color.END}')
-    print(f'{color.PURPLE} Character creation based on DnD 5th edition API{color.END}')
-    print(f'{color.PURPLE}-------------------------------------------------------{color.END}')
 
     # Phase 1: character selection
 
@@ -103,9 +100,9 @@ def generate_character_preset(races: List[Race], subraces: List[SubRace], classe
     ethnic: str = None
     reserved_names: List[str] = [c.name for c in roster]
     if race.index in ['human', 'half-elf']:
-        name, ethnic = generate_name(race.index, gender, human_names, reserved_names)
+        name, ethnic = generate_random_name(race.index, gender, human_names, reserved_names)
     else:
-        name = generate_name(race.index, gender, names, reserved_names)
+        name = generate_random_name(race.index, gender, names, reserved_names)
 
     height, weight = get_height_and_weight(race, subrace)
 
@@ -135,7 +132,6 @@ def generate_character_preset(races: List[Race], subraces: List[SubRace], classe
                      hit_points=hit_points,
                      max_hit_points=hit_points,
                      xp=0, level=1,
-                     monster_kills=0,
                      age=18 * 52 + random.randint(0, 299),
                      gold=90 + random.randint(0, 99),
                      sc=spell_caster,
@@ -154,8 +150,12 @@ if __name__ == "__main__":
     characters_dir = f'{game_path}/characters'
     roster: List[Character] = get_roster(characters_dir)
 
+    print(f'{color.PURPLE}-------------------------------------------------------{color.END}')
+    print(f'{color.PURPLE} Character creation based on DnD 5th edition API{color.END}')
+    print(f'{color.PURPLE}-------------------------------------------------------{color.END}')
+
     # Generate a preset character
-    new_character: Character = generate_character_preset(races, subraces, classes, names)
+    new_character: Character = generate_random_character(races, subraces, classes, names)
 
     # Print character details
     print(f"Name: {new_character.name}")
