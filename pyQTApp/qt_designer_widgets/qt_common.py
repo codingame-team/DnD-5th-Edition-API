@@ -20,10 +20,10 @@ def populate(table: QTableWidget, training_grounds: List[Character]):
     table.adjustSize()
 
 
-def addItem(table: QTableWidget, char: Character, party: List[Character]):
-    table.setRowCount(len(party))
-    table.insertRow(len(party))
-    i = len(party)
+def addItem(table: QTableWidget, char: Character, char_list: List[Character]):
+    table.setRowCount(len(char_list))
+    table.insertRow(len(char_list))
+    i = len(char_list)
     table.setItem(i, 0, QTableWidgetItem(char.name))
     table.setItem(i, 1, QTableWidgetItem(f'{char.class_type}/{char.race}'))
     table.setItem(i, 2, QTableWidgetItem(char.armor_class))

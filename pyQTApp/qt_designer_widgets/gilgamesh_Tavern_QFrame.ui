@@ -73,7 +73,7 @@
      </column>
     </widget>
    </item>
-   <item row="2" column="0">
+   <item row="1" column="0">
     <widget class="QPushButton" name="addToPartyButton">
      <property name="enabled">
       <bool>false</bool>
@@ -83,23 +83,13 @@
      </property>
     </widget>
    </item>
-   <item row="2" column="1">
+   <item row="1" column="1">
     <widget class="QPushButton" name="removeFromPartyButton">
      <property name="enabled">
       <bool>false</bool>
      </property>
      <property name="text">
       <string>Remove from party</string>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="0">
-    <widget class="QPushButton" name="inspectButton">
-     <property name="enabled">
-      <bool>false</bool>
-     </property>
-     <property name="text">
-      <string>Inspect</string>
      </property>
     </widget>
    </item>

@@ -85,7 +85,7 @@ def display_char_sheet(dialog: QDialog, ui: Ui_character_Dialog, char: Character
     # Combat
     if char.weapon and char.weapon.equipped:
         ui.damage_label.setText(str(char.weapon.damage_dice))
-        ui.hp_label.setText(str(char.hit_points))
+        ui.hp_label.setText(str(char.hit_points) + ' / ' + str(char.max_hit_points))
         ui.ac_label.setText(str(char.armor_class))
     # Picture
     # https://www.pythonguis.com/faq/adding-images-to-pyqt5-applications/
@@ -135,8 +135,8 @@ if __name__ == "__main__":
     characters_dir = f'{path}/../gameState/characters'
     roster: List[Character] = get_roster(characters_dir)
     debug(f'{len(roster)} characters in roster! \n')
-    # char: Character = random.choice(roster)
-    char: Character = [c for c in roster if c.name == 'Brottor'][0]
+    char: Character = random.choice(roster)
+    # char: Character = [c for c in roster if c.name == 'Brottor'][0]
     with open(f'{characters_dir}/{char.name}.dmp', 'rb') as f1:
         # debug(f'f1: {f1.name}')
         char: Character = pickle.load(f1)
