@@ -386,6 +386,10 @@ class App(Tk):
         """
         self.disable_touches()
         self.bind('p', lambda event, c=self.hero, app=self: c.drink_potion(event, app))
+        self.bind("d", lambda event, can=self.canvas, m=self.maze, h=self.hero, M=self.enemies: self.move(event, can, "right", m, h, M))
+        self.bind("q", lambda event, can=self.canvas, m=self.maze, h=self.hero, M=self.enemies: self.move(event, can, "left", m, h, M))
+        self.bind("z", lambda event, can=self.canvas, m=self.maze, h=self.hero, M=self.enemies: self.move(event, can, "up", m, h, M))
+        self.bind("s", lambda event, can=self.canvas, m=self.maze, h=self.hero, M=self.enemies: self.move(event, can, "down", m, h, M))
         self.bind("<Right>", lambda event, can=self.canvas, m=self.maze, h=self.hero, M=self.enemies: self.move(event, can, "right", m, h, M))
         self.bind("<Left>", lambda event, can=self.canvas, m=self.maze, h=self.hero, M=self.enemies: self.move(event, can, "left", m, h, M))
         self.bind("<Up>", lambda event, can=self.canvas, m=self.maze, h=self.hero, M=self.enemies: self.move(event, can, "up", m, h, M))
