@@ -77,7 +77,7 @@
     </column>
     <column>
      <property name="text">
-      <string>Class/Race</string>
+      <string>Class</string>
      </property>
     </column>
     <column>
