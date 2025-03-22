@@ -31,8 +31,21 @@ class Tavern_UI(QWidget):
         self.tavernFrame.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         # Set background color to white
         self.tavernFrame.setStyleSheet("background-color: gray;")
+
+        # Populate party
+        self.party: List[Character] = load_party()
+        self.party_table: QTableWidget = castle_ui.party_tableWidget
+        # Make table expand to fill container
+        self.party_table.horizontalHeader().setStretchLastSection(True)
+        self.party_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        self.party_table.setSortingEnabled(True)
+        # populate_table(self.party_table, self.party)
+        self.party_table.selectionModel().selectionChanged.connect(self.disable_add_button)
+        self.ui.removeFromPartyButton.clicked.connect(self.remove_char_from_party)
+
         # Populate roster
         self.roster: List[Character] = get_roster(characters_dir)
+        self.roster = [c for c in self.roster if c not in self.party]
         # debug(f"{len(self.roster)} characters in roster: \n{'\n'.join(map(str, self.roster))}")
         self.tg_table: QTableWidget = self.ui.gilgameshTavern_tableWidget
         # Make table expand to fill container
@@ -47,17 +60,6 @@ class Tavern_UI(QWidget):
         self.tg_table.selectionModel().selectionChanged.connect(partial(self.disable_remove_button))
         self.ui.addToPartyButton.clicked.connect(self.add_character_from_button)
         self.ui.leaveTavernButton.clicked.connect(self.leave_tavern)
-
-        # Populate party
-        self.party: List[Character] = load_party()
-        self.party_table: QTableWidget = castle_ui.party_tableWidget
-        # Make table expand to fill container
-        self.party_table.horizontalHeader().setStretchLastSection(True)
-        self.party_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
-        self.party_table.setSortingEnabled(True)
-        # populate_table(self.party_table, self.party)
-        self.party_table.selectionModel().selectionChanged.connect(self.disable_add_button)
-        self.ui.removeFromPartyButton.clicked.connect(self.remove_char_from_party)
 
         # self.tg_table.cellDoubleClicked.connect(self.add_character_from_cell)
         # self.party_table.cellDoubleClicked.connect(self.remove_character)
