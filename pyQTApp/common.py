@@ -21,14 +21,15 @@ def load_welcome() -> QPixmap:
 def save_party(party: List[Character]):
     print(f'Sauvegarde groupe d\'aventuriers')
     path = os.path.dirname(__file__)
-    with open(f'{path}/gameState/party.dmp', 'wb') as f1:
+    with open(f'{path}/../gameState/party.dmp', 'wb') as f1:
         pickle.dump(party, f1)
 
 
 def load_party() -> List[Character]:
     print(f'Chargement groupe d\'aventuriers')
     path = os.path.dirname(__file__)
-    party_file: str = f'{path}/gameState/party.dmp'
+    party_file: str = f'{path}/../gameState/party.dmp'
+    debug(f'party file = {party_file}')
     if not os.path.exists(party_file):
         return []
     with open(party_file, 'rb') as f1:

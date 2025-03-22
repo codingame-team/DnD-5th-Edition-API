@@ -14,13 +14,17 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_tavernFrame(object):
     def setupUi(self, tavernFrame):
         tavernFrame.setObjectName("tavernFrame")
-        tavernFrame.resize(551, 431)
+        tavernFrame.resize(551, 491)
         tavernFrame.setFrameShape(QtWidgets.QFrame.StyledPanel)
         tavernFrame.setFrameShadow(QtWidgets.QFrame.Raised)
         self.gridLayout = QtWidgets.QGridLayout(tavernFrame)
         self.gridLayout.setObjectName("gridLayout")
+        self.addToPartyButton = QtWidgets.QPushButton(tavernFrame)
+        self.addToPartyButton.setEnabled(False)
+        self.addToPartyButton.setObjectName("addToPartyButton")
+        self.gridLayout.addWidget(self.addToPartyButton, 1, 0, 1, 1)
         self.gilgameshTavern_tableWidget = QtWidgets.QTableWidget(tavernFrame)
-        self.gilgameshTavern_tableWidget.setMaximumSize(QtCore.QSize(525, 16777215))
+        self.gilgameshTavern_tableWidget.setMaximumSize(QtCore.QSize(551, 431))
         self.gilgameshTavern_tableWidget.setLayoutDirection(QtCore.Qt.LeftToRight)
         self.gilgameshTavern_tableWidget.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.gilgameshTavern_tableWidget.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
@@ -46,14 +50,13 @@ class Ui_tavernFrame(object):
         item = QtWidgets.QTableWidgetItem()
         self.gilgameshTavern_tableWidget.setHorizontalHeaderItem(6, item)
         self.gridLayout.addWidget(self.gilgameshTavern_tableWidget, 0, 0, 1, 2)
-        self.addToPartyButton = QtWidgets.QPushButton(tavernFrame)
-        self.addToPartyButton.setEnabled(False)
-        self.addToPartyButton.setObjectName("addToPartyButton")
-        self.gridLayout.addWidget(self.addToPartyButton, 1, 0, 1, 1)
         self.removeFromPartyButton = QtWidgets.QPushButton(tavernFrame)
         self.removeFromPartyButton.setEnabled(False)
         self.removeFromPartyButton.setObjectName("removeFromPartyButton")
-        self.gridLayout.addWidget(self.removeFromPartyButton, 1, 1, 1, 1)
+        self.gridLayout.addWidget(self.removeFromPartyButton, 2, 0, 1, 1)
+        self.leaveTavernButton = QtWidgets.QPushButton(tavernFrame)
+        self.leaveTavernButton.setObjectName("leaveTavernButton")
+        self.gridLayout.addWidget(self.leaveTavernButton, 2, 1, 1, 1)
 
         self.retranslateUi(tavernFrame)
         QtCore.QMetaObject.connectSlotsByName(tavernFrame)
@@ -61,6 +64,7 @@ class Ui_tavernFrame(object):
     def retranslateUi(self, tavernFrame):
         _translate = QtCore.QCoreApplication.translate
         tavernFrame.setWindowTitle(_translate("tavernFrame", "Frame"))
+        self.addToPartyButton.setText(_translate("tavernFrame", "Add to party"))
         item = self.gilgameshTavern_tableWidget.horizontalHeaderItem(0)
         item.setText(_translate("tavernFrame", "Name"))
         item = self.gilgameshTavern_tableWidget.horizontalHeaderItem(1)
@@ -75,8 +79,8 @@ class Ui_tavernFrame(object):
         item.setText(_translate("tavernFrame", "HP Max"))
         item = self.gilgameshTavern_tableWidget.horizontalHeaderItem(6)
         item.setText(_translate("tavernFrame", "Status"))
-        self.addToPartyButton.setText(_translate("tavernFrame", "Add to party"))
         self.removeFromPartyButton.setText(_translate("tavernFrame", "Remove from party"))
+        self.leaveTavernButton.setText(_translate("tavernFrame", "Leave Tavern"))
 
 
 if __name__ == "__main__":

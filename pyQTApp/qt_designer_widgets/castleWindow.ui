@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>976</width>
+    <width>774</width>
     <height>751</height>
    </rect>
   </property>
@@ -25,6 +25,18 @@
       <width>551</width>
       <height>211</height>
      </rect>
+    </property>
+    <property name="sizePolicy">
+     <sizepolicy hsizetype="MinimumExpanding" vsizetype="Expanding">
+      <horstretch>0</horstretch>
+      <verstretch>0</verstretch>
+     </sizepolicy>
+    </property>
+    <property name="maximumSize">
+     <size>
+      <width>551</width>
+      <height>16777215</height>
+     </size>
     </property>
     <property name="font">
      <font>
@@ -65,7 +77,7 @@
     </column>
     <column>
      <property name="text">
-      <string>Class</string>
+      <string>Class/Race</string>
      </property>
     </column>
     <column>
@@ -116,7 +128,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>976</width>
+     <width>774</width>
      <height>22</height>
     </rect>
    </property>

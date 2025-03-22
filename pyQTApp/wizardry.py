@@ -1,17 +1,20 @@
 import os
 import sys
 from functools import partial
+from typing import List
 
-from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtCore import pyqtSlot, Qt
 from PyQt5.QtGui import QPixmap
-from PyQt5.QtWidgets import QApplication, QMainWindow, QFrame, QLabel
+from PyQt5.QtWidgets import QApplication, QMainWindow, QFrame, QLabel, QTableWidget, QHeaderView, QSizePolicy
 
-from pyQTApp.common import load_welcome
+from dao_classes import Character
+from pyQTApp.common import load_welcome, load_party
 from pyQTApp.qt_designer_widgets import castleWindow
 from pyQTApp.Tavern_module import Tavern_UI
 
 from pyQTApp.qt_designer_widgets.castleWindow import Ui_castleWindow
 from pyQTApp.qt_designer_widgets.gilgamesh_Tavern_QFrame import Ui_tavernFrame
+from pyQTApp.qt_designer_widgets.qt_common import populate_table
 
 
 def debug(*args):
@@ -61,10 +64,33 @@ if __name__ == "__main__":
 
     welcome_pixmap: QPixmap = load_welcome()
     castle_ui.welcome_label = QLabel(castle_ui.castleFrame)
-    castle_ui.welcome_label.setPixmap(welcome_pixmap)
+    # Set label to fill the entire frame
+    castle_ui.welcome_label.setGeometry(castle_ui.castleFrame.rect())
+    # Make label resize with frame
+    castle_ui.welcome_label.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+    # Ensure label stays aligned with frame
+    castle_ui.welcome_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+    # castle_ui.welcome_label.setPixmap(welcome_pixmap)
+    # Get the frame size
+    frame_size = castle_ui.welcome_label.size()
+    # Scale the pixmap to fit the frame while keeping aspect ratio
+    scaled_pixmap = welcome_pixmap.scaled(frame_size, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+    # Set the scaled pixmap
+    castle_ui.welcome_label.setPixmap(scaled_pixmap)
+    # Make sure the label scales with the frame
+    castle_ui.welcome_label.setScaledContents(True)
 
     castle_ui.actionGilgamesh_Tavern.triggered.connect(partial(gilgamesh_tavern, castle_ui, castle_window))
     castle_ui.actionBoltac_Trading_Post.triggered.connect(partial(boltac_trading_post, castle_ui, castle_window))
+
+    # Populate party
+    party: List[Character] = load_party()
+    party_table: QTableWidget = castle_ui.party_tableWidget
+    populate_table(party_table, party)
+    # Make table expand to fill container
+    party_table.horizontalHeader().setStretchLastSection(True)
+    party_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+    party_table.setSortingEnabled(True)
 
     castle_window.show()
     sys.exit(app.exec_())

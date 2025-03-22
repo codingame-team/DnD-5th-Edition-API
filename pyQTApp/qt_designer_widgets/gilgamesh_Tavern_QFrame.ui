@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>551</width>
-    <height>431</height>
+    <height>491</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,12 +20,22 @@
    <enum>QFrame::Raised</enum>
   </property>
   <layout class="QGridLayout" name="gridLayout">
+   <item row="1" column="0">
+    <widget class="QPushButton" name="addToPartyButton">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="text">
+      <string>Add to party</string>
+     </property>
+    </widget>
+   </item>
    <item row="0" column="0" colspan="2">
     <widget class="QTableWidget" name="gilgameshTavern_tableWidget">
      <property name="maximumSize">
       <size>
-       <width>525</width>
-       <height>16777215</height>
+       <width>551</width>
+       <height>431</height>
       </size>
      </property>
      <property name="layoutDirection">
@@ -89,23 +99,20 @@
      </column>
     </widget>
    </item>
-   <item row="1" column="0">
-    <widget class="QPushButton" name="addToPartyButton">
-     <property name="enabled">
-      <bool>false</bool>
-     </property>
-     <property name="text">
-      <string>Add to party</string>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="1">
+   <item row="2" column="0">
     <widget class="QPushButton" name="removeFromPartyButton">
      <property name="enabled">
       <bool>false</bool>
      </property>
      <property name="text">
       <string>Remove from party</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="1">
+    <widget class="QPushButton" name="leaveTavernButton">
+     <property name="text">
+      <string>Leave Tavern</string>
      </property>
     </widget>
    </item>
