@@ -5,14 +5,16 @@ from typing import List
 
 from PyQt5.QtCore import pyqtSlot, Qt
 from PyQt5.QtGui import QPixmap
-from PyQt5.QtWidgets import QApplication, QMainWindow, QFrame, QLabel, QTableWidget, QHeaderView, QSizePolicy
+from PyQt5.QtWidgets import QApplication, QMainWindow, QFrame, QLabel, QTableWidget, QHeaderView, QSizePolicy, QDialog
 
 from dao_classes import Character
+from pyQTApp.character_sheet import display_char_sheet
 from pyQTApp.common import load_welcome, load_party
 from pyQTApp.qt_designer_widgets import castleWindow
 from pyQTApp.Tavern_module import Tavern_UI
 
 from pyQTApp.qt_designer_widgets.castleWindow import Ui_castleWindow
+from pyQTApp.qt_designer_widgets.character_dialog import Ui_character_Dialog
 from pyQTApp.qt_designer_widgets.gilgamesh_Tavern_QFrame import Ui_tavernFrame
 from pyQTApp.qt_designer_widgets.qt_common import populate_table
 
@@ -50,6 +52,15 @@ def gilgamesh_tavern(castle_ui: Ui_castleWindow, castle_window: QMainWindow, val
     tavernFrame = QFrame()
     ui = Tavern_UI(characters_dir=characters_dir, castle_window=castle_window, castle_ui=castle_ui)
 
+@pyqtSlot(int, int)
+def inspect_char(row: int, column: int):
+    # Determine which table was double-clicked
+    char_name: str = party_table.item(row, 0).text()
+    char: Character = [c for c in party if c.name == char_name][0]
+    character_Dialog = QDialog()
+    ui = Ui_character_Dialog()
+    ui.setupUi(character_Dialog)
+    display_char_sheet(character_Dialog, ui, char)
 
 if __name__ == "__main__":
     path = os.path.dirname(__file__)
@@ -91,6 +102,7 @@ if __name__ == "__main__":
     party_table.horizontalHeader().setStretchLastSection(True)
     party_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
     party_table.setSortingEnabled(True)
+    party_table.cellDoubleClicked.connect(inspect_char)
 
     castle_window.show()
     sys.exit(app.exec_())

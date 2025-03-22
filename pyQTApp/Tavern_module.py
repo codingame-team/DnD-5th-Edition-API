@@ -64,7 +64,7 @@ class Tavern_UI(QWidget):
         # self.tg_table.cellDoubleClicked.connect(self.add_character_from_cell)
         # self.party_table.cellDoubleClicked.connect(self.remove_character)
         self.tg_table.cellDoubleClicked.connect(self.inspect_char)
-        self.party_table.cellDoubleClicked.connect(self.inspect_char)
+        # self.party_table.cellDoubleClicked.connect(self.inspect_char)
 
         # self.ui.inspectButton.clicked.connect(partial(self.inspect_char))
 
