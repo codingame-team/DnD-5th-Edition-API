@@ -19,7 +19,7 @@ class Ui_castleWindow(object):
         self.centralwidget = QtWidgets.QWidget(castleWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.party_tableWidget = QtWidgets.QTableWidget(self.centralwidget)
-        self.party_tableWidget.setGeometry(QtCore.QRect(30, 450, 551, 211))
+        self.party_tableWidget.setGeometry(QtCore.QRect(30, 450, 551, 251))
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
