@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Dialog</class>
- <widget class="QDialog" name="Dialog">
+ <class>spellsDialog</class>
+ <widget class="QDialog" name="spellsDialog">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>653</width>
+    <width>542</width>
     <height>364</height>
    </rect>
   </property>
@@ -29,7 +29,7 @@
     <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
    </property>
   </widget>
-  <widget class="QTableWidget" name="party_tableWidget_2">
+  <widget class="QTableWidget" name="spells_tableWidget">
    <property name="geometry">
     <rect>
      <x>10</x>
@@ -58,12 +58,7 @@
    </property>
    <column>
     <property name="text">
-     <string>Class</string>
-    </property>
-   </column>
-   <column>
-    <property name="text">
-     <string>Spell name</string>
+     <string>Name</string>
     </property>
    </column>
    <column>
@@ -73,7 +68,12 @@
    </column>
    <column>
     <property name="text">
-     <string>Type</string>
+     <string>School</string>
+    </property>
+   </column>
+   <column>
+    <property name="text">
+     <string>Range</string>
     </property>
    </column>
   </widget>
@@ -83,7 +83,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>accepted()</signal>
-   <receiver>Dialog</receiver>
+   <receiver>spellsDialog</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -99,7 +99,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
-   <receiver>Dialog</receiver>
+   <receiver>spellsDialog</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">

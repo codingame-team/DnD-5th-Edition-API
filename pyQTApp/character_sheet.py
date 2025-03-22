@@ -10,10 +10,12 @@ from typing import List
 
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtGui import QPixmap
-from PyQt5.QtWidgets import QApplication, QDialog
+from PyQt5.QtWidgets import QApplication, QDialog, QTableWidget
 
 from dao_classes import Character, Weapon, Armor
 from pyQTApp.qt_designer_widgets.character_dialog import Ui_character_Dialog
+from pyQTApp.qt_designer_widgets.qt_common import addSpellItem, populate_spell_table
+from pyQTApp.qt_designer_widgets.spells_dialog import Ui_spellsDialog
 
 
 def debug(*args):
@@ -21,7 +23,7 @@ def debug(*args):
     print(*args, file=sys.stderr, flush=True)
 
 
-@pyqtSlot(Character, QDialog)
+@pyqtSlot(Character)
 def save_character(char: Character, dialog: QDialog):
     print(f'Sauvegarde personnage {char.name}')
     path = os.path.dirname(__file__)
@@ -29,6 +31,13 @@ def save_character(char: Character, dialog: QDialog):
         pickle.dump(char, f1)
     dialog.accept()
 
+
+@pyqtSlot(Character)
+def view_spellbook(char: Character):
+    spells_Dialog = QDialog()
+    ui = Ui_spellsDialog()
+    ui.setupUi(spells_Dialog)
+    display_spellbook(spells_Dialog, ui, char)
 
 @pyqtSlot(Character, Ui_character_Dialog, str)
 def change_weapon(char: Character, ui: Ui_character_Dialog, weapon_name: str):
@@ -56,6 +65,18 @@ def change_armor(char: Character, ui: Ui_character_Dialog, armor_name: str):
         armor.equipped = (armor == selected_armor)
 
     ui.ac_label.setText(str(char.armor_class))
+
+def display_spellbook(dialog: QDialog, ui: Ui_spellsDialog, char: Character):
+    dialog.setModal(False)
+    dialog.setWindowTitle(f'{char.name} / {char.class_type}')
+    spells_table: QTableWidget = ui.spells_tableWidget
+    # Populate spells
+    populate_spell_table(spells_table, char.sc.learned_spells)
+
+    ui.buttonBox.rejected.connect(dialog.reject)  # type: ignore
+    ui.buttonBox.accepted.connect(partial(save_character, char, dialog))  # type: ignore
+
+    dialog.exec_()
 
 def display_char_sheet(dialog: QDialog, ui: Ui_character_Dialog, char: Character):
     dialog.setModal(False)
@@ -93,9 +114,10 @@ def display_char_sheet(dialog: QDialog, ui: Ui_character_Dialog, char: Character
     if not os.path.isfile(image_file):
         image_file: str = f'{path}/images/Human.png'
     pixmap = QPixmap(image_file)
-    debug(f'image file = {image_file}')
+    # debug(f'image file = {image_file}')
     ui.pictureLabel.setPixmap(pixmap)
 
+    # Equipment
     for equipment in char.inventory:
         if isinstance(equipment, Weapon):
             ui.weapon_cbx.addItem(equipment.name)
@@ -113,6 +135,14 @@ def display_char_sheet(dialog: QDialog, ui: Ui_character_Dialog, char: Character
     # ui.armor_cbx.currentTextChanged.connect(lambda: change_armor(char))
     ui.weapon_cbx.currentTextChanged.connect(partial(change_weapon, char, ui))
     ui.armor_cbx.currentTextChanged.connect(partial(change_armor, char, ui))
+
+    # Spellbook
+    # Spells section
+    if char.is_spell_caster:
+        slots: str = "/".join(map(str, char.sc.spell_slots))
+        ui.slots_label.setText(slots)
+
+    ui.spellBookButton.clicked.connect(partial(view_spellbook, char))
 
     ui.buttonBox.rejected.connect(dialog.reject)  # type: ignore
     ui.buttonBox.accepted.connect(partial(save_character, char, dialog))  # type: ignore

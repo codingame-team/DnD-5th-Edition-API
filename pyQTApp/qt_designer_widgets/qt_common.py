@@ -3,7 +3,7 @@ from typing import List
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem
 
-from dao_classes import Character
+from dao_classes import Character, Spell
 
 
 class StringTableItem(QTableWidgetItem):
@@ -44,6 +44,19 @@ class ClassTableItem(QTableWidgetItem):
             else self.text().lower() < other.text().lower()
         )
 
+def populate_spell_row(table: QTableWidget, spell: Spell, row: int) -> None:
+    """Populate a single row with spell data."""
+    column_items = [
+        (spell.name, StringTableItem),
+        (spell.level, IntegerTableItem),
+        (spell.school, StringTableItem),
+        (spell.range, StringTableItem)
+    ]
+
+    for col, (value, item_type) in enumerate(column_items):
+        item = item_type(str(value))
+        item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+        table.setItem(row, col, item)
 
 def populate_character_row(table: QTableWidget, char: Character, row: int) -> None:
     """Populate a single row with character data using appropriate sorting types."""
@@ -71,9 +84,22 @@ def populate_table(table: QTableWidget, training_grounds: List[Character]) -> No
     table.adjustSize()
     table.setSortingEnabled(True)
 
+def populate_spell_table(table: QTableWidget, spells: List[Spell]) -> None:
+    """Populate the entire table with spell data."""
+    table.setRowCount(len(spells))
+    for i, spell in enumerate(spells):
+        populate_spell_row(table, spell, i)
+    table.adjustSize()
+    table.setSortingEnabled(True)
 
 def addItem(table: QTableWidget, char: Character, char_list: List[Character]) -> None:
     """Add a new character to the table."""
     new_row = len(char_list)
     table.setRowCount(new_row + 1)
     populate_character_row(table, char, new_row)
+
+def addSpellItem(table: QTableWidget, spell: Spell, spell_list: List[Spell]) -> None:
+    """Add a new spell to the table."""
+    new_row = len(spell_list)
+    table.setRowCount(new_row + 1)
+    populate_spell_row(table, spell, new_row)
