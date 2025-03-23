@@ -15,13 +15,9 @@ class Ui_spellsDialog(object):
     def setupUi(self, spellsDialog):
         spellsDialog.setObjectName("spellsDialog")
         spellsDialog.resize(542, 364)
-        self.buttonBox = QtWidgets.QDialogButtonBox(spellsDialog)
-        self.buttonBox.setGeometry(QtCore.QRect(30, 240, 341, 32))
-        self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
-        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
-        self.buttonBox.setObjectName("buttonBox")
+        self.gridLayout = QtWidgets.QGridLayout(spellsDialog)
+        self.gridLayout.setObjectName("gridLayout")
         self.spells_tableWidget = QtWidgets.QTableWidget(spellsDialog)
-        self.spells_tableWidget.setGeometry(QtCore.QRect(10, 10, 501, 211))
         self.spells_tableWidget.setMinimumSize(QtCore.QSize(501, 0))
         self.spells_tableWidget.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.spells_tableWidget.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
@@ -37,6 +33,12 @@ class Ui_spellsDialog(object):
         self.spells_tableWidget.setHorizontalHeaderItem(2, item)
         item = QtWidgets.QTableWidgetItem()
         self.spells_tableWidget.setHorizontalHeaderItem(3, item)
+        self.gridLayout.addWidget(self.spells_tableWidget, 0, 0, 1, 1)
+        self.buttonBox = QtWidgets.QDialogButtonBox(spellsDialog)
+        self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
+        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
+        self.buttonBox.setObjectName("buttonBox")
+        self.gridLayout.addWidget(self.buttonBox, 1, 0, 1, 1)
 
         self.retranslateUi(spellsDialog)
         self.buttonBox.accepted.connect(spellsDialog.accept) # type: ignore

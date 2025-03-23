@@ -58,6 +58,9 @@ def populate_spell_row(table: QTableWidget, spell: Spell, row: int) -> None:
         item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
         table.setItem(row, col, item)
 
+    # Sort by level column (column index 1) in ascending order
+    table.sortItems(1, Qt.SortOrder.AscendingOrder)
+
 def populate_character_row(table: QTableWidget, char: Character, row: int) -> None:
     """Populate a single row with character data using appropriate sorting types."""
     column_items = [

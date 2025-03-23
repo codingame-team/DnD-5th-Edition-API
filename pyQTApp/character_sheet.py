@@ -8,9 +8,9 @@ import sys
 from functools import partial
 from typing import List
 
-from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtCore import pyqtSlot, Qt
 from PyQt5.QtGui import QPixmap
-from PyQt5.QtWidgets import QApplication, QDialog, QTableWidget
+from PyQt5.QtWidgets import QApplication, QDialog, QTableWidget, QHeaderView
 
 from dao_classes import Character, Weapon, Armor
 from pyQTApp.qt_designer_widgets.character_dialog import Ui_character_Dialog
@@ -25,9 +25,9 @@ def debug(*args):
 
 @pyqtSlot(Character)
 def save_character(char: Character, dialog: QDialog):
-    print(f'Sauvegarde personnage {char.name}')
+    print(f"Sauvegarde personnage {char.name}")
     path = os.path.dirname(__file__)
-    with open(f'{path}/../gameState/characters/{char.name}.dmp', 'wb') as f1:
+    with open(f"{path}/../gameState/characters/{char.name}.dmp", "wb") as f1:
         pickle.dump(char, f1)
     dialog.accept()
 
@@ -39,6 +39,7 @@ def view_spellbook(char: Character):
     ui.setupUi(spells_Dialog)
     display_spellbook(spells_Dialog, ui, char)
 
+
 @pyqtSlot(Character, Ui_character_Dialog, str)
 def change_weapon(char: Character, ui: Ui_character_Dialog, weapon_name: str):
     weapons = [e for e in char.inventory if isinstance(e, Weapon)]
@@ -48,7 +49,7 @@ def change_weapon(char: Character, ui: Ui_character_Dialog, weapon_name: str):
         weapon.equipped = False
 
     for weapon in weapons:
-        weapon.equipped = (weapon == selected_weapon)
+        weapon.equipped = weapon == selected_weapon
 
     ui.damage_label.setText(str(selected_weapon.damage_dice.dice))
 
@@ -62,14 +63,18 @@ def change_armor(char: Character, ui: Ui_character_Dialog, armor_name: str):
         armor.equipped = False
 
     for armor in armors:
-        armor.equipped = (armor == selected_armor)
+        armor.equipped = armor == selected_armor
 
     ui.ac_label.setText(str(char.armor_class))
 
+
 def display_spellbook(dialog: QDialog, ui: Ui_spellsDialog, char: Character):
     dialog.setModal(False)
-    dialog.setWindowTitle(f'{char.name} / {char.class_type}')
+    dialog.setWindowTitle(f"{char.name} / {char.class_type}")
     spells_table: QTableWidget = ui.spells_tableWidget
+    spells_table.verticalHeader().setVisible(False)  # This will hide the row numbers
+    spells_table.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+    spells_table.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)  # Force scrollbar to always show
     # Populate spells
     populate_spell_table(spells_table, char.sc.learned_spells)
 
@@ -78,9 +83,10 @@ def display_spellbook(dialog: QDialog, ui: Ui_spellsDialog, char: Character):
 
     dialog.exec_()
 
+
 def display_char_sheet(dialog: QDialog, ui: Ui_character_Dialog, char: Character):
     dialog.setModal(False)
-    dialog.setWindowTitle(f'{char.name}')
+    dialog.setWindowTitle(f"{char.name}")
     path = os.path.dirname(__file__)
     # layout.addWidget(dialog)
     # Characteristics
@@ -106,13 +112,13 @@ def display_char_sheet(dialog: QDialog, ui: Ui_character_Dialog, char: Character
     # Combat
     if char.weapon and char.weapon.equipped:
         ui.damage_label.setText(str(char.weapon.damage_dice))
-        ui.hp_label.setText(str(char.hit_points) + ' / ' + str(char.max_hit_points))
+        ui.hp_label.setText(str(char.hit_points) + " / " + str(char.max_hit_points))
         ui.ac_label.setText(str(char.armor_class))
     # Picture
     # https://www.pythonguis.com/faq/adding-images-to-pyqt5-applications/
-    image_file: str = f'{path}/images/{char.race}.png'
+    image_file: str = f"{path}/images/{char.race}.png"
     if not os.path.isfile(image_file):
-        image_file: str = f'{path}/images/Human.png'
+        image_file: str = f"{path}/images/Human.png"
     pixmap = QPixmap(image_file)
     # debug(f'image file = {image_file}')
     ui.pictureLabel.setPixmap(pixmap)
@@ -127,7 +133,7 @@ def display_char_sheet(dialog: QDialog, ui: Ui_character_Dialog, char: Character
     weapon_index = ui.weapon_cbx.findText(char.weapon.name) if char.weapon else -1
     ui.weapon_cbx.setCurrentIndex(weapon_index)
 
-    if hasattr(char, 'armor'):
+    if hasattr(char, "armor"):
         armor_index = ui.armor_cbx.findText(char.armor.name) if char.armor else -1
         ui.armor_cbx.setCurrentIndex(armor_index)
 
@@ -149,25 +155,27 @@ def display_char_sheet(dialog: QDialog, ui: Ui_character_Dialog, char: Character
 
     dialog.exec_()
 
+
 def get_roster(characters_dir: str) -> List[Character]:
     roster: List[Character] = []
     char_file_list = os.scandir(characters_dir)
     for entry in char_file_list:
         if entry.is_file():
-            with open(entry, 'rb') as f1:
+            with open(entry, "rb") as f1:
                 roster.append(pickle.load(f1))
     return roster
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
 
     path = os.path.dirname(__file__)
-    characters_dir = f'{path}/../gameState/characters'
+    characters_dir = f"{path}/../gameState/characters"
     roster: List[Character] = get_roster(characters_dir)
-    debug(f'{len(roster)} characters in roster! \n')
+    debug(f"{len(roster)} characters in roster! \n")
     char: Character = random.choice(roster)
     # char: Character = [c for c in roster if c.name == 'Brottor'][0]
-    with open(f'{characters_dir}/{char.name}.dmp', 'rb') as f1:
+    with open(f"{characters_dir}/{char.name}.dmp", "rb") as f1:
         # debug(f'f1: {f1.name}')
         char: Character = pickle.load(f1)
 
