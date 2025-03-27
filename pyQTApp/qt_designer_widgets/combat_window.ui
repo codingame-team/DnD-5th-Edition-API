@@ -17,10 +17,10 @@
    <widget class="QScrollArea" name="event_scrollArea">
     <property name="geometry">
      <rect>
-      <x>9</x>
-      <y>399</y>
-      <width>471</width>
-      <height>141</height>
+      <x>0</x>
+      <y>380</y>
+      <width>601</width>
+      <height>201</height>
      </rect>
     </property>
     <property name="widgetResizable">
@@ -31,8 +31,8 @@
       <rect>
        <x>0</x>
        <y>0</y>
-       <width>469</width>
-       <height>139</height>
+       <width>599</width>
+       <height>199</height>
       </rect>
      </property>
     </widget>
@@ -41,7 +41,7 @@
     <property name="geometry">
      <rect>
       <x>0</x>
-      <y>0</y>
+      <y>180</y>
       <width>601</width>
       <height>201</height>
      </rect>
@@ -56,7 +56,7 @@
      <enum>QAbstractScrollArea::AdjustToContents</enum>
     </property>
     <property name="columnCount">
-     <number>6</number>
+     <number>8</number>
     </property>
     <column>
      <property name="text">
@@ -65,7 +65,12 @@
     </column>
     <column>
      <property name="text">
-      <string>Class/Race</string>
+      <string>Class</string>
+     </property>
+    </column>
+    <column>
+     <property name="text">
+      <string>Race</string>
      </property>
     </column>
     <column>
@@ -76,6 +81,11 @@
     <column>
      <property name="text">
       <string>HP</string>
+     </property>
+    </column>
+    <column>
+     <property name="text">
+      <string>HP Max</string>
      </property>
     </column>
     <column>
@@ -93,26 +103,26 @@
     <property name="geometry">
      <rect>
       <x>600</x>
-      <y>0</y>
-      <width>161</width>
-      <height>161</height>
+      <y>90</y>
+      <width>115</width>
+      <height>120</height>
      </rect>
     </property>
     <property name="title">
      <string>#Char# actions</string>
     </property>
     <layout class="QGridLayout" name="gridLayout">
+     <item row="2" column="0">
+      <widget class="QRadioButton" name="radioButton_6">
+       <property name="text">
+        <string>Use Item</string>
+       </property>
+      </widget>
+     </item>
      <item row="3" column="0">
       <widget class="QRadioButton" name="radioButton_3">
        <property name="text">
         <string>Parry</string>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="0">
-      <widget class="QRadioButton" name="radioButton">
-       <property name="text">
-        <string>Fight</string>
        </property>
       </widget>
      </item>
@@ -123,10 +133,10 @@
        </property>
       </widget>
      </item>
-     <item row="2" column="0">
-      <widget class="QRadioButton" name="radioButton_6">
+     <item row="0" column="0">
+      <widget class="QRadioButton" name="radioButton">
        <property name="text">
-        <string>Use Item</string>
+        <string>Fight</string>
        </property>
       </widget>
      </item>
@@ -136,48 +146,38 @@
     <property name="geometry">
      <rect>
       <x>610</x>
-      <y>160</y>
-      <width>171</width>
-      <height>101</height>
+      <y>270</y>
+      <width>144</width>
+      <height>82</height>
      </rect>
     </property>
     <property name="title">
      <string>Party actions</string>
     </property>
-    <widget class="QRadioButton" name="radioButton_4">
-     <property name="geometry">
-      <rect>
-       <x>20</x>
-       <y>30</y>
-       <width>133</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Fight monsters</string>
-     </property>
-    </widget>
-    <widget class="QRadioButton" name="radioButton_5">
-     <property name="geometry">
-      <rect>
-       <x>20</x>
-       <y>60</y>
-       <width>133</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Flee</string>
-     </property>
-    </widget>
+    <layout class="QGridLayout" name="gridLayout_2">
+     <item row="0" column="0">
+      <widget class="QRadioButton" name="radioButton_4">
+       <property name="text">
+        <string>Fight monsters</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QRadioButton" name="radioButton_5">
+       <property name="text">
+        <string>Flee</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </widget>
    <widget class="QTableWidget" name="monsters_tableWidget">
     <property name="geometry">
      <rect>
-      <x>530</x>
-      <y>270</y>
-      <width>201</width>
-      <height>101</height>
+      <x>20</x>
+      <y>30</y>
+      <width>211</width>
+      <height>111</height>
      </rect>
     </property>
     <property name="verticalScrollBarPolicy">
@@ -203,6 +203,11 @@
      </property>
     </column>
    </widget>
+   <zorder>char_actions_groupBox</zorder>
+   <zorder>event_scrollArea</zorder>
+   <zorder>party_tableWidget</zorder>
+   <zorder>party_action_groupBox</zorder>
+   <zorder>monsters_tableWidget</zorder>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionAuthor">

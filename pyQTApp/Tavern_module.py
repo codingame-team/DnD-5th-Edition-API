@@ -5,14 +5,15 @@ from PyQt5.QtCore import pyqtSlot, QItemSelection, Qt
 from PyQt5.QtWidgets import (QFrame, QTableWidget, QMainWindow, QTableWidgetItem, QDialog, QWidget, QHeaderView, QSizePolicy, )
 
 from dao_classes import Character
-from main import get_roster
-from pyQTApp.character_sheet import display_char_sheet
-from pyQTApp.common import debug, load_party, save_party
+from main import get_roster, save_party, load_party, save_character
+from pyQTApp.character_sheet import CharacterDialog
+from pyQTApp.common import debug
 from pyQTApp.qt_designer_widgets.castleWindow import Ui_castleWindow
 from pyQTApp.qt_designer_widgets.character_dialog import Ui_character_Dialog
 from pyQTApp.qt_designer_widgets.gilgamesh_Tavern_QFrame import Ui_tavernFrame
 
-from pyQTApp.qt_designer_widgets.qt_common import addItem, populate_table
+from pyQTApp.qt_designer_widgets.qt_common import addCharItem, populate_table
+from tools.common import get_save_game_path
 
 
 class Tavern_UI(QWidget):
@@ -30,10 +31,11 @@ class Tavern_UI(QWidget):
         # Make tavernFrame resize with castleFrame
         self.tavernFrame.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         # Set background color to white
-        self.tavernFrame.setStyleSheet("background-color: gray;")
+        self.tavernFrame.setStyleSheet("background-color: pink;")
 
         # Populate party
-        self.party: List[Character] = load_party()
+        game_path = get_save_game_path()
+        self.party: List[Character] = load_party(game_path)
         self.party_table: QTableWidget = castle_ui.party_tableWidget
         # Make table expand to fill container
         self.party_table.horizontalHeader().setStretchLastSection(True)
@@ -70,7 +72,8 @@ class Tavern_UI(QWidget):
 
     @pyqtSlot()  # For button click
     def leave_tavern(self):
-        save_party(self.party)
+        game_path = get_save_game_path()
+        save_party(self.party, game_path)
         self.tavernFrame.close()
 
     @pyqtSlot()  # For button click
@@ -90,7 +93,7 @@ class Tavern_UI(QWidget):
         if len(self.party) == 6:
             debug(f'party is Full!!!')
             return False
-        addItem(table=self.party_table, char=char, char_list=self.party)
+        addCharItem(table=self.party_table, char=char, char_list=self.party)
         self.tg_table.removeRow(row)
         self.roster.remove(char)
         self.party.append(char)
@@ -107,7 +110,7 @@ class Tavern_UI(QWidget):
         char: Character = [c for c in self.party if c.name == char_name][0]
         self.party_table.removeRow(row)
         self.party.remove(char)
-        addItem(table=self.tg_table, char=char, char_list=self.roster)
+        addCharItem(table=self.tg_table, char=char, char_list=self.roster)
         self.roster.append(char)
         self.disable_add_button()
         self.disable_remove_button()
@@ -135,11 +138,12 @@ class Tavern_UI(QWidget):
             char_name: str = self.tg_table.item(row, 0).text()
             char: Character = [c for c in self.roster if c.name == char_name][0]
 
-        character_Dialog = QDialog()
-        ui = Ui_character_Dialog()
-        ui.setupUi(character_Dialog)
-        display_char_sheet(character_Dialog, ui, char)
-
+        character_dialog = CharacterDialog(char)
+        character_dialog.display_sheet()
+        if character_dialog.char:
+            game_path = get_save_game_path()
+            characters_dir = f"{game_path}/characters"
+            save_character(character_dialog.char, characters_dir)
 
     @pyqtSlot(QItemSelection, QItemSelection)
     def on_selection_changed(self, selected: QItemSelection, deselected: QItemSelection):
@@ -160,7 +164,7 @@ class Tavern_UI(QWidget):
         if len(self.party) == 6:
             debug(f"party is Full!!!")
             return False
-        addItem(table=self.party_table, char=char, char_list=self.party)
+        addCharItem(table=self.party_table, char=char, char_list=self.party)
         self.tg_table.removeRow(row)
         self.roster.remove(char)
         self.tg_table.setRowCount(len(self.roster))
@@ -179,7 +183,7 @@ class Tavern_UI(QWidget):
         char_name: str = self.party_table.item(row, 0).text()
         char: Character = [c for c in self.party if c.name == char_name][0]
         # debug(f"selected char: {char}")
-        addItem(table=self.tg_table, char=char, char_list=self.roster)
+        addCharItem(table=self.tg_table, char=char, char_list=self.roster)
         self.party_table.removeRow(row)
         self.party.remove(char)
         self.party_table.setRowCount(len(self.party))
