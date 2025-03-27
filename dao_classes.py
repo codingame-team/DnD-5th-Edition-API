@@ -893,8 +893,13 @@ class Character(Sprite):
 
     @property
     def armor(self) -> Optional[Armor]:
-        equipped_armors: List[Armor] = [item for item in self.inventory if isinstance(item, Armor) if item.equipped]
+        equipped_armors: List[Armor] = [item for item in self.inventory if isinstance(item, Armor) if item.equipped and item.index != 'shield']
         return equipped_armors[0] if equipped_armors else None
+
+    @property
+    def shield(self) -> Optional[Armor]:
+        equipped_shields: List[Armor] = [item for item in self.inventory if isinstance(item, Armor) if item.equipped and item.index == 'shield']
+        return equipped_shields[0] if equipped_shields else None
 
     @property
     def is_dead(self) -> bool:
