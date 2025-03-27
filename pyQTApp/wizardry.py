@@ -86,24 +86,16 @@ class Castle_UI(QMainWindow):
         self.ui.welcome_label.setPixmap(scaled_pixmap)
         self.ui.welcome_label.setScaledContents(True)
 
-    @pyqtSlot(str)
-    def boltac_trading_post(
-        self, castle_ui: Ui_castleWindow, castle_window: QMainWindow, value
-    ):
+    @pyqtSlot()
+    def boltac_trading_post(self):
         # debug(f"value boltac_trading_post = {value}")
-        self.boltac_window = Boltac_UI(
-            castle_window=self.castle_window, castle_ui=self.castle_ui
-        )
+        self.boltac_window = Boltac_UI(castle_window=self, castle_ui=self.ui)
 
-    @pyqtSlot(str)
-    def gilgamesh_tavern(self, value):
+    @pyqtSlot()
+    def gilgamesh_tavern(self):
         # debug(f"value gilgamesh_tavern = {value}")
         # castle_ui.welcome_label.destroy()
-        self.tavern_window = Tavern_UI(
-            characters_dir=characters_dir,
-            castle_window=self.castle_window,
-            castle_ui=self.castle_ui,
-        )
+        self.tavern_window = Tavern_UI(characters_dir=characters_dir, castle_window=self,castle_ui=self.ui)
 
     @pyqtSlot()
     def edge_of_town(self):
@@ -115,12 +107,8 @@ class Castle_UI(QMainWindow):
 
     def setup_menu_actions(self):
         """Setup menu action connections"""
-        self.ui.actionGilgamesh_Tavern.triggered.connect(
-            partial(self.gilgamesh_tavern, self.ui, self)
-        )
-        self.ui.actionBoltac_Trading_Post.triggered.connect(
-            partial(self.boltac_trading_post, self.ui, self)
-        )
+        self.ui.actionGilgamesh_Tavern.triggered.connect(self.gilgamesh_tavern)
+        self.ui.actionBoltac_Trading_Post.triggered.connect(self.boltac_trading_post)
         self.ui.actionEdge_of_Town.triggered.connect(self.edge_of_town)
 
     def setup_party_table(self):
