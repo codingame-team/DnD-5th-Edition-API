@@ -6,7 +6,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QBrush
 from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem
 
-from dao_classes import Character, Spell, Equipment, Potion, Cost
+from dao_classes import Character, Spell, Equipment, Potion, Cost, Monster
 
 
 class StringTableItem(QTableWidgetItem):
@@ -108,12 +108,51 @@ def populate_character_row(table: QTableWidget, char: Character, row: int) -> No
         item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
         table.setItem(row, col, item)
 
+def populate_character_row_dungeon(table: QTableWidget, char: Character, row: int) -> None:
+    """Populate a single row with character data using appropriate sorting types."""
+    column_items = [
+        (char.name, StringTableItem),
+        (char.class_type, ClassTableItem),
+        (char.race, StringTableItem),
+        (char.armor_class, IntegerTableItem),
+        (char.hit_points, IntegerTableItem),
+        (char.max_hit_points, IntegerTableItem),
+        ("Alive" if char.hit_points > 0 else "DEAD", StringTableItem),
+        ('', StringTableItem)
+    ]
 
-def populate_table(table: QTableWidget, training_grounds: List[Character]) -> None:
+    for col, (value, item_type) in enumerate(column_items):
+        item = item_type(str(value))
+        item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+        table.setItem(row, col, item)
+
+def populate_table(table: QTableWidget, char_list: List[Character], in_dungeon=False) -> None:
     """Populate the entire table with character data."""
-    table.setRowCount(len(training_grounds))
-    for i, char in enumerate(training_grounds):
-        populate_character_row(table, char, i)
+    table.setRowCount(len(char_list))
+    for i, char in enumerate(char_list):
+        populate_character_row(table, char, i) if not in_dungeon else populate_character_row_dungeon(table, char, i)
+    table.adjustSize()
+    table.setSortingEnabled(True)
+
+
+def populate_monster_row(table, monster, quantity, i):
+    """Populate a single row with monster data."""
+    column_items = [
+        (monster, StringTableItem),
+        (quantity, IntegerTableItem)
+    ]
+
+    for col, (value, item_type) in enumerate(column_items):
+        item = item_type(str(value))
+        item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+        table.setItem(i, col, item)
+
+
+def populate_monsters_table(table: QTableWidget, monsters: dict[str, int]) -> None:
+    """Populate the entire table with monster data."""
+    table.setRowCount(len(monsters))
+    for i, (monster, quantity) in enumerate(monsters.items()):
+        populate_monster_row(table, monster, quantity, i)
     table.adjustSize()
     table.setSortingEnabled(True)
 

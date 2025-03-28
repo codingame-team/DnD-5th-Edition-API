@@ -1,36 +1,25 @@
 import os
 import sys
-from functools import partial
+from random import choice, randint
 from typing import List
 
 from PyQt5.QtCore import pyqtSlot, Qt
 from PyQt5.QtGui import QPixmap
-from PyQt5.QtWidgets import (
-    QApplication,
-    QMainWindow,
-    QFrame,
-    QLabel,
-    QTableWidget,
-    QHeaderView,
-    QSizePolicy,
-    QDialog,
-)
+from PyQt5.QtWidgets import (QApplication, QMainWindow, QLabel, QTableWidget, QHeaderView, QSizePolicy)
 
-from dao_classes import Character
+from dao_classes import Character, Monster
 from main import load_party, save_character, save_party
-from pyQTApp.Boltac_module import Boltac_UI
+from populate_functions import populate, request_monster
+from pyQTApp.Castle.Boltac_module import Boltac_UI
+from pyQTApp.EdgeOfTown.Maze_module import Maze_UI
 from pyQTApp.character_sheet import CharacterDialog
 from pyQTApp.common import load_welcome
-from pyQTApp.qt_designer_widgets import castleWindow
-from pyQTApp.Tavern_module import Tavern_UI
+from pyQTApp.Castle.Tavern_module import Tavern_UI
 
 from pyQTApp.qt_designer_widgets.castleWindow import Ui_castleWindow
-from pyQTApp.qt_designer_widgets.character_dialog import Ui_character_Dialog
-from pyQTApp.qt_designer_widgets.combat_window import Ui_combatWindow
 from pyQTApp.qt_designer_widgets.edgeOfTownWindow import Ui_EdgeOfTownWindow
-from pyQTApp.qt_designer_widgets.gilgamesh_Tavern_QFrame import Ui_tavernFrame
 from pyQTApp.qt_designer_widgets.qt_common import populate_table, updateCharItem
-from tools.common import get_save_game_path
+from tools.common import get_save_game_path, resource_path
 
 
 def debug(*args):
@@ -38,19 +27,29 @@ def debug(*args):
     print(*args, file=sys.stderr, flush=True)
 
 
-class Maze_UI(QMainWindow):
-    def __init__(self):
-        super().__init__()
-        self.ui = Ui_combatWindow()
-        self.ui.setupUi(self)
-
-
 class EdgeOfTown_UI(QMainWindow):
     def __init__(self):
         super().__init__()
         self.ui = Ui_EdgeOfTownWindow()
         self.ui.setupUi(self)
+        self.setup_menu_actions()
+        self.maze()
 
+    @pyqtSlot()
+    def maze(self):
+        self.maze_window = Maze_UI(edge_of_town_window=self, edge_of_town_ui=self.ui)
+        # self.maze_window.show()
+
+    @pyqtSlot()
+    def return_to_castle(self):
+        self.close()
+        self.castle_window = Castle_UI()
+        self.castle_window.show()
+
+    def setup_menu_actions(self):
+        """Setup menu action connections"""
+        self.ui.actionMaze.triggered.connect(self.maze)
+        self.ui.actionCastle.triggered.connect(self.return_to_castle)
 
 class Castle_UI(QMainWindow):
     def __init__(self):
@@ -71,9 +70,7 @@ class Castle_UI(QMainWindow):
 
         # Set label properties
         self.ui.welcome_label.setGeometry(self.ui.castleFrame.rect())
-        self.ui.welcome_label.setSizePolicy(
-            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding
-        )
+        self.ui.welcome_label.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.ui.welcome_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         # Scale and set the welcome image
@@ -100,10 +97,8 @@ class Castle_UI(QMainWindow):
     @pyqtSlot()
     def edge_of_town(self):
         self.close()
-        self.combat_window = Maze_UI()
-        self.combat_window.show()
-        # self.edge_of_town_window = EdgeOfTown_UI()
-        # self.edge_of_town_window.show()
+        self.edge_of_town_window = EdgeOfTown_UI()
+        self.edge_of_town_window.show()
 
     def setup_menu_actions(self):
         """Setup menu action connections"""
@@ -120,9 +115,7 @@ class Castle_UI(QMainWindow):
         # Configure table
         populate_table(self.party_table, self.party)
         self.party_table.horizontalHeader().setStretchLastSection(True)
-        self.party_table.horizontalHeader().setSectionResizeMode(
-            QHeaderView.ResizeMode.Stretch
-        )
+        self.party_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self.party_table.setSortingEnabled(True)
         self.party_table.cellDoubleClicked.connect(self.inspect_char)
 
@@ -143,6 +136,9 @@ if __name__ == "__main__":
     path = os.path.dirname(__file__)
     game_path = get_save_game_path()
     characters_dir = f"{game_path}/characters"
+    token_images_dir = resource_path(f'{path}/../images/monsters/tokens')
+    monster_names: List[str] = populate(collection_name="monsters", key_name="results")
+    monsters: List[Monster] = [request_monster(name) for name in monster_names]
 
     app = QApplication(sys.argv)
     castle_window = Castle_UI()
