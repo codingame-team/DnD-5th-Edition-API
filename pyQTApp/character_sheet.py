@@ -10,12 +10,12 @@ from typing import List
 
 from PyQt5.QtCore import pyqtSlot, Qt
 from PyQt5.QtGui import QPixmap
-from PyQt5.QtWidgets import QApplication, QDialog, QTableWidget, QHeaderView
+from PyQt5.QtWidgets import QApplication, QDialog, QTableWidget
 
 from dao_classes import Character, Weapon, Armor
 from main import get_roster
 from pyQTApp.qt_designer_widgets.character_dialog import Ui_character_Dialog
-from pyQTApp.qt_designer_widgets.qt_common import addSpellItem, populate_spell_table
+from pyQTApp.qt_common import populate_spell_table
 from pyQTApp.qt_designer_widgets.spells_dialog import Ui_spellsDialog
 from tools.common import get_save_game_path
 
@@ -127,11 +127,12 @@ class CharacterDialog(QDialog):
     def display_sheet(self):
         char, ui = self.char, self.ui
         self.setModal(False)
-        self.setWindowTitle(f"{char.name}")
+        self.setWindowTitle(f"{char.name} (Level {char.level} {char.race} {char.class_type})")
         path = os.path.dirname(__file__)
         # layout.addWidget(dialog)
         # Characteristics
         ui.name_label.setText(char.name)
+        ui.level_label.setText(str(char.level))
         if char.subrace:
             ui.race_label.setText(char.subrace.name)
         else:
