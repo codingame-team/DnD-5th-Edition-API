@@ -1,13 +1,21 @@
 from __future__ import annotations
 
+import os
 from typing import List
 
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QBrush
+from PyQt5.QtGui import QBrush, QPixmap
 from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem
 
 from dao_classes import Character, Spell, Equipment, Potion, Cost, Monster
 
+def load_welcome() -> QPixmap:
+    path = os.path.dirname(__file__)
+    image_file: str = f'{path}/images/welcome.png'
+    pixmap = QPixmap(image_file)
+    return pixmap
+
+# Sorting features for tables
 
 class StringTableItem(QTableWidgetItem):
     def __lt__(self, other):
@@ -126,13 +134,13 @@ def populate_character_row_dungeon(table: QTableWidget, char: Character, row: in
         item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
         table.setItem(row, col, item)
 
-def populate_table(table: QTableWidget, char_list: List[Character], in_dungeon=False) -> None:
+def populate_table(table: QTableWidget, char_list: List[Character], in_dungeon=False, sorting: bool = True) -> None:
     """Populate the entire table with character data."""
     table.setRowCount(len(char_list))
     for i, char in enumerate(char_list):
         populate_character_row(table, char, i) if not in_dungeon else populate_character_row_dungeon(table, char, i)
     table.adjustSize()
-    table.setSortingEnabled(True)
+    table.setSortingEnabled(sorting)
 
 
 def populate_monster_row(table, monster, quantity, i):

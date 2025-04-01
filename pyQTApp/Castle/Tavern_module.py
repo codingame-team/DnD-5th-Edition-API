@@ -2,17 +2,16 @@ from functools import partial
 from typing import List
 
 from PyQt5.QtCore import pyqtSlot, QItemSelection, Qt
-from PyQt5.QtWidgets import (QFrame, QTableWidget, QMainWindow, QTableWidgetItem, QDialog, QWidget, QHeaderView, QSizePolicy, )
+from PyQt5.QtWidgets import (QFrame, QTableWidget, QMainWindow, QWidget, QHeaderView, QSizePolicy, )
 
 from dao_classes import Character
 from main import get_roster, save_party, load_party, save_character
 from pyQTApp.character_sheet import CharacterDialog
 from pyQTApp.common import debug
 from pyQTApp.qt_designer_widgets.castleWindow import Ui_castleWindow
-from pyQTApp.qt_designer_widgets.character_dialog import Ui_character_Dialog
 from pyQTApp.qt_designer_widgets.gilgamesh_Tavern_QFrame import Ui_tavernFrame
 
-from pyQTApp.qt_designer_widgets.qt_common import addCharItem, populate_table
+from pyQTApp.qt_common import addCharItem, populate_table
 from tools.common import get_save_game_path
 
 

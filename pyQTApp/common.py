@@ -1,6 +1,7 @@
 import os
 import pickle
 import sys
+from enum import Enum
 from typing import List
 
 from PyQt5.QtGui import QPixmap
@@ -17,4 +18,9 @@ def load_welcome() -> QPixmap:
     image_file: str = f'{path}/images/welcome.png'
     pixmap = QPixmap(image_file)
     return pixmap
+
+class color:
+    RED = '<span style="color: red">'
+    GREEN = '<span style="color: green">'
+    END = '</span>'
 

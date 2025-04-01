@@ -14,7 +14,12 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_EdgeOfTownWindow(object):
     def setupUi(self, EdgeOfTownWindow):
         EdgeOfTownWindow.setObjectName("EdgeOfTownWindow")
-        EdgeOfTownWindow.resize(800, 600)
+        EdgeOfTownWindow.resize(803, 605)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(EdgeOfTownWindow.sizePolicy().hasHeightForWidth())
+        EdgeOfTownWindow.setSizePolicy(sizePolicy)
         self.centralwidget = QtWidgets.QWidget(EdgeOfTownWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.mazeFrame = QtWidgets.QFrame(self.centralwidget)
@@ -27,7 +32,7 @@ class Ui_EdgeOfTownWindow(object):
         self.statusbar.setObjectName("statusbar")
         EdgeOfTownWindow.setStatusBar(self.statusbar)
         self.menubar = QtWidgets.QMenuBar(EdgeOfTownWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 800, 22))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 803, 22))
         self.menubar.setObjectName("menubar")
         self.menuEdge_of_Town = QtWidgets.QMenu(self.menubar)
         self.menuEdge_of_Town.setObjectName("menuEdge_of_Town")

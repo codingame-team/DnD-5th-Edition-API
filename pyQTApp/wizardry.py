@@ -1,6 +1,5 @@
 import os
 import sys
-from random import choice, randint
 from typing import List
 
 from PyQt5.QtCore import pyqtSlot, Qt
@@ -18,7 +17,7 @@ from pyQTApp.Castle.Tavern_module import Tavern_UI
 
 from pyQTApp.qt_designer_widgets.castleWindow import Ui_castleWindow
 from pyQTApp.qt_designer_widgets.edgeOfTownWindow import Ui_EdgeOfTownWindow
-from pyQTApp.qt_designer_widgets.qt_common import populate_table, updateCharItem
+from pyQTApp.qt_common import populate_table, updateCharItem
 from tools.common import get_save_game_path, resource_path
 
 
@@ -42,6 +41,7 @@ class EdgeOfTown_UI(QMainWindow):
 
     @pyqtSlot()
     def return_to_castle(self):
+        save_party(party=self.maze_window.party, _dir=get_save_game_path())
         self.close()
         self.castle_window = Castle_UI()
         self.castle_window.show()
@@ -50,6 +50,7 @@ class EdgeOfTown_UI(QMainWindow):
         """Setup menu action connections"""
         self.ui.actionMaze.triggered.connect(self.maze)
         self.ui.actionCastle.triggered.connect(self.return_to_castle)
+        self.ui.actionLeave_game.triggered.connect(self.close)
 
 class Castle_UI(QMainWindow):
     def __init__(self):
