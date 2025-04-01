@@ -145,7 +145,7 @@ class Monster(Sprite):
         self.max_hit_points = self.hit_points
 
     def __repr__(self):
-        return f"{self.name} (AC {self.armor_class} HD: {self.hit_dice} CR: {self.challenge_rating})"
+        return f"{self.name} (AC {self.armor_class} HD: {self.hit_dice} HP: {self.hit_points} CR: {self.challenge_rating})"
 
     def __hash__(self):
         return self.name
@@ -172,6 +172,10 @@ class Monster(Sprite):
 
     def __copy__(self):
         return Monster(self.name, self.abilities, self.proficiencies, self.armor_class, self.hit_points, self.hit_dice, self.xp, self.challenge_rating, self.actions, copy(self.sc), self.sa, )
+
+    def hp_roll(self):
+        dice_count, roll_dice = map(int, self.hit_dice.split("d"))
+        self.hit_points = sum([randint(1, roll_dice) for _ in range(dice_count)])
 
     def saving_throw(self, dc_type: str, dc_value: int) -> bool:
         """
@@ -1382,6 +1386,21 @@ class Character(Sprite):
             ability_modifier: int = ability_mod(self.abilities.get_value_by_index(dc_type)) + prof_bonus(self.level)
         return (any(randint(1, 20) + ability_modifier > dc_value for _ in range(2)) if hasattr(self, "st_advantages") and dc_type in self.st_advantages else randint(1, 20) + ability_modifier > dc_value)
 
+class CharActionType(Enum):
+    MELEE_ATTACK = "Attack"
+    RANGED_ATTACK = "Attack"
+    SPELL_ATTACK = "Spell"
+    SPELL_DEFENSE = "spell_defense"
+    PARRY = "Parry"
+
+@dataclass
+class CharAction:
+    type: CharActionType
+    spell: Optional[Spell] = field(default=None)
+    targets: Optional[List[Character|Monster]] = field(default_factory=list)
+
+    def __repr__(self):
+        return f"{self.type.value} - {self.spell.name if self.spell else ''} - {self.targets[0].name if self.targets else ''}"
 
 @dataclass
 class DamageDice:
