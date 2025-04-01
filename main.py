@@ -15,7 +15,7 @@ from PyQt5.QtWidgets import QApplication, QDialog
 from dao_classes import *
 from populate_functions import *
 from populate_rpg_functions import load_potion_image_name, load_potions_collections
-from pyQTApp.character_sheet import display_char_sheet
+# from pyQTApp.character_sheet import display_char_sheet
 from pyQTApp.qt_designer_widgets.character_dialog import Ui_character_Dialog
 from tools.ability_scores_roll import ability_rolls
 from tools.common import cprint, Color, exit_message, get_key, get_save_game_path
@@ -1559,7 +1559,7 @@ def load_encounter_gold_table() -> List[int]:
     return [int(gold) for enc_level, gold in data]
 
 
-def generate_encounter(encounter_level: int, monsters: List[Monster], monster_groups_count: int, spell_casters_only: bool = False, ) -> List[Monster]:
+def generate_encounter(available_crs: List[Fraction], encounter_table: dict, encounter_level: int, monsters: List[Monster], monster_groups_count: int, spell_casters_only: bool = False, ) -> List[Monster]:
     if monster_groups_count > 2:
         exit_message("System Error!... only 2 groups of monsters allowed here. Please contact the Dungeon Master :-)")
         return
@@ -1595,8 +1595,7 @@ def generate_encounter(encounter_level: int, monsters: List[Monster], monster_gr
         group_of_monsters: List[Monster] = [request_monster(monster.index) for m in matching_monsters]
         for _ in range(monster_count - 1):
             m: Monster = request_monster(monster.index)
-            dice_count, roll_dice = map(int, m.hit_dice.split("d"))
-            m.hit_points = sum([randint(1, roll_dice) for _ in range(dice_count)])
+            m.hp_roll()
             group_of_monsters.append(m)
         return group_of_monsters
 
@@ -1671,7 +1670,7 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
         if not encounter_levels:
             encounter_levels: List[int] = generate_encounter_levels(party_level=party_level)
         encounter_level: int = encounter_levels.pop()
-        monsters: List[Monster] = generate_encounter(encounter_level=encounter_level, monsters=monsters_db, monster_groups_count=monster_groups_count, spell_casters_only=spell_casters_only, )
+        monsters: List[Monster] = generate_encounter(available_crs=available_crs, encounter_table=encounter_table, encounter_level=encounter_level, monsters=monsters_db, monster_groups_count=monster_groups_count, spell_casters_only=spell_casters_only, )
         # monsters: List[Monster] = [request_monster(index_name='swarm-of-centipedes') for _ in range(randint(1, 2))]
         # To debug monster multi-attacks
         # monsters_names_for_debug = ['rug-of-smothering']
