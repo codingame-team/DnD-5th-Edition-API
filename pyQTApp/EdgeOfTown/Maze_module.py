@@ -257,8 +257,8 @@ class Maze_UI(QMainWindow):
         self.round_num += 1
 
         # End of Round
-        alive_chars: List[Character] = [c for c in self.party if c.hit_points >= 0]
-        alive_monsters: List[Monster] = [c for c in self.monsters if c.hit_points >= 0]
+        alive_chars: List[Character] = [c for c in self.party if c.hit_points > 0]
+        alive_monsters: List[Monster] = [c for c in self.monsters if c.hit_points > 0]
 
         if not alive_chars:
             for target_char in self.party:
