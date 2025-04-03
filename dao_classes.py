@@ -1203,15 +1203,16 @@ class Character(Sprite):
         if pause:
             input(f"{color.UNDERLINE}{color.DARKCYAN}hit Enter to continue adventure :-) (potions remaining: {len(self.healing_potions)}){color.END}")
 
-    def gain_level(self, tome_spells: List[Spell] = None) -> Optional[List[Spell]]:
+    def gain_level(self, tome_spells: List[Spell] = None) -> tuple[str, Optional[List[Spell]]]:
+        display_msg: List[str] = []
         new_spells: List[Spell] = []
         self.level += 1
         level_up_hit_die = {12: 7, 10: 6, 8: 5, 6: 4}
         hp_gained = (randint(1, level_up_hit_die[self.class_type.hit_die]) + self.ability_modifiers.con)
         self.max_hit_points += max(1, hp_gained)
         self.hit_points += hp_gained
-        print(f"{color.BLUE}New level #{self.level} gained!!!{color.END}")
-        print(f"{self.name} gained {hp_gained} hit points")
+        display_msg += [f"New level #{self.level} gained!!!"]
+        display_msg += [f"{self.name} gained {hp_gained} hit points"]
         #  PROCEDURE GAINLOST;  (* P010A20 *)
         attrs = ["Strength", "Dexterity", "Constitution", "Intelligence", "Wisdom", "Charism", ]
         for attr in attrs:
@@ -1222,13 +1223,13 @@ class Character(Sprite):
                         continue
                     val -= 1
                     if attr == "Constitution" and val == 2:
-                        print("** YOU HAVE DIED OF OLD AGE **")
+                        display_msg += ["** YOU HAVE DIED OF OLD AGE **"]
                         self.status, self.hit_points = "LOST", 0
                     else:
-                        print(f"You lost {attr}")
+                        display_msg += [f"You lost {attr}"]
                 elif val < 18:
                     val += 1
-                    print(f"You gained {attr}")
+                    display_msg += [f"You gained {attr}"]
             self.abilities.set_value_by_name(name=attr, value=val)
         if self.class_type.can_cast:
             available_spell_levels: List[int] = [i + 1 for i, slot in enumerate(self.class_type.spell_slots[self.level]) if slot > 0]
@@ -1251,8 +1252,8 @@ class Character(Sprite):
                 new_spells_count += 1
                 new_spells.append(learned_spell)
             if new_spells_count:
-                print(f"You learned new Spells!!!")
-        return new_spells
+                display_msg += [f"You learned new Spells!!!"]
+        return '\n'.join(display_msg), new_spells
 
     def update_spell_slots(self, spell: Spell, slot_level: Optional[int] = None):
         slot_level: int = slot_level + 1 if slot_level else spell.level

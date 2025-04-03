@@ -1170,27 +1170,38 @@ def display_rest_message(char: Character):
     sleep(1)
 
 
-def rest_character(char: Character, fee: int, weeks: int):
-    display_rest_message(char)
+def rest_character(char: Character, fee: int, weeks: int, xp_levels, console_mode: bool = True) -> str:
+    display_msg: List[str] = []
+    if console_mode:
+        display_rest_message(char)
+    else:
+        display_msg += [f"{char.name} is Sleeping..."]
+        display_msg += [f"\tHits {char.hit_points}/{char.max_hit_points}"]
+        display_msg += [f"\t\tYou have {char.gold}GP"]
     while fee and char.hit_points < char.max_hit_points and char.gold >= fee:
-        print(f"{char.name} gains {fee // 10} hp")
         char.hit_points = min(char.max_hit_points, char.hit_points + fee // 10)
         char.gold -= fee
         char.age += weeks
-        display_rest_message(char)
+        if console_mode:
+            display_rest_message(char)
+    if char.hit_points == char.max_hit_points:
+        display_msg += [f"{char.name} is fully healed!"]
+    else:
+        display_msg += [f"{char.name} is partially healed!"]
     if char.class_type.can_cast:
         if char.sc.spell_slots != char.class_type.spell_slots[char.level]:
-            print(f"{char.name} has memorized all his spells")
+            display_msg += [f"{char.name} has memorized all his spells"]
             char.sc.spell_slots = copy(char.class_type.spell_slots[char.level])
     if char.level < len(xp_levels) and char.xp >= xp_levels[char.level]:
         if char.class_type.can_cast:
             spell_names: List[str] = populate(collection_name="spells", key_name="results")
             all_spells: List[Spell] = [request_spell(name) for name in spell_names]
             class_tome_spells = [s for s in all_spells if s is not None and char.class_type.index in s.allowed_classes]
-            char.gain_level(tome_spells=class_tome_spells)
+            display_message, new_spells = char.gain_level(tome_spells=class_tome_spells)
         else:
-            char.gain_level()
-    exit_message()
+            display_message, new_spells = char.gain_level()
+        display_msg += [display_message]
+    return "\n".join(display_msg)
 
 
 def temple_of_cant(party: List[Character], roster: List[Character]):
@@ -1399,7 +1410,9 @@ def adventurer_inn(party):
                 sleep(2)
                 continue
             # print(f'{char.name} selected {room} - Fee is {fees[fee_no]} GP / Week!')
-            rest_character(char, fees[room_number], weeks[room_number])
+            display_msg = rest_character(char, fees[room_number], weeks[room_number], xp_levels)
+            print(display_msg)
+            exit_message(f"{char.name} has rested for {weeks[room_number]} weeks.")
             save_character(char, _dir=characters_dir)
 
 
