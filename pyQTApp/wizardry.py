@@ -4,15 +4,17 @@ from typing import List
 
 from PyQt5.QtCore import pyqtSlot, Qt
 from PyQt5.QtGui import QPixmap
-from PyQt5.QtWidgets import (QApplication, QMainWindow, QLabel, QTableWidget, QHeaderView, QSizePolicy)
+from PyQt5.QtWidgets import (QApplication, QMainWindow, QLabel, QTableWidget, QHeaderView, QSizePolicy, QPushButton)
 
 from dao_classes import Character, Monster
 from main import load_party, save_character, save_party
 from populate_functions import populate, request_monster
 from pyQTApp.Castle.Boltac_module import Boltac_UI
+from pyQTApp.Castle.Cant_module import Cant_UI
+from pyQTApp.Castle.Inn_module import Inn_UI
 from pyQTApp.EdgeOfTown.Maze_module import Maze_UI
 from pyQTApp.character_sheet import CharacterDialog
-from pyQTApp.common import load_welcome
+from pyQTApp.common import load_welcome, update_buttons
 from pyQTApp.Castle.Tavern_module import Tavern_UI
 
 from pyQTApp.qt_designer_widgets.castleWindow import Ui_castleWindow
@@ -52,6 +54,7 @@ class EdgeOfTown_UI(QMainWindow):
         self.ui.actionCastle.triggered.connect(self.return_to_castle)
         self.ui.actionLeave_game.triggered.connect(self.close)
 
+
 class Castle_UI(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -60,7 +63,8 @@ class Castle_UI(QMainWindow):
         self.tavern_window = None
         self.ui = Ui_castleWindow()
         self.ui.setupUi(self)
-        self.setup_welcome_screen()
+        # self.setup_welcome_screen()
+        self.setup_button_actions()
         self.setup_menu_actions()
         self.setup_party_table()
 
@@ -84,15 +88,18 @@ class Castle_UI(QMainWindow):
         self.ui.welcome_label.setPixmap(scaled_pixmap)
         self.ui.welcome_label.setScaledContents(True)
 
+
     @pyqtSlot()
     def boltac_trading_post(self):
         # debug(f"value boltac_trading_post = {value}")
+        update_buttons(frame=self.ui.nav_frame, enabled=False)
         self.boltac_window = Boltac_UI(castle_window=self, castle_ui=self.ui)
 
     @pyqtSlot()
     def gilgamesh_tavern(self):
         # debug(f"value gilgamesh_tavern = {value}")
         # castle_ui.welcome_label.destroy()
+        update_buttons(frame=self.ui.nav_frame, enabled=False)
         self.tavern_window = Tavern_UI(characters_dir=characters_dir, castle_window=self,castle_ui=self.ui)
 
     @pyqtSlot()
@@ -100,6 +107,24 @@ class Castle_UI(QMainWindow):
         self.close()
         self.edge_of_town_window = EdgeOfTown_UI()
         self.edge_of_town_window.show()
+
+    @pyqtSlot()
+    def adventurer_inn(self):
+        update_buttons(frame=self.ui.nav_frame, enabled=False)
+        self.inn_window = Inn_UI(castle_window=self, castle_ui=self.ui)
+
+    @pyqtSlot()
+    def temple_of_cant(self):
+        update_buttons(frame=self.ui.nav_frame, enabled=False)
+        self.cant_window = Cant_UI(castle_window=self, castle_ui=self.ui)
+
+    def setup_button_actions(self):
+        """Setup button action connections"""
+        self.ui.boltacButton.clicked.connect(self.boltac_trading_post)
+        self.ui.tavernButton.clicked.connect(self.gilgamesh_tavern)
+        self.ui.edgeButton.clicked.connect(self.edge_of_town)
+        self.ui.innButton.clicked.connect(self.adventurer_inn)
+        self.ui.cantButton.clicked.connect(self.temple_of_cant)
 
     def setup_menu_actions(self):
         """Setup menu action connections"""
@@ -131,7 +156,6 @@ class Castle_UI(QMainWindow):
             save_character(character_dialog.char, characters_dir)
             save_party(self.party, game_path)
             updateCharItem(table=self.party_table, char=char, char_index=row)
-
 
 if __name__ == "__main__":
     path = os.path.dirname(__file__)
