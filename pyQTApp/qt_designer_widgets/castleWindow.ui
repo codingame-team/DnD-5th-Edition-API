@@ -122,7 +122,61 @@
      <enum>QFrame::Raised</enum>
     </property>
    </widget>
+   <widget class="QFrame" name="nav_frame">
+    <property name="geometry">
+     <rect>
+      <x>590</x>
+      <y>60</y>
+      <width>181</width>
+      <height>182</height>
+     </rect>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::StyledPanel</enum>
+    </property>
+    <property name="frameShadow">
+     <enum>QFrame::Raised</enum>
+    </property>
+    <layout class="QGridLayout" name="gridLayout">
+     <item row="0" column="0">
+      <widget class="QPushButton" name="tavernButton">
+       <property name="text">
+        <string>Gilgamesh's Tavern</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QPushButton" name="innButton">
+       <property name="text">
+        <string>Adventurer's Inn</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QPushButton" name="cantButton">
+       <property name="text">
+        <string>Temple of Cant</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <widget class="QPushButton" name="boltacButton">
+       <property name="text">
+        <string>Boltac's Trading Post</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="0">
+      <widget class="QPushButton" name="edgeButton">
+       <property name="text">
+        <string>Edge of Town</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
   </widget>
+  <widget class="QStatusBar" name="statusbar"/>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
@@ -144,7 +198,6 @@
    </widget>
    <addaction name="menuCastle"/>
   </widget>
-  <widget class="QStatusBar" name="statusbar"/>
   <action name="actionGilgamesh_Tavern">
    <property name="text">
     <string>Gilgamesh's Tavern</string>
