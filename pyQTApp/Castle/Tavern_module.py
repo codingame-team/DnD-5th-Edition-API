@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import (QFrame, QTableWidget, QMainWindow, QWidget, QHeader
 from dao_classes import Character
 from main import get_roster, save_party, load_party, save_character
 from pyQTApp.character_sheet import CharacterDialog
-from pyQTApp.common import debug
+from pyQTApp.common import debug, update_buttons
 from pyQTApp.qt_designer_widgets.castleWindow import Ui_castleWindow
 from pyQTApp.qt_designer_widgets.gilgamesh_Tavern_QFrame import Ui_tavernFrame
 
@@ -18,6 +18,7 @@ from tools.common import get_save_game_path
 class Tavern_UI(QWidget):
     def __init__(self, characters_dir: str, castle_window: QMainWindow, castle_ui: Ui_castleWindow):
         super().__init__()
+        self.castle_ui = castle_ui
         self.tavernFrame = QFrame()
         self.ui = Ui_tavernFrame()
         self.ui.setupUi(self.tavernFrame)
@@ -29,18 +30,11 @@ class Tavern_UI(QWidget):
         self.tavernFrame.setGeometry(castle_ui.castleFrame.geometry())
         # Make tavernFrame resize with castleFrame
         self.tavernFrame.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        # Set background color to white
-        self.tavernFrame.setStyleSheet("background-color: pink;")
 
         # Populate party
-        game_path = get_save_game_path()
-        self.party: List[Character] = load_party(game_path)
-        self.party_table: QTableWidget = castle_ui.party_tableWidget
-        # Make table expand to fill container
-        self.party_table.horizontalHeader().setStretchLastSection(True)
-        self.party_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
-        self.party_table.setSortingEnabled(True)
-        # populate_table(self.party_table, self.party)
+        self.party = castle_window.party
+        self.party_table = castle_ui.party_tableWidget
+
         self.party_table.selectionModel().selectionChanged.connect(self.disable_add_button)
         self.ui.removeFromPartyButton.clicked.connect(self.remove_char_from_party)
 
@@ -74,6 +68,7 @@ class Tavern_UI(QWidget):
         game_path = get_save_game_path()
         save_party(self.party, game_path)
         self.tavernFrame.close()
+        update_buttons(frame=self.castle_ui.nav_frame, enabled=True)
 
     @pyqtSlot()  # For button click
     def add_character_from_button(self):

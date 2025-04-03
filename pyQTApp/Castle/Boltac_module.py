@@ -1,33 +1,30 @@
 from functools import partial
 from typing import List, Optional
 
-from PyQt5.QtCore import pyqtSlot, QItemSelection, Qt
+from PyQt5.QtCore import pyqtSlot, Qt
 from PyQt5.QtWidgets import (
     QFrame,
     QTableWidget,
-    QMainWindow,
-    QTableWidgetItem,
-    QDialog,
-    QWidget,
+    QMainWindow, QWidget,
     QHeaderView,
     QSizePolicy,
 )
 
-from dao_classes import Character, Armor, Equipment, Potion, Cost
-from main import get_roster, load_party, save_character, save_party
+from dao_classes import Character, Equipment, Potion
+from main import load_party, save_character, save_party
 from populate_rpg_functions import load_potions_collections
-from pyQTApp.common import debug
+from pyQTApp.common import update_buttons
 from pyQTApp.qt_designer_widgets.boltac_Trading_Post_QFrame import Ui_boltacFrame
 from pyQTApp.qt_designer_widgets.castleWindow import Ui_castleWindow
-from pyQTApp.qt_designer_widgets.character_dialog import Ui_character_Dialog
 
-from pyQTApp.qt_designer_widgets.qt_common import addCharItem, populate_table, addItem
+from pyQTApp.qt_common import addItem
 from tools.common import get_save_game_path
 
 
 class Boltac_UI(QWidget):
     def __init__(self, castle_window: QMainWindow, castle_ui: Ui_castleWindow):
         super().__init__()
+        self.castle_ui = castle_ui
         self.boltacFrame = QFrame()
         self.ui = Ui_boltacFrame()
         self.ui.setupUi(self.boltacFrame)
@@ -39,29 +36,17 @@ class Boltac_UI(QWidget):
         self.boltacFrame.setGeometry(castle_ui.castleFrame.geometry())
         # Make tavernFrame resize with castleFrame
         self.boltacFrame.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        # Set background color to white
-        self.boltacFrame.setStyleSheet("background-color: white;")
 
         # Populate party
-        game_path = get_save_game_path()
-        self.party: List[Character] = load_party(game_path)
-        self.party_table: QTableWidget = castle_ui.party_tableWidget
-        # Make table expand to fill container
-        self.party_table.horizontalHeader().setStretchLastSection(True)
-        self.party_table.horizontalHeader().setSectionResizeMode(
-            QHeaderView.ResizeMode.Stretch
-        )
-        self.party_table.setSortingEnabled(True)
-        # populate_table(self.party_table, self.party)
+        self.party = castle_window.party
+        self.party_table = castle_ui.party_tableWidget
 
         self.potions = load_potions_collections()
 
         self.buy_table: QTableWidget = self.ui.boltacBuy_tableWidget
         # Make table expand to fill container
         self.buy_table.horizontalHeader().setStretchLastSection(True)
-        self.buy_table.horizontalHeader().setSectionResizeMode(
-            QHeaderView.ResizeMode.Stretch
-        )
+        self.buy_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self.buy_table.setSortingEnabled(True)
         self.buy_table.verticalHeader().setVisible(False)  # This will hide the row numbers
         self.buy_table.selectionModel().selectionChanged.connect(self.disable_sell_button)
@@ -69,9 +54,7 @@ class Boltac_UI(QWidget):
         self.sell_table: QTableWidget = self.ui.boltacSell_tableWidget
         # Make table expand to fill container
         self.sell_table.horizontalHeader().setStretchLastSection(True)
-        self.sell_table.horizontalHeader().setSectionResizeMode(
-            QHeaderView.ResizeMode.Stretch
-        )
+        self.sell_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self.sell_table.setSortingEnabled(True)
         self.sell_table.verticalHeader().setVisible(False)  # This will hide the row numbers
         self.sell_table.selectionModel().selectionChanged.connect(self.disable_buy_button)
@@ -206,3 +189,5 @@ class Boltac_UI(QWidget):
     def leave_boltac(self):
         self.boltacFrame.close()
         save_party(self.party, get_save_game_path())
+        update_buttons(frame=self.castle_ui.nav_frame, enabled=True)
+
