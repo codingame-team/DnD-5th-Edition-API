@@ -43,7 +43,11 @@ class EdgeOfTown_UI(QMainWindow):
 
     @pyqtSlot()
     def return_to_castle(self):
-        save_party(party=self.maze_window.party, _dir=get_save_game_path())
+        game_path: str = get_save_game_path()
+        for c in self.maze_window.party:
+            char_dir: str = f'{game_path}/characters'
+            save_character(c, char_dir)
+        save_party(party=self.maze_window.party, _dir=game_path)
         self.close()
         self.castle_window = Castle_UI()
         self.castle_window.show()
@@ -137,8 +141,15 @@ class Castle_UI(QMainWindow):
         game_path = get_save_game_path()
         self.party: List[Character] = load_party(game_path)
         self.party_table: QTableWidget = self.ui.party_tableWidget
+        if self.party:
+            self.refresh_party_table()
+        else:
+            update_buttons(frame=self.ui.nav_frame, enabled=False)
+            self.ui.tavernButton.setEnabled(True)
 
+    def refresh_party_table(self):
         # Configure table
+        self.party = list(filter(lambda c: c.status == 'OK', self.party))
         populate_table(self.party_table, self.party)
         self.party_table.horizontalHeader().setStretchLastSection(True)
         self.party_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
