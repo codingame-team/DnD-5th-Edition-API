@@ -49,6 +49,13 @@
         </property>
        </widget>
       </item>
+      <item row="2" column="0">
+       <widget class="QPushButton" name="castleButton">
+        <property name="text">
+         <string>Return to Castle</string>
+        </property>
+       </widget>
+      </item>
      </layout>
     </widget>
    </item>
@@ -154,7 +161,7 @@
         <x>0</x>
         <y>0</y>
         <width>810</width>
-        <height>178</height>
+        <height>180</height>
        </rect>
       </property>
      </widget>
