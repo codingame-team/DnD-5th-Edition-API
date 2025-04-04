@@ -18,6 +18,7 @@ from tools.common import get_save_game_path
 class Tavern_UI(QWidget):
     def __init__(self, characters_dir: str, castle_window: QMainWindow, castle_ui: Ui_castleWindow):
         super().__init__()
+        self.castle_window = castle_window
         self.castle_ui = castle_ui
         self.tavernFrame = QFrame()
         self.ui = Ui_tavernFrame()
@@ -32,15 +33,15 @@ class Tavern_UI(QWidget):
         self.tavernFrame.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
         # Populate party
-        self.party = castle_window.party
-        self.party_table = castle_ui.party_tableWidget
+        # self.party = castle_window.party
+        # self.party_table = castle_ui.party_tableWidget
 
-        self.party_table.selectionModel().selectionChanged.connect(self.disable_add_button)
+        self.castle_window.party_table.selectionModel().selectionChanged.connect(self.disable_add_button)
         self.ui.removeFromPartyButton.clicked.connect(self.remove_char_from_party)
 
         # Populate roster
         self.roster: List[Character] = get_roster(characters_dir)
-        self.roster = [c for c in self.roster if c not in self.party]
+        self.roster = [c for c in self.roster if c not in self.castle_window.party]
         # debug(f"{len(self.roster)} characters in roster: \n{'\n'.join(map(str, self.roster))}")
         self.tg_table: QTableWidget = self.ui.gilgameshTavern_tableWidget
         # Make table expand to fill container
@@ -59,14 +60,11 @@ class Tavern_UI(QWidget):
         # self.tg_table.cellDoubleClicked.connect(self.add_character_from_cell)
         # self.party_table.cellDoubleClicked.connect(self.remove_character)
         self.tg_table.cellDoubleClicked.connect(self.inspect_char)
-        # self.party_table.cellDoubleClicked.connect(self.inspect_char)
-
-        # self.ui.inspectButton.clicked.connect(partial(self.inspect_char))
 
     @pyqtSlot()  # For button click
     def leave_tavern(self):
         game_path = get_save_game_path()
-        save_party(self.party, game_path)
+        save_party(self.castle_window.party, game_path)
         self.tavernFrame.close()
         update_buttons(frame=self.castle_ui.nav_frame, enabled=True)
 
@@ -84,26 +82,27 @@ class Tavern_UI(QWidget):
         """Common logic for adding a character"""
         char_name: str = self.tg_table.item(row, 0).text()
         char: Character = [c for c in self.roster if c.name == char_name][0]
-        if len(self.party) == 6:
+        if len(self.castle_window.party) == 6:
             debug(f'party is Full!!!')
             return False
-        addCharItem(table=self.party_table, char=char, char_list=self.party)
+        addCharItem(table=self.castle_window.party_table, char=char, char_list=self.castle_window.party)
         self.tg_table.removeRow(row)
         self.roster.remove(char)
-        self.party.append(char)
+        self.castle_window.party.append(char)
         self.disable_add_button()
         self.disable_remove_button()
+        self.castle_window.refresh_party_table()
         # if self.roster:
         #     self.ui.addToPartyButton.setEnabled(False)
         # debug(f'{len(self.party)} members in party!!!')
 
     @pyqtSlot(int, int)
     def remove_character(self, row: int, column: int):
-        char_name: str = self.party_table.item(row, 0).text()  # Get text from first column
+        char_name: str = self.castle_window.party_table.item(row, 0).text()  # Get text from first column
         # debug(f'removing {char_name}')
-        char: Character = [c for c in self.party if c.name == char_name][0]
-        self.party_table.removeRow(row)
-        self.party.remove(char)
+        char: Character = [c for c in self.castle_window.party if c.name == char_name][0]
+        self.castle_window.party_table.removeRow(row)
+        self.castle_window.party.remove(char)
         addCharItem(table=self.tg_table, char=char, char_list=self.roster)
         self.roster.append(char)
         self.disable_add_button()
@@ -114,7 +113,7 @@ class Tavern_UI(QWidget):
 
     def disable_remove_button(self):
         self.ui.removeFromPartyButton.setEnabled(False)
-        if len(self.party) < 6:
+        if len(self.castle_window.party) < 6:
             self.ui.addToPartyButton.setEnabled(True)
 
     def disable_add_button(self):
@@ -123,14 +122,8 @@ class Tavern_UI(QWidget):
 
     @pyqtSlot(int, int)
     def inspect_char(self, row: int, column: int):
-        # Determine which table was double-clicked
-        sender = self.sender()
-        if sender == self.party_table:
-            char_name: str = self.party_table.item(row, 0).text()
-            char: Character = [c for c in self.party if c.name == char_name][0]
-        else:  # sender == self.tg_table
-            char_name: str = self.tg_table.item(row, 0).text()
-            char: Character = [c for c in self.roster if c.name == char_name][0]
+        char_name: str = self.tg_table.item(row, 0).text()
+        char: Character = [c for c in self.roster if c.name == char_name][0]
 
         character_dialog = CharacterDialog(char)
         character_dialog.display_sheet()
@@ -143,7 +136,7 @@ class Tavern_UI(QWidget):
     def on_selection_changed(self, selected: QItemSelection, deselected: QItemSelection):
         debug(f"selected: {selected}")
         debug(f"deselected: {deselected}")
-        if self.party:
+        if self.castle_window.party:
             self.ui.inspectButton.setEnabled(True)
         else:
             self.ui.addToPartyButton.setEnabled(False)
@@ -155,33 +148,36 @@ class Tavern_UI(QWidget):
         char_name: str = self.tg_table.item(row, 0).text()
         char: Character = [c for c in self.roster if c.name == char_name][0]
         # debug(f'selected char: {char}')
-        if len(self.party) == 6:
+        if len(self.castle_window.party) == 6:
             debug(f"party is Full!!!")
             return False
-        addCharItem(table=self.party_table, char=char, char_list=self.party)
+        addCharItem(table=self.castle_window.party_table, char=char, char_list=self.castle_window.party)
         self.tg_table.removeRow(row)
         self.roster.remove(char)
         self.tg_table.setRowCount(len(self.roster))
-        self.party.append(char)
+        self.castle_window.party.append(char)
         self.disable_add_button()
         self.disable_remove_button()
         if self.roster:
             self.ui.inspectButton.setEnabled(True)
         else:
             self.ui.addToPartyButton.setEnabled(False)
+        self.castle_window.refresh_party_table()
         # debug(f'{len(party)} members in party!!!')
 
     @pyqtSlot()
     def remove_char_from_party(self):
-        row: int = self.party_table.currentRow()
-        char_name: str = self.party_table.item(row, 0).text()
-        char: Character = [c for c in self.party if c.name == char_name][0]
+        row: int = self.castle_window.party_table.currentRow()
+        char_name: str = self.castle_window.party_table.item(row, 0).text()
+        char: Character = [c for c in self.castle_window.party if c.name == char_name][0]
         # debug(f"selected char: {char}")
         addCharItem(table=self.tg_table, char=char, char_list=self.roster)
-        self.party_table.removeRow(row)
-        self.party.remove(char)
-        self.party_table.setRowCount(len(self.party))
+        self.castle_window.party_table.removeRow(row)
+        self.castle_window.party.remove(char)
+        self.castle_window.party_table.setRowCount(len(self.castle_window.party))
         self.roster.append(char)
         self.disable_add_button()
-        if not self.party:
+        if not self.castle_window.party:
             self.disable_remove_button()
+            update_buttons(frame=self.castle_ui.nav_frame, enabled=False)
+            self.castle_ui.tavernButton.setEnabled(True)
