@@ -87,9 +87,9 @@ class Inn_UI(QWidget):
         display_msg = rest_character(char=self.selected_char, fee=fees[room_number], weeks=weeks[room_number], xp_levels=self.xp_levels, console_mode=False)
         self.cprint(display_msg)
         game_path = get_save_game_path()
-        save_character(char=self.selected_char, _dir=game_path)
+        save_character(char=self.selected_char, _dir=f'{game_path}/characters')
         save_party(party=self.castle_window.party, _dir=game_path)
-        self.castle_window.setup_party_table()
+        self.castle_window.refresh_party_table()
 
     @pyqtSlot()
     def check_room_selection(self):
