@@ -61,6 +61,7 @@ class Maze_UI(QMainWindow):
 
         self.ui.combatButton.clicked.connect(self.combat)
         self.ui.fleeButton.clicked.connect(self.flee)
+        self.ui.castleButton.clicked.connect(edge_of_town_window.return_to_castle)
 
         game_path = get_save_game_path()
         self.party: List[Character] = load_party(game_path)
