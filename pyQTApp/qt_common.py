@@ -108,7 +108,7 @@ def populate_character_row(table: QTableWidget, char: Character, row: int) -> No
         (char.armor_class, IntegerTableItem),
         (char.hit_points, IntegerTableItem),
         (char.max_hit_points, IntegerTableItem),
-        ("Alive" if char.hit_points > 0 else "DEAD", StringTableItem),
+        (char.status, StringTableItem),
     ]
 
     for col, (value, item_type) in enumerate(column_items):
@@ -142,6 +142,35 @@ def populate_table(table: QTableWidget, char_list: List[Character], in_dungeon=F
     table.adjustSize()
     table.setSortingEnabled(sorting)
 
+
+def populate_character_row_cant(table, char, row):
+    cures_costs_per_level = {"PARALYZED": 100, "STONED": 200, "DEAD": 250, "ASHES": 500, }
+    if char.status == "OK":
+        print(f"Error: {char.name} should not be listed as statuts = {char.status}")
+    try:
+        column_items = [
+            (char.name, StringTableItem),
+            (char.level, IntegerTableItem),
+            (char.class_type, ClassTableItem),
+            (char.race, StringTableItem),
+            (char.status, StringTableItem),
+            (cures_costs_per_level[char.status] * char.level, IntegerTableItem),
+        ]
+    except KeyError:
+        print(f"Error: {char.status} not found in cures_costs_per_level")
+
+    for col, (value, item_type) in enumerate(column_items):
+        item = item_type(str(value))
+        item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+        table.setItem(row, col, item)
+
+def populate_cant_table(table: QTableWidget, char_list: List[Character], sorting: bool = True) -> None:
+    """Populate the entire table with character data."""
+    table.setRowCount(len(char_list))
+    for i, char in enumerate(char_list):
+        populate_character_row_cant(table, char, i)
+    table.adjustSize()
+    table.setSortingEnabled(sorting)
 
 def populate_monster_row(table, monster, quantity, i):
     """Populate a single row with monster data."""
