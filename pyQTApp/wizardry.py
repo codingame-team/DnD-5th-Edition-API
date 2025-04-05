@@ -71,6 +71,8 @@ class Castle_UI(QMainWindow):
         self.setup_button_actions()
         self.setup_menu_actions()
         self.setup_party_table()
+        self.party_table.cellDoubleClicked.connect(self.inspect_char)
+
 
     def setup_welcome_screen(self):
         """Setup the welcome screen with scaled image"""
@@ -154,7 +156,6 @@ class Castle_UI(QMainWindow):
         self.party_table.horizontalHeader().setStretchLastSection(True)
         self.party_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self.party_table.setSortingEnabled(True)
-        self.party_table.cellDoubleClicked.connect(self.inspect_char)
 
     @pyqtSlot(int, int)
     def inspect_char(self, row: int, column: int):
@@ -172,9 +173,6 @@ if __name__ == "__main__":
     path = os.path.dirname(__file__)
     game_path = get_save_game_path()
     characters_dir = f"{game_path}/characters"
-    token_images_dir = resource_path(f'{path}/../images/monsters/tokens')
-    monster_names: List[str] = populate(collection_name="monsters", key_name="results")
-    monsters: List[Monster] = [request_monster(name) for name in monster_names]
 
     app = QApplication(sys.argv)
     castle_window = Castle_UI()
