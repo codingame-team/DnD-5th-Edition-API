@@ -55,7 +55,7 @@ class Cant_UI(QWidget):
             char_to_save_name: str = self.cant_table.item(cant_row, 0).text()
             char_to_save: Character = [c for c in self.cant_roster if c.name == char_to_save_name][0]
             # self.check_room_selection()
-            cures_costs_per_level = {"PARALYZED": 100, "STONED": 200, "DEAD": 250, "ASHES": 500, }
+            cures_costs_per_level = {"PARALYZED": 100, "STONED": 200, "DEAD": 250, "ASHES": 500, "LOST": 10000}
             if char_to_contribute.gold < cures_costs_per_level[char_to_save.status] * char_to_save.level:
                 self.ui.char_to_pay_label.setText("Go away! You don't have enough of money!")
                 print("Go away! You don't have enough of money!")
@@ -105,6 +105,12 @@ class Cant_UI(QWidget):
                 else:
                     char.status = "LOST"
                     print(f"{char.name} is ** LOST! ***")
+                self.cant_roster.remove(char)
+            else:
+                char.status = "OK"
+                char.hit_points = char.max_hit_points
+                char.age += randint(1, 52)
+                print(f"{char.name} ** LIVES! ***")
                 self.cant_roster.remove(char)
             game_path = get_save_game_path()
             save_character(char=char, _dir=f'{game_path}/characters')
