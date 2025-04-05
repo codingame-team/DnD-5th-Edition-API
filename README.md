@@ -15,8 +15,8 @@ Usage to run:
   - [RPG Pygame demo version](manual/manual_rpg_pygame_demo_version.md) (basic gameplay using collision inspired from `Simplon` gamejam's classroom)
     - python ./rpg_pygame.py
   - [Ncurses version](manual/manual_ncurses_version.md): (simple textual arena using *ncurses* with basic fights and moving enemies, and limited DnD rules)
-  - pyQT5 version:
-    - python /pyQT5App/wizardry.py [under construction...]
+  - [pyQT5 version](manual/manual_pyQT_version.md):
+    - python pyQTApp/wizardry.py
 
 #### New Features (Staging)
     Graphic maze exploration using Tk with a single character (and limited gameplay) and DnD minimal rulesets:
