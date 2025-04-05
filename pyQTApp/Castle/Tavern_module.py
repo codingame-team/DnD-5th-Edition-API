@@ -66,7 +66,10 @@ class Tavern_UI(QWidget):
         game_path = get_save_game_path()
         save_party(self.castle_window.party, game_path)
         self.tavernFrame.close()
-        update_buttons(frame=self.castle_ui.nav_frame, enabled=True)
+        if self.castle_window.party:
+            update_buttons(frame=self.castle_ui.nav_frame, enabled=True)
+        else:
+            self.castle_ui.tavernButton.setEnabled(True)
 
     @pyqtSlot()  # For button click
     def add_character_from_button(self):
@@ -180,4 +183,4 @@ class Tavern_UI(QWidget):
         if not self.castle_window.party:
             self.disable_remove_button()
             update_buttons(frame=self.castle_ui.nav_frame, enabled=False)
-            self.castle_ui.tavernButton.setEnabled(True)
+            # self.castle_ui.tavernButton.setEnabled(True)
