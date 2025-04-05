@@ -4,10 +4,10 @@ from typing import List
 
 from PyQt5.QtCore import pyqtSlot, Qt
 from PyQt5.QtGui import QPixmap
-from PyQt5.QtWidgets import (QApplication, QMainWindow, QLabel, QTableWidget, QHeaderView, QSizePolicy, QPushButton)
+from PyQt5.QtWidgets import (QApplication, QMainWindow, QLabel, QTableWidget, QHeaderView, QSizePolicy, QPushButton, QDialog, QMessageBox)
 
 from dao_classes import Character, Monster
-from main import load_party, save_character, save_party
+from main import load_party, save_character, save_party, load_character_collections, generate_random_character, display_character_sheet, get_roster, display_character_sheet_pyQT
 from populate_functions import populate, request_monster
 from pyQTApp.Castle.Boltac_module import Boltac_UI
 from pyQTApp.Castle.Cant_module import Cant_UI
@@ -20,6 +20,8 @@ from pyQTApp.Castle.Tavern_module import Tavern_UI
 from pyQTApp.qt_designer_widgets.castleWindow import Ui_castleWindow
 from pyQTApp.qt_designer_widgets.edgeOfTownWindow import Ui_EdgeOfTownWindow
 from pyQTApp.qt_common import populate_table, updateCharItem
+from pyQTApp.qt_designer_widgets.edgeOfTown_Dialog import Ui_edgeOfTownDialog
+from pyQTApp.qt_designer_widgets.training_Grounds_Dialog import Ui_TrainingGrounds_Dialog
 from tools.common import get_save_game_path, resource_path
 
 
@@ -110,7 +112,89 @@ class Castle_UI(QMainWindow):
 
     @pyqtSlot()
     def edge_of_town(self):
+        # self.close()
+        self.edgeOfTown_dialog = QDialog(self)  # Store as instance variable
+        self.ui_edge = Ui_edgeOfTownDialog()  # Store as instance variable
+        self.ui_edge.setupUi(self.edgeOfTown_dialog)
+
+        # Connect signals without lambda
+        self.ui_edge.tgButton.clicked.connect(self.training_grounds)
+        self.ui_edge.dungeonButton.clicked.connect(self.enter_dungeon)
+        self.ui_edge.castleButton.clicked.connect(self.edgeOfTown_dialog.close)
+
+        self.edgeOfTown_dialog.show()
+        # self.edge_of_town_window = EdgeOfTown_UI()
+        # self.edge_of_town_window.show()
+
+    @pyqtSlot()
+    def training_grounds(self):
+        self.edgeOfTown_dialog.close()
+        self.tg_dialog = QDialog(self)  # Store as instance variable
+        self.ui_tg = Ui_TrainingGrounds_Dialog()  # Store as instance variable
+        self.ui_tg.setupUi(self.tg_dialog)
+
+        # Connect signals without lambda
+        self.ui_tg.newCharButton.clicked.connect(self.new_character)
+        self.ui_tg.randomCharButton.clicked.connect(self.random_character)
+        self.ui_tg.charStatusButton.clicked.connect(self.char_status)
+        self.ui_tg.deleteCharButton.clicked.connect(self.delete_character)
+        self.ui_tg.renameCharButton.clicked.connect(self.rename_character)
+        self.ui_tg.classChangeButton.clicked.connect(self.class_change)
+        self.ui_tg.castleButton.clicked.connect(self.tg_dialog.close)
+
+        self.tg_dialog.show()
+
+    def new_character(self):
+        debug(f"new_character clicked")
+
+    from PyQt5.QtWidgets import QMessageBox
+
+    def confirm_character(self, random_char: Character):
+        msg_box = QMessageBox(self)
+        msg_box.setWindowTitle("Confirm Character")
+        msg_box.setText(f"Keep {random_char.name}?")
+        msg_box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        msg_box.setDefaultButton(QMessageBox.No)
+
+        result = msg_box.exec_()  # This makes it modal
+
+        if result == QMessageBox.Yes:
+            save_character(random_char, _dir=characters_dir)
+
+            # Success message
+            QMessageBox.information(self, "Success", f"{random_char.name} successfully added to roster!", QMessageBox.Ok)
+        else:
+            # Discard message
+            QMessageBox.information(self, "Discarded", "Character discarded.", QMessageBox.Ok)
+
+    def random_character(self):
+        debug(f"random_character clicked")
+        races, subraces, classes, alignments, equipments, proficiencies, names, human_names, spells = load_character_collections()
+        roster = get_roster(characters_dir)
+        random_char: Character = generate_random_character(roster, races, subraces, classes, names, human_names, spells)
+        character_dialog = CharacterDialog(random_char)
+        character_dialog.display_sheet()
+        display_character_sheet(char=random_char)
+        self.confirm_character(random_char)
+
+    def char_status(self):
+        debug(f"char_status clicked")
+
+    def delete_character(self):
+        debug(f"delete_character clicked")
+
+    def rename_character(self):
+        debug(f"rename_character clicked")
+
+    def class_change(self):
+        debug(f"class_change clicked")
+
+
+    @pyqtSlot()
+    def enter_dungeon(self):
         self.close()
+        debug(f"enter_dungeon clicked")
+        self.edgeOfTown_dialog.close()
         self.edge_of_town_window = EdgeOfTown_UI()
         self.edge_of_town_window.show()
 
@@ -156,6 +240,10 @@ class Castle_UI(QMainWindow):
         self.party_table.horizontalHeader().setStretchLastSection(True)
         self.party_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self.party_table.setSortingEnabled(True)
+        buttons = [self.ui.edgeButton, self.ui.innButton, self.ui.cantButton, self.ui.boltacButton]
+        for button in buttons:
+            flag: bool = len(self.party) > 0
+            button.setEnabled(flag)
 
     @pyqtSlot(int, int)
     def inspect_char(self, row: int, column: int):
