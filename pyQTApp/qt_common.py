@@ -144,9 +144,9 @@ def populate_table(table: QTableWidget, char_list: List[Character], in_dungeon=F
 
 
 def populate_character_row_cant(table, char, row):
-    cures_costs_per_level = {"PARALYZED": 100, "STONED": 200, "DEAD": 250, "ASHES": 500, }
+    cures_costs_per_level = {"PARALYZED": 100, "STONED": 200, "DEAD": 250, "ASHES": 500, "LOST": 10000}
     if char.status == "OK":
-        print(f"Error: {char.name} should not be listed as statuts = {char.status}")
+        print(f"Error: {char.name} should not be listed as status = {char.status}")
     try:
         column_items = [
             (char.name, StringTableItem),
@@ -156,8 +156,9 @@ def populate_character_row_cant(table, char, row):
             (char.status, StringTableItem),
             (cures_costs_per_level[char.status] * char.level, IntegerTableItem),
         ]
-    except KeyError:
+    except Exception as e:
         print(f"Error: {char.status} not found in cures_costs_per_level")
+        print(str(e))
 
     for col, (value, item_type) in enumerate(column_items):
         item = item_type(str(value))
