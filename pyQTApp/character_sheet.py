@@ -141,6 +141,7 @@ class CharacterDialog(QDialog):
             ui.proficienciesView.addItem(prof.name)
         ui.class_label.setText(char.class_type.name)
         ui.gender_label.setText(char.gender)
+        ui.age_label.setText(str(char.age // 52))
         ui.ethnic_label.setText(char.ethnic)
         ui.height_label.setText(char.height)
         ui.weight_label.setText(char.weight)
