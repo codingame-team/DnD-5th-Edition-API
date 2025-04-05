@@ -24,7 +24,7 @@ Combat simulation engine based on DnD 5th edition API
 
   * Add/Remove character to/from party (maximum 6 characters for a party)
 
-![](gt_qt.png)
+![](tavern_qt.png)
 
 ### CHARACTER STATUS
 
