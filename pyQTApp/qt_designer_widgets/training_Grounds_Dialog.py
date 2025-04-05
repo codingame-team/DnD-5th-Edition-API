@@ -15,6 +15,7 @@ class Ui_TrainingGrounds_Dialog(object):
     def setupUi(self, TrainingGrounds_Dialog):
         TrainingGrounds_Dialog.setObjectName("TrainingGrounds_Dialog")
         TrainingGrounds_Dialog.resize(249, 292)
+        TrainingGrounds_Dialog.setModal(True)
         self.gridLayout_2 = QtWidgets.QGridLayout(TrainingGrounds_Dialog)
         self.gridLayout_2.setObjectName("gridLayout_2")
         self.nav_frame = QtWidgets.QFrame(TrainingGrounds_Dialog)

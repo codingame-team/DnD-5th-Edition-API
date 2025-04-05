@@ -15,6 +15,7 @@ class Ui_edgeOfTownDialog(object):
     def setupUi(self, edgeOfTownDialog):
         edgeOfTownDialog.setObjectName("edgeOfTownDialog")
         edgeOfTownDialog.resize(210, 218)
+        edgeOfTownDialog.setModal(True)
         self.gridLayout_2 = QtWidgets.QGridLayout(edgeOfTownDialog)
         self.gridLayout_2.setObjectName("gridLayout_2")
         self.nav_frame = QtWidgets.QFrame(edgeOfTownDialog)
