@@ -9,7 +9,7 @@ Usage to run:
   - [console version](manual/manual_console_version.md): (full DnD 5th rules with character's creation and combat simulation)
     - python ./main_game_loop.py (using a compatible Terminal and python version >= 3.10.0) -> best method for playing
     - python ./main_pexpect.py (inside Python IDE - emulate a pseudo Terminal using pexpect) -> preferred method for debugging (still includes some minor display bugs)
-  - [pyQT5 version](manual/manual_pyQT_version.md): (graphical version using famous `QT Designer` framework, providing same features than console version, except `training grounds`)
+  - [pyQT5 version](manual/manual_pyQT_version.md): (graphical version using famous `QT Designer` framework, providing same features than console version, except `training grounds`, but with full control of party's action during combat phase using `QT Designer` widgets)
     - python pyQTApp/wizardry.py
   - [Tkinter version](manual/manual_tk_version.md): (simple graphical arena with basic fights and moving enemies, and limited DnD rules)
     - python ./dungeon_tk.py
