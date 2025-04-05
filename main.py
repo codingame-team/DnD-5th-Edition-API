@@ -515,7 +515,7 @@ def generate_random_name(race: str, gender: str, names: dict(), reserved_names):
         return name
 
 
-def generate_random_character(races: List[Race], subraces: List[SubRace], classes: List[ClassType], names: dict[str, List[str]], human_names, spells: list[Spell]) -> Character:
+def generate_random_character(roster: List[Character], races: List[Race], subraces: List[SubRace], classes: List[ClassType], names: dict[str, List[str]], human_names, spells: list[Spell]) -> Character:
     """
     Generate a preset character with random selections.
 
@@ -1489,7 +1489,7 @@ def training_grounds(roster: List[Character]):
                     print(f"maximum number ({MAX_ROSTER}) of characters exceeded!!! Please delete existing characters to create a new one...")
                     continue
                 races, subraces, classes, alignments, equipments, proficiencies, names, human_names, spells = load_character_collections()
-                random_char: Character = generate_random_character(races, subraces, classes, names, human_names, spells)
+                random_char: Character = generate_random_character(roster, races, subraces, classes, names, human_names, spells)
                 display_character_sheet(char=random_char)
                 if input(f"\nKeep {random_char.name}? (y/n): ").lower() == 'y':
                     roster.append(random_char)
