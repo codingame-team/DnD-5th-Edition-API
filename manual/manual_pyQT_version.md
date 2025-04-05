@@ -3,7 +3,6 @@ Combat simulation engine based on DnD 5th edition API
 <!-- TOC -->
 * [CASTLE](#castle)
   * [GILGAMESH's TAVERN](#gilgameshs-tavern)
-    * [CHARACTER STATUS](#character-status)
   * [ADVENTURER's INN](#adventurers-inn)
   * [TEMPLE OF CANT](#temple-of-cant)
   * [BOLTAC's TRADING POST](#boltacs-trading-post)
@@ -11,6 +10,7 @@ Combat simulation engine based on DnD 5th edition API
   * [TRAINING GROUNDS](#training-grounds)
   * [MAZE](#maze)
   * [LEAVE GAME](#leave-game)
+* [CHARACTER STATUS (`CASTLE` & `EDGE OF TOWN`)](#character-status-castle--edge-of-town)
 <!-- TOC -->
 
 # CASTLE
@@ -20,32 +20,25 @@ Combat simulation engine based on DnD 5th edition API
 
 ![](castle_qt.png)
 
-## GILGAMESH's TAVERN (CASTLE)
+## GILGAMESH's TAVERN
 
   * Add/Remove character to/from party (maximum 6 characters for a party)
 
 ![](tavern_qt.png)
 
-### CHARACTER STATUS
-
-  * Equip/Unequip weapon & armors 
-  * View spellbook
-
-![](char_status_qt.png)
-
-## ADVENTURER's INN (CASTLE)
+## ADVENTURER's INN
 
   * Rest (restore HP & spell slots, gain level) 
 
 ![](inn_qt.png)
 
-## TEMPLE OF CANT (CASTLE)
+## TEMPLE OF CANT
 
   * Heal (Raise Dead)
 
 ![](cant_qt.png)
 
-## BOLTAC's TRADING POST (CASTLE)
+## BOLTAC's TRADING POST
 
   * Buy/Sell weapon, armors and potions (except for equipped weapon & armors)
 
@@ -64,17 +57,23 @@ Combat simulation engine based on DnD 5th edition API
 ![](edge_qt_1.png)
 ![](edge_qt_2.png)
 
-## TRAINING GROUNDS (EDGE OF TOWN)
+## TRAINING GROUNDS
 
 not yet implemented!...
 
-## MAZE (EDGE OF TOWN)
+## MAZE
 
 see `Edge of Town` section
 
-## LEAVE GAME (EDGE OF TOWN)
+## LEAVE GAME
 
 see `Edge of Town` section
 
     Bye, see you in a next adventure :-)
 
+# CHARACTER STATUS (`CASTLE` & `EDGE OF TOWN`)
+
+  * Equip/Unequip weapon & armors 
+  * View spellbook
+
+![](char_status_qt.png)
