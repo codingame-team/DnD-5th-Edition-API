@@ -12,12 +12,11 @@ from PyQt5.QtWidgets import (QMainWindow, QTableWidget, QHeaderView, QSizePolicy
 from dao_classes import Character, Monster, CharAction, ActionType, CharActionType, Spell, SpecialAbility, RangeType, Action
 from main import (load_party, generate_encounter_levels, generate_encounter, load_encounter_table, load_encounter_gold_table, )
 from populate_functions import populate, request_monster
-from pyQTApp.EdgeOfTown.Combat_module import CombatDialog
 from pyQTApp.common import color
+from pyQTApp.qt_designer_widgets.combat_QFrame import Ui_combatFrame
 from pyQTApp.qt_designer_widgets.combat_select_Dialog import Ui_combatSelectDialog
 
 from pyQTApp.qt_designer_widgets.edgeOfTownWindow import Ui_EdgeOfTownWindow
-from pyQTApp.qt_designer_widgets.maze_QFrame import Ui_mazeFrame
 from pyQTApp.qt_common import populate_table, populate_monsters_table
 from pyQTApp.qt_designer_widgets.monsters_select_Dialog import Ui_monsters_select_Dialog
 from pyQTApp.qt_designer_widgets.party_select_Dialog import Ui_party_select_Dialog
@@ -42,22 +41,22 @@ class ToolTipFilter(QObject):
         return super().eventFilter(obj, event)
 
 
-class Maze_UI(QMainWindow):
+class Combat_UI(QMainWindow):
     def __init__(self, edge_of_town_window: QMainWindow, edge_of_town_ui: Ui_EdgeOfTownWindow):
         super().__init__()
         # self.ui = Ui_combatWindow()
         # self.ui.setupUi(self)
-        self.mazeFrame = QFrame()
-        self.ui = Ui_mazeFrame()
-        self.ui.setupUi(self.mazeFrame)
+        self.combatFrame = QFrame()
+        self.ui = Ui_combatFrame()
+        self.ui.setupUi(self.combatFrame)
         layout = edge_of_town_window.layout()
         layout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
-        layout.addWidget(self.mazeFrame)
+        layout.addWidget(self.combatFrame)
         # layout.addWidget(self.tavernFrame, alignment=Qt.AlignmentFlag.AlignRight)
-        self.mazeFrame.setGeometry(edge_of_town_ui.mazeFrame.geometry())
+        self.combatFrame.setGeometry(edge_of_town_ui.mazeFrame.geometry())
         # Make tavernFrame resize with castleFrame
-        self.mazeFrame.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        self.combatFrame.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
         self.ui.combatButton.clicked.connect(self.combat)
         self.ui.fleeButton.clicked.connect(self.flee)
