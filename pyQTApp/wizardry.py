@@ -4,15 +4,32 @@ from typing import List
 
 from PyQt5.QtCore import pyqtSlot, Qt
 from PyQt5.QtGui import QPixmap
-from PyQt5.QtWidgets import (QApplication, QMainWindow, QLabel, QTableWidget, QHeaderView, QSizePolicy, QPushButton, QDialog, QMessageBox)
+from PyQt5.QtWidgets import (
+    QApplication,
+    QMainWindow,
+    QLabel,
+    QTableWidget,
+    QHeaderView,
+    QSizePolicy,
+    QDialog,
+    QMessageBox,
+)
 
-from dao_classes import Character, Monster
-from main import load_party, save_character, save_party, load_character_collections, generate_random_character, display_character_sheet, get_roster, display_character_sheet_pyQT
-from populate_functions import populate, request_monster
+from dao_classes import Character
+from main import (
+    load_party,
+    save_character,
+    save_party,
+    load_character_collections,
+    generate_random_character,
+    display_character_sheet,
+    get_roster,
+)
 from pyQTApp.Castle.Boltac_module import Boltac_UI
 from pyQTApp.Castle.Cant_module import Cant_UI
 from pyQTApp.Castle.Inn_module import Inn_UI
-from pyQTApp.EdgeOfTown.Maze_module import Maze_UI
+from pyQTApp.EdgeOfTown.Combat_module import Combat_UI
+from pyQTApp.EdgeOfTown.Maze_module_Filigrane_Walls import Maze_UI
 from pyQTApp.character_sheet import CharacterDialog
 from pyQTApp.common import load_welcome, update_buttons
 from pyQTApp.Castle.Tavern_module import Tavern_UI
@@ -21,8 +38,10 @@ from pyQTApp.qt_designer_widgets.castleWindow import Ui_castleWindow
 from pyQTApp.qt_designer_widgets.edgeOfTownWindow import Ui_EdgeOfTownWindow
 from pyQTApp.qt_common import populate_table, updateCharItem
 from pyQTApp.qt_designer_widgets.edgeOfTown_Dialog import Ui_edgeOfTownDialog
-from pyQTApp.qt_designer_widgets.training_Grounds_Dialog import Ui_TrainingGrounds_Dialog
-from tools.common import get_save_game_path, resource_path
+from pyQTApp.qt_designer_widgets.training_Grounds_Dialog import (
+    Ui_TrainingGrounds_Dialog,
+)
+from tools.common import get_save_game_path
 
 
 def debug(*args):
@@ -36,7 +55,13 @@ class EdgeOfTown_UI(QMainWindow):
         self.ui = Ui_EdgeOfTownWindow()
         self.ui.setupUi(self)
         self.setup_menu_actions()
-        self.maze()
+        # self.maze()
+        self.combat()
+
+    @pyqtSlot()
+    def combat(self):
+        self.combat_window = Combat_UI(edge_of_town_window=self, edge_of_town_ui=self.ui)
+        # self.maze_window.show()
 
     @pyqtSlot()
     def maze(self):
@@ -46,10 +71,10 @@ class EdgeOfTown_UI(QMainWindow):
     @pyqtSlot()
     def return_to_castle(self):
         game_path: str = get_save_game_path()
-        for c in self.maze_window.party:
-            char_dir: str = f'{game_path}/characters'
+        for c in self.combat_window.party:
+            char_dir: str = f"{game_path}/characters"
             save_character(c, char_dir)
-        save_party(party=self.maze_window.party, _dir=game_path)
+        save_party(party=self.combat_window.party, _dir=game_path)
         self.close()
         self.castle_window = Castle_UI()
         self.castle_window.show()
@@ -75,7 +100,6 @@ class Castle_UI(QMainWindow):
         self.setup_party_table()
         self.party_table.cellDoubleClicked.connect(self.inspect_char)
 
-
     def setup_welcome_screen(self):
         """Setup the welcome screen with scaled image"""
         welcome_pixmap: QPixmap = load_welcome()
@@ -83,7 +107,9 @@ class Castle_UI(QMainWindow):
 
         # Set label properties
         self.ui.welcome_label.setGeometry(self.ui.castleFrame.rect())
-        self.ui.welcome_label.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        self.ui.welcome_label.setSizePolicy(
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding
+        )
         self.ui.welcome_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         # Scale and set the welcome image
@@ -96,7 +122,6 @@ class Castle_UI(QMainWindow):
         self.ui.welcome_label.setPixmap(scaled_pixmap)
         self.ui.welcome_label.setScaledContents(True)
 
-
     @pyqtSlot()
     def boltac_trading_post(self):
         # debug(f"value boltac_trading_post = {value}")
@@ -108,7 +133,9 @@ class Castle_UI(QMainWindow):
         # debug(f"value gilgamesh_tavern = {value}")
         # castle_ui.welcome_label.destroy()
         update_buttons(frame=self.ui.nav_frame, enabled=False)
-        self.tavern_window = Tavern_UI(characters_dir=characters_dir, castle_window=self,castle_ui=self.ui)
+        self.tavern_window = Tavern_UI(
+            characters_dir=characters_dir, castle_window=self, castle_ui=self.ui
+        )
 
     @pyqtSlot()
     def edge_of_town(self):
@@ -119,7 +146,7 @@ class Castle_UI(QMainWindow):
 
         # Connect signals without lambda
         self.ui_edge.tgButton.clicked.connect(self.training_grounds)
-        self.ui_edge.dungeonButton.clicked.connect(self.enter_dungeon)
+        self.ui_edge.dungeonButton.clicked.connect(self.enter_combat)
         self.ui_edge.castleButton.clicked.connect(self.edgeOfTown_dialog.close)
 
         self.edgeOfTown_dialog.show()
@@ -147,8 +174,6 @@ class Castle_UI(QMainWindow):
     def new_character(self):
         debug(f"new_character clicked")
 
-    from PyQt5.QtWidgets import QMessageBox
-
     def confirm_character(self, random_char: Character):
         msg_box = QMessageBox(self)
         msg_box.setWindowTitle("Confirm Character")
@@ -162,16 +187,35 @@ class Castle_UI(QMainWindow):
             save_character(random_char, _dir=characters_dir)
 
             # Success message
-            QMessageBox.information(self, "Success", f"{random_char.name} successfully added to roster!", QMessageBox.Ok)
+            QMessageBox.information(
+                self,
+                "Success",
+                f"{random_char.name} successfully added to roster!",
+                QMessageBox.Ok,
+            )
         else:
             # Discard message
-            QMessageBox.information(self, "Discarded", "Character discarded.", QMessageBox.Ok)
+            QMessageBox.information(
+                self, "Discarded", "Character discarded.", QMessageBox.Ok
+            )
 
     def random_character(self):
         debug(f"random_character clicked")
-        races, subraces, classes, alignments, equipments, proficiencies, names, human_names, spells = load_character_collections()
+        (
+            races,
+            subraces,
+            classes,
+            alignments,
+            equipments,
+            proficiencies,
+            names,
+            human_names,
+            spells,
+        ) = load_character_collections()
         roster = get_roster(characters_dir)
-        random_char: Character = generate_random_character(roster, races, subraces, classes, names, human_names, spells)
+        random_char: Character = generate_random_character(
+            roster, races, subraces, classes, names, human_names, spells
+        )
         character_dialog = CharacterDialog(random_char)
         character_dialog.display_sheet()
         display_character_sheet(char=random_char)
@@ -189,11 +233,9 @@ class Castle_UI(QMainWindow):
     def class_change(self):
         debug(f"class_change clicked")
 
-
     @pyqtSlot()
-    def enter_dungeon(self):
+    def enter_combat(self):
         self.close()
-        debug(f"enter_dungeon clicked")
         self.edgeOfTown_dialog.close()
         self.edge_of_town_window = EdgeOfTown_UI()
         self.edge_of_town_window.show()
@@ -235,15 +277,20 @@ class Castle_UI(QMainWindow):
 
     def refresh_party_table(self):
         # Configure table
-        self.party = list(filter(lambda c: c.status == 'OK', self.party))
+        self.party = list(filter(lambda c: c.status == "OK", self.party))
         populate_table(self.party_table, self.party)
         self.party_table.horizontalHeader().setStretchLastSection(True)
         self.party_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self.party_table.setSortingEnabled(True)
-        buttons = [self.ui.edgeButton, self.ui.innButton, self.ui.cantButton, self.ui.boltacButton]
-        for button in buttons:
-            flag: bool = len(self.party) > 0
-            button.setEnabled(flag)
+        # buttons = [
+        #     self.ui.edgeButton,
+        #     self.ui.innButton,
+        #     self.ui.cantButton,
+        #     self.ui.boltacButton,
+        # ]
+        # for button in buttons:
+        #     flag: bool = len(self.party) > 0
+        #     button.setEnabled(flag)
 
     @pyqtSlot(int, int)
     def inspect_char(self, row: int, column: int):
@@ -256,6 +303,7 @@ class Castle_UI(QMainWindow):
             save_character(character_dialog.char, characters_dir)
             save_party(self.party, game_path)
             updateCharItem(table=self.party_table, char=char, char_index=row)
+
 
 if __name__ == "__main__":
     path = os.path.dirname(__file__)
