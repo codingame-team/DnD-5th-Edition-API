@@ -1178,6 +1178,7 @@ def rest_character(char: Character, fee: int, weeks: int, xp_levels, console_mod
         display_msg += [f"{char.name} is Sleeping..."]
         display_msg += [f"\tHits {char.hit_points}/{char.max_hit_points}"]
         display_msg += [f"\t\tYou have {char.gold}GP"]
+    former_age_in_weeks: int = char.age
     while fee and char.hit_points < char.max_hit_points and char.gold >= fee:
         char.hit_points = min(char.max_hit_points, char.hit_points + fee // 10)
         char.gold -= fee
@@ -1201,6 +1202,8 @@ def rest_character(char: Character, fee: int, weeks: int, xp_levels, console_mod
         else:
             display_message, new_spells = char.gain_level()
         display_msg += [display_message]
+    if char.age // 52 == former_age_in_weeks // 52 + 1:
+        display_msg += ["Happy birthday!"]
     return "\n".join(display_msg)
 
 
