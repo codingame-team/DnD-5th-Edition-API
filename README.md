@@ -13,7 +13,7 @@ Usage to run:
     - python pyQTApp/wizardry.py
   - [Tkinter version](manual/manual_tk_version.md): (simple graphical arena with basic fights and moving enemies, and limited DnD rules)
     - python ./dungeon_tk.py
-  - [Pygame version](manual/manual_pygame_version.md): (more complex version using spell's casting, inventory management, melee & ranged attacks following advanced DnD 5th rules)
+  - [Pygame version](README_pygame_version.md): (more complex version using spell's casting, inventory management, melee & ranged attacks following advanced DnD 5th rules)
   - [RPG Pygame demo version](manual/manual_rpg_pygame_demo_version.md) (basic gameplay using collision inspired from `Simplon` gamejam's classroom)
     - python ./rpg_pygame.py
   - [Ncurses version](manual/manual_ncurses_version.md): (simple textual arena using *ncurses* with basic fights and moving enemies, and limited DnD rules)
