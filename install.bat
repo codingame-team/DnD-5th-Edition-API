@@ -15,7 +15,7 @@ pyinstaller --onefile ^
     --add-data "sprites;sprites" ^
     --add-data "sounds:sounds" ^
     --add-data "images;images" ^
-    --add-data "maze;maze" ^
+    --add-data "combat;combat" ^
     --add-data "Tables;Tables" ^
     --add-data "gameState;gameState" ^
     dungeon_menu_pygame.py
