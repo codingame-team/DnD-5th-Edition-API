@@ -1,52 +1,85 @@
-<!-- TOC -->
-  * [Simulation engine system of D&D 5th Edition universe](#simulation-engine-system-of-dd-5th-edition-universe)
-      * [New Features (Staging)](#new-features-staging)
-<!-- TOC -->
+# D&D 5th Edition Simulation Engine
 
-## Simulation engine system of D&D 5th Edition universe
+A comprehensive simulation engine implementing D&D 5th Edition rules with multiple interface options.
 
-Usage to run:
-  - [console version](manual/manual_console_version.md): (full DnD 5th rules with character's creation and combat simulation)
-    - python ./main.py (using a compatible Terminal and python version >= 3.10.0) -> best method for playing
-    - python ./main_pexpect.py (inside Python IDE - emulate a pseudo Terminal using pexpect) -> preferred method for debugging (still includes some minor display bugs)
-  - [pyQT5 version](manual/manual_pyQT_version.md): (graphical version using famous `QT Designer` framework, providing same features than console version, except `training grounds`, but with full control of party's action during combat phase using `QT Designer` widgets)
-    - python pyQTApp/wizardry.py
-  - [Tkinter version](manual/manual_tk_version.md): (simple graphical arena with basic fights and moving enemies, and limited DnD rules)
-    - python ./dungeon_tk.py
-  - [Pygame version](README_pygame_version.md): (more complex version using spell's casting, inventory management, melee & ranged attacks following advanced DnD 5th rules)
-  - [RPG Pygame demo version](manual/manual_rpg_pygame_demo_version.md) (basic gameplay using collision inspired from `Simplon` gamejam's classroom)
-    - python ./rpg_pygame.py
-  - [Ncurses version](manual/manual_ncurses_version.md): (simple textual arena using *ncurses* with basic fights and moving enemies, and limited DnD rules)
+## Available Versions
 
-#### New Features (Staging)
-    Graphic combat exploration using Tk with a single character (and limited gameplay) and DnD minimal rulesets:
+### 1. Console Version
+Full D&D 5th Edition rules implementation with character creation and combat simulation.
 
-    - explore levels of dungeons
-    - collect treasures
+**Run using:**
+- Recommended: `python ./main.py` (requires Terminal and Python ≥ 3.10.0)
+- Debug mode: `python ./main_pexpect.py` (for IDE debugging, may have minor display issues)
 
-    How to run:
-    - `python dungeon_tk.py` (playable version)
-    
-    Similar projet but with pyGame:
+[Console Version Manual](manual/manual_console_version.md)
 
-    How to run:
-    - `python dungeon_pygame.py` (draft version)
+### 2. PyQt5 Version
+Graphical interface using Qt Designer framework with full D&D features except training grounds.
 
-Prerequisites:
-- Run in binary mode:
-  - Installer pyinstaller: `pip install pyinstaller`
-    - install.sh (to compile project on macOS/Linux versions)
-    - install.bat (to compile project on windows versions)
-- Run in interpreted mode (useful for debugging)
-  - List of required modules for python v3.11:
-      ./requirements.txt
-  - Procedure to install modules (inside your local or virtual Python environnement):
-    - `Noob` method: Let your favorite IDE handle missing modules (preferred IDE: IntelliJ PyCharm 2022.3 Community Edition)
-    - `Geek` method:
-      - Using command line:
-        - Get the latest version of pip module:
-          - pip install --upgrade pip
-          - If pip3.11 is you latest version:
-            - pip3.11 install -r requirements.txt
+**Run using:**
+- `python pyQTApp/wizardry.py`
+
+[PyQt5 Version Manual](manual/manual_pyQT_version.md)
+
+### 3. Tkinter Version (Tkinter Dungeon Explorer)
+Basic arena with simplified D&D rules, featuring fights and enemy movement.
+
+- Single-character dungeon exploration with:
+- Multiple dungeon levels 
+- Treasure collection 
+- Basic D&D ruleset implementation
+
+**Run using:**
+- `python ./dungeon_tk.py`
+
+[Tkinter Version Manual](manual/manual_tk_version.md)
+
+### 4. Pygame Version (Pygame Dungeon Explorer)
+Advanced implementation featuring:
+- Spell casting
+- Inventory management
+- Melee & ranged combat (D&D 5th Edition rules)
+
+[Pygame Version Documentation](README_pygame_version.md)
+
+### 5. RPG Pygame Demo
+Basic gameplay with collision detection (Simplon gamejam inspired)
+
+**Run using:**
+- `python ./rpg_pygame.py`
+
+[RPG Demo Manual](manual/manual_rpg_pygame_demo_version.md)
+
+### 6. Ncurses Version
+Text-based arena with basic combat and enemy movement
+
+[Ncurses Version Manual](manual/manual_ncurses_version.md)
+
+## Installation
+
+### Binary Installation
+1. Install PyInstaller:
+   ```bash
+   pip install pyinstaller
+   ```
+2. Run platform-specific installer:
+- macOS/Linux: `./install.sh`
+- Windows: `install.bat`
+
+### Development Installation
+    Required: Python 3.11+
+
+#### Option 1: IDE Installation (Recommended)
+    Use IntelliJ PyCharm 2022.3 Community Edition's package manager
+
+#### Option 2: Manual Installation
+1. Update pip:
+```bash
+pip install --upgrade pip
+```
+2. Install dependencies:
+```bash
+pip install -r requirements.txt
+```
 
 
