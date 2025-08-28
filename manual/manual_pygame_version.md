@@ -20,6 +20,8 @@
 - Attaques: (&#8505; attaque et déplacement des monstres réactivées)
   - `LEFT CLICK` on visible monster in range of weapon
   - `RIGHT CLICK` on visible monster in range of spell
+- Sorts de guérison:
+  - `RIGHT CLICK` on character sprite to cast healing spell (for eligible characters)
 - Doors:
   - Open door: `O` key
   - Close door: `C` key
@@ -42,7 +44,7 @@
 # Tips
 - les sorts de niveau 0 ne consomment pas d'unité de sort (*spell_slot*)
 - les fontaines permettent de recharger les unités de sorts et de monter de niveau si XP suffisants
-- seuls les sorts d'attaque sont disponibles dans le grimoire (pour l'instant)
+- seuls les sorts d'attaque et sorts de récupération de PdV sont disponibles dans le grimoire (pour l'instant)
 - le niveau du sort est indiqué en incrustation dans l'icône du sort
 - La portée d'une arme est indiquée en face du dé de dommages (1 case = 5")
 - la portée d'un sort est affichée en survolant l'icône du sort dans le grimoire
