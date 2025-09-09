@@ -287,7 +287,7 @@ def has_line_of_sight(player, enemy, dungeon):
     
     return True
 
-def render_3d(screen, player, dungeon, enemies, enemy_sprite, health_potions, bullets):
+def render_3d(screen, player, dungeon, enemies, enemy_sprites, health_potions, bullets):
     width, height = screen.get_size()
     
     # Ciel et sol
@@ -346,7 +346,8 @@ def render_3d(screen, player, dungeon, enemies, enemy_sprite, health_potions, bu
                 # Dessiner le sprite d'ennemi
                 if 0 <= screen_x < width and enemy_size > 10:
                     # Redimensionner le sprite selon la distance
-                    scaled_sprite = pygame.transform.scale(enemy_sprite, (enemy_size, enemy_size))
+                    sprite_surface = enemy_sprites.get(enemy.enemy_type, enemy_sprites.get('orc', generate_enemy_sprite()))
+                    scaled_sprite = pygame.transform.scale(sprite_surface, (enemy_size, enemy_size))
                     
                     # Appliquer l'ombrage selon la distance
                     brightness = max(0.3, 1.0 - distance / 10)
@@ -522,8 +523,13 @@ def play_3d_dungeon():
     clock = pygame.time.Clock()
     
     # Charger les assets
-    enemy_sprites = load_enemy_sprites()
-    textures = load_textures()
+    try:
+        enemy_sprites = load_enemy_sprites()
+        textures = load_textures()
+    except:
+        # Fallback si load_assets échoue
+        enemy_sprites = {'orc': generate_enemy_sprite()}
+        textures = {}
     
     # Instructions
     show_3d_instructions(screen, font)
@@ -712,7 +718,7 @@ def play_3d_dungeon():
                         return play_3d_dungeon()  # Redémarrer
         
         # Rendu 3D
-        render_3d(screen, player, dungeon, enemies, enemy_sprite, health_potions, bullets)
+        render_3d(screen, player, dungeon, enemies, enemy_sprites, health_potions, bullets)
         
         # Mini-carte
         mini_size = 150
