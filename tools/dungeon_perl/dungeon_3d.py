@@ -7,7 +7,16 @@ from load_assets import load_enemy_sprites, load_textures
 pygame.mixer.init()
 
 def init_dungeon(width=20, height=20):
-    return {"width": width, "height": height, "grid": [[0 for _ in range(width)] for _ in range(height)], "rooms": []}
+    return {"width": width, "height": height, "grid": [[0] * width for _ in range(height)], "rooms": []}
+
+def room_overlaps(new_room, existing_rooms):
+    x, y, w, h = new_room["x"], new_room["y"], new_room["w"], new_room["h"]
+    return any(x < r["x"] + r["w"] and x + w > r["x"] and y < r["y"] + r["h"] and y + h > r["y"] for r in existing_rooms)
+
+def create_room(grid, room):
+    for i in range(room["x"], room["x"] + room["w"]):
+        for j in range(room["y"], room["y"] + room["h"]):
+            grid[j][i] = 1
 
 def emplace_rooms(dungeon, max_rooms=10, min_size=3, max_size=6):
     width, height = dungeon["width"], dungeon["height"]
@@ -15,21 +24,23 @@ def emplace_rooms(dungeon, max_rooms=10, min_size=3, max_size=6):
     rooms = []
 
     for _ in range(max_rooms):
-        w = random.randint(min_size, max_size)
-        h = random.randint(min_size, max_size)
-        x = random.randint(1, width - w - 1)
-        y = random.randint(1, height - h - 1)
-
+        w, h = random.randint(min_size, max_size), random.randint(min_size, max_size)
+        x, y = random.randint(1, width - w - 1), random.randint(1, height - h - 1)
         new_room = {"x": x, "y": y, "w": w, "h": h}
-        overlap = any(x < r["x"] + r["w"] and x + w > r["x"] and y < r["y"] + r["h"] and y + h > r["y"] for r in rooms)
-
-        if not overlap:
+        
+        if not room_overlaps(new_room, rooms):
             rooms.append(new_room)
-            for i in range(x, x + w):
-                for j in range(y, y + h):
-                    grid[j][i] = 1
+            create_room(grid, new_room)
 
     dungeon["rooms"] = rooms
+
+def create_corridor(grid, x1, y1, x2, y2):
+    for x in range(min(x1, x2), max(x1, x2) + 1):
+        if grid[y1][x] == 0:
+            grid[y1][x] = 1
+    for y in range(min(y1, y2), max(y1, y2) + 1):
+        if grid[y][x2] == 0:
+            grid[y][x2] = 1
 
 def corridors(dungeon):
     rooms = dungeon["rooms"]
@@ -39,13 +50,7 @@ def corridors(dungeon):
         a, b = rooms[i], rooms[i + 1]
         ax, ay = a["x"] + a["w"] // 2, a["y"] + a["h"] // 2
         bx, by = b["x"] + b["w"] // 2, b["y"] + b["h"] // 2
-
-        for x in range(min(ax, bx), max(ax, bx) + 1):
-            if grid[ay][x] == 0:
-                grid[ay][x] = 1
-        for y in range(min(ay, by), max(ay, by) + 1):
-            if grid[y][bx] == 0:
-                grid[y][bx] = 1
+        create_corridor(grid, ax, ay, bx, by)
 
 class Player3D:
     def __init__(self, x, y):
@@ -63,8 +68,7 @@ class Player3D:
         new_x = self.x + dx * 0.1
         new_y = self.y + dy * 0.1
         
-        if (0 <= int(new_x) < dungeon["width"] and 0 <= int(new_y) < dungeon["height"] and 
-            dungeon["grid"][int(new_y)][int(new_x)] != 0):
+        if dungeon["width"] > int(new_x) >= 0 != dungeon["grid"][int(new_y)][int(new_x)] and 0 <= int(new_y) < dungeon["height"]:
             self.x, self.y = new_x, new_y
     
     def rotate(self, angle_delta):
@@ -93,54 +97,29 @@ class Player3D:
             return True
         return False
     
-    def shoot(self, mouse_x, mouse_y, screen_width, screen_height, enemies, dungeon):
-        if self.shoot_cooldown > 0:
-            return None
-        
-        # Calculer l'angle de tir basé sur la position de la souris
+    def _calculate_shoot_angle(self, mouse_x, screen_width):
         center_x = screen_width // 2
         angle_offset = (mouse_x - center_x) / center_x * (self.fov / 2)
-        shoot_angle = self.angle + angle_offset
-        
-        # Trouver l'ennemi le plus proche dans la direction du tir
-        closest_enemy = None
-        closest_distance = float('inf')
-        
-        for enemy in enemies:
-            dx = enemy.x - self.x
-            dy = enemy.y - self.y
-            distance = math.sqrt(dx*dx + dy*dy)
-            
-            if distance < 10:  # Portée de tir
-                enemy_angle = math.atan2(dy, dx)
-                angle_diff = abs(enemy_angle - shoot_angle)
-                
-                # Normaliser la différence d'angle
-                if angle_diff > math.pi:
-                    angle_diff = 2 * math.pi - angle_diff
-                
-                # Vérifier si l'ennemi est dans le cône de tir et visible
-                if angle_diff < 0.2 and has_line_of_sight(self, enemy, dungeon):
-                    if distance < closest_distance:
-                        closest_distance = distance
-                        closest_enemy = enemy
-        
-        # Créer une balle même si pas d'ennemi touché
-        self.shoot_cooldown = 30  # Cooldown de tir
-        self.shoot_flash = 8  # Flash de tir
-        
-        # Son de tir du joueur
+        return self.angle + angle_offset
+    
+    def _play_shoot_sound(self):
         try:
             shoot_sound = pygame.mixer.Sound(buffer=b'\x00\x80' * 1500)
             shoot_sound.set_volume(0.8)
             shoot_sound.play()
         except:
             pass
+    
+    def shoot(self, mouse_x, mouse_y, screen_width, screen_height, enemies, dungeon):
+        if self.shoot_cooldown > 0:
+            return None
         
-        # Retourner la balle créée
+        shoot_angle = self._calculate_shoot_angle(mouse_x, screen_width)
+        self.shoot_cooldown = 30
+        self.shoot_flash = 8
+        self._play_shoot_sound()
+        
         return Bullet(self.x, self.y, shoot_angle, True)
-        
-        return None
 
 class Bullet:
     def __init__(self, x, y, angle, is_player_bullet=True):
@@ -156,12 +135,7 @@ class Bullet:
         self.y += math.sin(self.angle) * self.speed
         self.life -= 1
         
-        # Vérifier collision avec murs
-        if (self.x < 0 or self.x >= dungeon["width"] or self.y < 0 or self.y >= dungeon["height"] or 
-            dungeon["grid"][int(self.y)][int(self.x)] == 0):
-            return False
-        
-        return self.life > 0
+        return not is_wall_collision(self.x, self.y, dungeon) and self.life > 0
 
 class HealthPotion:
     def __init__(self, x, y):
@@ -180,51 +154,49 @@ class Enemy:
         self.shoot_animation = 0
         self.hit_animation = 0
     
-    def update(self, player, dungeon):
-        # Mouvement
+    def _try_move(self, dungeon):
         self.move_timer += 1
-        if self.move_timer > 60:  # Bouge toutes les secondes
-            dx = random.choice([-0.5, 0, 0.5])
-            dy = random.choice([-0.5, 0, 0.5])
-            new_x = self.x + dx
-            new_y = self.y + dy
+        if self.move_timer > 60:
+            dx, dy = random.choice([-0.5, 0, 0.5]), random.choice([-0.5, 0, 0.5])
+            new_x, new_y = self.x + dx, self.y + dy
             
-            if (0 <= int(new_x) < dungeon["width"] and 0 <= int(new_y) < dungeon["height"] and 
-                dungeon["grid"][int(new_y)][int(new_x)] != 0):
+            if not is_wall_collision(new_x, new_y, dungeon):
                 self.x, self.y = new_x, new_y
             self.move_timer = 0
-        
-        # Tir si joueur à portée
+    
+    def _try_shoot(self, player):
         distance = math.sqrt((player.x - self.x)**2 + (player.y - self.y)**2)
-        if distance < 8:  # Portée de tir
+        if distance < 8:
             self.shoot_timer += 1
-            if self.shoot_timer > 120:  # Tire toutes les 2 secondes
+            if self.shoot_timer > 120:
                 self.is_shooting = True
-                self.shoot_animation = 15  # Animation de 15 frames
+                self.shoot_animation = 15
                 self.shoot_timer = 0
-                # Jouer son de tir
                 try:
-                    shoot_sound = pygame.mixer.Sound(buffer=b'\x00\xFF' * 2000)  # Son plus fort et plus long
-                    shoot_sound.set_volume(1.0)  # Volume maximum
+                    shoot_sound = pygame.mixer.Sound(buffer=b'\x00\xFF' * 2000)
+                    shoot_sound.set_volume(1.0)
                     shoot_sound.play()
                 except:
-                    pass  # Ignorer si pas de son disponible
+                    pass
                 
-                # Créer une balle vers le joueur
                 angle_to_player = math.atan2(player.y - self.y, player.x - self.x)
                 return Bullet(self.x, self.y, angle_to_player, False)
-        
-        # Gérer l'animation de tir
+        return None
+    
+    def _update_animations(self):
         if self.shoot_animation > 0:
             self.shoot_animation -= 1
             if self.shoot_animation == 0:
                 self.is_shooting = False
         
-        # Gérer l'animation de dégâts
         if self.hit_animation > 0:
             self.hit_animation -= 1
-        
-        return 0
+    
+    def update(self, player, dungeon):
+        self._try_move(dungeon)
+        bullet = self._try_shoot(player)
+        self._update_animations()
+        return bullet or 0
 
 def generate_enemy_sprite():
     """Génère un sprite d'ennemi simple"""
@@ -241,27 +213,27 @@ def generate_enemy_sprite():
     
     return sprite
 
-def cast_ray(player, angle, dungeon):
+def cast_ray(player, angle, dungeon, max_distance=20, step=0.1):
     x, y = player.x, player.y
-    dx = math.cos(angle) * 0.02
-    dy = math.sin(angle) * 0.02
+    dx = math.cos(angle) * step
+    dy = math.sin(angle) * step
     
-    distance = 0
-    hit_x, hit_y = 0, 0
-    while distance < 20:
+    steps = int(max_distance / step)
+    for _ in range(steps):
         x += dx
         y += dy
-        distance += 0.02
         
-        if (x < 0 or x >= dungeon["width"] or y < 0 or y >= dungeon["height"] or 
-            dungeon["grid"][int(y)][int(x)] == 0):
-            hit_x, hit_y = x, y
-            return distance, hit_x, hit_y
+        if is_wall_collision(x, y, dungeon):
+            distance = math.sqrt((x - player.x)**2 + (y - player.y)**2)
+            return distance, x, y
     
-    return 20, x, y
+    return max_distance, x, y
+
+def is_wall_collision(x, y, dungeon):
+    return (x < 0 or x >= dungeon["width"] or y < 0 or y >= dungeon["height"] or 
+            dungeon["grid"][int(y)][int(x)] == 0)
 
 def has_line_of_sight(player, enemy, dungeon):
-    """Vérifie s'il y a une ligne de vue directe entre le joueur et l'ennemi"""
     dx = enemy.x - player.x
     dy = enemy.y - player.y
     distance = math.sqrt(dx*dx + dy*dy)
@@ -269,21 +241,15 @@ def has_line_of_sight(player, enemy, dungeon):
     if distance == 0:
         return True
     
-    # Normaliser la direction
-    step_x = dx / distance * 0.1
-    step_y = dy / distance * 0.1
+    steps = max(1, int(distance * 10))
+    step_x, step_y = dx / steps, dy / steps
     
-    # Parcourir la ligne entre joueur et ennemi
     x, y = player.x, player.y
-    steps = int(distance / 0.1)
-    
     for _ in range(steps):
         x += step_x
         y += step_y
-        
-        if (x < 0 or x >= dungeon["width"] or y < 0 or y >= dungeon["height"] or 
-            dungeon["grid"][int(y)][int(x)] == 0):
-            return False  # Mur bloqué
+        if is_wall_collision(x, y, dungeon):
+            return False
     
     return True
 
@@ -762,3 +728,213 @@ def play_3d_dungeon():
 
 if __name__ == "__main__":
     play_3d_dungeon()
+
+def init_game():
+    pygame.init()
+    screen = pygame.display.set_mode((800, 600))
+    pygame.display.set_caption("Dungeon Explorer 3D")
+    font = pygame.font.Font(None, 36)
+    clock = pygame.time.Clock()
+    
+    try:
+        enemy_sprites = load_enemy_sprites()
+        textures = load_textures()
+    except:
+        enemy_sprites = {'orc': generate_enemy_sprite()}
+        textures = {}
+    
+    return screen, font, clock, enemy_sprites, textures
+
+def setup_dungeon():
+    dungeon = init_dungeon(20, 20)
+    emplace_rooms(dungeon)
+    corridors(dungeon)
+    return dungeon
+
+def place_entities(dungeon):
+    # Player
+    if dungeon["rooms"]:
+        room = dungeon["rooms"][0]
+        player = Player3D(room["x"] + 1, room["y"] + 1)
+    else:
+        player = Player3D(1, 1)
+    
+    # Enemies
+    enemies = []
+    for i in range(3):
+        if len(dungeon["rooms"]) > i + 1:
+            room = dungeon["rooms"][i + 1]
+            enemies.append(Enemy(room["x"] + 1, room["y"] + 1))
+    
+    # Health potions
+    health_potions = []
+    for _ in range(3):
+        for _ in range(50):
+            x, y = random.randint(1, dungeon["width"] - 2), random.randint(1, dungeon["height"] - 2)
+            if (dungeon["grid"][y][x] != 0 and 
+                abs(x - player.x) >= 2 and abs(y - player.y) >= 2 and
+                all(abs(x - e.x) >= 2 and abs(y - e.y) >= 2 for e in enemies)):
+                health_potions.append(HealthPotion(x, y))
+                break
+    
+    return player, enemies, health_potions
+
+def handle_input(keys, player, dungeon):
+    if keys[pygame.K_z]:
+        player.move(math.cos(player.angle), math.sin(player.angle), dungeon)
+    if keys[pygame.K_s]:
+        player.move(-math.cos(player.angle), -math.sin(player.angle), dungeon)
+    if keys[pygame.K_q]:
+        player.rotate(-0.05)
+    if keys[pygame.K_d]:
+        player.rotate(0.05)
+    if keys[pygame.K_LEFT]:
+        player.move(math.cos(player.angle - math.pi/2), math.sin(player.angle - math.pi/2), dungeon)
+    if keys[pygame.K_RIGHT]:
+        player.move(math.cos(player.angle + math.pi/2), math.sin(player.angle + math.pi/2), dungeon)
+    if keys[pygame.K_p]:
+        player.use_potion()
+
+def update_bullets(bullets, dungeon, player, enemies):
+    for bullet in bullets[:]:
+        if not bullet.update(dungeon):
+            bullets.remove(bullet)
+            continue
+        
+        if bullet.is_player_bullet:
+            for enemy in enemies[:]:
+                if abs(bullet.x - enemy.x) < 0.3 and abs(bullet.y - enemy.y) < 0.3:
+                    enemy.hit_animation = 10
+                    enemies.remove(enemy)
+                    bullets.remove(bullet)
+                    break
+        else:
+            if abs(bullet.x - player.x) < 0.3 and abs(bullet.y - player.y) < 0.3:
+                player.take_damage(random.randint(15, 25))
+                bullets.remove(bullet)
+
+def collect_potions(player, health_potions):
+    for potion in health_potions[:]:
+        if abs(player.x - potion.x) < 0.5 and abs(player.y - potion.y) < 0.5:
+            player.potions += 1
+            health_potions.remove(potion)
+            try:
+                pickup_sound = pygame.mixer.Sound(buffer=b'\x00\x20' * 600)
+                pickup_sound.set_volume(0.4)
+                pickup_sound.play()
+            except:
+                pass
+
+def show_end_screen(screen, font, message, color):
+    screen.fill((0, 0, 0))
+    title_text = font.render(message, True, color)
+    restart_text = pygame.font.Font(None, 24).render("Appuyez sur R pour rejouer ou ESC pour quitter", True, (255, 255, 255))
+    
+    title_rect = title_text.get_rect(center=(400, 280))
+    restart_rect = restart_text.get_rect(center=(400, 320))
+    
+    screen.blit(title_text, title_rect)
+    screen.blit(restart_text, restart_rect)
+    pygame.display.flip()
+    
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
+                pygame.quit()
+                return False
+            elif event.type == pygame.KEYDOWN and event.key == pygame.K_r:
+                return True
+
+def draw_minimap(screen, player, dungeon, enemies, health_potions):
+    mini_size = 150
+    mini_scale = mini_size / max(dungeon["width"], dungeon["height"])
+    pygame.draw.rect(screen, (0, 0, 0, 128), (10, 10, mini_size, mini_size))
+    
+    for y in range(dungeon["height"]):
+        for x in range(dungeon["width"]):
+            if dungeon["grid"][y][x] != 0:
+                pygame.draw.rect(screen, (100, 100, 100), 
+                               (10 + x * mini_scale, 10 + y * mini_scale, mini_scale, mini_scale))
+    
+    # Player
+    player_map_x = int(10 + player.x * mini_scale)
+    player_map_y = int(10 + player.y * mini_scale)
+    pygame.draw.circle(screen, (255, 255, 0), (player_map_x, player_map_y), 3)
+    
+    # Direction
+    end_x = player_map_x + int(math.cos(player.angle) * 8)
+    end_y = player_map_y + int(math.sin(player.angle) * 8)
+    pygame.draw.line(screen, (255, 255, 255), (player_map_x, player_map_y), (end_x, end_y), 2)
+    
+    # Enemies
+    for enemy in enemies:
+        pygame.draw.circle(screen, (255, 0, 0), 
+                          (int(10 + enemy.x * mini_scale), int(10 + enemy.y * mini_scale)), 2)
+    
+    # Potions
+    for potion in health_potions:
+        pygame.draw.circle(screen, (0, 255, 0), 
+                          (int(10 + potion.x * mini_scale), int(10 + potion.y * mini_scale)), 2)
+
+def play_3d_dungeon():
+    screen, font, clock, enemy_sprites, textures = init_game()
+    
+    # Instructions
+    show_3d_instructions(screen, font)
+    waiting = True
+    while waiting:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                return
+            elif event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+                waiting = False
+    
+    dungeon = setup_dungeon()
+    player, enemies, health_potions = place_entities(dungeon)
+    bullets = []
+    
+    running = True
+    while running:
+        keys = pygame.key.get_pressed()
+        
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                mouse_x, mouse_y = event.pos
+                bullet = player.shoot(mouse_x, mouse_y, 800, 600, enemies, dungeon)
+                if bullet:
+                    bullets.append(bullet)
+        
+        handle_input(keys, player, dungeon)
+        
+        # Check win condition
+        if not enemies:
+            if show_end_screen(screen, font, "VICTOIRE! Tous les ennemis éliminés!", (0, 255, 0)):
+                return play_3d_dungeon()
+            return
+        
+        player.update()
+        collect_potions(player, health_potions)
+        update_bullets(bullets, dungeon, player, enemies)
+        
+        # Update enemies
+        for enemy in enemies:
+            bullet = enemy.update(player, dungeon)
+            if bullet:
+                bullets.append(bullet)
+        
+        # Check death
+        if player.hp <= 0:
+            if show_end_screen(screen, font, "VOUS ÊTES MORT!", (255, 0, 0)):
+                return play_3d_dungeon()
+            return
+        
+        render_3d(screen, player, dungeon, enemies, enemy_sprites, health_potions, bullets)
+        draw_minimap(screen, player, dungeon, enemies, health_potions)
+        
+        pygame.display.flip()
+        clock.tick(60)
+    
+    pygame.quit()
