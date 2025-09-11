@@ -58,10 +58,12 @@ class Player3D:
     def __init__(self, x, y):
         self.x = x
         self.y = y
+        self.z = 0.0  # Ground level
+        self.eye_height = 2.0  # Eye height above ground
         self.angle = 0
         self.fov = math.pi / 3
-        self.hp = 100
-        self.max_hp = 100
+        self.hp = 250
+        self.max_hp = 250
         self.shoot_cooldown = 0
         self.potions = 0
         self.shoot_flash = 0
@@ -121,13 +123,29 @@ class Player3D:
         self.shoot_flash = 8
         self._play_shoot_sound()
         
-        return Bullet(self.x, self.y, shoot_angle, True)
+        # Hauteur d'épaule (un peu plus bas que les yeux)
+        shoulder_height = self.eye_height - 0.2
+        
+        # Calculer la hauteur cible basée sur la position verticale de la souris
+        center_y = screen_height // 2
+        vertical_offset = (mouse_y - center_y) / center_y
+        target_height = shoulder_height - vertical_offset * 2.0  # Ajuster la sensibilité
+        
+        # Calculer la distance approximative vers le mur/cible
+        distance, _, _ = cast_ray(self, shoot_angle, dungeon)
+        
+        # Calculer la vélocité verticale pour atteindre la cible
+        z_velocity = (target_height - shoulder_height) / (distance / 0.3) if distance > 0 else 0
+        
+        return Bullet(self.x, self.y, shoot_angle, True, shoulder_height, z_velocity)
 
 class Bullet:
-    def __init__(self, x, y, angle, is_player_bullet=True):
+    def __init__(self, x, y, angle, is_player_bullet=True, z=1.0, z_velocity=0.0):
         self.x = x
         self.y = y
+        self.z = z  # Height above ground
         self.angle = angle
+        self.z_velocity = z_velocity  # Vertical velocity
         self.speed = 0.3
         self.life = 60
         self.is_player_bullet = is_player_bullet
@@ -135,9 +153,11 @@ class Bullet:
     def update(self, dungeon):
         self.x += math.cos(self.angle) * self.speed
         self.y += math.sin(self.angle) * self.speed
+        self.z += self.z_velocity
         self.life -= 1
         
-        return not dungeon.is_wall(self.x, self.y) and self.life > 0
+        # Hit ground or wall
+        return (not dungeon.is_wall(self.x, self.y) and self.life > 0 and self.z >= 0)
 
 class HealthPotion:
     def __init__(self, x, y):
@@ -146,10 +166,23 @@ class HealthPotion:
         self.heal_amount = random.randint(20, 40)
 
 class Enemy:
-    def __init__(self, x, y, enemy_type="orc"):
+    def __init__(self, x, y, enemy_type=None, available_types=None):
         self.x = x
         self.y = y
-        self.enemy_type = enemy_type
+        self.z = 0.0  # Ground level
+        self.height = 1.8  # Enemy height
+        self.ground_level = True  # Flag for ground-level rendering
+        
+        # Use available types from loaded sprites or fallback
+        if available_types is None:
+            available_types = ["orc", "skeleton", "goblin", "troll"]
+        
+        # Random enemy type if not specified
+        if enemy_type is None:
+            self.enemy_type = random.choice(available_types)
+        else:
+            self.enemy_type = enemy_type
+            
         self.move_timer = 0
         self.shoot_timer = 0
         self.is_shooting = False
@@ -158,8 +191,8 @@ class Enemy:
     
     def _try_move(self, dungeon):
         self.move_timer += 1
-        if self.move_timer > 60:
-            dx, dy = random.choice([-0.5, 0, 0.5]), random.choice([-0.5, 0, 0.5])
+        if self.move_timer > 30:  # Move more frequently
+            dx, dy = random.choice([-0.1, 0, 0.1]), random.choice([-0.1, 0, 0.1])  # Smaller steps
             new_x, new_y = self.x + dx, self.y + dy
             
             if not dungeon.is_wall(new_x, new_y):
@@ -182,7 +215,9 @@ class Enemy:
                     pass
                 
                 angle_to_player = math.atan2(player.y - self.y, player.x - self.x)
-                return Bullet(self.x, self.y, angle_to_player, False)
+                # Shoot from enemy center height
+                bullet_z = self.z + self.height / 2
+                return Bullet(self.x, self.y, angle_to_player, False, bullet_z, 0.0)
         return None
     
     def _update_animations(self):
@@ -200,16 +235,91 @@ class Enemy:
         self._update_animations()
         return bullet or 0
 
-def generate_enemy_sprite():
-    sprite = pygame.Surface((64, 64))
-    sprite.fill((0, 0, 0, 0))
+# Global sprite cache
+_enemy_sprites_cache = None
+
+def get_all_enemy_sprites():
+    """Get all loaded enemy sprites (cached)"""
+    global _enemy_sprites_cache
+    if _enemy_sprites_cache is None:
+        _enemy_sprites_cache = load_enemy_sprites()
+    return _enemy_sprites_cache
+
+def get_enemy_sprite(enemy_type="orc"):
+    """Get enemy sprite from cache or generate fallback"""
+    sprites = get_all_enemy_sprites()
+    return sprites.get(enemy_type, generate_enemy_sprite(enemy_type))
+
+def get_available_enemy_types():
+    """Get list of all available enemy types"""
+    return list(get_all_enemy_sprites().keys())
+
+def generate_enemy_sprite(enemy_type="orc"):
+    sprite = pygame.Surface((64, 64), pygame.SRCALPHA)
     
-    pygame.draw.circle(sprite, (200, 0, 0), (32, 40), 24)
-    pygame.draw.circle(sprite, (150, 0, 0), (32, 20), 16)
-    pygame.draw.circle(sprite, (255, 255, 0), (26, 16), 4)
-    pygame.draw.circle(sprite, (255, 255, 0), (38, 16), 4)
-    
+    if enemy_type == "orc":
+        # Orc vert
+        pygame.draw.circle(sprite, (100, 150, 50), (32, 50), 24)
+        pygame.draw.circle(sprite, (80, 120, 40), (32, 30), 16)
+        pygame.draw.circle(sprite, (255, 0, 0), (26, 26), 4)
+        pygame.draw.circle(sprite, (255, 0, 0), (38, 26), 4)
+        pygame.draw.ellipse(sprite, (60, 90, 30), (24, 58, 16, 6))
+        pygame.draw.ellipse(sprite, (60, 90, 30), (40, 58, 16, 6))
+    elif enemy_type == "skeleton":
+        # Squelette blanc
+        pygame.draw.circle(sprite, (240, 240, 240), (32, 50), 24)
+        pygame.draw.circle(sprite, (220, 220, 220), (32, 30), 16)
+        pygame.draw.circle(sprite, (0, 0, 0), (26, 26), 4)
+        pygame.draw.circle(sprite, (0, 0, 0), (38, 26), 4)
+        pygame.draw.ellipse(sprite, (200, 200, 200), (24, 58, 16, 6))
+        pygame.draw.ellipse(sprite, (200, 200, 200), (40, 58, 16, 6))
+    elif enemy_type == "goblin":
+        # Gobelin rouge (plus petit)
+        pygame.draw.circle(sprite, (200, 0, 0), (32, 50), 20)
+        pygame.draw.circle(sprite, (150, 0, 0), (32, 30), 14)
+        pygame.draw.circle(sprite, (255, 255, 0), (26, 26), 3)
+        pygame.draw.circle(sprite, (255, 255, 0), (38, 26), 3)
+        pygame.draw.ellipse(sprite, (120, 0, 0), (26, 58, 12, 6))
+        pygame.draw.ellipse(sprite, (120, 0, 0), (38, 58, 12, 6))
+    elif enemy_type == "troll":
+        # Troll brun (plus grand)
+        pygame.draw.circle(sprite, (139, 69, 19), (32, 48), 28)
+        pygame.draw.circle(sprite, (101, 67, 33), (32, 28), 18)
+        pygame.draw.circle(sprite, (255, 0, 0), (26, 24), 5)
+        pygame.draw.circle(sprite, (255, 0, 0), (38, 24), 5)
+        pygame.draw.ellipse(sprite, (85, 53, 15), (22, 58, 20, 6))
+        pygame.draw.ellipse(sprite, (85, 53, 15), (42, 58, 20, 6))
+
     return sprite
+
+def create_random_enemy(x, y):
+    """Create random enemy type"""
+    enemy_types = ["orc", "skeleton", "goblin", "troll"]
+    enemy_type = random.choice(enemy_types)
+    return Enemy(x, y, enemy_type)
+
+def render_sprite(screen, sprite, x, y, distance, screen_height):
+    """Render sprite with correct ground positioning"""
+    if distance <= 0:
+        return
+    
+    # Get original sprite dimensions to preserve aspect ratio
+    original_width, original_height = sprite.get_size()
+    aspect_ratio = original_width / original_height
+    
+    # Calculate sprite size based on distance - LARGER SIZE
+    sprite_height = int(screen_height / distance * 1.5)
+    sprite_width = int(sprite_height * aspect_ratio)  # Preserve aspect ratio
+    
+    # Scale sprite
+    scaled_sprite = pygame.transform.scale(sprite, (sprite_width, sprite_height))
+    
+    # Position sprite on ground - bottom of sprite AT horizon line
+    horizon_y = screen_height // 2
+    sprite_y = horizon_y  # Bottom edge of sprite at horizon = ground level
+    sprite_x = x - sprite_width // 2
+    
+    screen.blit(scaled_sprite, (sprite_x, sprite_y))
 
 def cast_ray(player, angle, dungeon, max_distance=20, step=0.1):
     x, y = player.x, player.y
@@ -279,19 +389,35 @@ class Game:
         else:
             self.player = Player3D(1, 1)
         
+        # Augmenter drastiquement la densité de monstres
         self.enemies = []
-        for i in range(3):
-            if len(self.dungeon.rooms) > i + 1:
-                room = self.dungeon.rooms[i + 1]
-                self.enemies.append(Enemy(room["x"] + 1, room["y"] + 1))
+        available_types = get_available_enemy_types()
         
-        self.health_potions = []
+        # 1 ennemi par salle (sauf la première)
+        for room in self.dungeon.rooms[1:]:
+            # Position aléatoire dans la salle
+            x = random.randint(room["x"], room["x"] + room["w"] - 1)
+            y = random.randint(room["y"], room["y"] + room["h"] - 1)
+            self.enemies.append(Enemy(x, y, available_types=available_types))
+        
+        # Ajouter quelques ennemis dans les couloirs
         for _ in range(3):
+            for _ in range(100):  # Tentatives de placement
+                x = random.randint(1, self.dungeon.width - 2)
+                y = random.randint(1, self.dungeon.height - 2)
+                if (not self.dungeon.is_wall(x, y) and 
+                    abs(x - self.player.x) >= 3 and abs(y - self.player.y) >= 3):
+                    self.enemies.append(Enemy(x, y, available_types=available_types))
+                    break
+        
+        # Plus de potions pour compenser la difficulté
+        self.health_potions = []
+        for _ in range(6):
             for _ in range(50):
                 x, y = random.randint(1, self.dungeon.width - 2), random.randint(1, self.dungeon.height - 2)
                 if (not self.dungeon.is_wall(x, y) and 
                     abs(x - self.player.x) >= 2 and abs(y - self.player.y) >= 2 and
-                    all(abs(x - e.x) >= 2 and abs(y - e.y) >= 2 for e in self.enemies)):
+                    all(abs(x - e.x) >= 1.5 and abs(y - e.y) >= 1.5 for e in self.enemies)):
                     self.health_potions.append(HealthPotion(x, y))
                     break
     
@@ -430,9 +556,32 @@ class Game:
                 
                 if abs(angle_diff) < self.player.fov / 2 and has_line_of_sight(self.player, enemy, self.dungeon):
                     screen_x = int(width/2 + (angle_diff / (self.player.fov/2)) * width/2)
-                    enemy_size = max(40, int(250 / (distance + 0.1)))
-                    enemy_y = height//2 - enemy_size//2
+                    enemy_size = max(60, int(400 / (distance + 0.1)))
                     
+                    # Horizon = niveau des yeux du joueur, sol est plus bas
+                    eye_level = height // 2
+                    ground_level = eye_level + int(height * 0.3)  # Sol à 30% sous les yeux
+                    enemy_y = ground_level - enemy_size
+
+                    # 1. Taille du sprite
+                    enemy_size = max(40, int(250 / (distance + 0.1)))
+
+                    # 2. Déplacement vertical ajusté selon la distance
+                    v_move = enemy_size  # ou une constante, ex. 64, à ajuster selon ton sprite
+                    v_move_screen = v_move / (distance + 0.1)
+
+                    # 3. Ligne d'horizon (sol)
+                    horizon_y = height // 2
+
+                    # 4. Position verticale finale : pieds au sol
+                    sprite_y = int(-enemy_size // 2 + horizon_y + v_move_screen)
+
+                    # Horizontal : centrer le sprite
+                    sprite_x = screen_x - enemy_size // 2
+
+                    # # 5. Affichage
+                    # self.screen.blit(dark_sprite, (sprite_x, sprite_y))
+
                     if 0 <= screen_x < width and enemy_size > 10:
                         sprite_surface = self.enemy_sprites.get(enemy.enemy_type, self.enemy_sprites.get('orc', generate_enemy_sprite()))
                         scaled_sprite = pygame.transform.scale(sprite_surface, (enemy_size, enemy_size))
@@ -447,8 +596,9 @@ class Game:
                         else:
                             dark_sprite.fill((int(255 * brightness), int(255 * brightness), int(255 * brightness)), special_flags=pygame.BLEND_MULT)
                         
-                        self.screen.blit(dark_sprite, (screen_x - enemy_size//2, enemy_y))
-        
+                        # self.screen.blit(dark_sprite, (screen_x - enemy_size//2, enemy_y))
+                        self.screen.blit(dark_sprite, (sprite_x, sprite_y))
+
         # Render health potions
         for potion in self.health_potions:
             dx = potion.x - self.player.x
@@ -467,7 +617,11 @@ class Game:
                 if abs(angle_diff) < self.player.fov / 2 and has_line_of_sight(self.player, potion, self.dungeon):
                     screen_x = int(width/2 + (angle_diff / (self.player.fov/2)) * width/2)
                     potion_size = max(20, int(150 / (distance + 0.1)))
-                    potion_y = height//2 - potion_size//2
+                    
+                    # Perspective au sol comme les ennemis
+                    vertical_angle = math.atan(self.player.eye_height / distance) if distance > 0.1 else 0
+                    screen_offset = int(height * vertical_angle / self.player.fov)
+                    potion_y = height // 2 + screen_offset - potion_size
                     
                     if 0 <= screen_x < width and potion_size > 5:
                         # Dessiner la potion flottante (croix verte)

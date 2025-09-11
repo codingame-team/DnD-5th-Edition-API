@@ -2,34 +2,34 @@ import pygame
 import os
 
 def load_enemy_sprites():
-    """Charge les sprites d'ennemis depuis le dossier assets"""
+    """Load all PNG enemy sprites from assets/enemies/ folder"""
     sprites = {}
     assets_path = "assets/enemies/"
     
-    # Créer le dossier s'il n'existe pas
     os.makedirs(assets_path, exist_ok=True)
     
     try:
-        # Charger différents types d'ennemis
-        enemy_types = ["orc", "skeleton", "goblin", "troll"]
+        # Load all PNG files from enemies folder
+        for filename in os.listdir(assets_path):
+            if filename.lower().endswith('.png'):
+                sprite_name = os.path.splitext(filename)[0]  # Remove .png extension
+                sprite_path = os.path.join(assets_path, filename)
+                sprites[sprite_name] = pygame.image.load(sprite_path).convert_alpha()
+                print(f"Loaded enemy sprite: {sprite_name}")
         
-        for enemy_type in enemy_types:
-            sprite_path = os.path.join(assets_path, f"{enemy_type}.png")
-            if os.path.exists(sprite_path):
-                sprites[enemy_type] = pygame.image.load(sprite_path).convert_alpha()
-            else:
-                # Générer un sprite par défaut si l'image n'existe pas
+        # Add fallback sprites for common types if not found
+        fallback_types = ["orc", "skeleton", "goblin", "troll"]
+        for enemy_type in fallback_types:
+            if enemy_type not in sprites:
                 sprites[enemy_type] = generate_default_sprite(enemy_type)
                 
     except Exception as e:
-        print(f"Erreur lors du chargement des sprites: {e}")
-        # Utiliser les sprites générés par défaut
-        sprites = {
-            "orc": generate_default_sprite("orc"),
-            "skeleton": generate_default_sprite("skeleton"),
-            "goblin": generate_default_sprite("goblin")
-        }
+        print(f"Error loading sprites: {e}")
+        # Use generated fallback sprites
+        sprites = {enemy_type: generate_default_sprite(enemy_type) 
+                  for enemy_type in ["orc", "skeleton", "goblin", "troll"]}
     
+    print(f"Total enemy sprites loaded: {len(sprites)}")
     return sprites
 
 def generate_default_sprite(enemy_type):
