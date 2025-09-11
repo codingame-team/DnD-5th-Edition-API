@@ -5,6 +5,9 @@ from load_assets import load_enemy_sprites, load_textures
 
 pygame.mixer.init()
 
+# Constantes de perspective
+VERTICAL_PERSPECTIVE_FACTOR = 160  # Facteur pour la position verticale des sprites
+
 class Dungeon:
     def __init__(self, width=20, height=20):
         self.width = width
@@ -163,6 +166,7 @@ class HealthPotion:
     def __init__(self, x, y):
         self.x = x
         self.y = y
+        self.z = 0.0  # Ground level
         self.heal_amount = random.randint(20, 40)
 
 class Enemy:
@@ -170,7 +174,7 @@ class Enemy:
         self.x = x
         self.y = y
         self.z = 0.0  # Ground level
-        self.height = 1.8  # Enemy height
+        self.height = 2.2  # Enemy height (plus grand que le joueur)
         self.ground_level = True  # Flag for ground-level rendering
         
         # Use available types from loaded sprites or fallback
@@ -190,6 +194,7 @@ class Enemy:
         self.hit_animation = 0
     
     def _try_move(self, dungeon):
+        # return  # Désactiver le mouvement des ennemis pour réduire la difficulté
         self.move_timer += 1
         if self.move_timer > 30:  # Move more frequently
             dx, dy = random.choice([-0.1, 0, 0.1]), random.choice([-0.1, 0, 0.1])  # Smaller steps
@@ -200,6 +205,7 @@ class Enemy:
             self.move_timer = 0
     
     def _try_shoot(self, player):
+        # return None  # Désactiver le tir des ennemis pour réduire la difficulté
         distance = math.sqrt((player.x - self.x)**2 + (player.y - self.y)**2)
         if distance < 8:
             self.shoot_timer += 1
@@ -556,35 +562,33 @@ class Game:
                 
                 if abs(angle_diff) < self.player.fov / 2 and has_line_of_sight(self.player, enemy, self.dungeon):
                     screen_x = int(width/2 + (angle_diff / (self.player.fov/2)) * width/2)
-                    enemy_size = max(60, int(400 / (distance + 0.1)))
                     
-                    # Horizon = niveau des yeux du joueur, sol est plus bas
-                    eye_level = height // 2
-                    ground_level = eye_level + int(height * 0.3)  # Sol à 30% sous les yeux
-                    enemy_y = ground_level - enemy_size
+                    # Récupérer le sprite original pour connaître sa taille
+                    sprite_surface = self.enemy_sprites.get(enemy.enemy_type, self.enemy_sprites.get('orc', generate_enemy_sprite()))
+                    original_width, original_height = sprite_surface.get_size()
+                    aspect_ratio = original_width / original_height
+                    
+                    # Calcul de perspective basé sur la taille réelle de l'ennemi (AGRANDI)
+                    real_height = enemy.height  # 2.2 unités
+                    perspective_scale = 1.0 / (distance + 0.1)
+                    # Facteur d'agrandissement: 200 au lieu de 100
+                    screen_height_px = max(40, int(real_height * 200 * perspective_scale))
+                    screen_width_px = int(screen_height_px * aspect_ratio)
+                    
+                    # Calcul correct de la perspective verticale
+                    eye_level_y = height // 2  # Niveau des yeux du joueur
+                    
+                    # Calcul de la perspective verticale basée sur la distance
+                    # Plus l'objet est loin, plus il apparaît vers l'horizon (eye_level_y)
+                    vertical_offset = int(self.player.eye_height * VERTICAL_PERSPECTIVE_FACTOR / (distance + 0.1))
+                    ground_level_y = eye_level_y + vertical_offset
+                    
+                    # Position au sol: bas du sprite au niveau calculé
+                    sprite_y = ground_level_y - screen_height_px  # Haut du sprite
+                    sprite_x = screen_x - screen_width_px // 2
 
-                    # 1. Taille du sprite
-                    enemy_size = max(40, int(250 / (distance + 0.1)))
-
-                    # 2. Déplacement vertical ajusté selon la distance
-                    v_move = enemy_size  # ou une constante, ex. 64, à ajuster selon ton sprite
-                    v_move_screen = v_move / (distance + 0.1)
-
-                    # 3. Ligne d'horizon (sol)
-                    horizon_y = height // 2
-
-                    # 4. Position verticale finale : pieds au sol
-                    sprite_y = int(-enemy_size // 2 + horizon_y + v_move_screen)
-
-                    # Horizontal : centrer le sprite
-                    sprite_x = screen_x - enemy_size // 2
-
-                    # # 5. Affichage
-                    # self.screen.blit(dark_sprite, (sprite_x, sprite_y))
-
-                    if 0 <= screen_x < width and enemy_size > 10:
-                        sprite_surface = self.enemy_sprites.get(enemy.enemy_type, self.enemy_sprites.get('orc', generate_enemy_sprite()))
-                        scaled_sprite = pygame.transform.scale(sprite_surface, (enemy_size, enemy_size))
+                    if 0 <= screen_x < width and screen_height_px > 10:
+                        scaled_sprite = pygame.transform.scale(sprite_surface, (screen_width_px, screen_height_px))
                         
                         brightness = max(0.3, 1.0 - distance / 10)
                         dark_sprite = scaled_sprite.copy()
@@ -596,8 +600,20 @@ class Game:
                         else:
                             dark_sprite.fill((int(255 * brightness), int(255 * brightness), int(255 * brightness)), special_flags=pygame.BLEND_MULT)
                         
-                        # self.screen.blit(dark_sprite, (screen_x - enemy_size//2, enemy_y))
                         self.screen.blit(dark_sprite, (sprite_x, sprite_y))
+                        
+                        # DEBUG: Dessiner les niveaux et contour
+                        pygame.draw.circle(self.screen, (0, 255, 255), (screen_x, eye_level_y), 2)  # Cyan = yeux
+                        pygame.draw.circle(self.screen, (255, 0, 0), (screen_x, ground_level_y), 3)  # Rouge = sol
+                        # pygame.draw.rect(self.screen, (255, 0, 0), (sprite_x, sprite_y, screen_width_px, screen_height_px), 1)
+                        
+                        # Afficher distance aux pieds du monstre
+                        font = pygame.font.Font(None, 20)
+                        dist_text = f"d={distance:.1f}"
+                        text_surface = font.render(dist_text, True, (255, 255, 0))
+                        text_x = screen_x - text_surface.get_width() // 2
+                        text_y = ground_level_y + 5
+                        self.screen.blit(text_surface, (text_x, text_y))
 
         # Render health potions
         for potion in self.health_potions:
@@ -616,15 +632,30 @@ class Game:
                 
                 if abs(angle_diff) < self.player.fov / 2 and has_line_of_sight(self.player, potion, self.dungeon):
                     screen_x = int(width/2 + (angle_diff / (self.player.fov/2)) * width/2)
-                    potion_size = max(20, int(150 / (distance + 0.1)))
+                    # Calcul de perspective pour potion (0.3 unités de haut) - AGRANDI
+                    real_height = 0.3
+                    perspective_scale = 1.0 / (distance + 0.1)
+                    # Facteur d'agrandissement: 200 au lieu de 100
+                    potion_size = max(20, int(real_height * 200 * perspective_scale))
                     
-                    # Perspective au sol comme les ennemis
-                    vertical_angle = math.atan(self.player.eye_height / distance) if distance > 0.1 else 0
-                    screen_offset = int(height * vertical_angle / self.player.fov)
-                    potion_y = height // 2 + screen_offset - potion_size
+                    # Position au sol comme les ennemis (avec perspective)
+                    eye_level_y = height // 2
+                    vertical_offset = int(self.player.eye_height * VERTICAL_PERSPECTIVE_FACTOR / (distance + 0.1))
+                    ground_level_y = eye_level_y + vertical_offset
+                    sprite_bottom = ground_level_y
+                    potion_y = sprite_bottom - potion_size
+                    
+                    # DEBUG: Vérifications de perspective pour potions
+                    expected_size_at_1m = real_height * 200  # 60 pixels à 1m
+                    actual_ratio = potion_size / expected_size_at_1m if expected_size_at_1m > 0 else 0
+                    ground_check = potion_y + potion_size == ground_level_y
+                    
+                    # print(f"Potion: pos=({potion.x:.1f},{potion.y:.1f},z={potion.z:.1f}) dist={distance:.1f}")
+                    # print(f"  Size: {potion_size}px (expected@1m: {expected_size_at_1m:.0f}px, ratio: {actual_ratio:.2f})")
+                    # print(f"  Levels: eye={eye_level_y} ground={ground_level_y} sprite_bottom={potion_y + potion_size} ground_ok={ground_check}")
                     
                     if 0 <= screen_x < width and potion_size > 5:
-                        # Dessiner la potion flottante (croix verte)
+                        # Dessiner la potion au sol (croix verte)
                         pygame.draw.circle(self.screen, (0, 255, 0), (screen_x, potion_y + potion_size//2), potion_size//3)
                         pygame.draw.line(self.screen, (255, 255, 255), 
                                        (screen_x - potion_size//4, potion_y + potion_size//2), 
@@ -632,6 +663,10 @@ class Game:
                         pygame.draw.line(self.screen, (255, 255, 255), 
                                        (screen_x, potion_y + potion_size//2 - potion_size//4), 
                                        (screen_x, potion_y + potion_size//2 + potion_size//4), 3)
+                        
+                        # DEBUG: Points pour marquer les niveaux
+                        pygame.draw.circle(self.screen, (0, 255, 255), (screen_x, eye_level_y), 2)  # Cyan = yeux
+                        pygame.draw.circle(self.screen, (0, 0, 255), (screen_x, ground_level_y), 2)  # Bleu = sol potion
         
         # Render bullets
         for bullet in self.bullets:
@@ -656,6 +691,14 @@ class Game:
                     if 0 <= screen_x < width:
                         bullet_color = (255, 255, 0) if bullet.is_player_bullet else (255, 100, 100)
                         pygame.draw.circle(self.screen, bullet_color, (screen_x, bullet_y), bullet_size)
+        
+        # DEBUG: Afficher position du joueur
+        debug_font = pygame.font.Font(None, 24)
+        player_debug = debug_font.render(f"Player: ({self.player.x:.1f}, {self.player.y:.1f}, {self.player.z:.1f})", True, (255, 255, 0))
+        self.screen.blit(player_debug, (10, height - 60))
+        
+        enemy_count = debug_font.render(f"Enemies visible: {len([e for e in self.enemies if math.sqrt((e.x-self.player.x)**2 + (e.y-self.player.y)**2) < 10])}", True, (255, 255, 0))
+        self.screen.blit(enemy_count, (10, height - 40))
         
         # UI elements
         health_bar_width = 200
