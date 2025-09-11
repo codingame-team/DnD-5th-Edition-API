@@ -50,7 +50,33 @@ Basic gameplay with collision detection (Simplon gamejam inspired)
 
 [RPG Demo Manual](manual/manual_rpg_pygame_demo_version.md)
 
-### 6. Ncurses Version
+### 6. 3D Dungeon Explorer (Refactored)
+Modern 3D first-person dungeon crawler with object-oriented architecture:
+- **Raycasting 3D rendering** with textured walls
+- **Procedural dungeon generation** using rooms and corridors
+- **Real-time combat system** with projectiles and animations
+- **Health potions** and inventory management
+- **Mini-map** for navigation
+- **Clean OOP design** with Game and Dungeon classes
+
+**Features:**
+- First-person 3D perspective with mouse aiming
+- Dynamic enemy AI with shooting and movement
+- Visual effects for shooting and damage
+- Sound effects for immersive gameplay
+- Optimized rendering for smooth performance
+
+**Run using:**
+- `python tools/dungeon_perl/dungeon_3d.py`
+
+**Controls:**
+- Z/S - Move forward/backward
+- Q/D - Turn left/right
+- Arrow keys - Strafe left/right
+- Mouse click - Shoot
+- P - Use health potion
+
+### 7. Ncurses Version
 Text-based arena with basic combat and enemy movement
 
 [Ncurses Version Manual](manual/manual_ncurses_version.md)
