@@ -15,7 +15,7 @@ def load_enemy_sprites():
                 sprite_name = os.path.splitext(filename)[0]  # Remove .png extension
                 sprite_path = os.path.join(assets_path, filename)
                 sprites[sprite_name] = pygame.image.load(sprite_path).convert_alpha()
-                print(f"Loaded enemy sprite: {sprite_name}")
+                # print(f"Loaded enemy sprite: {sprite_name}")
         
         # Add fallback sprites for common types if not found
         fallback_types = ["orc", "skeleton", "goblin", "troll"]
