@@ -2,6 +2,7 @@ import random
 import pygame
 import math
 from load_assets import load_enemy_sprites, load_textures
+import os
 
 pygame.mixer.init()
 
@@ -89,18 +90,15 @@ class Player3D:
             self.shoot_cooldown -= 1
         if self.shoot_flash > 0:
             self.shoot_flash -= 1
-    
-    def use_potion(self):
+
+    def use_potion(self, potion_use_sound=None):
         if self.potions > 0 and self.hp < self.max_hp:
             self.potions -= 1
             heal_amount = random.randint(20, 40)
             self.hp = min(self.max_hp, self.hp + heal_amount)
-            try:
-                heal_sound = pygame.mixer.Sound(buffer=b'\x00\x40' * 800)
-                heal_sound.set_volume(0.6)
-                heal_sound.play()
-            except:
-                pass
+            if potion_use_sound:  # Vérifier si le son est chargé
+                potion_use_sound.set_volume(0.6)
+                potion_use_sound.play()
             return True
         return False
     
@@ -193,7 +191,7 @@ class Enemy:
         self.shoot_animation = 0
         self.hit_animation = 0
     
-    def _try_move(self, dungeon):
+    def _try_move_random(self, dungeon):
         # return  # Désactiver le mouvement des ennemis pour réduire la difficulté
         self.move_timer += 1
         if self.move_timer > 30:  # Move more frequently
@@ -203,11 +201,36 @@ class Enemy:
             if not dungeon.is_wall(new_x, new_y):
                 self.x, self.y = new_x, new_y
             self.move_timer = 0
-    
+
+    def _try_move(self, dungeon, player, enemies):
+        if self.move_timer > 0:
+            self.move_timer -= 1
+            return
+
+        self.move_timer = 30  # Temps entre chaque mouvement
+
+        # Calculer le chemin vers le joueur
+        start = (int(self.x), int(self.y))
+        goal = (int(player.x), int(player.y))
+        path = find_path(dungeon, start, goal)
+
+        if path and len(path) > 1:
+            next_step = path[1]
+            new_x, new_y = next_step
+
+            # Vérifier si la nouvelle position est dans les limites de la carte
+            if 0 <= new_x < dungeon.width and 0 <= new_y < dungeon.height:
+                # Vérifier si la nouvelle position n'est pas un mur
+                if not dungeon.is_wall(new_x, new_y):
+                    # Vérifier si la nouvelle position ne chevauche pas un autre monstre
+                    if not any(math.sqrt((new_x - e.x) ** 2 + (new_y - e.y) ** 2) < 0.5 for e in enemies if e != self):
+                        # Déplacement progressif pour un mouvement fluide
+                        self.x += (new_x - self.x) * 0.5
+                        self.y += (new_y - self.y) * 0.5
+
     def _try_shoot(self, player):
-        # return None  # Désactiver le tir des ennemis pour réduire la difficulté
-        distance = math.sqrt((player.x - self.x)**2 + (player.y - self.y)**2)
-        if distance < 8:
+        distance = math.sqrt((player.x - self.x) ** 2 + (player.y - self.y) ** 2)
+        if distance < 4:  # Portée actuelle
             self.shoot_timer += 1
             if self.shoot_timer > 120:
                 self.is_shooting = True
@@ -219,9 +242,8 @@ class Enemy:
                     shoot_sound.play()
                 except:
                     pass
-                
+
                 angle_to_player = math.atan2(player.y - self.y, player.x - self.x)
-                # Shoot from enemy center height
                 bullet_z = self.z + self.height / 2
                 return Bullet(self.x, self.y, angle_to_player, False, bullet_z, 0.0)
         return None
@@ -234,12 +256,27 @@ class Enemy:
         
         if self.hit_animation > 0:
             self.hit_animation -= 1
-    
-    def update(self, player, dungeon):
-        self._try_move(dungeon)
-        bullet = self._try_shoot(player)
+
+    def update(self, player, dungeon, enemies):
+        distance_to_player = math.sqrt((player.x - self.x) ** 2 + (player.y - self.y) ** 2)
+
+        if has_line_of_sight(player, self, dungeon):
+            if distance_to_player > 4:  # Distance de tir
+                dx = player.x - self.x
+                dy = player.y - self.y
+                norm = math.sqrt(dx ** 2 + dy ** 2)
+                new_x = self.x + (dx / norm) * 0.1
+                new_y = self.y + (dy / norm) * 0.1
+
+                # Vérifier collisions avec murs et ennemis
+                if not dungeon.is_wall(new_x, new_y) and not any(math.sqrt((new_x - e.x) ** 2 + (new_y - e.y) ** 2) < 0.5 for e in enemies if e != self):
+                    self.x, self.y = new_x, new_y
+            else:
+                return self._try_shoot(player)  # Tirer si à portée
+
         self._update_animations()
-        return bullet or 0
+        return None
+
 
 # Global sprite cache
 _enemy_sprites_cache = None
@@ -363,6 +400,42 @@ def has_line_of_sight(player, enemy, dungeon):
     
     return True
 
+def find_path(dungeon, start, goal):
+    from heapq import heappop, heappush
+
+    def heuristic(a, b):
+        return abs(a[0] - b[0]) + abs(a[1] - b[1])
+
+    open_set = []
+    heappush(open_set, (0, start))
+    came_from = {}
+    g_score = {start: 0}
+    f_score = {start: heuristic(start, goal)}
+
+    while open_set:
+        _, current = heappop(open_set)
+
+        if current == goal:
+            path = []
+            while current in came_from:
+                path.append(current)
+                current = came_from[current]
+            return path[::-1]
+
+        for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+            neighbor = (current[0] + dx, current[1] + dy)
+            if dungeon.is_wall(neighbor[0], neighbor[1]):
+                continue
+
+            tentative_g_score = g_score[current] + 1
+            if neighbor not in g_score or tentative_g_score < g_score[neighbor]:
+                came_from[neighbor] = current
+                g_score[neighbor] = tentative_g_score
+                f_score[neighbor] = tentative_g_score + heuristic(neighbor, goal)
+                heappush(open_set, (f_score[neighbor], neighbor))
+
+    return []
+
 class Game:
     def __init__(self):
         pygame.init()
@@ -370,63 +443,125 @@ class Game:
         pygame.display.set_caption("Dungeon Explorer 3D")
         self.font = pygame.font.Font(None, 36)
         self.clock = pygame.time.Clock()
-        
+
         try:
             self.enemy_sprites = load_enemy_sprites()
             self.textures = load_textures()
-        except:
+            base_path = os.path.dirname(__file__) + "/assets/audio/"
+            self.potion_sound = pygame.mixer.Sound(os.path.join(base_path, "potion_pickup.wav"))  # Charger le son des potions
+            self.potion_use_sound = pygame.mixer.Sound(os.path.join(base_path, "potion_use.wav"))  # Son pour utiliser une potion
+        except Exception as e:
+            print(f"Erreur de chargement des ressources : {e}")
             self.enemy_sprites = {'orc': generate_enemy_sprite()}
             self.textures = {}
+            self.potion_sound = None
+            self.potion_use_sound = None
         
         self.dungeon = None
         self.player = None
         self.enemies = []
         self.health_potions = []
         self.bullets = []
-    
+
+        self.start_time = None  # Temps de début du niveau
+        self.enemies_killed = 0  # Compteur d'ennemis tués
+
     def setup_dungeon(self):
         self.dungeon = Dungeon(20, 20)
         self.dungeon.generate()
-    
+
+    def is_valid_potion_position(self, x, y):
+        """Vérifie si une position est valide pour placer une potion."""
+        if self.dungeon.is_wall(x, y):
+            return False
+        if abs(x - self.player.x) < 1 or abs(y - self.player.y) < 1:  # Distance réduite
+            return False
+        if any(abs(x - e.x) < 1 and abs(y - e.y) < 1 for e in self.enemies):  # Distance réduite
+            return False
+        return True
+
+    def is_near_wall(self, x, y, min_distance=2):
+        """Vérifie si une position est trop proche d'un mur."""
+        for dx in range(-min_distance, min_distance + 1):
+            for dy in range(-min_distance, min_distance + 1):
+                if self.dungeon.is_wall(x + dx, y + dy):
+                    return True
+        return False
+
+    def place_potions(self, num_potions=6, max_attempts=50):
+        """Place un nombre donné de potions dans le donjon."""
+        self.health_potions = []
+        for _ in range(num_potions):
+            for _ in range(max_attempts):
+                x, y = random.randint(1, self.dungeon.width - 2), random.randint(1, self.dungeon.height - 2)
+                if (not self.dungeon.is_wall(x, y) and not self.is_near_wall(x, y, min_distance=2) and abs(x - self.player.x) >= 1 and abs(y - self.player.y) >= 1):
+                    self.health_potions.append(HealthPotion(x, y))
+                    break
+        print(f"Potions ajoutées : {len(self.health_potions)}")
+
     def place_entities(self):
+        self.enemies_killed = 0  # Réinitialiser le compteur d'ennemis tués
         if self.dungeon.rooms:
             room = self.dungeon.rooms[0]
             self.player = Player3D(room["x"] + 1, room["y"] + 1)
         else:
             self.player = Player3D(1, 1)
-        
-        # Augmenter drastiquement la densité de monstres
+
         self.enemies = []
         available_types = get_available_enemy_types()
-        
-        # 1 ennemi par salle (sauf la première)
+        min_distance_from_player = 5  # Distance minimale entre le joueur et les monstres
+        min_distance_between_enemies = 2  # Distance minimale entre les monstres
+
+        # Placer un ennemi par salle (sauf la première)
         for room in self.dungeon.rooms[1:]:
-            # Position aléatoire dans la salle
-            x = random.randint(room["x"], room["x"] + room["w"] - 1)
-            y = random.randint(room["y"], room["y"] + room["h"] - 1)
-            self.enemies.append(Enemy(x, y, available_types=available_types))
-        
+            for _ in range(50):  # Limiter les tentatives de placement
+                x = random.randint(room["x"], room["x"] + room["w"] - 1)
+                y = random.randint(room["y"], room["y"] + room["h"] - 1)
+
+                if not (0 <= x < self.dungeon.width and 0 <= y < self.dungeon.height):
+                    continue
+                if self.dungeon.is_wall(x, y) or self.is_near_wall(x, y, min_distance=2):
+                    continue
+                if math.sqrt((x - self.player.x) ** 2 + (y - self.player.y) ** 2) < min_distance_from_player:
+                    continue
+                if any(math.sqrt((x - e.x) ** 2 + (y - e.y) ** 2) < min_distance_between_enemies for e in self.enemies):
+                    continue
+
+                self.enemies.append(Enemy(x, y, available_types=available_types))
+                break
+
         # Ajouter quelques ennemis dans les couloirs
         for _ in range(3):
-            for _ in range(100):  # Tentatives de placement
+            for _ in range(50):  # Limiter les tentatives de placement
                 x = random.randint(1, self.dungeon.width - 2)
                 y = random.randint(1, self.dungeon.height - 2)
-                if (not self.dungeon.is_wall(x, y) and 
-                    abs(x - self.player.x) >= 3 and abs(y - self.player.y) >= 3):
-                    self.enemies.append(Enemy(x, y, available_types=available_types))
-                    break
-        
-        # Plus de potions pour compenser la difficulté
+
+                if not (0 <= x < self.dungeon.width and 0 <= y < self.dungeon.height):
+                    continue
+                if self.dungeon.is_wall(x, y):
+                    continue
+                if math.sqrt((x - self.player.x) ** 2 + (y - self.player.y) ** 2) < min_distance_from_player:
+                    continue
+                if any(math.sqrt((x - e.x) ** 2 + (y - e.y) ** 2) < min_distance_between_enemies for e in self.enemies):
+                    continue
+
+                self.enemies.append(Enemy(x, y, available_types=available_types))
+                break
+
+        # Ajouter les potions
         self.health_potions = []
-        for _ in range(6):
-            for _ in range(50):
+        for _ in range(6):  # Nombre de potions à placer
+            for _ in range(50):  # Limiter les tentatives de placement
                 x, y = random.randint(1, self.dungeon.width - 2), random.randint(1, self.dungeon.height - 2)
-                if (not self.dungeon.is_wall(x, y) and 
-                    abs(x - self.player.x) >= 2 and abs(y - self.player.y) >= 2 and
-                    all(abs(x - e.x) >= 1.5 and abs(y - e.y) >= 1.5 for e in self.enemies)):
+                if (not self.dungeon.is_wall(x, y) and abs(x - self.player.x) >= 1 and abs(y - self.player.y) >= 1 and  # Distance réduite
+                        all(abs(x - e.x) >= 1 and abs(y - e.y) >= 1 for e in self.enemies)):  # Distance réduite
                     self.health_potions.append(HealthPotion(x, y))
                     break
-    
+
+        # Vérification des potions ajoutées
+        # print(f"Potions ajoutées : {[{'x': p.x, 'y': p.y} for p in self.health_potions]}")
+        print(f"Potions ajoutées : {len(self.health_potions)}")
+
     def handle_input(self, keys):
         if keys[pygame.K_z]:
             self.player.move(math.cos(self.player.angle), math.sin(self.player.angle), self.dungeon)
@@ -441,8 +576,8 @@ class Game:
         if keys[pygame.K_RIGHT]:
             self.player.move(math.cos(self.player.angle + math.pi/2), math.sin(self.player.angle + math.pi/2), self.dungeon)
         if keys[pygame.K_p]:
-            self.player.use_potion()
-    
+            self.player.use_potion(self.potion_use_sound)
+
     def update_bullets(self):
         for bullet in self.bullets[:]:
             if not bullet.update(self.dungeon):
@@ -455,24 +590,22 @@ class Game:
                         enemy.hit_animation = 10
                         self.enemies.remove(enemy)
                         self.bullets.remove(bullet)
+                        self.enemies_killed += 1  # Incrémenter le compteur ici
                         break
             else:
                 if abs(bullet.x - self.player.x) < 0.3 and abs(bullet.y - self.player.y) < 0.3:
                     self.player.take_damage(random.randint(15, 25))
                     self.bullets.remove(bullet)
-    
+
     def collect_potions(self):
         for potion in self.health_potions[:]:
             if abs(self.player.x - potion.x) < 0.5 and abs(self.player.y - potion.y) < 0.5:
                 self.player.potions += 1
                 self.health_potions.remove(potion)
-                try:
-                    pickup_sound = pygame.mixer.Sound(buffer=b'\x00\x20' * 600)
-                    pickup_sound.set_volume(0.4)
-                    pickup_sound.play()
-                except:
-                    pass
-    
+                if self.potion_sound:  # Vérifier si le son est chargé
+                    self.potion_sound.set_volume(0.4)
+                    self.potion_sound.play()
+
     def show_instructions(self):
         self.screen.fill((0, 0, 0))
         instructions = [
@@ -497,19 +630,25 @@ class Game:
             self.screen.blit(text, text_rect)
         
         pygame.display.flip()
-    
-    def show_end_screen(self, message, color):
+
+    def show_end_screen(self, message, color, enemies_killed, elapsed_time):
         self.screen.fill((0, 0, 0))
         title_text = self.font.render(message, True, color)
+        kills_text = self.font.render(f"Ennemis tués : {enemies_killed}", True, (255, 255, 255))
+        time_text = self.font.render(f"Temps écoulé : {elapsed_time}s", True, (255, 255, 255))
         restart_text = pygame.font.Font(None, 24).render("Appuyez sur R pour rejouer ou ESC pour quitter", True, (255, 255, 255))
-        
-        title_rect = title_text.get_rect(center=(400, 280))
-        restart_rect = restart_text.get_rect(center=(400, 320))
-        
+
+        title_rect = title_text.get_rect(center=(400, 240))
+        kills_rect = kills_text.get_rect(center=(400, 280))
+        time_rect = time_text.get_rect(center=(400, 320))
+        restart_rect = restart_text.get_rect(center=(400, 360))
+
         self.screen.blit(title_text, title_rect)
+        self.screen.blit(kills_text, kills_rect)
+        self.screen.blit(time_text, time_rect)
         self.screen.blit(restart_text, restart_rect)
         pygame.display.flip()
-        
+
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
@@ -517,97 +656,67 @@ class Game:
                     return False
                 elif event.type == pygame.KEYDOWN and event.key == pygame.K_r:
                     return True
-    
+
     def render_3d(self):
         width, height = self.screen.get_size()
-        
         self.screen.fill((50, 50, 100))
-        pygame.draw.rect(self.screen, (100, 50, 0), (0, height//2, width, height//2))
-        
-        for x in range(0, width, 2):
-            angle = self.player.angle - self.player.fov/2 + (x / width) * self.player.fov
-            distance, hit_x, hit_y = cast_ray(self.player, angle, self.dungeon)
-            
-            distance *= math.cos(angle - self.player.angle)
-            
-            if distance > 0:
-                wall_height = int(height / (distance + 0.1))
-                wall_top = (height - wall_height) // 2
-                wall_bottom = wall_top + wall_height
-                
-                wall_x = hit_x - math.floor(hit_x)
-                if abs(math.cos(angle)) > abs(math.sin(angle)):
-                    wall_x = hit_y - math.floor(hit_y)
-                
-                base_color = 120 if int(wall_x * 8) % 2 == 0 else 100
-                brightness = max(50, 255 - int(distance * 12))
-                color = (min(255, base_color + brightness//3), min(255, base_color//2 + brightness//4), min(255, base_color//3 + brightness//5))
-                
-                pygame.draw.line(self.screen, color, (x, wall_top), (x, wall_bottom), 2)
-        
-        # Render entities
-        for enemy in self.enemies:
+        pygame.draw.rect(self.screen, (100, 50, 0), (0, height // 2, width, height // 2))
+
+        def render_walls():
+            for x in range(0, width, 2):
+                angle = self.player.angle - self.player.fov / 2 + (x / width) * self.player.fov
+                distance, hit_x, hit_y = cast_ray(self.player, angle, self.dungeon)
+                distance *= math.cos(angle - self.player.angle)
+                if distance > 0:
+                    wall_height = int(height / (distance + 0.1))
+                    wall_top = (height - wall_height) // 2
+                    wall_bottom = wall_top + wall_height
+                    wall_x = hit_x - math.floor(hit_x)
+                    if abs(math.cos(angle)) > abs(math.sin(angle)):
+                        wall_x = hit_y - math.floor(hit_y)
+                    base_color = 120 if int(wall_x * 8) % 2 == 0 else 100
+                    brightness = max(50, 255 - int(distance * 12))
+                    color = (min(255, base_color + brightness // 3), min(255, base_color // 2 + brightness // 4), min(255, base_color // 3 + brightness // 5))
+                    pygame.draw.line(self.screen, color, (x, wall_top), (x, wall_bottom), 2)
+
+        def render_entity(enemy):
             dx = enemy.x - self.player.x
             dy = enemy.y - self.player.y
-            distance = math.sqrt(dx*dx + dy*dy)
-            
+            distance = math.sqrt(dx * dx + dy * dy)
             if distance < 10:
                 enemy_angle = math.atan2(dy, dx)
                 angle_diff = enemy_angle - self.player.angle
-                
                 while angle_diff > math.pi:
                     angle_diff -= 2 * math.pi
                 while angle_diff < -math.pi:
                     angle_diff += 2 * math.pi
-                
                 if abs(angle_diff) < self.player.fov / 2 and has_line_of_sight(self.player, enemy, self.dungeon):
-                    screen_x = int(width/2 + (angle_diff / (self.player.fov/2)) * width/2)
-                    
-                    # Récupérer le sprite original pour connaître sa taille
+                    screen_x = int(width / 2 + (angle_diff / (self.player.fov / 2)) * width / 2)
                     sprite_surface = self.enemy_sprites.get(enemy.enemy_type, self.enemy_sprites.get('orc', generate_enemy_sprite()))
                     original_width, original_height = sprite_surface.get_size()
                     aspect_ratio = original_width / original_height
-                    
-                    # Calcul de perspective basé sur la taille réelle de l'ennemi (AGRANDI)
-                    real_height = enemy.height  # 2.2 unités
+                    real_height = enemy.height
                     perspective_scale = 1.0 / (distance + 0.1)
-                    # Facteur d'agrandissement: 200 au lieu de 100
                     screen_height_px = max(40, int(real_height * 200 * perspective_scale))
                     screen_width_px = int(screen_height_px * aspect_ratio)
-                    
-                    # Calcul correct de la perspective verticale
-                    eye_level_y = height // 2  # Niveau des yeux du joueur
-                    
-                    # Calcul de la perspective verticale basée sur la distance
-                    # Plus l'objet est loin, plus il apparaît vers l'horizon (eye_level_y)
+                    eye_level_y = height // 2
                     vertical_offset = int(self.player.eye_height * VERTICAL_PERSPECTIVE_FACTOR / (distance + 0.1))
                     ground_level_y = eye_level_y + vertical_offset
-                    
-                    # Position au sol: bas du sprite au niveau calculé
-                    sprite_y = ground_level_y - screen_height_px  # Haut du sprite
+                    sprite_y = ground_level_y - screen_height_px
                     sprite_x = screen_x - screen_width_px // 2
-
                     if 0 <= screen_x < width and screen_height_px > 10:
                         scaled_sprite = pygame.transform.scale(sprite_surface, (screen_width_px, screen_height_px))
-                        
                         brightness = max(0.3, 1.0 - distance / 10)
                         dark_sprite = scaled_sprite.copy()
-                        
                         if enemy.hit_animation > 0:
                             hit_intensity = enemy.hit_animation / 10.0
                             red_tint = (255, int(100 * hit_intensity), int(100 * hit_intensity))
                             dark_sprite.fill(red_tint, special_flags=pygame.BLEND_MULT)
                         else:
                             dark_sprite.fill((int(255 * brightness), int(255 * brightness), int(255 * brightness)), special_flags=pygame.BLEND_MULT)
-                        
                         self.screen.blit(dark_sprite, (sprite_x, sprite_y))
-                        
-                        # DEBUG: Dessiner les niveaux et contour
-                        pygame.draw.circle(self.screen, (0, 255, 255), (screen_x, eye_level_y), 2)  # Cyan = yeux
-                        pygame.draw.circle(self.screen, (255, 0, 0), (screen_x, ground_level_y), 3)  # Rouge = sol
-                        # pygame.draw.rect(self.screen, (255, 0, 0), (sprite_x, sprite_y, screen_width_px, screen_height_px), 1)
-                        
-                        # Afficher distance aux pieds du monstre
+                        pygame.draw.circle(self.screen, (0, 255, 255), (screen_x, eye_level_y), 2)
+                        pygame.draw.circle(self.screen, (255, 0, 0), (screen_x, ground_level_y), 3)
                         font = pygame.font.Font(None, 20)
                         dist_text = f"d={distance:.1f}"
                         text_surface = font.render(dist_text, True, (255, 255, 0))
@@ -615,165 +724,133 @@ class Game:
                         text_y = ground_level_y + 5
                         self.screen.blit(text_surface, (text_x, text_y))
 
-        # Render health potions
-        for potion in self.health_potions:
+        def render_potion(potion):
             dx = potion.x - self.player.x
             dy = potion.y - self.player.y
-            distance = math.sqrt(dx*dx + dy*dy)
-            
+            distance = math.sqrt(dx * dx + dy * dy)
             if distance < 8:
                 potion_angle = math.atan2(dy, dx)
                 angle_diff = potion_angle - self.player.angle
-                
                 while angle_diff > math.pi:
                     angle_diff -= 2 * math.pi
                 while angle_diff < -math.pi:
                     angle_diff += 2 * math.pi
-                
                 if abs(angle_diff) < self.player.fov / 2 and has_line_of_sight(self.player, potion, self.dungeon):
-                    screen_x = int(width/2 + (angle_diff / (self.player.fov/2)) * width/2)
-                    # Calcul de perspective pour potion (0.3 unités de haut) - AGRANDI
+                    screen_x = int(width / 2 + (angle_diff / (self.player.fov / 2)) * width / 2)
                     real_height = 0.3
                     perspective_scale = 1.0 / (distance + 0.1)
-                    # Facteur d'agrandissement: 200 au lieu de 100
                     potion_size = max(20, int(real_height * 200 * perspective_scale))
-                    
-                    # Position au sol comme les ennemis (avec perspective)
                     eye_level_y = height // 2
                     vertical_offset = int(self.player.eye_height * VERTICAL_PERSPECTIVE_FACTOR / (distance + 0.1))
                     ground_level_y = eye_level_y + vertical_offset
                     sprite_bottom = ground_level_y
                     potion_y = sprite_bottom - potion_size
-                    
-                    # DEBUG: Vérifications de perspective pour potions
-                    expected_size_at_1m = real_height * 200  # 60 pixels à 1m
-                    actual_ratio = potion_size / expected_size_at_1m if expected_size_at_1m > 0 else 0
-                    ground_check = potion_y + potion_size == ground_level_y
-                    
-                    # print(f"Potion: pos=({potion.x:.1f},{potion.y:.1f},z={potion.z:.1f}) dist={distance:.1f}")
-                    # print(f"  Size: {potion_size}px (expected@1m: {expected_size_at_1m:.0f}px, ratio: {actual_ratio:.2f})")
-                    # print(f"  Levels: eye={eye_level_y} ground={ground_level_y} sprite_bottom={potion_y + potion_size} ground_ok={ground_check}")
-                    
                     if 0 <= screen_x < width and potion_size > 5:
-                        # Dessiner la potion au sol (croix verte)
-                        pygame.draw.circle(self.screen, (0, 255, 0), (screen_x, potion_y + potion_size//2), potion_size//3)
-                        pygame.draw.line(self.screen, (255, 255, 255), 
-                                       (screen_x - potion_size//4, potion_y + potion_size//2), 
-                                       (screen_x + potion_size//4, potion_y + potion_size//2), 3)
-                        pygame.draw.line(self.screen, (255, 255, 255), 
-                                       (screen_x, potion_y + potion_size//2 - potion_size//4), 
-                                       (screen_x, potion_y + potion_size//2 + potion_size//4), 3)
-                        
-                        # DEBUG: Points pour marquer les niveaux
-                        pygame.draw.circle(self.screen, (0, 255, 255), (screen_x, eye_level_y), 2)  # Cyan = yeux
-                        pygame.draw.circle(self.screen, (0, 0, 255), (screen_x, ground_level_y), 2)  # Bleu = sol potion
-        
-        # Render bullets
-        for bullet in self.bullets:
+                        pygame.draw.circle(self.screen, (0, 255, 0), (screen_x, potion_y + potion_size // 2), potion_size // 3)
+                        pygame.draw.line(self.screen, (255, 255, 255), (screen_x - potion_size // 4, potion_y + potion_size // 2), (screen_x + potion_size // 4, potion_y + potion_size // 2), 3)
+                        pygame.draw.line(self.screen, (255, 255, 255), (screen_x, potion_y + potion_size // 2 - potion_size // 4), (screen_x, potion_y + potion_size // 2 + potion_size // 4), 3)
+                        pygame.draw.circle(self.screen, (0, 255, 255), (screen_x, eye_level_y), 2)
+                        pygame.draw.circle(self.screen, (0, 0, 255), (screen_x, ground_level_y), 2)
+
+        def render_bullet(bullet):
             dx = bullet.x - self.player.x
             dy = bullet.y - self.player.y
-            distance = math.sqrt(dx*dx + dy*dy)
-            
+            distance = math.sqrt(dx * dx + dy * dy)
             if distance < 8:
                 bullet_angle = math.atan2(dy, dx)
                 angle_diff = bullet_angle - self.player.angle
-                
                 while angle_diff > math.pi:
                     angle_diff -= 2 * math.pi
                 while angle_diff < -math.pi:
                     angle_diff += 2 * math.pi
-                
                 if abs(angle_diff) < self.player.fov / 2:
-                    screen_x = int(width/2 + (angle_diff / (self.player.fov/2)) * width/2)
+                    screen_x = int(width / 2 + (angle_diff / (self.player.fov / 2)) * width / 2)
                     bullet_size = max(3, int(20 / (distance + 0.1)))
-                    bullet_y = height//2
-                    
+                    bullet_y = height // 2
                     if 0 <= screen_x < width:
                         bullet_color = (255, 255, 0) if bullet.is_player_bullet else (255, 100, 100)
                         pygame.draw.circle(self.screen, bullet_color, (screen_x, bullet_y), bullet_size)
-        
-        # DEBUG: Afficher position du joueur
-        debug_font = pygame.font.Font(None, 24)
-        player_debug = debug_font.render(f"Player: ({self.player.x:.1f}, {self.player.y:.1f}, {self.player.z:.1f})", True, (255, 255, 0))
-        self.screen.blit(player_debug, (10, height - 60))
-        
-        enemy_count = debug_font.render(f"Enemies visible: {len([e for e in self.enemies if math.sqrt((e.x-self.player.x)**2 + (e.y-self.player.y)**2) < 10])}", True, (255, 255, 0))
-        self.screen.blit(enemy_count, (10, height - 40))
-        
-        # UI elements
-        health_bar_width = 200
-        health_bar_height = 20
-        health_x = width - health_bar_width - 10
-        health_y = 10
-        
-        pygame.draw.rect(self.screen, (100, 0, 0), (health_x, health_y, health_bar_width, health_bar_height))
-        
-        health_ratio = self.player.hp / self.player.max_hp
-        health_width = int(health_bar_width * health_ratio)
-        pygame.draw.rect(self.screen, (0, 255, 0), (health_x, health_y, health_width, health_bar_height))
-        
-        pygame.draw.rect(self.screen, (255, 255, 255), (health_x, health_y, health_bar_width, health_bar_height), 2)
-        
-        font = pygame.font.Font(None, 24)
-        hp_text = font.render(f"HP: {self.player.hp}/{self.player.max_hp}", True, (255, 255, 255))
-        self.screen.blit(hp_text, (health_x, health_y + health_bar_height + 5))
-        
-        potion_text = font.render(f"Potions: {self.player.potions}", True, (0, 255, 0))
-        self.screen.blit(potion_text, (health_x - 120, health_y + 5))
-        
-        # Crosshair
-        center_x, center_y = width // 2, height // 2
-        crosshair_size = 10
-        crosshair_color = (255, 255, 255) if self.player.shoot_cooldown == 0 else (255, 0, 0)
-        
-        pygame.draw.line(self.screen, crosshair_color, 
-                        (center_x - crosshair_size, center_y), 
-                        (center_x + crosshair_size, center_y), 2)
-        pygame.draw.line(self.screen, crosshair_color, 
-                        (center_x, center_y - crosshair_size), 
-                        (center_x, center_y + crosshair_size), 2)
-        
-        # Player shoot flash animation
-        if self.player.shoot_flash > 0:
-            flash_intensity = self.player.shoot_flash / 8.0
-            flash_size = int(30 * flash_intensity)
-            flash_color = (255, int(255 * flash_intensity), 0)
-            
-            pygame.draw.circle(self.screen, flash_color, (center_x, center_y), flash_size//2)
-            
-            for i in range(5):
-                particle_x = center_x + random.randint(-flash_size, flash_size)
-                particle_y = center_y + random.randint(-flash_size//2, flash_size//2)
-                particle_size = max(1, int(flash_size//4 * flash_intensity))
-                pygame.draw.circle(self.screen, (255, 200, 0), (particle_x, particle_y), particle_size)
-    
+
+        def render_player_ui():
+            debug_font = pygame.font.Font(None, 24)
+            player_debug = debug_font.render(f"Player: ({self.player.x:.1f}, {self.player.y:.1f}, {self.player.z:.1f})", True, (255, 255, 0))
+            self.screen.blit(player_debug, (10, height - 60))
+            enemy_count = debug_font.render(f"Enemies visible: {len([e for e in self.enemies if math.sqrt((e.x - self.player.x) ** 2 + (e.y - self.player.y) ** 2) < 10])}", True, (255, 255, 0))
+            self.screen.blit(enemy_count, (10, height - 40))
+            health_bar_width = 200
+            health_bar_height = 20
+            health_x = width - health_bar_width - 10
+            health_y = 10
+            pygame.draw.rect(self.screen, (100, 0, 0), (health_x, health_y, health_bar_width, health_bar_height))
+            health_ratio = self.player.hp / self.player.max_hp
+            health_width = int(health_bar_width * health_ratio)
+            pygame.draw.rect(self.screen, (0, 255, 0), (health_x, health_y, health_width, health_bar_height))
+            pygame.draw.rect(self.screen, (255, 255, 255), (health_x, health_y, health_bar_width, health_bar_height), 2)
+            font = pygame.font.Font(None, 24)
+            hp_text = font.render(f"HP: {self.player.hp}/{self.player.max_hp}", True, (255, 255, 255))
+            self.screen.blit(hp_text, (health_x, health_y + health_bar_height + 5))
+            potion_text = font.render(f"Potions: {self.player.potions}", True, (0, 255, 0))
+            self.screen.blit(potion_text, (health_x - 120, health_y + 5))
+            center_x, center_y = width // 2, height // 2
+            crosshair_size = 10
+            crosshair_color = (255, 255, 255) if self.player.shoot_cooldown == 0 else (255, 0, 0)
+            pygame.draw.line(self.screen, crosshair_color, (center_x - crosshair_size, center_y), (center_x + crosshair_size, center_y), 2)
+            pygame.draw.line(self.screen, crosshair_color, (center_x, center_y - crosshair_size), (center_x, center_y + crosshair_size), 2)
+            if self.player.shoot_flash > 0:
+                flash_intensity = self.player.shoot_flash / 8.0
+                flash_size = int(30 * flash_intensity)
+                flash_color = (255, int(255 * flash_intensity), 0)
+                pygame.draw.circle(self.screen, flash_color, (center_x, center_y), flash_size // 2)
+                for i in range(5):
+                    particle_x = center_x + random.randint(-flash_size, flash_size)
+                    particle_y = center_y + random.randint(-flash_size // 2, flash_size // 2)
+                    particle_size = max(1, int(flash_size // 4 * flash_intensity))
+                    pygame.draw.circle(self.screen, (255, 200, 0), (particle_x, particle_y), particle_size)
+
+        render_walls()
+        for enemy in self.enemies:
+            render_entity(enemy)
+        for potion in self.health_potions:
+            render_potion(potion)
+        for bullet in self.bullets:
+            render_bullet(bullet)
+        render_player_ui()
+
     def draw_minimap(self):
         mini_size = 150
         mini_scale = mini_size / max(self.dungeon.width, self.dungeon.height)
-        pygame.draw.rect(self.screen, (0, 0, 0, 128), (10, 10, mini_size, mini_size))
-        
+        pygame.draw.rect(self.screen, (0, 0, 0), (10, 10, mini_size, mini_size))
+
+        # Dessiner les murs
         for y in range(self.dungeon.height):
             for x in range(self.dungeon.width):
                 if self.dungeon.grid[y][x] != 0:
-                    pygame.draw.rect(self.screen, (100, 100, 100), 
-                                   (10 + x * mini_scale, 10 + y * mini_scale, mini_scale, mini_scale))
-        
+                    pygame.draw.rect(self.screen, (100, 100, 100), (10 + x * mini_scale, 10 + y * mini_scale, mini_scale, mini_scale))
+
+        # Dessiner le joueur
         player_map_x = int(10 + self.player.x * mini_scale)
         player_map_y = int(10 + self.player.y * mini_scale)
         pygame.draw.circle(self.screen, (255, 255, 0), (player_map_x, player_map_y), 3)
-        
-        end_x = player_map_x + int(math.cos(self.player.angle) * 8)
-        end_y = player_map_y + int(math.sin(self.player.angle) * 8)
-        pygame.draw.line(self.screen, (255, 255, 255), (player_map_x, player_map_y), (end_x, end_y), 2)
-        
+
+        # Dessiner les ennemis
         for enemy in self.enemies:
-            pygame.draw.circle(self.screen, (255, 0, 0), 
-                              (int(10 + enemy.x * mini_scale), int(10 + enemy.y * mini_scale)), 2)
-        
+            enemy_map_x = int(10 + enemy.x * mini_scale)
+            enemy_map_y = int(10 + enemy.y * mini_scale)
+            pygame.draw.circle(self.screen, (255, 0, 0), (enemy_map_x, enemy_map_y), 2)
+
+        # Dessiner les potions
         for potion in self.health_potions:
-            pygame.draw.circle(self.screen, (0, 255, 0), 
-                              (int(10 + potion.x * mini_scale), int(10 + potion.y * mini_scale)), 2)
-    
+            potion_map_x = int(10 + potion.x * mini_scale)
+            potion_map_y = int(10 + potion.y * mini_scale)
+            pygame.draw.circle(self.screen, (0, 255, 0), (potion_map_x, potion_map_y), 2)
+
+        # Afficher le temps écoulé et les ennemis tués
+        elapsed_time = (pygame.time.get_ticks() - self.start_time) // 1000
+        time_text = pygame.font.Font(None, 20).render(f"Temps: {elapsed_time}s", True, (255, 255, 255))
+        kills_text = pygame.font.Font(None, 20).render(f"Tués: {self.enemies_killed}", True, (255, 255, 255))
+        self.screen.blit(time_text, (10 + mini_size + 10, 10))
+        self.screen.blit(kills_text, (10 + mini_size + 10, 30))
+
     def run(self):
         self.show_instructions()
         waiting = True
@@ -788,7 +865,8 @@ class Game:
         self.setup_dungeon()
         self.place_entities()
         self.bullets = []
-        
+        self.start_time = pygame.time.get_ticks()  # Enregistrer le temps de début
+
         running = True
         while running:
             keys = pygame.key.get_pressed()
@@ -803,29 +881,31 @@ class Game:
                         self.bullets.append(bullet)
             
             self.handle_input(keys)
-            
+
             if not self.enemies:
-                if self.show_end_screen("VICTOIRE! Tous les ennemis éliminés!", (0, 255, 0)):
+                elapsed_time = (pygame.time.get_ticks() - self.start_time) // 1000
+                if self.show_end_screen("VICTOIRE! Tous les ennemis éliminés!", (0, 255, 0), self.enemies_killed, elapsed_time):
                     return self.run()
                 return
-            
+
             self.player.update()
             self.collect_potions()
             self.update_bullets()
             
             for enemy in self.enemies:
-                bullet = enemy.update(self.player, self.dungeon)
+                bullet = enemy.update(self.player, self.dungeon, self.enemies)
                 if bullet:
                     self.bullets.append(bullet)
-            
+
             if self.player.hp <= 0:
-                if self.show_end_screen("VOUS ÊTES MORT!", (255, 0, 0)):
+                elapsed_time = (pygame.time.get_ticks() - self.start_time) // 1000
+                if self.show_end_screen("VOUS ÊTES MORT!", (255, 0, 0), self.enemies_killed, elapsed_time):
                     return self.run()
                 return
             
             self.render_3d()
             self.draw_minimap()
-            
+
             pygame.display.flip()
             self.clock.tick(60)
         
