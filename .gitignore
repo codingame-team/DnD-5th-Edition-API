@@ -7,3 +7,5 @@
 /dist/
 /wiz_fan_club/
 /training/
+__pycache__/
+*.pyc
