@@ -245,8 +245,8 @@ class Combat_UI(QMainWindow):
                             else:
                                 attacker.cast_heal(action.spell, best_slot_level, self.party)
                                 self.cprint(f"{color.GREEN}{attacker.name}{color.END} casts {action.spell.name} on PARTY!")
-                            if not action.spell.is_cantrip:
-                                attacker.update_spell_slots(action.spell, best_slot_level)
+                        if not action.spell.is_cantrip:
+                            attacker.update_spell_slots(action.spell, best_slot_level)
                     if monster.hit_points <= 0:
                         alive_monsters.remove(monster)
                         self.cprint(f"{color.RED}{monster.name.title()}{color.END} is ** KILLED **!")
@@ -409,6 +409,7 @@ class Combat_UI(QMainWindow):
                             action = f"{spell.name} {targets}"
                         self.update_cell(content=action, row=self.index, col=self.action_column)
                     break
+        self.move_to_next_row()
 
     def on_spell_selected(self, current_box, all_boxes):
         """Clear other comboboxes when one is selected"""
@@ -468,6 +469,7 @@ class Combat_UI(QMainWindow):
         """Update the action column in the party table"""
         self.party_table.setItem(row, col, QTableWidgetItem(content))
         self.party_table.resizeColumnToContents(col)
+        # self.move_to_next_row()
 
     def refresh_party_table(self):
         """Setup and populate the party table"""
