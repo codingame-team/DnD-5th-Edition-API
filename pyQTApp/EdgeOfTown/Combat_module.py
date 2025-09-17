@@ -350,7 +350,6 @@ class Combat_UI(QMainWindow):
     def parry(self):
         self.actions[self.index] = CharAction(type=CharActionType.PARRY)
         self.update_cell(content='PARRY', row=self.index, col=self.action_column)
-        self.move_to_next_row()
 
     @pyqtSlot()
     def cast_spell(self):
@@ -409,7 +408,6 @@ class Combat_UI(QMainWindow):
                             action = f"{spell.name} {targets}"
                         self.update_cell(content=action, row=self.index, col=self.action_column)
                     break
-        self.move_to_next_row()
 
     def on_spell_selected(self, current_box, all_boxes):
         """Clear other comboboxes when one is selected"""
@@ -434,7 +432,6 @@ class Combat_UI(QMainWindow):
         if select_dialog.exec_():
             selected_row = ui.party_tableWidget.currentRow()
             return [self.party[selected_row]]
-        self.move_to_next_row()
 
     @pyqtSlot()
     def select_monsters(self, action_type: CharActionType, spell: Optional[Spell] = None):
@@ -463,13 +460,12 @@ class Combat_UI(QMainWindow):
                 return
         self.actions[self.index] = CharAction(type=action_type, targets=targets, spell=spell)
         self.update_cell(content=action, row=self.index, col=self.action_column)
-        self.move_to_next_row()
 
     def update_cell(self, content: str, row: int, col: int):
         """Update the action column in the party table"""
         self.party_table.setItem(row, col, QTableWidgetItem(content))
         self.party_table.resizeColumnToContents(col)
-        # self.move_to_next_row()
+        self.move_to_next_row()
 
     def refresh_party_table(self):
         """Setup and populate the party table"""
