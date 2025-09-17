@@ -1268,7 +1268,6 @@ class Character(Sprite):
 
     def get_best_slot_level(self, heal_spell: Spell, target: Character) -> int:
         max_slot_level = max(i for i, slot in enumerate(self.sc.spell_slots) if slot)
-        # cprint(f'heal spell: {heal_spell} - max_slot_level: {max_slot_level}')
         best_slot_level = None
         max_score = 0
         for slot_level in range(heal_spell.level - 1, max_slot_level + 1):
