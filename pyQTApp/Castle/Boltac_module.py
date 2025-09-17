@@ -175,15 +175,15 @@ class Boltac_UI(QWidget):
             if c != self.selected_char:
                 c.gold = 0
             save_character(char=c, _dir=self.characters_dir)
-        self.ui.character_label.setText(f'{self.selected_char.name} - Gold: {self.selected_char.gold} gp')
+        self.ui.character_label.setText(f'{self.selected_char.name} - Gold: {self.selected_char.gold:g} gp')
 
     @pyqtSlot()  # For button click
     def divvy_gold(self):
         total_gold: int = sum([c.gold for c in self.party])
         for c in self.party:
-            c.gold = total_gold // len(self.party)
+            c.gold = total_gold / len(self.party)
             save_character(char=c, _dir=self.characters_dir)
-        self.ui.character_label.setText(f'{self.selected_char.name} - Gold: {self.selected_char.gold} gp')
+        self.ui.character_label.setText(f'{self.selected_char.name} - Gold: {self.selected_char.gold:g} gp')
 
     @pyqtSlot()  # For button click
     def leave_boltac(self):
