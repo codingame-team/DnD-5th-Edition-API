@@ -41,7 +41,7 @@ class Tavern_UI(QWidget):
 
         # Populate roster
         self.roster: List[Character] = get_roster(characters_dir)
-        self.roster = [c for c in self.roster if c not in self.castle_window.party]
+        self.roster = [c for c in self.roster if c not in self.castle_window.party and c.status == 'OK']
         # debug(f"{len(self.roster)} characters in roster: \n{'\n'.join(map(str, self.roster))}")
         self.tg_table: QTableWidget = self.ui.gilgameshTavern_tableWidget
         # Make table expand to fill container
