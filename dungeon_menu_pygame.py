@@ -1,12 +1,11 @@
 import pygame
 import sys
-import subprocess
 import multiprocessing as mp
 from enum import Enum
 from typing import List
 import os
 
-from dao_classes import Character, color
+from dao_classes import Character
 from dungeon_pygame import save_character_gamestate, Game
 from main import get_roster, save_character
 from tools.cheat_functions import raise_dead_roster

@@ -6,16 +6,27 @@ from random import randint, choice, sample
 from typing import List, Optional
 
 from PyQt5.QtCore import Qt, QObject, QEvent, pyqtSlot, QTimer
-from PyQt5.QtGui import QPixmap, QCursor, QColor
-from PyQt5.QtWidgets import (QMainWindow, QTableWidget, QHeaderView, QSizePolicy, QToolTip, QFrame, QDialog, QTableWidgetItem, QLabel, QWidget, QVBoxLayout, QPushButton, )
+from PyQt5.QtGui import QPixmap, QCursor
+from PyQt5.QtWidgets import (
+    QMainWindow,
+    QTableWidget,
+    QHeaderView,
+    QSizePolicy,
+    QToolTip,
+    QFrame,
+    QDialog,
+    QLabel,
+    QWidget,
+    QVBoxLayout,
+    QPushButton,
+    QTableWidgetItem,
+)
 
 from dao_classes import Character, Monster, CharAction, ActionType, CharActionType, Spell, SpecialAbility, RangeType, Action
 from main import (load_party, generate_encounter_levels, generate_encounter, load_encounter_table, load_encounter_gold_table, )
 from populate_functions import populate, request_monster
 from pyQTApp.common import color
 from pyQTApp.qt_designer_widgets.combat_QFrame import Ui_combatFrame
-from pyQTApp.qt_designer_widgets.combat_select_Dialog import Ui_combatSelectDialog
-
 from pyQTApp.qt_designer_widgets.edgeOfTownWindow import Ui_EdgeOfTownWindow
 from pyQTApp.qt_common import populate_table, populate_monsters_table
 from pyQTApp.qt_designer_widgets.monsters_select_Dialog import Ui_monsters_select_Dialog
@@ -72,7 +83,8 @@ class Combat_UI(QMainWindow):
         self.monsters = self.load_monsters()
         self.display_monsters_groups()
         self.ui.char_actions_groupBox.setVisible(True)
-        self.ui.fightButton.clicked.connect(partial(self.select_monsters, action_type=CharActionType.MELEE_ATTACK))
+        # Connect fight button to prepare_action so user can click a token to pick the group
+        self.ui.fightButton.clicked.connect(lambda: self.prepare_action(CharActionType.MELEE_ATTACK))
         self.ui.castButton.clicked.connect(self.cast_spell)
         self.ui.parryButton.clicked.connect(self.parry)
         self.party_table.itemSelectionChanged.connect(self.on_party_row_selected)
@@ -82,6 +94,8 @@ class Combat_UI(QMainWindow):
         self.party_table.setCurrentCell(self.index, self.action_column)
         self.setup_events_area()
         self.round_num = 0
+        # Pending action holds a tuple (action_type, spell) when user pressed an action button and awaits target click
+        self.pending_action = None
         # self.exec()
 
     def setup_events_area(self):
@@ -156,11 +170,16 @@ class Combat_UI(QMainWindow):
                         ranged_chars: List[Character] = [c for i, c in enumerate(alive_chars) if i >= 3]
                         if not melee_chars + ranged_chars:
                             break
-                        # Precalculate ready spells & special attacks
+                        # Precompute castable spells safely
+                        castable_spells: List[Spell] = []
                         if attacker.is_spell_caster:
                             cantric_spells: List[Spell] = [s for s in attacker.sc.learned_spells if not s.level and s.damage_type]
-                            slot_spells: List[Spell] = [s for s in attacker.sc.learned_spells if s.level and attacker.sc.spell_slots[s.level - 1] > 0 and s.damage_type]
-                            castable_spells: List[Spell] = cantric_spells + slot_spells
+                            slot_spells: List[Spell] = [
+                                s
+                                for s in attacker.sc.learned_spells
+                                if s.level and attacker.sc.spell_slots[s.level - 1] > 0 and s.damage_type
+                            ]
+                            castable_spells = cantric_spells + slot_spells
                         if attacker.sa and self.round_num > 0:  # ou 1? (à vérifier)
                             for special_attack in attacker.sa:
                                 if special_attack.recharge_on_roll:
@@ -200,7 +219,7 @@ class Combat_UI(QMainWindow):
                                     target_char.hit_points -= attacker.special_attack(target_char, special_attack)
                                     if target_char.hit_points <= 0:
                                         # cprint('/'.join([c.name for c in alive_chars]))
-                                        # cprint(f'removing {char.name}')
+                                        # cprint(f'removing {char.name}');
                                         alive_chars.remove(target_char)
                                         target_char.status = "DEAD"
                                         self.cprint(f"{target_char.name} is ** KILLED **!")
@@ -237,8 +256,10 @@ class Combat_UI(QMainWindow):
                             attacker.update_spell_slots(spell=action.spell)
                         self.cprint(f"{color.GREEN}{attacker.name}{color.END} casts {action.spell.name} on {monster.name.title()}!")
                     elif action.type == CharActionType.SPELL_DEFENSE:
+                        # Ensure best_slot_level exists even if loop doesn't run
+                        best_slot_level = 0
                         for char in action.targets:
-                            best_slot_level: int = attacker.get_best_slot_level(heal_spell=action.spell, target=char)
+                            best_slot_level = attacker.get_best_slot_level(heal_spell=action.spell, target=char)
                             if action.spell.range == 5:
                                 attacker.cast_heal(action.spell, best_slot_level, [char])
                                 self.cprint(f"{color.GREEN}{attacker.name}{color.END} casts {action.spell.name} on {char.name}!")
@@ -292,10 +313,11 @@ class Combat_UI(QMainWindow):
                 if item:
                     if char.hit_points <= 0:
                         # Remove selectable flag but keep item visible and enabled
-                        item.setFlags(item.flags() & ~Qt.ItemIsSelectable)
+                        # Cast to Qt.ItemFlags to satisfy type checkers
+                        item.setFlags(Qt.ItemFlags(int(item.flags()) & ~int(Qt.ItemIsSelectable)))
                     else:
                         # Restore normal flags (selectable, enabled, editable if it was)
-                        item.setFlags(Qt.ItemIsEnabled | Qt.ItemIsSelectable)
+                        item.setFlags(Qt.ItemFlags(int(Qt.ItemIsEnabled) | int(Qt.ItemIsSelectable)))
 
     @pyqtSlot()
     def flee(self):
@@ -396,7 +418,7 @@ class Combat_UI(QMainWindow):
                     debug(spell)
                     if not hasattr(spell, 'heal_at_slot_level') or not spell.heal_at_slot_level:
                         # debug(f"spell {spell.name} is not a healing spell")
-                        self.select_monsters(action_type=CharActionType.SPELL_ATTACK, spell=spell)
+                        self.prepare_action(action_type=CharActionType.SPELL_ATTACK, spell=spell)
                     else:
                         # debug(f"spell {spell.name} is a healing spell")
                         targets: List[Character] = self.select_characters() if spell.range == 5 else self.party
@@ -432,6 +454,7 @@ class Combat_UI(QMainWindow):
         if select_dialog.exec_():
             selected_row = ui.party_tableWidget.currentRow()
             return [self.party[selected_row]]
+        return []
 
     @pyqtSlot()
     def select_monsters(self, action_type: CharActionType, spell: Optional[Spell] = None):
@@ -463,9 +486,65 @@ class Combat_UI(QMainWindow):
 
     def update_cell(self, content: str, row: int, col: int):
         """Update the action column in the party table"""
+        # Guard against invalid indices (table may be reconfigured)
+        if row < 0 or col < 0:
+            debug(f"update_cell: invalid row/col {row}/{col}")
+            return
+        if row >= self.party_table.rowCount() or col >= self.party_table.columnCount():
+            debug(f"update_cell: indices out of range ({row}/{self.party_table.rowCount() - 1}), ({col}/{self.party_table.columnCount() - 1})")
+            return
         self.party_table.setItem(row, col, QTableWidgetItem(content))
-        self.party_table.resizeColumnToContents(col)
+        try:
+            self.party_table.resizeColumnToContents(col)
+        except Exception:
+            pass
+        # Advance to next living character row
         self.move_to_next_row()
+
+    def prepare_action(self, action_type: CharActionType, spell: Optional[Spell] = None):
+        """Set a pending action and allow the user to click a monster token to select the group.
+        If only one monster group exists, behave as before and assign immediately.
+        """
+        if not hasattr(self, 'monsters_dict') or not self.monsters_dict:
+            # No monsters available
+            self.cprint("No monsters to target")
+            return
+        if len(self.monsters_dict) == 1:
+            # Only one group: perform selection immediately
+            self.select_monsters(action_type, spell)
+            return
+        # Multiple groups: set pending action and give user feedback
+        self.pending_action = (action_type, spell)
+        self.cprint(f"Click on a monster token to target (action: {action_type.value if action_type == CharActionType.MELEE_ATTACK else (spell.name if spell else 'SPELL')})")
+        # Optionally highlight labels to show they are clickable
+        for lbl_name in ("monster_1_Label", "monster_2_Label"):
+            lbl = getattr(self.ui, lbl_name, None)
+            if lbl and not (lbl.pixmap() is None):
+                lbl.setStyleSheet("border: 2px solid yellow;")
+
+    def on_monster_label_clicked(self, monster_name: str, group_index: int):
+        """Called when a monster token label is clicked."""
+        if not self.pending_action:
+            # No action pending: ignore click or inform user
+            self.cprint("Please select an action first (Fight / Cast) before clicking a monster token.")
+            return
+        action_type, spell = self.pending_action
+        self.assign_action_to_group(action_type, spell, monster_name, group_index)
+        # Clear pending action and remove highlight
+        self.pending_action = None
+        for lbl_name in ("monster_1_Label", "monster_2_Label"):
+            lbl = getattr(self.ui, lbl_name, None)
+            if lbl:
+                lbl.setStyleSheet("")
+
+    def assign_action_to_group(self, action_type: CharActionType, spell: Optional[Spell], monster_name: str, group_index: int):
+        """Assign the specified action to the current party member targeting the named group."""
+        # Determine targets: all monsters with this name
+        targets = [m for m in self.monsters if m.name == monster_name]
+        attack_type = action_type.value if action_type == CharActionType.MELEE_ATTACK else (spell.name if spell else action_type.value)
+        action = f"{attack_type} #{group_index + 1}"
+        self.actions[self.index] = CharAction(type=action_type, targets=targets, spell=spell)
+        self.update_cell(content=action, row=self.index, col=self.action_column)
 
     def refresh_party_table(self):
         """Setup and populate the party table"""
@@ -479,20 +558,21 @@ class Combat_UI(QMainWindow):
         self.party_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         # self.party_table.cellDoubleClicked.connect(self.inspect_char)
 
-    def load_monster_token(self, name: str) -> str:
+    def load_monster_token(self, name: str) -> Optional[str]:
         for filename in os.listdir(self.token_images_dir):
-            monster_name, _ = os.path.splitext(filename)
-            if monster_name == name:
-                return os.path.join(self.token_images_dir, filename)
+             monster_name, _ = os.path.splitext(filename)
+             if monster_name == name:
+                 return os.path.join(self.token_images_dir, filename)
+        return None
 
     def load_monsters(self) -> List[Monster]:
         party_level: int = round(sum([c.level for c in self.party]) / len(self.party))
-        encounter_table: dict() = load_encounter_table()
+        encounter_table = load_encounter_table()
         available_crs: List[Fraction] = [Fraction(str(m.challenge_rating)) for m in self.monsters_db]
         encounter_levels: List[int] = generate_encounter_levels(party_level=party_level)
         monster_groups_count: int = randint(1, 2)
         if not encounter_levels:
-            encounter_levels: List[int] = generate_encounter_levels(party_level=party_level)
+            encounter_levels = generate_encounter_levels(party_level=party_level)
         encounter_level: int = encounter_levels.pop()
         monsters: List[Monster] = generate_encounter(
             available_crs=available_crs,
@@ -510,21 +590,31 @@ class Combat_UI(QMainWindow):
         monster_names = [m.name for m in self.monsters if m.hit_points > 0]
         if not monster_names:
             return
-        unique_monsters = list(set(monster_names))
-        self.monsters_dict = {unique_monsters[0]: monster_names.count(unique_monsters[0])}
 
-        # Setup first monster
-        monster_1_pixmap = QPixmap(self.load_monster_token(unique_monsters[0]))
-        self.ui.monster_1_Label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        label_map = {monster_1_pixmap: (self.ui.monster_1_Label, unique_monsters[0])}
+        # Preserve order of appearance when computing unique monsters
+        unique_monsters = []
+        for n in monster_names:
+            if n not in unique_monsters:
+                unique_monsters.append(n)
 
-        # Setup second monster if exists, otherwise clear it
-        if len(unique_monsters) == 2:
-            self.monsters_dict[unique_monsters[1]] = monster_names.count(unique_monsters[1])
-            monster_2_pixmap = QPixmap(self.load_monster_token(unique_monsters[1]))
-            self.ui.monster_2_Label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.ui.monster_2_Label.setVisible(True)
-            label_map[monster_2_pixmap] = (self.ui.monster_2_Label, unique_monsters[1])
+        # Build ordered monsters_dict so the table and labels match the same order
+        self.monsters_dict = {m: monster_names.count(m) for m in unique_monsters}
+
+        # Setup labels for each unique monster and map them to their name + index
+        label_map = []  # list of tuples: (pixmap, label_widget, monster_name, index)
+        if len(unique_monsters) >= 1:
+            token_path = self.load_monster_token(unique_monsters[0])
+            if token_path:
+                monster_1_pixmap = QPixmap(token_path)
+                self.ui.monster_1_Label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+                label_map.append((monster_1_pixmap, self.ui.monster_1_Label, unique_monsters[0], 0))
+        if len(unique_monsters) >= 2:
+            token_path = self.load_monster_token(unique_monsters[1])
+            if token_path:
+                monster_2_pixmap = QPixmap(token_path)
+                self.ui.monster_2_Label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+                self.ui.monster_2_Label.setVisible(True)
+                label_map.append((monster_2_pixmap, self.ui.monster_2_Label, unique_monsters[1], 1))
         else:
             self.ui.monster_2_Label.clear()
             self.ui.monster_2_Label.setVisible(False)
@@ -533,17 +623,15 @@ class Combat_UI(QMainWindow):
         populate_monsters_table(table=self.ui.monsters_tableWidget, monsters=self.monsters_dict)
 
         # Update labels with pixmaps and tooltips
-        for pixmap, (label, monster) in label_map.items():
+        for pixmap, label, monster, idx in label_map:
             # Scale and set pixmap
             scaled_pixmap = pixmap.scaled(
-                label.size(),
-                Qt.AspectRatioMode.KeepAspectRatio,
-                Qt.TransformationMode.SmoothTransformation,
+                label.size(), Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation
             )
             label.setPixmap(scaled_pixmap)
             label.setScaledContents(True)
 
-            # Update tooltip
+            # Update tooltip (hover)
             if hasattr(label, "tooltip_filter"):
                 label.removeEventFilter(label.tooltip_filter)
                 label.tooltip_filter.deleteLater()
@@ -552,3 +640,10 @@ class Combat_UI(QMainWindow):
             label.installEventFilter(tooltip_filter)
             label.tooltip_filter = tooltip_filter
             label.setMouseTracking(True)
+
+            # Make label clickable: override mousePressEvent to route to our handler
+            # Use a bound lambda capturing monster name and index
+            def make_mouse_press(mon_name, mon_idx):
+                return lambda event: self.on_monster_label_clicked(mon_name, mon_idx)
+
+            label.mousePressEvent = make_mouse_press(monster, idx)
