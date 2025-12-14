@@ -171,6 +171,21 @@ class GameMenu:
     def run(self):
         # try:
         roster: List[Character] = get_roster(self.characters_dir)
+        # Synchronisation : si un gamestate existe pour un personnage, prendre le hero du gamestate
+        # (qui contient le niveau à jour) et persister dans characters_dir pour garder une source unique.
+        for i, char in enumerate(roster):
+            try:
+                saved_game = dungeon_pygame.load_character_gamestate(char.name, self.gamestate_dir)
+            except Exception:
+                saved_game = None
+            if saved_game:
+                roster[i] = saved_game.hero
+                try:
+                    save_character(char=saved_game.hero, _dir=self.characters_dir)
+                except Exception:
+                    # Ne pas interrompre l'affichage si la persistance échoue, mais afficher un message utile.
+                    cprint(f"Warning: unable to persist synced character {saved_game.hero.name} to {self.characters_dir}", color=RED)
+
         raise_dead_roster(roster, self.characters_dir)
         self.main(roster)
         # except FileNotFoundError:
