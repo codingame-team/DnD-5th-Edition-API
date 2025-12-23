@@ -103,18 +103,38 @@ def height_weight_table() -> List:
 
 def populate(collection_name: str, key_name: str, with_url=False, collection_path: str = None) -> List[str]:
     """
-    :return: list of collection names
+    Load collection data from dnd-5e-core (preferred) or local collections directory (fallback).
+
+    :param collection_name: Name of the collection file (without .json)
+    :param key_name: Key to extract from JSON (usually 'results')
+    :param with_url: If True, return tuples of (index, url)
+    :param collection_path: Optional custom path to collections directory
+    :return: List of collection names or (name, url) tuples
     """
+    # Try using dnd-5e-core first (preferred method)
+    try:
+        from dnd_5e_core.data import populate as core_populate
+        return core_populate(collection_name, key_name, with_url, collection_path)
+    except ImportError:
+        # Fallback to local implementation if dnd-5e-core not available
+        pass
+    except Exception as e:
+        # If dnd-5e-core fails for another reason, log and fallback
+        print(f"Warning: dnd-5e-core populate failed ({e}), using local fallback")
+
+    # Fallback: Use local collections directory
     if not collection_path:
         collection_path = 'collections'
     try:
         with open(resource_path(f"{collection_path}/{collection_name}.json"), "r") as f:
             data = json.loads(f.read())
-            # collection_count = int(data['count'])
             collection_json_list = data[key_name]
-    except:
-        print(f'f: {f.name} - key_name: {key_name} - data: {data}')
+    except Exception as e:
+        print(f'Error loading collection {collection_name}: {e}')
+        if 'f' in locals():
+            print(f'File: {f.name} - key_name: {key_name}')
         exit(0)
+
     if with_url:
         data_list = [(json_data['index'], json_data['url'])
                      for json_data in collection_json_list]

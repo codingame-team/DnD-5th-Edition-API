@@ -1,14 +1,12 @@
 #!/usr/bin/env python3
 """
 Script to emulate pseudo Terminal (to make usage of IntelliJ Debugger or non-TTY environments)
-✅ MIGRATED VERSION - Launches v2 scripts using dnd-5e-core package
-
-Supports both main_v2.py and main_ncurses_v2_FULL.py
+Supports both main.py and main_ncurses.py
 
 Usage:
-    python main_pexpect_v2.py              # Launch main_ncurses_v2_FULL.py with pseudo-TTY
-    python main_pexpect_v2.py ncurses      # Launch main_ncurses_v2_FULL.py with pseudo-TTY
-    python main_pexpect_v2.py main         # Launch main_v2.py with pseudo-TTY (explicit)
+    python main_pexpect.py              # Launch main.py with pseudo-TTY
+    python main_pexpect.py ncurses      # Launch main_ncurses.py with pseudo-TTY
+    python main_pexpect.py main         # Launch main.py with pseudo-TTY (explicit)
 """
 
 import pty
@@ -31,26 +29,25 @@ def get_script_to_run():
         arg = sys.argv[1].lower()
         if arg in ['--help', '-h', 'help']:
             print(__doc__)
-            print("\n✅ MIGRATED VERSION - Uses dnd-5e-core package")
             print("\nAvailable options:")
-            print("  ncurses, nc, n  - Launch main_ncurses_v2_FULL.py (NCurses interface v2)")
-            print("  main, text, t, m - Launch main_v2.py (text interface v2)")
+            print("  ncurses, nc, n  - Launch main_ncurses.py (NCurses interface)")
+            print("  main, text, t, m - Launch main.py (text interface)")
             print("  --help, -h      - Show this help message")
             print("\nExamples:")
-            print("  python main_pexpect_v2.py           # Default: main_ncurses_v2_FULL.py")
-            print("  python main_pexpect_v2.py ncurses   # NCurses version v2")
-            print("  python main_pexpect_v2.py main      # Text version v2")
+            print("  python main_pexpect.py           # Default: main.py")
+            print("  python main_pexpect.py ncurses   # NCurses version")
+            print("  python main_pexpect.py main      # Text version")
             sys.exit(0)
         elif arg in ['ncurses', 'nc', 'n']:
-            return 'main_ncurses_v2_FULL.py'
+            return 'main_ncurses.py'
         elif arg in ['main', 'text', 't', 'm']:
-            return 'main_v2.py'
+            return 'main.py'
         else:
             print(f"Unknown argument: {arg}")
-            print("Usage: python main_pexpect_v2.py [ncurses|main|--help]")
+            print("Usage: python main_pexpect.py [ncurses|main|--help]")
             sys.exit(1)
-    # Default to ncurses v2
-    return 'main_ncurses_v2_FULL.py'
+    # return 'main.py'  # Default to main.py
+    return 'main_ncurses.py'  # Default to main.py
 
 
 def run_with_pty(script_name):

@@ -1,9 +1,13 @@
+import os
 import random
 import sys
 import time
 import curses
+from logging import debug
 from typing import List
-from tools.gene_maze_dfs import generate_maze
+# from tools.gene_maze_dfs import generate_maze
+
+from tools.common import resource_path
 
 SPACING = 2
 
@@ -42,10 +46,31 @@ class Enemy(Entity):
     def __init__(self, name="Monstre", x=0, y=0):
         super().__init__(name, x, y, 50, 10)
 
-def load_new_maze(level: int = 1) -> List[str]:
+def load_new_maze_old(level: int = 1) -> List[str]:
     width = height = 30
     maze, _, _ = generate_maze(width, height)
     return ["".join("#" if cell else " " for cell in row) for row in maze][:-1]
+
+def load_maze(level: int = 1) -> List:
+	"""
+	Charge le labyrinthe depuis le fichier level.txt
+	nom : nom du fichier contenant le labyrinthe (sans l’extension .txt)
+	Valeur de retour :
+	- une liste avec les données du labyrinthe
+	"""
+	try:
+		path = os.path.dirname(__file__)
+		with open(resource_path(f"{path}/maze_tk/level_{level}.txt"), newline='') as fic:
+			data = fic.readlines()
+	except IOError:
+		print("Impossible de lire le fichier {}.txt".format(level))
+		exit(1)
+	for i in range(len(data)):
+		data[i] = data[i].strip()
+	width = max([len(data[i]) for i in range(len(data))])
+	for i in range(len(data)):
+		data[i] = "{:{g}}".format(data[i], g = f"^{width}")
+	return data
 
 def handle_input(stdscr, player, game_map, enemies):
     key = stdscr.getch()
@@ -110,7 +135,7 @@ def main(stdscr):
     stdscr.timeout(100)
     curses.start_color()
     term_height, term_width = stdscr.getmaxyx()
-    game_map = load_new_maze()
+    game_map = load_maze()
     camera = Camera(len(game_map[0]), len(game_map), term_width // 2, term_height - 2)
     player = Player(x=len(game_map[0]) // 2, y=len(game_map) // 2)
     enemies = initialize_enemies(5, game_map)

@@ -769,5 +769,5 @@ if __name__ == "__main__":
     # Récupération du personnage choisi par l'utilisateur
     # character_name = sys.argv[1] if len(sys.argv) > 1 else 'Brottor'
     base_dir = os.path.dirname(os.path.abspath(__file__))
-    sprites_images_dir = f'sprites/Animations'
+    sprites_images_dir = f'../sprites/Animations'
     run()

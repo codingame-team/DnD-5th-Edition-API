@@ -5,27 +5,12 @@ from enum import Enum
 from typing import List
 import os
 
-# ============================================
-# MIGRATION: Add dnd-5e-core to path
-# ============================================
-sys.path.insert(0, '/Users/display/PycharmProjects/dnd-5e-core')
-
-# ============================================
-# MIGRATION: Import from dnd-5e-core package
-# ============================================
-from dnd_5e_core.entities import Character
-from dnd_5e_core.ui import cprint, Color, color
-
-# Note: Data directory is now in dnd-5e-core/data and will be auto-detected
-
-from dungeon_pygame_v2 import save_character_gamestate, Game
+from dao_classes import Character
+from dungeon_pygame import save_character_gamestate, Game
 from main import get_roster, save_character
 from tools.cheat_functions import raise_dead_roster
-from tools.common import SCREEN_WIDTH, SCREEN_HEIGHT, BLACK, RED, WHITE, resource_path, GREEN, get_save_game_path
-import dungeon_pygame_v2, boltac_tp_pygame_v2, monster_kills_pygame_v2
-
-print("✅ [MIGRATION v2] dungeon_menu_pygame.py - Using dnd-5e-core package")
-print()
+from tools.common import cprint, SCREEN_WIDTH, SCREEN_HEIGHT, BLACK, RED, WHITE, resource_path, GREEN, get_save_game_path
+import dungeon_pygame, boltac_tp_pygame, monster_kills_pygame
 
 SCREEN_WIDTH = 600
 SCREEN_HEIGHT = 300
@@ -64,11 +49,11 @@ class GameMenu:
 
     def go_to_location(self, character_name: str, location: LT):
         if location == LT.DUNGEON:
-            dungeon_pygame_v2.run(character_name)
+            dungeon_pygame.run(character_name)
         elif location == LT.BOLTAC:
-            boltac_tp_pygame_v2.run(character_name)
+            boltac_tp_pygame.run(character_name)
         elif location == LT.MONSTER_KILLS:
-            monster_kills_pygame_v2.run(character_name)
+            monster_kills_pygame.run(character_name)
         else:
             cprint('Invalid location', color=RED)
 
@@ -189,7 +174,7 @@ class GameMenu:
         # (qui contient le niveau à jour) et persister dans characters_dir pour garder une source unique.
         for i, char in enumerate(roster):
             try:
-                saved_game = dungeon_pygame_v2.load_character_gamestate(char.name, self.gamestate_dir)
+                saved_game = dungeon_pygame.load_character_gamestate(char.name, self.gamestate_dir)
             except Exception:
                 saved_game = None
             if saved_game:
@@ -209,4 +194,3 @@ class GameMenu:
 if __name__ == "__main__":
     game_menu = GameMenu()
     game_menu.run()
-

@@ -15,18 +15,7 @@ from PyQt5.QtWidgets import (
     QMessageBox,
 )
 
-# ============================================
-# MIGRATION: Add dnd-5e-core to path
-# ============================================
-sys.path.insert(0, '/Users/display/PycharmProjects/dnd-5e-core')
-
-# ============================================
-# MIGRATION: Import from dnd-5e-core package
-# ============================================
-from dnd_5e_core.entities import Character
-
-# Note: Data directory is now in dnd-5e-core/data and will be auto-detected
-
+from dao_classes import Character
 from main import (
     load_party,
     save_character,
@@ -40,9 +29,6 @@ from pyQTApp.Castle.Boltac_module import Boltac_UI
 from pyQTApp.Castle.Cant_module import Cant_UI
 from pyQTApp.Castle.Inn_module import Inn_UI
 from pyQTApp.EdgeOfTown.Combat_module import Combat_UI
-
-print("✅ [MIGRATION v2] wizardry.py - Using dnd-5e-core package")
-print()
 from pyQTApp.EdgeOfTown.Maze_module_Filigrane_Walls import Maze_UI
 from pyQTApp.character_sheet import CharacterDialog
 from pyQTApp.common import load_welcome, update_buttons

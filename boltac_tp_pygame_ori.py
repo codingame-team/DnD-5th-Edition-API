@@ -5,28 +5,12 @@ from typing import List
 
 import pygame
 
-# ============================================
-# MIGRATION: Add dnd-5e-core to path
-# ============================================
-sys.path.insert(0, '/Users/display/PycharmProjects/dnd-5e-core')
-
-# ============================================
-# MIGRATION: Import from dnd-5e-core package
-# ============================================
-from dnd_5e_core.entities import Character
-from dnd_5e_core.equipment import Weapon, Armor, HealingPotion, Equipment, Potion
-from dnd_5e_core.ui import cprint, Color, color
-
-# Note: Data directory is now in dnd-5e-core/data and will be auto-detected
-
-from dungeon_pygame_v2 import Game, load_character_gamestate, save_character_gamestate
+from dao_classes import Character, Weapon, Armor, HealingPotion, Equipment, SpeedPotion, Potion
+from dungeon_pygame import Game, load_character_gamestate, save_character_gamestate
 from main import get_roster, save_character, load_character
 from populate_functions import request_armor, request_weapon
 from populate_rpg_functions import load_potions_collections
-from tools.common import WHITE, RED, BLACK, get_save_game_path
-
-print("✅ [MIGRATION v2] boltac_tp_pygame.py - Using dnd-5e-core package")
-print()
+from tools.common import WHITE, RED, cprint, BLACK, get_save_game_path
 
 # Constants
 SCREEN_WIDTH = 1000

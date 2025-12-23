@@ -17,48 +17,17 @@ from typing import List, Optional, Tuple
 import pygame
 from pygame import Surface
 
-# ============================================
-# MIGRATION: Add dnd-5e-core to path
-# ============================================
-sys.path.insert(0, '/Users/display/PycharmProjects/dnd-5e-core')
-
-# ============================================
-# MIGRATION: Import from dnd-5e-core package
-# ============================================
-from dnd_5e_core.entities import Character, Monster, Sprite
-from dnd_5e_core.equipment import Weapon, Armor, HealingPotion, Equipment, SpeedPotion, Potion, StrengthPotion
-from dnd_5e_core.spells import Spell
-from dnd_5e_core.classes import Level
-from dnd_5e_core.combat import SpecialAbility, ActionType, Action
-from dnd_5e_core.mechanics import DamageDice
-from dnd_5e_core.ui import cprint, Color, color
-
-# Note: Data directory is now in dnd-5e-core/data and will be auto-detected
-
-# Import Treasure (not in dnd-5e-core yet, keep from dao_classes for now)
-try:
-    from dao_classes import Treasure
-except ImportError:
-    # Fallback: simple Treasure class
-    @dataclass
-    class Treasure:
-        x: int
-        y: int
-        item: object = None
-
 from algo.brehensam import in_view_range
 from algo.lee import parcours_largeur, parcours_a_star
+from dao_classes import Character, Level, Spell, Weapon, Armor, HealingPotion, Monster, Equipment, Treasure, Sprite, SpecialAbility, color, ActionType, Action, SpeedPotion, Potion, StrengthPotion, DamageDice
 from main import get_roster, save_character, load_xp_levels, load_character
 from populate_functions import populate, request_armor, request_weapon, request_monster, request_spell, request_monster_other
 from populate_rpg_functions import load_potions_collections
 from tools.cell_bits_dnd import DOORSPACE, TRAPPED, STAIR_UP, STAIR_DN
-from tools.common import generate_cave, generate_dungeon, GREEN, resource_path, get_save_game_path, read, MAX_LEVELS
+from tools.common import cprint, generate_cave, generate_dungeon, Color, MAX_LEVELS, GREEN, resource_path, get_save_game_path, read
 from tools.parse_json_dungeon import parse_dungeon_json
 from tools import cell_bits_dnd as cb
 from tools.parsing_json_monsters import get_monster_counts
-
-print("✅ [MIGRATION v2] dungeon_pygame.py - Using dnd-5e-core package")
-print()
 
 SCREEN_WIDTH, SCREEN_HEIGHT = 1280, 720
 STATS_WIDTH, ACTIONS_HEIGHT = 600, 200
@@ -612,8 +581,7 @@ class Game:
         for item in self.hero.inventory:
             if not item or isinstance(item, Potion):
                 continue
-            # Only check equipped for items that can be equipped (weapons/armor)
-            if hasattr(item, 'equipped') and item.equipped:
+            if item.equipped:
                 if isinstance(item, Weapon):
                     weapon = item
                 elif isinstance(item, Armor):
@@ -2036,3 +2004,57 @@ def draw_monster_tokens(screen, game, token_images):
 
             # token_area_y += token_rect.height + 10  # Adjust the position for the next token
 
+
+def run(character_name: str = 'Brottor'):
+    global screen, level_sprites, sprites, game, room_no
+    global tile_img, font, armors, weapons, potions
+    global path, characters_dir, gamestate_dir, sprites_dir, char_sprites_dir
+    global item_sprites_dir, spell_sprites_dir, effects_images_dir, sound_effects_dir, token_images_dir
+    path = os.path.dirname(__file__)
+    # abspath = os.path.abspath(path)
+    # characters_dir = f'{abspath}/gameState/characters'
+    # gamestate_dir = f'{abspath}/gameState/pygame'
+    game_path = get_save_game_path()
+    characters_dir = f'{game_path}/characters'
+    gamestate_dir = f'{game_path}/pygame'
+    sprites_dir = resource_path('sprites')
+    char_sprites_dir = f"{sprites_dir}/rpgcharacterspack"
+    item_sprites_dir = f"{sprites_dir}/Items"
+    spell_sprites_dir = f"{sprites_dir}/schools"
+    effects_images_dir = resource_path('sprites/effects')
+    sound_effects_dir = resource_path('sounds')
+    token_images_dir = resource_path('images/monsters/tokens')
+    room_no = 0  # memorize last visited room number
+
+    # Initialisation de Pygame
+    pygame.init()
+    pygame.mixer.init()
+    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+
+    # Chargement des assets
+    tile_img, font, armors, weapons, potions = load_game_assets()
+
+    # Chargement du jeu en cours
+
+    game = initialize_game(character_name, characters_dir)
+    if not any((x, y) for y in range(game.map_height) for x in range(game.map_width) if game.world_map[y][x] == '>'):
+        print('No downstairs found! Creating one')
+        x, y = choice(game.level.walkable_tiles)
+        game.level.world_map[y][x] = '>'
+
+    print(f'dungeon Level: {game.level.level_no} - name = {game.level.fullname}')
+    print(f'Hero: #{game.hero.id} {game.hero.name} - {game.hero.race} - {game.hero.class_type.name}')
+    level_sprites = create_level_sprites(game.level)
+    sprites = create_sprites(hero=game.hero)
+
+    main_game_loop(game)
+
+
+if __name__ == "__main__":
+    # Récupération du personnage choisi par l'utilisateur
+    # character_name = sys.argv[1] if len(sys.argv) > 1 else 'Brottor'
+    try:
+        run()
+    finally:
+        pygame.mixer.quit()
+        pygame.quit()  # Clean up all pygame modules

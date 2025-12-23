@@ -1,9 +1,24 @@
 from collections import Counter
 import pygame
 import os
+import sys
+
+# ============================================
+# MIGRATION: Add dnd-5e-core to path
+# ============================================
+sys.path.insert(0, '/Users/display/PycharmProjects/dnd-5e-core')
+
+# ============================================
+# MIGRATION: Import from dnd-5e-core package
+from dnd_5e_core.entities import Character, Monster
+
+# Note: Data directory is now in dnd-5e-core/data and will be auto-detected
 
 from dungeon_pygame import load_character_gamestate
 from tools.common import resource_path, get_save_game_path
+
+print("✅ [MIGRATION v2] monster_kills_pygame.py - Using dnd-5e-core package")
+print()
 
 
 def load_monsters_images(monsters: dict) -> dict:

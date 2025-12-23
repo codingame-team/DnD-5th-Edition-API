@@ -1,1 +1,0 @@
-[x] Bug fix: recharge feature for monsters special attacks (example: water-elementals) which are too much powerful without it

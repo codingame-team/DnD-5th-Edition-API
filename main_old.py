@@ -8,46 +8,17 @@ from numpy import array
 
 from collections import namedtuple, Counter
 from random import seed, sample, shuffle
-from time import sleep, time
+from time import sleep
 
 from PyQt5.QtWidgets import QApplication, QDialog
 
-# ============================================
-# MIGRATION: Add dnd-5e-core to path
-# ============================================
-sys.path.insert(0, '/Users/display/PycharmProjects/dnd-5e-core')
-
-# ============================================
-# MIGRATION: Import from dnd-5e-core package
-# ============================================
-from dnd_5e_core.entities import Character, Monster, Sprite
-from dnd_5e_core.equipment import (
-    Weapon, Armor, Equipment, Cost, EquipmentCategory, Inventory,
-    HealingPotion, SpeedPotion, StrengthPotion, Potion, PotionRarity
-)
-from dnd_5e_core.spells import Spell, SpellCaster
-from dnd_5e_core.combat import Action, ActionType, SpecialAbility, Damage, Condition, AreaOfEffect
-from dnd_5e_core.races import Race, SubRace, Trait, Language
-from dnd_5e_core.classes import ClassType, Proficiency, ProfType, Feature, Level, BackGround
-from dnd_5e_core.abilities import Abilities, AbilityType
-from dnd_5e_core.mechanics import DamageDice
-from dnd_5e_core.equipment import WeaponProperty, WeaponRange, WeaponThrowRange, DamageType, CategoryType, RangeType
-from dnd_5e_core.ui import cprint, Color, color
-from dnd_5e_core.data import set_data_directory
-
-# Set data directory
-set_data_directory('/Users/display/PycharmProjects/DnD-5th-Edition-API/data')
-
-# Keep populate_functions for data loading
+from dao_classes import *
 from populate_functions import *
 from populate_rpg_functions import load_potion_image_name, load_potions_collections
 # from pyQTApp.character_sheet import display_char_sheet
 from pyQTApp.qt_designer_widgets.character_dialog import Ui_character_Dialog
 from tools.ability_scores_roll import ability_rolls
-from tools.common import exit_message, get_key, get_save_game_path
-
-print("✅ [MIGRATION v2] main.py - Using dnd-5e-core package")
-print()
+from tools.common import cprint, Color, exit_message, get_key, get_save_game_path
 
 
 def continue_message(message: str = "Do you want to continue? (Y/N)") -> bool:
@@ -1961,7 +1932,7 @@ def load_xp_levels() -> List[int]:
 
 
 if __name__ == "__main__":
-    seed(time())
+    seed(time.time())
     PAUSE_ON_RAISE_LEVEL = True
     POTION_INITIAL_PACK = 15
     MAX_ROSTER = 100  # maximum number of characters allowed in this game
@@ -2135,4 +2106,3 @@ if __name__ == "__main__":
     # for character in roster_list:
     #     with open(f'{characters_dir}/{character.name}.dmp', 'wb') as f1:
     #         pickle.dump(character, f1)
-

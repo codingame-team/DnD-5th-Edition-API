@@ -8,7 +8,10 @@
       <excludeFolder url="file://$MODULE_DIR$/pyQTApp/unused" />
       <excludeFolder url="file://$MODULE_DIR$/.venv" />
     </content>
-    <orderEntry type="inheritedJdk" />
+    <orderEntry type="jdk" jdkName="Python 3.12 (DnD-5th-Edition-API)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module" module-name="dungeon-perl" />
+    <orderEntry type="module" module-name="dnd-5e-core" />
+    <orderEntry type="module" module-name="DnD-5e-ncurses" />
   </component>
 </module>
