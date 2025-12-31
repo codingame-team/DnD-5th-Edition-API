@@ -90,7 +90,75 @@ Text-based arena with basic combat and enemy movement
 
 ## Installation
 
-### Binary Installation
+### For End Users (Recommended)
+
+Download pre-built executables from [GitHub Releases](https://github.com/your-repo/releases):
+- **Windows:** dnd-console-1.0-windows.exe, dnd-pygame-1.0-windows.exe
+- **macOS:** dnd-console-1.0-macos, dnd-pygame-1.0-macos
+- **Linux:** dnd-console-1.0-linux, dnd-pygame-1.0-linux
+
+Just download and run - no installation required!
+
+### For Developers
+
+#### Prerequisites
+- Python 3.10+
+- pip
+
+#### Installation Steps
+
+1. Clone repositories:
+```bash
+git clone https://github.com/codingame-team/dnd-5e-core.git
+git clone https://github.com/codingame-team/DnD-5th-Edition-API.git
+```
+
+2. Install dnd-5e-core:
+```bash
+cd dnd-5e-core
+pip install -e .
+```
+
+3. Install game dependencies:
+```bash
+cd ../DnD-5th-Edition-API
+pip install -r requirements-dev-new.txt
+```
+
+4. Run games:
+```bash
+python main.py                    # Console version
+python main_ncurses.py            # Ncurses version
+python dungeon_menu_pygame.py     # Pygame version
+python dungeon_tk.py              # Tkinter version
+python pyQTApp/wizardry.py        # PyQt5 version
+```
+
+## Building Executables
+
+### Quick Build
+
+#### macOS/Linux
+```bash
+./build_all.sh
+```
+
+#### Windows
+```cmd
+build_all.bat
+```
+
+Executables will be in `dist/` folder.
+
+### Manual Build (Advanced)
+
+See [docs/GUIDE_DEPLOIEMENT.md](docs/GUIDE_DEPLOIEMENT.md) for detailed instructions.
+
+---
+
+## Old Installation Methods (Legacy)
+
+### Binary Installation (Old Method)
 1. Install PyInstaller:
    ```bash
    pip install pyinstaller

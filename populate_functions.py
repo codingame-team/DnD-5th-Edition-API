@@ -2,20 +2,66 @@ from __future__ import annotations
 
 import csv
 import json
-import math
 import os
 from copy import deepcopy
-from logging import debug
 from random import randint
 from typing import List, Tuple, Optional
 import re
+import sys
 
-from dao_classes import CategoryType, DamageDice, Monster, Armor, RangeType, SpecialAbility, SpellCaster, Weapon, Race, \
-    SubRace, Proficiency, ClassType, Language, Equipment, WeaponProperty, WeaponRange, AbilityType, WeaponThrowRange, \
-    Trait, EquipmentCategory, \
-    Abilities, Action, Damage, ActionType, DamageType, Spell, ProfType, Condition, Inventory, AreaOfEffect, Cost
+# ============================================
+# MIGRATION: Add dnd-5e-core to path (development mode)
+# ============================================
+_parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+_dnd_5e_core_path = os.path.join(_parent_dir, 'dnd-5e-core')
+if os.path.exists(_dnd_5e_core_path) and _dnd_5e_core_path not in sys.path:
+    sys.path.insert(0, _dnd_5e_core_path)
+
+# ============================================
+# MIGRATION: Import from dnd-5e-core package
+# ============================================
+from dnd_5e_core.entities import Character, Monster, Sprite
+from dnd_5e_core.equipment import (
+    Weapon, Armor, Equipment, Cost, EquipmentCategory, Inventory,
+    WeaponProperty, WeaponRange, WeaponThrowRange, CategoryType, RangeType, DamageType
+)
+from dnd_5e_core.spells import Spell, SpellCaster
+from dnd_5e_core.combat import Action, ActionType, SpecialAbility, Damage, Condition, AreaOfEffect
+from dnd_5e_core.races import Race, SubRace, Trait, Language
+from dnd_5e_core.classes import ClassType, Proficiency, ProfType
+from dnd_5e_core.abilities import Abilities, AbilityType
+from dnd_5e_core.mechanics import DamageDice
+
 from populate_rpg_functions import load_armor_image_name, load_weapon_image_name
 from tools.common import parse_challenge_rating, resource_path
+
+# Import dnd-5e-core for data loading
+try:
+    from dnd_5e_core.data import (
+        populate as core_populate,
+        set_data_directory,
+        load_monster as core_load_monster,
+        load_spell as core_load_spell,
+        load_weapon as core_load_weapon,
+        load_armor as core_load_armor,
+        load_race as core_load_race,
+        load_class as core_load_class,
+        load_equipment as core_load_equipment
+    )
+    from dnd_5e_core.data.collections import set_collections_directory
+    # Import for extended monsters from 5e.tools
+    from dnd_5e_core.entities import get_extended_monster_loader, get_special_actions_builder
+    from dnd_5e_core.utils import download_monster_token
+
+    # Configure dnd-5e-core to use the local data directories
+    _base_path = os.path.dirname(__file__)
+    set_data_directory(os.path.join(_base_path, 'data'))
+    set_collections_directory(os.path.join(_base_path, 'collections'))
+
+    USE_DND_5E_CORE = True
+except ImportError as e:
+    print(f"Warning: dnd-5e-core not available ({e}), using local data loading")
+    USE_DND_5E_CORE = False
 
 """ CSV loads """
 
@@ -69,6 +115,92 @@ def read_csvfile_old(filename: str):
             result.append({header: row(header) for header in headers})
     return result
 
+# ============================================
+# EXTENDED MONSTERS FROM 5E.TOOLS
+# ============================================
+
+# Initialize loaders for extended monsters (lazy loading)
+_extended_monster_loader = None
+_special_actions_builder = None
+
+
+def get_extended_loader():
+    """Get the extended monster loader instance (lazy initialization)"""
+    global _extended_monster_loader
+    if _extended_monster_loader is None and USE_DND_5E_CORE:
+        _extended_monster_loader = get_extended_monster_loader()
+    return _extended_monster_loader
+
+
+def get_actions_builder():
+    """Get the special actions builder instance (lazy initialization)"""
+    global _special_actions_builder
+    if _special_actions_builder is None and USE_DND_5E_CORE:
+        _special_actions_builder = get_special_actions_builder()
+    return _special_actions_builder
+
+
+def is_extended_monster(name: str) -> bool:
+    """Check if a monster is available in the extended 5e.tools data"""
+    loader = get_extended_loader()
+    if loader is None:
+        return False
+    data = loader.get_monster_by_name(name)
+    return data is not None
+
+
+def get_extended_monster_data(name: str) -> Optional[dict]:
+    """Get the JSON data for an extended monster from 5e.tools"""
+    loader = get_extended_loader()
+    if loader is None:
+        return None
+    return loader.get_monster_by_name(name)
+
+
+def get_extended_monster_token_path(name: str, source: str = None) -> Optional[str]:
+    """
+    Get the path to a monster token image.
+    If the token doesn't exist, attempts to download it.
+
+    :param name: Monster name
+    :param source: Source book code (e.g., "MM", "MPMM")
+    :return: Path to the token image or None
+    """
+    if not USE_DND_5E_CORE:
+        return None
+
+    # Get source from extended data if not provided
+    if source is None:
+        data = get_extended_monster_data(name)
+        if data:
+            source = data.get('source', 'MM')
+        else:
+            source = 'MM'
+
+    # Check if token exists in dnd-5e-core
+    from pathlib import Path
+    token_folder = Path('/Users/display/PycharmProjects/dnd-5e-core/dnd_5e_core/data/monsters/tokens')
+    safe_name = name.replace('/', '_')
+    token_path = token_folder / f"{safe_name}.webp"
+
+    if token_path.exists():
+        return str(token_path)
+
+    # Try to download the token
+    try:
+        status = download_monster_token(name, source=source, save_folder=str(token_folder))
+        if status == 200 and token_path.exists():
+            return str(token_path)
+    except Exception as e:
+        print(f"[WARNING] Could not download token for {name}: {e}")
+
+    return None
+
+
+# ============================================
+# END EXTENDED MONSTERS SECTION
+# ============================================
+
 
 def read_csvfile(filename: str):
     """
@@ -101,6 +233,42 @@ def height_weight_table() -> List:
 """ JSON loads """
 
 
+def _load_json_data(category: str, index_name: str) -> dict:
+    """
+    Helper function to load JSON data from dnd-5e-core or local files.
+
+    :param category: Category of data (e.g., 'monsters', 'spells', 'weapons')
+    :param index_name: Index/slug of the item
+    :return: Dictionary with JSON data
+    """
+    if USE_DND_5E_CORE:
+        try:
+            # Try loading via dnd-5e-core loaders
+            if category == 'monsters':
+                return core_load_monster(index_name)
+            elif category == 'spells':
+                return core_load_spell(index_name)
+            elif category == 'weapons':
+                return core_load_weapon(index_name)
+            elif category in ('armor', 'armors'):
+                return core_load_armor(index_name)
+            elif category == 'races':
+                return core_load_race(index_name)
+            elif category == 'classes':
+                return core_load_class(index_name)
+            elif category == 'equipment':
+                return core_load_equipment(index_name)
+        except Exception as e:
+            # If core loader fails, fall back to local file
+            if os.getenv('DEBUG'):
+                print(f"Warning: dnd-5e-core load failed for {category}/{index_name} ({e}), using local file")
+
+    # Fallback: Load from local data directory
+    file_path = resource_path(f"data/{category}/{index_name}.json")
+    with open(file_path, "r") as f:
+        return json.loads(f.read())
+
+
 def populate(collection_name: str, key_name: str, with_url=False, collection_path: str = None) -> List[str]:
     """
     Load collection data from dnd-5e-core (preferred) or local collections directory (fallback).
@@ -111,16 +279,13 @@ def populate(collection_name: str, key_name: str, with_url=False, collection_pat
     :param collection_path: Optional custom path to collections directory
     :return: List of collection names or (name, url) tuples
     """
-    # Try using dnd-5e-core first (preferred method)
-    try:
-        from dnd_5e_core.data import populate as core_populate
-        return core_populate(collection_name, key_name, with_url, collection_path)
-    except ImportError:
-        # Fallback to local implementation if dnd-5e-core not available
-        pass
-    except Exception as e:
-        # If dnd-5e-core fails for another reason, log and fallback
-        print(f"Warning: dnd-5e-core populate failed ({e}), using local fallback")
+    # Use dnd-5e-core if available (preferred method)
+    if USE_DND_5E_CORE:
+        try:
+            return core_populate(collection_name, key_name, with_url, collection_path)
+        except Exception as e:
+            # If dnd-5e-core fails, log and fallback
+            print(f"Warning: dnd-5e-core populate failed ({e}), using local fallback")
 
     # Fallback: Use local collections directory
     if not collection_path:
@@ -133,7 +298,7 @@ def populate(collection_name: str, key_name: str, with_url=False, collection_pat
         print(f'Error loading collection {collection_name}: {e}')
         if 'f' in locals():
             print(f'File: {f.name} - key_name: {key_name}')
-        exit(0)
+        sys.exit(1)  # Use sys.exit instead of exit, and exit with error code 1
 
     if with_url:
         data_list = [(json_data['index'], json_data['url'])
@@ -149,8 +314,7 @@ def request_damage_type(index_name: str) -> DamageType:
     :param index_name: name of the damage type
     :return: DamageType object
     """
-    with open(resource_path(f"data/damage-types/{index_name}.json"), "r") as f:
-        data = json.loads(f.read())
+    data = _load_json_data('damage-types', index_name)
     return DamageType(index=data['index'], name=data['name'], desc=data['desc'])
 
 
@@ -160,18 +324,15 @@ def request_condition(index_name: str) -> Condition:
     :param index_name: name of the condition
     :return: Condition object
     """
-    with open(resource_path(f"data/conditions/{index_name}.json"), "r") as f:
-        data = json.loads(f.read())
-
+    data = _load_json_data('conditions', index_name)
     return Condition(index=data['index'], name=data['name'], desc=data['desc'])
 
 
 def request_other_actions(index_name: str) -> List[Action]:
     actions: List[Action] = []
-    with open(resource_path(f"data/monsters/{index_name}.json"), "r") as f:
-        data = json.loads(f.read())
-        damages: List[Damage] = []
-        if index_name == 'rug-of-smothering':
+    data = _load_json_data('monsters', index_name)
+    damages: List[Damage] = []
+    if index_name == 'rug-of-smothering':
             effects: List[Condition] = []
             for index in ('restrained', 'blinded'):
                 effect: Condition = request_condition(index)
@@ -227,15 +388,18 @@ def extract_special_ability_from(action: str, recharge_on_roll: int) -> Optional
                                 area_of_effect=area_of_effect)
 
 
-def request_monster(index_name: str) -> Monster:
+def request_monster(index_name: str) -> Optional[Monster]:
     """
     Send a request to local database for a monster's characteristic
     :param index_name: name of the monster
-    :return: Monster object
+    :return: Monster object or None if not found
     """
     # print(index_name)
-    with open(resource_path(f"data/monsters/{index_name}.json"), "r") as f:
-        data = json.loads(f.read())
+    data = _load_json_data('monsters', index_name)
+
+    # Check if monster data was loaded
+    if data is None:
+        return None
 
     can_cast: bool = False
     can_attack: bool = False
@@ -401,9 +565,7 @@ def request_monster(index_name: str) -> Monster:
     # print(index_name)
     speed: str = data['speed']['fly'] if 'fly' in data['speed'] else data['speed']['walk'] if 'walk' in data['speed'] else '30'
 
-    return Monster(id=-1,
-                   image_name=f'monster_{index_name}.png',
-                   x=-1, y=-1, old_x=-1, old_y=-1,
+    return Monster(
                    index=index_name,
                    name=data['name'],
                    abilities=Abilities(str=data['strength'], dex=data['dexterity'], con=data['constitution'],
@@ -417,7 +579,7 @@ def request_monster(index_name: str) -> Monster:
                    challenge_rating=data['challenge_rating'],
                    actions=actions,
                    sc=spell_caster,
-                   sa=special_abilities)  # if can_attack else None
+                   sa=special_abilities)
 
 def get_special_monster_actions(name: str) -> tuple[List[Action], List[SpecialAbility], SpellCaster]:
     actions: List[Action] = []
@@ -2186,9 +2348,7 @@ def request_monster_other(name: str) -> Optional[Monster]:
         type: str = 'fly' if 'fly' in data['speed'] else 'walk'
         # print(f'{name} speed: {speed} type: {type}')
 
-        return Monster(id=-1,
-                       image_name=f'monster_enemy.png',
-                       x=-1, y=-1, old_x=-1, old_y=-1,
+        return Monster(
                        index=name.lower().replace(' ', '-'),
                        name=data['name'],
                        abilities=Abilities(str=data['str'], dex=data['dex'], con=data['con'],
@@ -2202,7 +2362,7 @@ def request_monster_other(name: str) -> Optional[Monster]:
                        challenge_rating=parse_challenge_rating(data['cr']),
                        actions=actions,
                        sc=spell_caster,
-                       sa=special_abilities)  # if can_attack else None
+                       sa=special_abilities)
 
 
 def request_spell(index_name: str) -> Optional[Spell]:
@@ -2212,9 +2372,8 @@ def request_spell(index_name: str) -> Optional[Spell]:
     :return: Spell object
     """
     try:
-        with open(resource_path(f"data/spells/{index_name}.json"), "r") as f:
-            data = json.loads(f.read())
-    except FileNotFoundError:
+        data = _load_json_data('spells', index_name)
+    except (FileNotFoundError, Exception):
         return None
 
     allowed_classes: List[str] = [c['index'] for c in data['classes']]
@@ -2273,25 +2432,22 @@ def request_armor(index_name: str) -> Armor:
     """
     Send a request to local database for a armor's characteristic
     :param index_name: name of the armor
-    :return: Armor object
+    :return: Armor object (core business logic only - use GameEntity for positioning)
     """
-    with open(resource_path(f"data/armors/{index_name}.json"), "r") as f:
-        data = json.loads(f.read())
+    data = _load_json_data('armors', index_name)
     if "armor_class" in data:
-        image_name = load_armor_image_name(index_name)
-        return Armor(id=-1,
-                     image_name=image_name,
-                     x=-1, y=-1, old_x=-1, old_y=-1,
-                     index=data['index'],
-                     name=data['name'],
-                     armor_class=data['armor_class'],
-                     str_minimum=data['str_minimum'],
-                     category=request_equipment_category(data['equipment_category']['index']),
-                     stealth_disadvantage=data['stealth_disadvantage'],
-                     cost=Cost(data['cost']['quantity'], data['cost']['unit']),
-                     weight=data['weight'],
-                     desc=None,
-                     equipped=False)
+        return Armor(
+            index=data['index'],
+            name=data['name'],
+            armor_class=data['armor_class'],
+            str_minimum=data['str_minimum'],
+            category=request_equipment_category(data['equipment_category']['index']),
+            stealth_disadvantage=data['stealth_disadvantage'],
+            cost=Cost(data['cost']['quantity'], data['cost']['unit']),
+            weight=data['weight'],
+            desc=None,
+            equipped=False
+        )
     return None
 
 
@@ -2301,8 +2457,7 @@ def request_weapon_property(index_name: str) -> WeaponProperty:
     :param index_name: name of the weapon's property
     :return: WeaponProperty object
     """
-    with open(resource_path(f"data/weapon-properties/{index_name}.json"), "r") as f:
-        data = json.loads(f.read())
+    data = _load_json_data('weapon-properties', index_name)
     return WeaponProperty(index=data['index'],
                           name=data['name'],
                           desc=data['desc'])
@@ -2312,10 +2467,9 @@ def request_weapon(index_name: str) -> Weapon:
     """
     Send a request to local database for a weapon's characteristic
     :param index_name: name of the weapon
-    :return: Weapon object
+    :return: Weapon object (core business logic only - use GameEntity for positioning)
     """
-    with open(resource_path(f"data/weapons/{index_name}.json"), "r") as f:
-        data = json.loads(f.read())
+    data = _load_json_data('weapons', index_name)
     weapon_properties = None
     if 'properties' in data:
         weapon_properties: List[WeaponProperty] = [request_weapon_property(d['index']) for d in data['properties']]
@@ -2326,25 +2480,24 @@ def request_weapon(index_name: str) -> Weapon:
         damage_dice_two_handed: DamageDice = None
         if "two_handed_damage" in data:
             damage_dice_two_handed: DamageDice = DamageDice(data['two_handed_damage']['damage_dice'])
-        return Weapon(id=-1,
-                      image_name=load_weapon_image_name(index_name),
-                      x=-1, y=-1, old_x=-1, old_y=-1,
-                      index=data['index'],
-                      name=data['name'],
-                      category=request_equipment_category(data['equipment_category']['index']),
-                      category_type=CategoryType(data['weapon_category']),
-                      range_type=RangeType(data['weapon_range']),
-                      damage_dice=DamageDice(data['damage']['damage_dice']),
-                      damage_dice_two_handed=damage_dice_two_handed,
-                      damage_type=request_damage_type(index_name=data['damage']['damage_type']['index']),
-                      range=WeaponRange(normal=data['range']['normal'], long=data['range']['long']),
-                      throw_range=throw_range,
-                      is_magic=False,
-                      cost=Cost(data['cost']['quantity'], data['cost']['unit']),
-                      weight=data['weight'],
-                      properties=weapon_properties,
-                      desc=None,
-                      equipped=False)
+        return Weapon(
+            index=data['index'],
+            name=data['name'],
+            category=request_equipment_category(data['equipment_category']['index']),
+            category_type=CategoryType(data['weapon_category']),
+            range_type=RangeType(data['weapon_range']),
+            damage_dice=DamageDice(data['damage']['damage_dice']),
+            damage_dice_two_handed=damage_dice_two_handed,
+            damage_type=request_damage_type(index_name=data['damage']['damage_type']['index']),
+            weapon_range=WeaponRange(normal=data['range']['normal'], long=data['range']['long']),
+            throw_range=throw_range,
+            is_magic=False,
+            cost=Cost(data['cost']['quantity'], data['cost']['unit']),
+            weight=data['weight'],
+            properties=weapon_properties,
+            desc=None,
+            equipped=False
+        )
     return None
 
 
@@ -2354,8 +2507,7 @@ def request_trait(index_name: str) -> Trait:
     :param index_name: name of the trait
     :return: Trait object
     """
-    with open(resource_path(f"data/traits/{index_name}.json"), "r") as f:
-        data = json.loads(f.read())
+    data = _load_json_data('traits', index_name)
     return Trait(index=data['index'],
                  name=data['name'],
                  desc=data['desc'])
@@ -2367,35 +2519,34 @@ def request_race(index_name: str) -> Race:
     :param index_name: name of the race
     :return: Race object
     """
-    with open(resource_path(f"data/races/{index_name}.json"), "r") as f:
-        data = json.loads(f.read())
-        ability_bonuses = dict([(ability_bonus['ability_score']['index'], ability_bonus['bonus']) for ability_bonus in data['ability_bonuses']])
-        starting_proficiencies: List[Proficiency] = [request_proficiency(
-            d['index']) for d in data.get('starting_proficiencies')]
-        starting_proficiency_options: List[Tuple[List[Proficiency], int]] = []
-        if data.get('starting_proficiency_options'):
-            dat = data.get('starting_proficiency_options')
-            choose: int = dat['choose']
-            proficiencies_choose: List[Proficiency] = [request_proficiency(d['index']) for d in dat['from']]
-            starting_proficiency_options.append((choose, proficiencies_choose))
-        languages: List[Language] = [lang['index']for lang in data['languages']]
-        traits: List[Trait] = [request_trait(d['index']) for d in data['traits']]
-        subraces: List[SubRace] = [request_subrace(d['index']) for d in data['subraces']]
-        subraces: List[str] = [d['index'] for d in data['subraces']]
-        return Race(index=data['index'],
-                    name=data['name'],
-                    speed=data['speed'],
-                    ability_bonuses=ability_bonuses,
-                    alignment=data['alignment'],
-                    age=data['age'],
-                    size=data['size'],
-                    size_description=data['size_description'],
-                    starting_proficiencies=starting_proficiencies,
-                    starting_proficiency_options=starting_proficiency_options,
-                    languages=languages,
-                    language_desc=data['language_desc'],
-                    traits=traits,
-                    subraces=subraces)
+    data = _load_json_data('races', index_name)
+    ability_bonuses = dict([(ability_bonus['ability_score']['index'], ability_bonus['bonus']) for ability_bonus in data['ability_bonuses']])
+    starting_proficiencies: List[Proficiency] = [request_proficiency(
+        d['index']) for d in data.get('starting_proficiencies')]
+    starting_proficiency_options: List[Tuple[List[Proficiency], int]] = []
+    if data.get('starting_proficiency_options'):
+        dat = data.get('starting_proficiency_options')
+        choose: int = dat['choose']
+        proficiencies_choose: List[Proficiency] = [request_proficiency(d['index']) for d in dat['from']]
+        starting_proficiency_options.append((choose, proficiencies_choose))
+    languages: List[Language] = [lang['index']for lang in data['languages']]
+    traits: List[Trait] = [request_trait(d['index']) for d in data['traits']]
+    subraces: List[SubRace] = [request_subrace(d['index']) for d in data['subraces']]
+    subraces: List[str] = [d['index'] for d in data['subraces']]
+    return Race(index=data['index'],
+                name=data['name'],
+                speed=data['speed'],
+                ability_bonuses=ability_bonuses,
+                alignment=data['alignment'],
+                age=data['age'],
+                size=data['size'],
+                size_description=data['size_description'],
+                starting_proficiencies=starting_proficiencies,
+                starting_proficiency_options=starting_proficiency_options,
+                languages=languages,
+                language_desc=data['language_desc'],
+                traits=traits,
+                subraces=subraces)
 
 
 def request_subrace(index_name: str) -> SubRace:
@@ -2404,18 +2555,17 @@ def request_subrace(index_name: str) -> SubRace:
     :param index_name: name of the subrace
     :return: SubRace object
     """
-    with open(resource_path(f"data/subraces/{index_name}.json"), "r") as f:
-        data = json.loads(f.read())
-        ability_bonuses = dict([(ability_bonus['ability_score']['index'], ability_bonus['bonus'])
-                                for ability_bonus in data['ability_bonuses']])
-        starting_proficiencies: List[Proficiency] = [request_proficiency(d['index']) for d in data['starting_proficiencies']]
-        racial_traits: List[Trait] = [request_trait(d['index']) for d in data['racial_traits']]
-        return SubRace(index=data['index'],
-                       name=data['name'],
-                       desc=data['desc'],
-                       ability_bonuses=ability_bonuses,
-                       starting_proficiencies=starting_proficiencies,
-                       racial_traits=racial_traits)
+    data = _load_json_data('subraces', index_name)
+    ability_bonuses = dict([(ability_bonus['ability_score']['index'], ability_bonus['bonus'])
+                            for ability_bonus in data['ability_bonuses']])
+    starting_proficiencies: List[Proficiency] = [request_proficiency(d['index']) for d in data['starting_proficiencies']]
+    racial_traits: List[Trait] = [request_trait(d['index']) for d in data['racial_traits']]
+    return SubRace(index=data['index'],
+                   name=data['name'],
+                   desc=data['desc'],
+                   ability_bonuses=ability_bonuses,
+                   starting_proficiencies=starting_proficiencies,
+                   racial_traits=racial_traits)
 
 
 def request_language(index_name: str) -> Language:
@@ -2424,14 +2574,13 @@ def request_language(index_name: str) -> Language:
     :param index_name: name of the language
     :return: Language object
     """
-    with open(resource_path(f"data/languages/{index_name}.json"), "r") as f:
-        data = json.loads(f.read())
-        return Language(index_name=data['index'],
-                        name=data['name'],
-                        desc=data['desc'],
-                        type=data['type'],
-                        typical_speakers=data['typical_speakers'],
-                        script=data['script'])
+    data = _load_json_data('languages', index_name)
+    return Language(index_name=data['index'],
+                    name=data['name'],
+                    desc=data['desc'],
+                    type=data['type'],
+                    typical_speakers=data['typical_speakers'],
+                    script=data['script'])
 
 
 def request_proficiency(index_name: str) -> Proficiency:
@@ -2440,8 +2589,7 @@ def request_proficiency(index_name: str) -> Proficiency:
     :param index_name: name of the proficiency
     :return: Proficiency object
     """
-    with open(resource_path(f"data/proficiencies/{index_name}.json"), "r") as f:
-        data = json.loads(f.read())
+    data = _load_json_data('proficiencies', index_name)
 
     classes: List[str] = []
     races: List[str] = []
@@ -2469,21 +2617,6 @@ def request_proficiency(index_name: str) -> Proficiency:
                        races=races)
 
 
-def request_language(index_name: str) -> Language:
-    """
-    Send a request to local database for a language's characteristic
-    :param index_name: name of the language
-    :return: Language object
-    """
-    with open(resource_path(f"data/languages/{index_name}.json"), "r") as f:
-        data = json.loads(f.read())
-        return Language(index=data['index'],
-                        name=data['name'],
-                        desc=data['desc'],
-                        type=data['type'],
-                        typical_speakers=data['typical_speakers'],
-                        script=data['script'])
-
 
 def request_equipment_category(index_name: str) -> EquipmentCategory:
     """
@@ -2491,11 +2624,10 @@ def request_equipment_category(index_name: str) -> EquipmentCategory:
     :param index_name: name of the equipment category
     :return: EquipmentCategory object
     """
-    with open(resource_path(f"data/equipment-categories/{index_name}.json"), "r") as f:
-        data = json.loads(f.read())
-        return EquipmentCategory(index=data['index'],
-                                 name=data['name'],
-                                 url=data['url'])
+    data = _load_json_data('equipment-categories', index_name)
+    return EquipmentCategory(index=data['index'],
+                             name=data['name'],
+                             url=data['url'])
 
 
 def list_equipment_category(index_name: str) -> List[Equipment]:
@@ -2504,8 +2636,7 @@ def list_equipment_category(index_name: str) -> List[Equipment]:
     :param index_name: name of the equipment category
     :return: list of equipment's objects
     """
-    with open(f"{path}/data/equipment-categories/{index_name}.json", "r") as f:
-        data = json.loads(f.read())
+    data = _load_json_data('equipment-categories', index_name)
     equipments: List[Equipment] = []
     for equip in data.get('equipment'):
         equipment: Equipment = request_equipment(equip['index'])
@@ -2520,25 +2651,24 @@ def request_equipment(index_name: str) -> Optional[Equipment]:
     :return: Equipment object
     """
     try:
-        with open(resource_path(f"data/equipment/{index_name}.json"), "r") as f:
-            data = json.loads(f.read())
-            equipment_category = data['equipment_category']['index']
-            if equipment_category == 'weapon':
-                return request_weapon(index_name)
-            elif equipment_category == 'armor':
-                return request_armor(index_name)
-            else:
-                return Equipment(id=-1,
-                                 image_name='None.PNG',
-                                 x=-1, y=-1, old_x=-1, old_y=-1,
-                                 index=data['index'],
-                                 name=data['name'],
-                                 category=request_equipment_category(equipment_category),
-                                 cost=Cost(data['cost']['quantity'], data['cost']['unit']),
-                                 weight=data.get('weight'),
-                                 desc=data.get('desc'),
-                                 equipped=False)
-    except FileNotFoundError:
+        data = _load_json_data('equipment', index_name)
+        equipment_category = data['equipment_category']['index']
+        if equipment_category == 'weapon':
+            return request_weapon(index_name)
+        elif equipment_category == 'armor':
+            return request_armor(index_name)
+        else:
+            return Equipment(id=-1,
+                             image_name='None.PNG',
+                             x=-1, y=-1, old_x=-1, old_y=-1,
+                             index=data['index'],
+                             name=data['name'],
+                             category=request_equipment_category(equipment_category),
+                             cost=Cost(data['cost']['quantity'], data['cost']['unit']),
+                             weight=data.get('weight'),
+                             desc=data.get('desc'),
+                             equipped=False)
+    except (FileNotFoundError, Exception):
         # print(f'equipment {index_name} not existing in database!')
         return None
 
@@ -2617,97 +2747,96 @@ def request_class(index_name: str, known_proficiencies: List[Proficiency] = None
     :param index_name: name of the class
     :return: ClassType object
     """
-    with open(resource_path(f"data/classes/{index_name}.json"), "r") as f:
-        data = json.loads(f.read())
-        proficiencies: List[Proficiency] = [request_proficiency(d['index']) for d in data['proficiencies']]
-        proficiency_choices: List[Tuple[List[Proficiency], int]] = []
-        for dat in data['proficiency_choices']:
-            choose: int = dat['choose']
-            proficiencies_choose: List[Proficiency] = [
-                request_proficiency(d['index']) for d in dat['from']]
-            proficiency_choices.append((choose, proficiencies_choose))
+    data = _load_json_data('classes', index_name)
+    proficiencies: List[Proficiency] = [request_proficiency(d['index']) for d in data['proficiencies']]
+    proficiency_choices: List[Tuple[List[Proficiency], int]] = []
+    for dat in data['proficiency_choices']:
+        choose: int = dat['choose']
+        proficiencies_choose: List[Proficiency] = [
+            request_proficiency(d['index']) for d in dat['from']]
+        proficiency_choices.append((choose, proficiencies_choose))
 
-        starting_equipment: List[Inventory] = []
-        for equip_dict in data['starting_equipment']:
-            quantity: int = equip_dict['quantity']
-            equipment: Equipment = request_equipment(
-                equip_dict['equipment']['index'])
-            starting_equipment.append(
-                Inventory(quantity=quantity, equipment=equipment))
+    starting_equipment: List[Inventory] = []
+    for equip_dict in data['starting_equipment']:
+        quantity: int = equip_dict['quantity']
+        equipment: Equipment = request_equipment(
+            equip_dict['equipment']['index'])
+        starting_equipment.append(
+            Inventory(quantity=quantity, equipment=equipment))
 
-        starting_equipment_options: List[List[Inventory]] = []
-        for st_eq_option in data['starting_equipment_options']:
-            choose: int = st_eq_option['choose']
-            equipments_choose: List[Inventory] = []
-            for eq_choice in st_eq_option['from']:
-                if known_proficiencies:
-                    known_proficiencies: List[str] = [p.index for p in known_proficiencies]
-                    prereq = True
-                    for p_dict in eq_choice['prerequisites']:
-                        if p_dict['proficiency']['index'] not in known_proficiencies:
-                            prereq = False
-                    if not prereq:
-                        continue
-                if 'equipment' in eq_choice:
-                    equipment: Inventory = Inventory(
-                        quantity=eq_choice['quantity'], equipment=request_equipment(eq_choice['equipment']['index']))
-                    equipments_choose.append(equipment)
-                elif 'equipment_option' in eq_choice:
-                    quantity: int = eq_choice['quantity'] if 'quantity' in eq_choice else 1
-                    equipment_category: EquipmentCategory = request_equipment_category(
-                        eq_choice['equipment_option']['from']['equipment_category']['index'])
-                    equipments_choose.append(
-                        Inventory(quantity=quantity, equipment=equipment_category))
-                elif 'equipment_category' in eq_choice:
-                    quantity: int = eq_choice['quantity'] if 'quantity' in eq_choice else 1
-                    equipment_category: EquipmentCategory = request_equipment_category(
-                        eq_choice['equipment_category']['index'])
-                    equipments_choose.append(
-                        Inventory(quantity=quantity, equipment=equipment_category))
-                else:
-                    equipments: List[Inventory] = []
-                    for item_no, equip_dict in eq_choice.items():
-                        # print(f'item_no: {item_no}, equip_dict: {equip_dict}')
-                        if 'equipment' in equip_dict:
-                            quantity: int = equip_dict['quantity'] if 'quantity' in equip_dict else 1
-                            equipment: Equipment = request_equipment(
-                                equip_dict['equipment']['index'])
-                            equipments.append(
-                                Inventory(quantity=quantity, equipment=equipment))
-                    equipments_choose.append(equipments)
-            if equipments_choose:
-                # starting_equipment_options.append((choose, equipments_choose))
-                starting_equipment_options.append(equipments_choose)
+    starting_equipment_options: List[List[Inventory]] = []
+    for st_eq_option in data['starting_equipment_options']:
+        choose: int = st_eq_option['choose']
+        equipments_choose: List[Inventory] = []
+        for eq_choice in st_eq_option['from']:
+            if known_proficiencies:
+                known_proficiencies: List[str] = [p.index for p in known_proficiencies]
+                prereq = True
+                for p_dict in eq_choice['prerequisites']:
+                    if p_dict['proficiency']['index'] not in known_proficiencies:
+                        prereq = False
+                if not prereq:
+                    continue
+            if 'equipment' in eq_choice:
+                equipment: Inventory = Inventory(
+                    quantity=eq_choice['quantity'], equipment=request_equipment(eq_choice['equipment']['index']))
+                equipments_choose.append(equipment)
+            elif 'equipment_option' in eq_choice:
+                quantity: int = eq_choice['quantity'] if 'quantity' in eq_choice else 1
+                equipment_category: EquipmentCategory = request_equipment_category(
+                    eq_choice['equipment_option']['from']['equipment_category']['index'])
+                equipments_choose.append(
+                    Inventory(quantity=quantity, equipment=equipment_category))
+            elif 'equipment_category' in eq_choice:
+                quantity: int = eq_choice['quantity'] if 'quantity' in eq_choice else 1
+                equipment_category: EquipmentCategory = request_equipment_category(
+                    eq_choice['equipment_category']['index'])
+                equipments_choose.append(
+                    Inventory(quantity=quantity, equipment=equipment_category))
+            else:
+                equipments: List[Inventory] = []
+                for item_no, equip_dict in eq_choice.items():
+                    # print(f'item_no: {item_no}, equip_dict: {equip_dict}')
+                    if 'equipment' in equip_dict:
+                        quantity: int = equip_dict['quantity'] if 'quantity' in equip_dict else 1
+                        equipment: Equipment = request_equipment(
+                            equip_dict['equipment']['index'])
+                        equipments.append(
+                            Inventory(quantity=quantity, equipment=equipment))
+                equipments_choose.append(equipments)
+        if equipments_choose:
+            # starting_equipment_options.append((choose, equipments_choose))
+            starting_equipment_options.append(equipments_choose)
 
-        saving_throws: List[AbilityType] = [AbilityType(
-            d['index']) for d in data['saving_throws']]
+    saving_throws: List[AbilityType] = [AbilityType(
+        d['index']) for d in data['saving_throws']]
 
-        can_cast: bool = 'spells' in data
-        spell_slots, spells_known, cantrips_known = {}, [], []
-        if can_cast:
-            spell_slots, spells_known, cantrips_known = get_spell_slots(
-                class_name=data['name'])
+    can_cast: bool = 'spells' in data
+    spell_slots, spells_known, cantrips_known = {}, [], []
+    if can_cast:
+        spell_slots, spells_known, cantrips_known = get_spell_slots(
+            class_name=data['name'])
 
-        spellcasting_level: int = None
-        spellcasting_ability: str = None
-        if 'spellcasting' in data:
-            spellcasting_level: int = int(data['spellcasting']['level'])
-            spellcasting_ability: str = data['spellcasting']['spellcasting_ability']['index']
+    spellcasting_level: int = None
+    spellcasting_ability: str = None
+    if 'spellcasting' in data:
+        spellcasting_level: int = int(data['spellcasting']['level'])
+        spellcasting_ability: str = data['spellcasting']['spellcasting_ability']['index']
 
-        return ClassType(index=data['index'],
-                         name=data['name'],
-                         hit_die=data['hit_die'],
-                         proficiency_choices=proficiency_choices,
-                         proficiencies=proficiencies,
-                         saving_throws=saving_throws,
-                         starting_equipment=starting_equipment,
-                         starting_equipment_options=starting_equipment_options,
-                         class_levels=data['class_levels'],
-                         multi_classing=data['multi_classing'],
-                         subclasses=data['subclasses'],
-                         spellcasting_level=spellcasting_level,
-                         spellcasting_ability=spellcasting_ability,
-                         can_cast='spells' in data,
-                         spell_slots=deepcopy(spell_slots),
-                         spells_known=spells_known,
-                         cantrips_known=cantrips_known)
+    return ClassType(index=data['index'],
+                     name=data['name'],
+                     hit_die=data['hit_die'],
+                     proficiency_choices=proficiency_choices,
+                     proficiencies=proficiencies,
+                     saving_throws=saving_throws,
+                     starting_equipment=starting_equipment,
+                     starting_equipment_options=starting_equipment_options,
+                     class_levels=data['class_levels'],
+                     multi_classing=data['multi_classing'],
+                     subclasses=data['subclasses'],
+                     spellcasting_level=spellcasting_level,
+                     spellcasting_ability=spellcasting_ability,
+                     can_cast='spells' in data,
+                     spell_slots=deepcopy(spell_slots),
+                     spells_known=spells_known,
+                     cantrips_known=cantrips_known)

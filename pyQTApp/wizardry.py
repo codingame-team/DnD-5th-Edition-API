@@ -16,9 +16,12 @@ from PyQt5.QtWidgets import (
 )
 
 # ============================================
-# MIGRATION: Add dnd-5e-core to path
+# MIGRATION: Add dnd-5e-core to path (development mode)
 # ============================================
-sys.path.insert(0, '/Users/display/PycharmProjects/dnd-5e-core')
+_parent_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+_dnd_5e_core_path = os.path.join(_parent_dir, 'dnd-5e-core')
+if os.path.exists(_dnd_5e_core_path) and _dnd_5e_core_path not in sys.path:
+    sys.path.insert(0, _dnd_5e_core_path)
 
 # ============================================
 # MIGRATION: Import from dnd-5e-core package

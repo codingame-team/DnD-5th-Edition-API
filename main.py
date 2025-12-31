@@ -2,20 +2,28 @@ from __future__ import annotations
 
 import pickle
 import sys
+from copy import copy
 from fractions import Fraction
 
 from numpy import array
 
 from collections import namedtuple, Counter
-from random import seed, sample, shuffle
+from random import seed, sample, shuffle, choice
 from time import sleep, time
 
 from PyQt5.QtWidgets import QApplication, QDialog
 
 # ============================================
-# MIGRATION: Add dnd-5e-core to path
+# MIGRATION: Add dnd-5e-core to path (development mode)
 # ============================================
-sys.path.insert(0, '/Users/display/PycharmProjects/dnd-5e-core')
+import os
+
+from game_entity import GameCharacter
+
+_parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+_dnd_5e_core_path = os.path.join(_parent_dir, 'dnd-5e-core')
+if os.path.exists(_dnd_5e_core_path) and _dnd_5e_core_path not in sys.path:
+    sys.path.insert(0, _dnd_5e_core_path)
 
 # ============================================
 # MIGRATION: Import from dnd-5e-core package
@@ -35,8 +43,9 @@ from dnd_5e_core.equipment import WeaponProperty, WeaponRange, WeaponThrowRange,
 from dnd_5e_core.ui import cprint, Color, color
 from dnd_5e_core.data import set_data_directory
 
-# Set data directory
-set_data_directory('/Users/display/PycharmProjects/DnD-5th-Edition-API/data')
+# Set data directory to local data folder
+_data_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
+set_data_directory(_data_dir)
 
 # Keep populate_functions for data loading
 from populate_functions import *
@@ -454,8 +463,13 @@ def load_dungeon_collections() -> Tuple:
 
 
 def get_next_item_id(roster: List[Character]) -> int:
+    """
+    DEPRECATED: Items no longer have id in main.py (console version).
+    IDs are only used in GameEntity for pygame games.
+    Keeping this function for backward compatibility but it's not used anymore.
+    """
     # return max([item.id for c in roster for item in c.inventory if item]) + 1 if roster else MAX_ROSTER + 1
-    return (max([item.id for c in roster for item in c.inventory if item]) + 1 if roster else MAX_ROSTER + 1)
+    return MAX_ROSTER + 1  # Just return a default value
 
 
 def get_spell_caster(class_type, char_level, spells) -> Optional[SpellCaster]:
@@ -599,9 +613,34 @@ def generate_random_character(roster: List[Character], races: List[Race], subrac
     char_level: int = 1  # could be changed to create higher level characters
     spell_caster: Optional[SpellCaster] = get_spell_caster(class_type, char_level, spells)
 
-    free_id = max([c.id for c in roster]) + 1 if roster else 1
-    return Character(id=free_id, image_name=get_char_image(class_type), x=-1, y=-1, old_x=-1, old_y=-1, race=race, subrace=subrace, class_type=class_type, proficiencies=char_proficiencies,  # proficiencies=class_type.proficiencies + race.starting_proficiencies,
-                     abilities=abilities, ability_modifiers=ability_modifiers, gender=gender, name=name, ethnic=ethnic, height=height, weight=weight, inventory=[None] * 20, hit_points=hit_points, max_hit_points=hit_points, xp=0, level=1, age=18 * 52 + randint(0, 299), gold=90 + randint(0, 99), sc=spell_caster, conditions=[], speed=30, haste_timer=0, hasted=False, st_advantages=[])
+    # Note: Character no longer has id, x, y, old_x, old_y, image_name
+    # These are now part of GameEntity for pygame games only
+    return Character(
+        race=race,
+        subrace=subrace,
+        class_type=class_type,
+        proficiencies=char_proficiencies,
+        abilities=abilities,
+        ability_modifiers=ability_modifiers,
+        gender=gender,
+        name=name,
+        ethnic=ethnic,
+        height=height,
+        weight=weight,
+        inventory=[None] * 20,
+        hit_points=hit_points,
+        max_hit_points=hit_points,
+        xp=0,
+        level=1,
+        age=18 * 52 + randint(0, 299),
+        gold=90 + randint(0, 99),
+        sc=spell_caster,
+        conditions=[],
+        speed=30,
+        haste_timer=0,
+        hasted=False,
+        st_advantages=[]
+    )
 
 
 def create_new_character(roster: List[Character]) -> Character:
@@ -630,20 +669,43 @@ def create_new_character(roster: List[Character]) -> Character:
     hit_points = class_type.hit_die + ability_modifiers.con
     # Add a set of healing potions to the starting equipment
     starting_equipment += [copy(choice(potions)) for _ in range(POTION_INITIAL_PACK)]
-    # Assign sprite id for each item inside inventory
-    max_item_id: int = get_next_item_id(roster)
-    for item in starting_equipment:
-        item.id = max_item_id
-        max_item_id += 1
+    # Note: Items no longer need id assignment - that's only for GameEntity in pygame
+    # for item in starting_equipment:
+    #     item.id = max_item_id
+    #     max_item_id += 1
 
     # Phase 2: Spell selection
     char_level: int = 1  # could be changed to create higher level characters
     spell_caster: Optional[SpellCaster] = get_spell_caster(class_type, char_level, spells)
 
-    # sorted_roster_by_id = sorted(roster, key=lambda c: c.id)
-    free_id = max([c.id for c in roster]) + 1 if roster else 1
-    character: Character = Character(id=free_id, image_name=get_char_image(class_type), x=-1, y=-1, old_x=-1, old_y=-1, race=race, subrace=subrace, class_type=class_type, proficiencies=char_proficiencies, # proficiencies=class_type.proficiencies + race.starting_proficiencies,
-        abilities=abilities, ability_modifiers=ability_modifiers, gender=gender, name=name, ethnic=ethnic, height=height, weight=weight, inventory=starting_equipment + [None] * (20 - len(starting_equipment)), hit_points=hit_points, max_hit_points=hit_points, xp=0, level=1, age=18 * 52 + randint(0, 299), gold=90 + randint(0, 99), sc=spell_caster, conditions=[], speed=30, haste_timer=0, hasted=False, st_advantages=[], )
+    # Note: Character no longer has id, x, y, old_x, old_y, image_name
+    # These are now part of GameEntity for pygame games only
+    character: Character = Character(
+        race=race,
+        subrace=subrace,
+        class_type=class_type,
+        proficiencies=char_proficiencies,
+        abilities=abilities,
+        ability_modifiers=ability_modifiers,
+        gender=gender,
+        name=name,
+        ethnic=ethnic,
+        height=height,
+        weight=weight,
+        inventory=starting_equipment + [None] * (20 - len(starting_equipment)),
+        hit_points=hit_points,
+        max_hit_points=hit_points,
+        xp=0,
+        level=1,
+        age=18 * 52 + randint(0, 299),
+        gold=90 + randint(0, 99),
+        sc=spell_caster,
+        conditions=[],
+        speed=30,
+        haste_timer=0,
+        hasted=False,
+        st_advantages=[]
+    )
     exit_message()
     return character
 
@@ -736,8 +798,11 @@ def handle_equipment(char, items, item_type, display_info):
         choice = int(input(f"\nChoose {item_type} to equip/unequip (0 to cancel): "))
         if 0 < choice <= len(items):
             selected = items[choice - 1]
-            if char.equip(selected):
+            messages, success = char.equip(selected, verbose=False)
+            if success:
                 print(f"\n{'Equipped' if selected.equipped else 'Unequipped'} {selected.name}")
+            else:
+                print(f"\n{messages}")
             sleep(4)
     except ValueError:
         print("\nInvalid input!")
@@ -981,10 +1046,17 @@ def arena(character: Character):
             cprint("-------------------------------------------------------")
             if character.hit_points < 0.5 * character.max_hit_points and character.healing_potions:
                 cprint(f"{len(character.healing_potions)} remaining potions")
-                character.drink_potion()
+                potion = character.choose_best_potion()
+                drink_msg, success, hp_restored = character.drink(potion, verbose=False)
+                print(drink_msg)
+                # Remove potion from inventory
+                p_idx = next(i for i, item in enumerate(character.inventory) if item is not None and item == potion)
+                character.inventory[p_idx] = None
             attack_count += 1
-            monster_hp_damage = monster.attack(character)
-            character_hp_damage = character.attack(monster, ActionType.MELEE)
+            monster_attack_msg, monster_hp_damage = monster.attack(character)
+            print(monster_attack_msg)
+            character_attack_msg, character_hp_damage = character.attack(monster, in_melee=True, verbose=False)
+            print(character_attack_msg)
             priority_dice = randint(0, 1)
             if priority_dice == 0:  # monster attacks first
                 character.hit_points -= monster_hp_damage
@@ -993,16 +1065,20 @@ def arena(character: Character):
                     break
                 monster.hit_points -= character_hp_damage
                 if monster.hit_points <= 0:
-                    character.victory(monster, solo_mode=True)
+                    victory_msg, xp, gold = character.victory(monster, solo_mode=True, verbose=False)
+                    print(victory_msg)
                     character.kills.append(monster)
-                    character.treasure(weapons, armors, equipment_categories)
+                    treasure_msg, item = character.treasure(weapons, armors, equipment_categories, [], verbose=False)
+                    print(treasure_msg)
                     break
             else:  # character attacks first
                 monster.hit_points -= character_hp_damage
                 if monster.hit_points <= 0:
-                    character.victory(monster, solo_mode=True)
+                    victory_msg, xp, gold = character.victory(monster, solo_mode=True, verbose=False)
+                    print(victory_msg)
                     killed_monsters += 1
-                    character.treasure(weapons, armors, equipment_categories)
+                    treasure_msg, item = character.treasure(weapons, armors, equipment_categories, [], verbose=False)
+                    print(treasure_msg)
                     break
                 character.hit_points -= monster_hp_damage
                 if character.hit_points <= 0:
@@ -1789,7 +1865,9 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
                             if attacker.is_spell_caster and castable_spells:
                                 target_char: Character = (choice(ranged_chars) if ranged_chars else choice(melee_chars))
                                 attack_spell: Spell = max(castable_spells, key=lambda s: s.level)
-                                target_char.hit_points -= attacker.cast_attack(target_char, attack_spell)
+                                attack_msg, damage = attacker.cast_attack(target_char, attack_spell, verbose=False)
+                                print(attack_msg)
+                                target_char.hit_points -= damage
                                 if target_char.hit_points <= 0:
                                     alive_chars.remove(target_char)
                                     target_char.status = "DEAD"
@@ -1815,7 +1893,9 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
                                 # cprint('target chars: ' + '/'.join([c.name for c in target_chars]))
                                 for target_char in target_chars:
                                     if target_char in alive_chars:
-                                        target_char.hit_points -= attacker.special_attack(target_char, special_attack)
+                                        attack_msg, damage = attacker.special_attack(target_char, special_attack, verbose=False)
+                                        print(attack_msg)
+                                        target_char.hit_points -= damage
                                         if target_char.hit_points <= 0:
                                             # cprint('/'.join([c.name for c in alive_chars]))
                                             # cprint(f'removing {char.name}')
@@ -1826,7 +1906,9 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
                                 target_char: Character = choice(melee_chars)
                                 melee_attacks: List[Action] = [a for a in attacker.actions if a.type in (ActionType.MELEE, ActionType.MIXED)] if attacker.actions else []
                                 if melee_attacks:
-                                    target_char.hit_points -= attacker.attack(character=target_char, actions=melee_attacks)
+                                    attack_msg, damage = attacker.attack(target=target_char, actions=melee_attacks)
+                                    print(attack_msg)
+                                    target_char.hit_points -= damage
                                     if target_char.hit_points <= 0:
                                         alive_chars.remove(target_char)
                                         target_char.status = "DEAD"
@@ -1856,7 +1938,8 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
                                 attacker.update_spell_slots(spell, best_slot_level)
                         elif attacker.hit_points < 0.3 * attacker.max_hit_points and attacker.healing_potions:
                             p: HealingPotion = attacker.choose_best_potion()
-                            attacker.drink(p)
+                            drink_msg, success, hp_restored = attacker.drink(p, verbose=False)
+                            print(drink_msg)
                             p_idx = next(i for i, item in enumerate(attacker.inventory) if item is not None and item == p)
                             attacker.inventory[p_idx] = None
                             cprint(f"{attacker.name} has {len(attacker.healing_potions)} remaining potions")
@@ -1879,12 +1962,16 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
                             else:
                                 monster: Monster = min(alive_monsters, key=lambda m: m.hit_points)
                             cprint(f"{color.GREEN}{attacker.name}{color.END} attacks {monster.name.title()}!")
-                            monster.hit_points -= attacker.attack(monster=monster, in_melee=(attacker in alive_chars[:3]))
+                            attack_msg, damage = attacker.attack(monster=monster, in_melee=(attacker in alive_chars[:3]), verbose=False)
+                            print(attack_msg)
+                            monster.hit_points -= damage
                             if monster.hit_points <= 0:
                                 alive_monsters.remove(monster)
                                 cprint(f"{color.RED}{monster.name.title()}{color.END} is ** KILLED **!")
-                                attacker.victory(monster)
-                                attacker.treasure(weapons, armors, equipments, potions)
+                                victory_msg, xp, gold = attacker.victory(monster, verbose=False)
+                                print(victory_msg)
+                                treasure_msg, item = attacker.treasure(weapons, armors, equipments, potions, verbose=False)
+                                print(treasure_msg)
                                 if not hasattr(attacker, "kills"): attacker.kills = []
                                 attacker.kills.append(monster)
             # End of Round

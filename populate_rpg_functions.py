@@ -4,12 +4,34 @@ import json
 import os
 from random import randint, choice
 from typing import Optional, List
+import sys
 
-import pygame
-from pygame import Surface
+# Note: pygame is NOT imported here because this module is used by both
+# console and pygame versions. Import pygame only in pygame-specific code.
 
-from dao_classes import HealingPotion, PotionRarity, SpeedPotion, StrengthPotion, Potion
-from dao_rpg_classes_tk import Monster
+# ============================================
+# MIGRATION: Add dnd-5e-core to path (development mode)
+# ============================================
+_parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+_dnd_5e_core_path = os.path.join(_parent_dir, 'dnd-5e-core')
+if os.path.exists(_dnd_5e_core_path) and _dnd_5e_core_path not in sys.path:
+    sys.path.insert(0, _dnd_5e_core_path)
+
+# ============================================
+# MIGRATION: Import from dnd-5e-core package
+# ============================================
+from dnd_5e_core.equipment import HealingPotion, PotionRarity, SpeedPotion, StrengthPotion, Potion
+
+# NOTE: dao_rpg_classes_tk is DEPRECATED and imports pygame which breaks console build
+# Use populate_functions.request_monster() instead which uses dnd_5e_core.entities.Monster
+# from dao_rpg_classes_tk import Monster
+
+# Import GameEntity for pygame positioning
+try:
+    from game_entity import create_game_weapon, create_game_armor, create_game_potion
+    GAME_ENTITY_AVAILABLE = True
+except ImportError:
+    GAME_ENTITY_AVAILABLE = False
 
 path = os.path.dirname(__file__)
 
@@ -180,127 +202,207 @@ def load_potion_image_name(name: str) -> Optional[str]:
     image_name: str = potions.get(name)
     return image_name + '.PNG' if image_name else 'None.PNG'
 
+
 def load_potions_collections() -> List[Potion]:
+    """
+    Load all available potions (core entities without positioning).
+    For pygame positioning, wrap with GameEntity.
+    """
     potions: List[Potion] = []
-    fn = load_potion_image_name
-    potion = HealingPotion(id=-1, image_name=fn('Healing'), x=-1, y=-1, old_x=-1, old_y=-1, name='Healing', rarity=PotionRarity.COMMON, hit_dice='2d4', bonus=2, min_cost=10,
-                           max_cost=50)
+
+    # Healing Potions
+    potion = HealingPotion(
+        name='Healing',
+        rarity=PotionRarity.COMMON,
+        hit_dice='2d4',
+        bonus=2,
+        min_cost=10,
+        max_cost=50
+    )
     potions.append(potion)
-    potion = HealingPotion(id=-1, image_name=fn('Greater healing'), x=-1, y=-1, old_x=-1, old_y=-1, name='Greater healing', rarity=PotionRarity.UNCOMMON, hit_dice='4d4', bonus=4,
-                           min_cost=101, max_cost=500)
+
+    potion = HealingPotion(
+        name='Greater healing',
+        rarity=PotionRarity.UNCOMMON,
+        hit_dice='4d4',
+        bonus=4,
+        min_cost=101,
+        max_cost=500
+    )
     potions.append(potion)
-    potion = HealingPotion(id=-1, image_name=fn('Superior healing'), x=-1, y=-1, old_x=-1, old_y=-1, name='Superior healing', rarity=PotionRarity.RARE, hit_dice='8d4', bonus=8,
-                           min_cost=501, max_cost=5000, min_level=5)
+
+    potion = HealingPotion(
+        name='Superior healing',
+        rarity=PotionRarity.RARE,
+        hit_dice='8d4',
+        bonus=8,
+        min_cost=501,
+        max_cost=5000,
+        min_level=5
+    )
     potions.append(potion)
-    potion = HealingPotion(id=-1, image_name=fn('Supreme healing'), x=-1, y=-1, old_x=-1, old_y=-1, name='Supreme healing', rarity=PotionRarity.VERY_RARE, hit_dice='10d4',
-                           bonus=20, min_cost=5001, max_cost=50000, min_level=11)
+
+    potion = HealingPotion(
+        name='Supreme healing',
+        rarity=PotionRarity.VERY_RARE,
+        hit_dice='10d4',
+        bonus=20,
+        min_cost=5001,
+        max_cost=50000,
+        min_level=11
+    )
     potions.append(potion)
-    potion = SpeedPotion(id=-1, image_name=fn('Speed'), x=-1, y=-1, old_x=-1, old_y=-1, name='Speed', rarity=PotionRarity.VERY_RARE, duration=60, min_cost=5001, max_cost=50000,
-                         min_level=11)
+
+    # Speed Potion
+    potion = SpeedPotion(
+        name='Speed',
+        rarity=PotionRarity.VERY_RARE,
+        duration=60,
+        min_cost=5001,
+        max_cost=50000,
+        min_level=11
+    )
     potions.append(potion)
-    potion = StrengthPotion(id=-1, image_name=fn('Hill Giant Strength'), x=-1, y=-1, old_x=-1, old_y=-1, name='Hill Giant Strength', rarity=PotionRarity.UNCOMMON, value=21,
-                            duration=3600, min_cost=101, max_cost=500)
+
+    # Strength Potions (Giant Strength series)
+    potion = StrengthPotion(
+        name='Hill Giant Strength',
+        rarity=PotionRarity.UNCOMMON,
+        value=21,
+        duration=3600,
+        min_cost=101,
+        max_cost=500
+    )
     potions.append(potion)
-    potion = StrengthPotion(id=-1, image_name=fn('Frost Giant Strength'), x=-1, y=-1, old_x=-1, old_y=-1, name='Frost Giant Strength', rarity=PotionRarity.RARE, value=23,
-                            duration=3600, min_cost=501, max_cost=5000, min_level=5)
+
+    potion = StrengthPotion(
+        name='Frost Giant Strength',
+        rarity=PotionRarity.RARE,
+        value=23,
+        duration=3600,
+        min_cost=501,
+        max_cost=5000,
+        min_level=5
+    )
     potions.append(potion)
-    potion = StrengthPotion(id=-1, image_name=fn('Stone Giant Strength'), x=-1, y=-1, old_x=-1, old_y=-1, name='Stone Giant Strength', rarity=PotionRarity.RARE, value=23,
-                            duration=3600, min_cost=501, max_cost=5000, min_level=5)
+
+    potion = StrengthPotion(
+        name='Stone Giant Strength',
+        rarity=PotionRarity.RARE,
+        value=23,
+        duration=3600,
+        min_cost=501,
+        max_cost=5000,
+        min_level=5
+    )
     potions.append(potion)
-    potion = StrengthPotion(id=-1, image_name=fn('Fire Giant Strength'), x=-1, y=-1, old_x=-1, old_y=-1, name='Fire Giant Strength', rarity=PotionRarity.RARE, value=25,
-                            duration=3600, min_cost=501, max_cost=5000, min_level=5)
+
+    potion = StrengthPotion(
+        name='Fire Giant Strength',
+        rarity=PotionRarity.RARE,
+        value=25,
+        duration=3600,
+        min_cost=501,
+        max_cost=5000,
+        min_level=5
+    )
     potions.append(potion)
-    potion = StrengthPotion(id=-1, image_name=fn('Cloud Giant Strength'), x=-1, y=-1, old_x=-1, old_y=-1, name='Cloud Giant Strength', rarity=PotionRarity.VERY_RARE, value=27,
-                            duration=3600, min_cost=5001, max_cost=50000, min_level=11)
+
+    potion = StrengthPotion(
+        name='Cloud Giant Strength',
+        rarity=PotionRarity.VERY_RARE,
+        value=27,
+        duration=3600,
+        min_cost=5001,
+        max_cost=50000,
+        min_level=11
+    )
     potions.append(potion)
-    potion = StrengthPotion(id=-1, image_name=fn('Storm Giant Strength'), x=-1, y=-1, old_x=-1, old_y=-1, name='Storm Giant Strength', rarity=PotionRarity.LEGENDARY, value=29,
-                            duration=3600, min_cost=50001, max_cost=500000, min_level=11)
+
+    potion = StrengthPotion(
+        name='Storm Giant Strength',
+        rarity=PotionRarity.LEGENDARY,
+        value=29,
+        duration=3600,
+        min_cost=50001,
+        max_cost=500000,
+        min_level=11
+    )
     potions.append(potion)
+
     return potions
 
 
-def request_monster(index_name: str) -> Optional[Monster]:
-    try:
-        with open(f"{path}/data/monsters/{index_name}.json", "r") as f:
-            data = json.loads(f.read())
-        attack_bonus: int = 0
-        match index_name:
-            case 'ankheg':
-                damage_dice = '2d6+3'
-                speed = data['speed']['walk']
-            case 'baboon':
-                damage_dice = '1d4-1'
-                speed = data['speed']['walk']
-            case 'bat':
-                damage_dice = '1'
-                speed = data['speed']['fly']
-            case 'blob':
-                return None
-            case 'crab':
-                damage_dice = '1'
-                speed = data['speed']['walk']
-            case 'ghost':
-                damage_dice = '4d6+3'
-                speed = data['speed']['fly']
-                attack_bonus = 5
-            case 'goblin':
-                damage_dice = '1d6+2'
-                speed = data['speed']['walk']
-                attack_bonus = 4
-            case 'harpy':
-                damage_dice = '2d4+1'
-                speed = data['speed']['fly']
-                attack_bonus = 3
-            case 'lizard':
-                damage_dice = '1'
-                speed = data['speed']['walk']
-            case 'mimic':
-                damage_dice = '1d8+3'
-                speed = data['speed']['walk']
-                attack_bonus = 3
-            case 'owl':
-                damage_dice = '1d6+2'
-                speed = data['speed']['fly']
-                attack_bonus = 3
-            case 'eagle':
-                damage_dice = '1d6+2'
-                speed = data['speed']['walk']
-            case 'goblin':
-                damage_dice = '1d6+2'
-                speed = data['speed']['walk']
-            case 'rat':
-                damage_dice = '1'
-                speed = data['speed']['walk']
-            case 'rat_scull':
-                return None
-            case 'skeleton':
-                damage_dice = '1d6+2'
-                speed = data['speed']['walk']
-                attack_bonus = 4
-            case 'snake':
-                return None
-            case 'spider':
-                damage_dice = '1'
-                speed = data['speed']['walk']
-                attack_bonus = 4
-            case 'tentacle':
-                return None
-            case 'wasp':
-                return None
-            case 'wolf':
-                damage_dice = '2d4+2'
-                speed = data['speed']['walk']
-                attack_bonus = 4
-        return Monster(x=-1,
-                       y=-1,
-                       img=pygame.image.load(f"{path}/sprites/rpgcharacterspack/monster_{index_name}.png"),
-                       name=index_name,
-                       hit_dice=data['hit_dice'],
-                       damage_dice=damage_dice,
-                       attack_bonus=attack_bonus,
-                       ac=data['armor_class'],
-                       speed=int(speed.split()[0]),
-                       xp=data['xp'],
-                       cr=data['challenge_rating'])
-    except FileNotFoundError:
-        return None
+# ============================================
+# DEPRECATED: This function is obsolete and has been replaced
+# Use populate_functions.request_monster() instead which uses dnd_5e_core.entities.Monster
+# This function used dao_rpg_classes_tk.Monster which imports pygame, breaking console builds
+# ============================================
+# def request_monster(index_name: str) -> Optional[Monster]:
+#     ... (commented out - see git history if needed)
+
+
+# ============================================
+# GameEntity Helper Functions for pygame
+# ============================================
+
+def create_game_weapon_with_image(weapon, image_name=None):
+    """
+    Create a GameEntity wrapper for a weapon with image.
+    Falls back to core weapon if GameEntity not available (console mode).
+
+    Args:
+        weapon: Core Weapon entity
+        image_name: Optional image name (loaded from load_weapon_image_name if None)
+
+    Returns:
+        GameEntity[Weapon] if available, otherwise core Weapon
+    """
+    if not GAME_ENTITY_AVAILABLE:
+        return weapon
+
+    if image_name is None:
+        image_name = load_weapon_image_name(weapon.index)
+
+    return create_game_weapon(weapon, x=-1, y=-1, image_name=image_name)
+
+
+def create_game_armor_with_image(armor, image_name=None):
+    """
+    Create a GameEntity wrapper for armor with image.
+    Falls back to core armor if GameEntity not available (console mode).
+
+    Args:
+        armor: Core Armor entity
+        image_name: Optional image name (loaded from load_armor_image_name if None)
+
+    Returns:
+        GameEntity[Armor] if available, otherwise core Armor
+    """
+    if not GAME_ENTITY_AVAILABLE:
+        return armor
+
+    if image_name is None:
+        image_name = load_armor_image_name(armor.index)
+
+    return create_game_armor(armor, x=-1, y=-1, image_name=image_name)
+
+def create_game_potion_with_image(potion, image_name=None):
+    """
+    Create a GameEntity wrapper for a potion with image.
+    Falls back to core potion if GameEntity not available (console mode).
+
+    Args:
+        potion: Core Potion entity
+        image_name: Optional image name (loaded from load_potion_image_name if None)
+
+    Returns:
+        GameEntity[Potion] if available, otherwise core Potion
+    """
+    if not GAME_ENTITY_AVAILABLE:
+        return potion
+
+    if image_name is None:
+        image_name = load_potion_image_name(potion.name)
+
+    return create_game_potion(potion, x=-1, y=-1, image_name=image_name)

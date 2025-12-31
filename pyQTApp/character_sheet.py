@@ -10,9 +10,23 @@ from typing import List
 
 from PyQt5.QtCore import pyqtSlot, Qt
 from PyQt5.QtGui import QPixmap
-from PyQt5.QtWidgets import QApplication, QDialog, QTableWidget
+from PyQt5.QtWidgets import QApplication, QDialog, QTableWidget, QTableWidgetItem, QHeaderView
 
-from dao_classes import Character, Weapon, Armor
+# ============================================
+# MIGRATION: Add dnd-5e-core to path
+# ============================================
+_parent_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+_dnd_5e_core_path = os.path.join(_parent_dir, 'dnd-5e-core')
+if os.path.exists(_dnd_5e_core_path) and _dnd_5e_core_path not in sys.path:
+    sys.path.insert(0, _dnd_5e_core_path)
+
+from dnd_5e_core.entities import Character
+from dnd_5e_core.equipment.weapon import WeaponData
+from dnd_5e_core.equipment.armor import ArmorData
+from dnd_5e_core.equipment.potion import Potion
+
+print("✅ [MIGRATION v2] character_sheet.py - Using dnd-5e-core package")
+
 from main import get_roster
 from pyQTApp.qt_designer_widgets.character_dialog import Ui_character_Dialog
 from pyQTApp.qt_common import populate_spell_table
@@ -49,7 +63,7 @@ class CharacterDialog(QDialog):
 
     @pyqtSlot(str)
     def change_weapon(self, weapon_name: str):
-        weapons = [e for e in self.char.inventory if isinstance(e, Weapon)]
+        weapons = [e for e in self.char.inventory if e and isinstance(e, WeaponData)]
 
         if weapon_name == "None":
             # Unequip all weapons
@@ -72,12 +86,12 @@ class CharacterDialog(QDialog):
     def change_armor(self, armor_name: str):
         if armor_name == "None":
             # Unequip all armor
-            armors = [e for e in self.char.inventory if isinstance(e, Armor) and e.index != 'shield']
+            armors = [e for e in self.char.inventory if e and isinstance(e, ArmorData) and e.index != 'shield']
             for armor in armors:
                 armor.equipped = False
         else:
             # Find and equip selected armor
-            armors = [e for e in self.char.inventory if isinstance(e, Armor) and e.index != 'shield']
+            armors = [e for e in self.char.inventory if e and isinstance(e, ArmorData) and e.index != 'shield']
             selected_armor = next((a for a in armors if a.name == armor_name), None)
             if selected_armor:
                 for armor in armors:
@@ -90,12 +104,12 @@ class CharacterDialog(QDialog):
     def change_shield(self, shield_name: str):
         if shield_name == "None":
             # Unequip all shields
-            shields = [e for e in self.char.inventory if isinstance(e, Armor) and e.index == 'shield']
+            shields = [e for e in self.char.inventory if e and isinstance(e, ArmorData) and e.index == 'shield']
             for shield in shields:
                 shield.equipped = False
         else:
             # Find and equip selected shield
-            shields = [e for e in self.char.inventory if isinstance(e, Armor) and e.index == 'shield']
+            shields = [e for e in self.char.inventory if e and isinstance(e, ArmorData) and e.index == 'shield']
             selected_shield = next((s for s in shields if s.name == shield_name), None)
             if selected_shield:
                 for shield in shields:
@@ -146,17 +160,19 @@ class CharacterDialog(QDialog):
         ui.height_label.setText(char.height)
         ui.weight_label.setText(char.weight)
         # Abilities
-        ui.str_label.setText(str(char.strength))
-        ui.dex_label.setText(str(char.dexterity))
-        ui.con_label.setText(str(char.constitution))
-        ui.int_label.setText(str(char.intelligence))
-        ui.wis_label.setText(str(char.wisdom))
-        ui.cha_label.setText(str(char.charism))
+        ui.str_label.setText(str(char.abilities.str))
+        ui.dex_label.setText(str(char.abilities.dex))
+        ui.con_label.setText(str(char.abilities.con))
+        ui.int_label.setText(str(char.abilities.int))
+        ui.wis_label.setText(str(char.abilities.wis))
+        ui.cha_label.setText(str(char.abilities.cha))
         # Combat
-        if char.weapon and char.weapon.equipped:
-            ui.damage_label.setText(str(char.weapon.damage_dice))
-            ui.hp_label.setText(str(char.hit_points) + " / " + str(char.max_hit_points))
-            ui.ac_label.setText(str(char.armor_class))
+        ui.hp_label.setText(str(char.hit_points) + " / " + str(char.max_hit_points))
+        ui.ac_label.setText(str(char.armor_class))
+        if char.weapon:
+            ui.damage_label.setText(str(char.weapon.damage_dice.dice))
+        else:
+            ui.damage_label.setText("1d2")
         # Picture
         # https://www.pythonguis.com/faq/adding-images-to-pyqt5-applications/
         image_file: str = f"{path}/images/{char.race}.png"
@@ -171,23 +187,25 @@ class CharacterDialog(QDialog):
         ui.weapon_cbx.addItem("None")
         ui.shield_cbx.addItem("None")
         ui.armor_cbx.addItem("None")
-        for item in char.inventory:
-            if isinstance(item, Weapon):
+
+        # Filter out None items from inventory
+        for item in filter(None, char.inventory):
+            if isinstance(item, WeaponData):
                 ui.weapon_cbx.addItem(item.name)
-            elif isinstance(item, Armor):
+            elif isinstance(item, ArmorData):
                 if item.index == "shield":
                     ui.shield_cbx.addItem(item.name)
                 else:
                     ui.armor_cbx.addItem(item.name)
 
-        weapon_index = ui.weapon_cbx.findText(char.weapon.name) if char.weapon else -1
-        ui.weapon_cbx.setCurrentIndex(weapon_index)
+        weapon_index = ui.weapon_cbx.findText(char.weapon.name) if char.weapon else 0
+        ui.weapon_cbx.setCurrentIndex(weapon_index if weapon_index >= 0 else 0)
 
-        #if hasattr(char, "armor"):
-        armor_index = ui.armor_cbx.findText(char.armor.name) if char.armor else -1
-        ui.armor_cbx.setCurrentIndex(armor_index)
-        shield_index = ui.shield_cbx.findText(char.shield.name) if char.shield else -1
-        ui.shield_cbx.setCurrentIndex(shield_index)
+        armor_index = ui.armor_cbx.findText(char.armor.name) if char.armor else 0
+        ui.armor_cbx.setCurrentIndex(armor_index if armor_index >= 0 else 0)
+
+        shield_index = ui.shield_cbx.findText(char.shield.name) if char.shield else 0
+        ui.shield_cbx.setCurrentIndex(shield_index if shield_index >= 0 else 0)
 
         # ui.weapon_cbx.currentTextChanged.connect(lambda: change_weapon(char))
         # ui.armor_cbx.currentTextChanged.connect(lambda: change_armor(char))

@@ -1001,7 +1001,7 @@ class Character(Sprite):
     def damage_dice(self) -> DamageDice:
         """TODO Two handed weapon not possible with a shield"""
         # print(f'error {self.weapon}')
-        return (self.weapon.damage_dice_two_handed if self.weapon and self.weapon.damage_dice_two_handed else self.weapon.damage_dice if self.weapon else DamageDice("1d2"))
+        return self.weapon.damage_dice_two_handed if self.weapon and self.weapon.damage_dice_two_handed else self.weapon.damage_dice if self.weapon else DamageDice("1d2")
 
     @property
     def used_armor(self) -> Optional[Armor]:

@@ -99,7 +99,8 @@ class Boltac_UI(QWidget):
         inventory = [item for item in char.inventory if item is not None]
         self.sell_table.setRowCount(len(inventory))
         for i, item in enumerate(inventory):
-            selectable: bool = isinstance(item, Potion) or not item.equipped
+            # Potions don't have equipped attribute, only Equipment does
+            selectable: bool = isinstance(item, Potion) or (hasattr(item, 'equipped') and not item.equipped)
             addItem(table=self.sell_table, item=item, row=i, for_sale=True, selectable=selectable)
         self.sell_table.resizeColumnsToContents()
         self.sell_table.resizeRowsToContents()

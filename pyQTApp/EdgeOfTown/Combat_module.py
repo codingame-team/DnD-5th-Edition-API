@@ -22,7 +22,11 @@ from PyQt5.QtWidgets import (
     QTableWidgetItem,
 )
 
-from dao_classes import Character, Monster, CharAction, ActionType, CharActionType, Spell, SpecialAbility, RangeType, Action
+from dnd_5e_core.entities import Character, Monster
+from dnd_5e_core.combat import Action, ActionType, SpecialAbility
+from dnd_5e_core.spells import Spell
+from dnd_5e_core.classes import Proficiency
+from dao_classes import CharAction, CharActionType, RangeType
 from main import (load_party, generate_encounter_levels, generate_encounter, load_encounter_table, load_encounter_gold_table, )
 from populate_functions import populate, request_monster
 from pyQTApp.common import color
@@ -113,9 +117,14 @@ class Combat_UI(QMainWindow):
 
     def cprint(self, message: str):
         """Print colored message to events area"""
+        import re
+
+        # Remove ANSI color codes
+        ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
+        clean_message = ansi_escape.sub('', message)
 
         # Create label with message
-        label = QLabel(message)
+        label = QLabel(clean_message)
         label.setWordWrap(True)
 
         # Insert label before the stretch
@@ -124,6 +133,9 @@ class Combat_UI(QMainWindow):
         # Auto scroll to bottom
         QTimer.singleShot(0, self.scroll_to_bottom)
 
+        # Also print to console for debugging
+        debug(clean_message)
+
     def scroll_to_bottom(self):
         """Scroll to the bottom of the scroll area"""
         scrollbar = self.ui.event_scrollArea.verticalScrollBar()
@@ -131,150 +143,197 @@ class Combat_UI(QMainWindow):
 
     @pyqtSlot()
     def combat(self):
-        if any([action is None for i, action in enumerate(self.actions) if not self.party[i].is_dead]):
+        if any([action is None for i, action in enumerate(self.actions) if self.party[i].hit_points > 0]):
             debug("Not all actions are selected")
+            self.cprint("⚠️ Please select an action for all living party members!")
             return
         debug(f"actions {self.actions}")
+        self.cprint(f"=== ROUND {self.round_num + 1} ===")
         attack_queue = [(c, randint(1, c.abilities.dex)) for c in self.party] + [(m, randint(1, m.abilities.dex)) for m in self.monsters]
         attack_queue.sort(key=lambda x: x[1], reverse=True)
         attackers = [c for c, init_roll in attack_queue]
         alive_monsters: List[Monster] = [c for c in self.monsters if c.hit_points > 0]
         alive_chars: List[Character] = [c for c in self.party if c.hit_points > 0]
+        debug(f"Queue size: {len(attackers)}, Alive monsters: {len(alive_monsters)}, Alive chars: {len(alive_chars)}")
         # Start of Round
         queue = [c for c in attackers if c.hit_points > 0]
+        debug(f"Starting combat loop with {len(queue)} attackers in queue")
         while queue:
-            attacker = queue.pop()
-            if attacker.hit_points > 0:
-                if isinstance(attacker, Monster):
-                    # check if monster can heal someone
-                    healing_spells: List[Spell] = []
-                    if attacker.is_spell_caster:
-                        healing_spells: List[Spell] = [s for s in attacker.sc.learned_spells if s.heal_at_slot_level and attacker.sc.spell_slots[s.level - 1] > 0]
-                        # cprint(f"{color.GREEN}{attacker.name}{color.END} has {len(healing_spells)} healing spells available!")
-                    if any(c for c in alive_monsters if c.hit_points < 0.5 * c.max_hit_points) and healing_spells:
-                        # spell = max(healing_spells, key=lambda s: s.level) # choose strongest spell (to be refined)
-                        max_spell_level: int = max([s.level for s in healing_spells])
-                        spell = choice([s for s in healing_spells if s.level == max_spell_level])
-                        monster: Monster = min(alive_monsters, key=lambda c: c.hit_points)  # consider weakest char for optimal healing
-                        if spell.range == 5:
-                            attacker.cast_heal(spell, spell.level - 1, [monster])
-                            self.cprint(f"{color.GREEN}{attacker.name}{color.END} heals {monster.name}")
-                        else:
-                            attacker.cast_heal(spell, spell.level - 1, alive_monsters)
-                            self.cprint(f"{color.GREEN}{attacker.name}{color.END} heals all monsters")
-                        if not spell.is_cantrip:
-                            attacker.sc.spell_slots[spell.level - 1] -= 1
-                    else:
-                        # Monster attacks randomly
-                        melee_chars: List[Character] = [c for i, c in enumerate(alive_chars) if i < 3]
-                        ranged_chars: List[Character] = [c for i, c in enumerate(alive_chars) if i >= 3]
-                        if not melee_chars + ranged_chars:
-                            break
-                        # Precompute castable spells safely
-                        castable_spells: List[Spell] = []
+            try:
+                attacker = queue.pop()
+                debug(f"Processing attacker: {attacker.name if hasattr(attacker, 'name') else 'Unknown'} (HP: {attacker.hit_points})")
+                if attacker.hit_points > 0:
+                    debug(f"  → Attacker is alive, checking type...")
+                    if isinstance(attacker, Monster):
+                        debug(f"  → {attacker.name} is a Monster")
+                        # check if monster can heal someone
+                        healing_spells: List[Spell] = []
                         if attacker.is_spell_caster:
-                            cantric_spells: List[Spell] = [s for s in attacker.sc.learned_spells if not s.level and s.damage_type]
-                            slot_spells: List[Spell] = [
-                                s
-                                for s in attacker.sc.learned_spells
-                                if s.level and attacker.sc.spell_slots[s.level - 1] > 0 and s.damage_type
-                            ]
-                            castable_spells = cantric_spells + slot_spells
-                        if attacker.sa and self.round_num > 0:  # ou 1? (à vérifier)
-                            for special_attack in attacker.sa:
-                                if special_attack.recharge_on_roll:
-                                    special_attack.ready = special_attack.recharge_success
-                        available_special_attacks: List[SpecialAbility] = list(filter(lambda a: a.ready, attacker.sa))
-                        # Main loop
-                        if attacker.is_spell_caster and castable_spells:
-                            target_char: Character = (choice(ranged_chars) if ranged_chars else choice(melee_chars))
-                            attack_spell: Spell = max(castable_spells, key=lambda s: s.level)
-                            target_char.hit_points -= attacker.cast_attack(target_char, attack_spell)
-                            self.cprint(f"{color.GREEN}{attacker.name}{color.END} attacks {target_char.name} with ** {attack_spell.name.upper()} **")
-                            if target_char.hit_points <= 0:
-                                alive_chars.remove(target_char)
-                                target_char.status = "DEAD"
-                                self.cprint(f"{target_char.name} is ** KILLED **!")
-                        elif available_special_attacks:
-                            special_attack: SpecialAbility = max(available_special_attacks, key=lambda a: sum([damage.dd.score(success_type=a.dc_success) for damage in a.damages]), )
-                            # cprint(special_attack)
-                            if special_attack.targets_count >= len(self.party):
-                                self.cprint(f"{color.GREEN}{attacker.name}{color.END} launches ** {special_attack.name.upper()} ** on whole party!")
-                                target_chars: List[Character] = self.party
+                            healing_spells: List[Spell] = [s for s in attacker.sc.learned_spells if s.heal_at_slot_level and attacker.sc.spell_slots[s.level - 1] > 0]
+                            # cprint(f"{color.GREEN}{attacker.name}{color.END} has {len(healing_spells)} healing spells available!")
+                        if any(c for c in alive_monsters if c.hit_points < 0.5 * c.max_hit_points) and healing_spells:
+                            # spell = max(healing_spells, key=lambda s: s.level) # choose strongest spell (to be refined)
+                            max_spell_level: int = max([s.level for s in healing_spells])
+                            spell = choice([s for s in healing_spells if s.level == max_spell_level])
+                            monster: Monster = min(alive_monsters, key=lambda c: c.hit_points)  # consider weakest char for optimal healing
+                            if spell.range == 5:
+                                attacker.cast_heal(spell, spell.level - 1, [monster])
+                                self.cprint(f"{color.GREEN}{attacker.name}{color.END} heals {monster.name}")
                             else:
-                                if special_attack.range == RangeType.MELEE:
-                                    target_chars: List[Character] = sample(melee_chars, special_attack.targets_count)
-                                elif special_attack.range == RangeType.RANGED:
-                                    target_chars: List[Character] = sample(ranged_chars, special_attack.targets_count)
-                                else:
-                                    target_chars: List[Character] = sample(self.party, special_attack.targets_count)
-                                targets: str = ", ".join([char.name for char in target_chars])
-                                # Replace all ' and ' with ', ' except for the last one
-                                targets_split = targets.rsplit(", ", 1)  # Split at the last ', '
-                                formatted_targets = " and ".join(targets_split)
-                                self.cprint(f"{color.GREEN}{attacker.name}{color.END} launches ** {special_attack.name.upper()} ** on {formatted_targets}!")
-                            # cprint('target chars: ' + '/'.join([c.name for c in target_chars]))
-                            for target_char in target_chars:
-                                if target_char in alive_chars:
-                                    target_char.hit_points -= attacker.special_attack(target_char, special_attack)
-                                    if target_char.hit_points <= 0:
-                                        # cprint('/'.join([c.name for c in alive_chars]))
-                                        # cprint(f'removing {char.name}');
-                                        alive_chars.remove(target_char)
-                                        target_char.status = "DEAD"
-                                        self.cprint(f"{target_char.name} is ** KILLED **!")
+                                attacker.cast_heal(spell, spell.level - 1, alive_monsters)
+                                self.cprint(f"{color.GREEN}{attacker.name}{color.END} heals all monsters")
+                            if not spell.is_cantrip:
+                                attacker.sc.spell_slots[spell.level - 1] -= 1
                         else:
-                            target_char: Character = choice(melee_chars)
-                            melee_attacks: List[Action] = [a for a in attacker.actions if a.type in (ActionType.MELEE, ActionType.MIXED)] if attacker.actions else []
-                            if melee_attacks:
-                                target_char.hit_points -= attacker.attack(character=target_char, actions=melee_attacks)
-                                self.cprint(f"{color.GREEN}{attacker.name}{color.END} attacks {target_char.name}")
+                            # Monster attacks randomly
+                            melee_chars: List[Character] = [c for i, c in enumerate(alive_chars) if i < 3]
+                            ranged_chars: List[Character] = [c for i, c in enumerate(alive_chars) if i >= 3]
+                            if not melee_chars + ranged_chars:
+                                break
+                            # Precompute castable spells safely
+                            castable_spells: List[Spell] = []
+                            if attacker.is_spell_caster:
+                                cantric_spells: List[Spell] = [s for s in attacker.sc.learned_spells if not s.level and s.damage_type]
+                                slot_spells: List[Spell] = [
+                                    s
+                                    for s in attacker.sc.learned_spells
+                                    if s.level and attacker.sc.spell_slots[s.level - 1] > 0 and s.damage_type
+                                ]
+                                castable_spells = cantric_spells + slot_spells
+                            if attacker.sa and self.round_num > 0:  # ou 1? (à vérifier)
+                                for special_attack in attacker.sa:
+                                    if special_attack.recharge_on_roll:
+                                        special_attack.ready = special_attack.recharge_success
+                            available_special_attacks: List[SpecialAbility] = list(filter(lambda a: a.ready, attacker.sa)) if attacker.sa else []
+                            # Main loop
+                            if attacker.is_spell_caster and castable_spells:
+                                target_char: Character = (choice(ranged_chars) if ranged_chars else choice(melee_chars))
+                                attack_spell: Spell = max(castable_spells, key=lambda s: s.level)
+                                attack_msg, damage = attacker.cast_attack(target_char, attack_spell, verbose=False)
+                                target_char.hit_points -= damage
+                                self.cprint(attack_msg)
+                                self.cprint(f"{color.GREEN}{attacker.name}{color.END} attacks {target_char.name} with ** {attack_spell.name.upper()} **")
                                 if target_char.hit_points <= 0:
                                     alive_chars.remove(target_char)
                                     target_char.status = "DEAD"
                                     self.cprint(f"{target_char.name} is ** KILLED **!")
+                            elif available_special_attacks:
+                                special_attack: SpecialAbility = max(available_special_attacks, key=lambda a: sum([damage.dd.score(success_type=a.dc_success) for damage in a.damages]), )
+                                # cprint(special_attack)
+                                if special_attack.targets_count >= len(self.party):
+                                    self.cprint(f"{color.GREEN}{attacker.name}{color.END} launches ** {special_attack.name.upper()} ** on whole party!")
+                                    target_chars: List[Character] = self.party
+                                else:
+                                    if special_attack.range == RangeType.MELEE:
+                                        target_chars: List[Character] = sample(melee_chars, special_attack.targets_count)
+                                    elif special_attack.range == RangeType.RANGED:
+                                        target_chars: List[Character] = sample(ranged_chars, special_attack.targets_count)
+                                    else:
+                                        target_chars: List[Character] = sample(self.party, special_attack.targets_count)
+                                    targets: str = ", ".join([char.name for char in target_chars])
+                                    # Replace all ' and ' with ', ' except for the last one
+                                    targets_split = targets.rsplit(", ", 1)  # Split at the last ', '
+                                    formatted_targets = " and ".join(targets_split)
+                                    self.cprint(f"{color.GREEN}{attacker.name}{color.END} launches ** {special_attack.name.upper()} ** on {formatted_targets}!")
+                                # cprint('target chars: ' + '/'.join([c.name for c in target_chars]))
+                                for target_char in target_chars:
+                                    if target_char in alive_chars:
+                                        attack_msg, damage = attacker.special_attack(target_char, special_attack, verbose=False)
+                                        target_char.hit_points -= damage
+                                        self.cprint(attack_msg)
+                                        if target_char.hit_points <= 0:
+                                            # cprint('/'.join([c.name for c in alive_chars]))
+                                            # cprint(f'removing {char.name}');
+                                            alive_chars.remove(target_char)
+                                            target_char.status = "DEAD"
+                                            self.cprint(f"{target_char.name} is ** KILLED **!")
                             else:
-                                self.cprint(f"** {attacker.name} ** has no MELEE attacks implemented!")
-                else: # CHARACTER Attacks
-                    attacker_index: int = self.party.index(attacker)
-                    action = self.actions[attacker_index]
-                    if action.type == CharActionType.PARRY:
-                        self.cprint(f"{color.GREEN}{attacker.name}{color.END} parries!")
-                        continue
-                    monsters = list(filter(lambda m: m.hit_points > 0, action.targets))
-                    if not monsters:
-                        continue
-                    monster: Monster = min(monsters, key=lambda m: m.hit_points)
-                    if action.type == CharActionType.MELEE_ATTACK:
-                        monster.hit_points -= attacker.attack(monster=monster)
-                        self.cprint(f"{color.GREEN}{attacker.name}{color.END} attacks {monster.name.title()}!")
-                        monster.hit_points -= attacker.attack(monster=monster, in_melee=(attacker in alive_chars[:3]))
-                    elif action.type == CharActionType.SPELL_ATTACK:
-                        monster: Monster = min(alive_monsters, key=lambda m: m.hit_points)
-                        monster.hit_points -= attacker.cast_attack(action.spell, monster)
-                        if not action.spell.is_cantrip:
-                            attacker.update_spell_slots(spell=action.spell)
-                        self.cprint(f"{color.GREEN}{attacker.name}{color.END} casts {action.spell.name} on {monster.name.title()}!")
-                    elif action.type == CharActionType.SPELL_DEFENSE:
-                        # Ensure best_slot_level exists even if loop doesn't run
-                        best_slot_level = 0
-                        for char in action.targets:
-                            best_slot_level = attacker.get_best_slot_level(heal_spell=action.spell, target=char)
-                            if action.spell.range == 5:
-                                attacker.cast_heal(action.spell, best_slot_level, [char])
-                                self.cprint(f"{color.GREEN}{attacker.name}{color.END} casts {action.spell.name} on {char.name}!")
-                            else:
-                                attacker.cast_heal(action.spell, best_slot_level, self.party)
-                                self.cprint(f"{color.GREEN}{attacker.name}{color.END} casts {action.spell.name} on PARTY!")
-                        if not action.spell.is_cantrip:
-                            attacker.update_spell_slots(action.spell, best_slot_level)
-                    if monster.hit_points <= 0:
-                        alive_monsters.remove(monster)
-                        self.cprint(f"{color.RED}{monster.name.title()}{color.END} is ** KILLED **!")
-                        attacker.victory(monster)
-                        # attacker.treasure(weapons, armors, equipments, potions)
-                        if not hasattr(attacker, "kills"): attacker.kills = []
-                        attacker.kills.append(monster)
+                                # Monster attacks with any available action
+                                if melee_chars:
+                                    target_char: Character = choice(melee_chars)
+                                    # Try melee first, then mixed, then ranged
+                                    melee_attacks: List[Action] = [a for a in attacker.actions if a.type in (ActionType.MELEE, ActionType.MIXED)] if attacker.actions else []
+                                    if not melee_attacks:
+                                        # If no melee, try ranged attacks on ranged chars
+                                        ranged_attacks: List[Action] = [a for a in attacker.actions if a.type == ActionType.RANGED] if attacker.actions else []
+                                        if ranged_attacks and ranged_chars:
+                                            target_char = choice(ranged_chars)
+                                            melee_attacks = ranged_attacks
+
+                                    if melee_attacks:
+                                        attack_msg, damage = attacker.attack(target=target_char, actions=melee_attacks, verbose=False)
+                                        target_char.hit_points -= damage
+                                        self.cprint(attack_msg)
+                                        self.cprint(f"{color.GREEN}{attacker.name}{color.END} attacks {target_char.name}")
+                                        if target_char.hit_points <= 0:
+                                            alive_chars.remove(target_char)
+                                            target_char.status = "DEAD"
+                                            self.cprint(f"{target_char.name} is ** KILLED **!")
+                                    else:
+                                        self.cprint(f"** {attacker.name} ** has no attacks available!")
+                                        debug(f"  → {attacker.name} actions: {attacker.actions}")
+                                else:
+                                    debug(f"  → No targets available for {attacker.name}")
+                    elif isinstance(attacker, Character): # CHARACTER Attacks
+                        debug(f"  → {attacker.name} is a Character")
+                        attacker_index: int = self.party.index(attacker)
+                        action = self.actions[attacker_index]
+                        debug(f"  → Character action: {action.type if action else 'None'}")
+                        if action.type == CharActionType.PARRY:
+                            self.cprint(f"{color.GREEN}{attacker.name}{color.END} parries!")
+                            continue
+                        monsters = list(filter(lambda m: m.hit_points > 0, action.targets))
+                        if not monsters:
+                            continue
+                        monster: Monster = min(monsters, key=lambda m: m.hit_points)
+                        if action.type == CharActionType.MELEE_ATTACK:
+                            attack_msg, damage = attacker.attack(monster=monster, in_melee=(attacker in alive_chars[:3]), verbose=False)
+                            monster.hit_points -= damage
+                            self.cprint(attack_msg)
+                            self.cprint(f"{color.GREEN}{attacker.name}{color.END} attacks {monster.name.title()}!")
+                            if monster.hit_points <= 0:
+                                alive_monsters.remove(monster)
+                                self.cprint(f"{color.RED}{monster.name.title()}{color.END} is ** KILLED **!")
+                                victory_msg, xp, gold = attacker.victory(monster, verbose=False)
+                                self.cprint(victory_msg)
+                                # attacker.treasure(weapons, armors, equipments, potions)
+                                if not hasattr(attacker, "kills"): attacker.kills = []
+                                attacker.kills.append(monster)
+                        elif action.type == CharActionType.SPELL_ATTACK:
+                            monster: Monster = min(alive_monsters, key=lambda m: m.hit_points)
+                            attack_msg, damage = attacker.cast_attack(action.spell, monster, verbose=False)
+                            monster.hit_points -= damage
+                            self.cprint(attack_msg)
+                            if not action.spell.is_cantrip:
+                                attacker.update_spell_slots(spell=action.spell)
+                            self.cprint(f"{color.GREEN}{attacker.name}{color.END} casts {action.spell.name} on {monster.name.title()}!")
+                            if monster.hit_points <= 0:
+                                alive_monsters.remove(monster)
+                                self.cprint(f"{color.RED}{monster.name.title()}{color.END} is ** KILLED **!")
+                                victory_msg, xp, gold = attacker.victory(monster, verbose=False)
+                                self.cprint(victory_msg)
+                                # attacker.treasure(weapons, armors, equipments, potions)
+                                if not hasattr(attacker, "kills"): attacker.kills = []
+                                attacker.kills.append(monster)
+                        elif action.type == CharActionType.SPELL_DEFENSE:
+                            # Ensure best_slot_level exists even if loop doesn't run
+                            best_slot_level = 0
+                            for char in action.targets:
+                                best_slot_level = attacker.get_best_slot_level(heal_spell=action.spell, target=char)
+                                if action.spell.range == 5:
+                                    attacker.cast_heal(action.spell, best_slot_level, [char])
+                                    self.cprint(f"{color.GREEN}{attacker.name}{color.END} casts {action.spell.name} on {char.name}!")
+                                else:
+                                    attacker.cast_heal(action.spell, best_slot_level, self.party)
+                                    self.cprint(f"{color.GREEN}{attacker.name}{color.END} casts {action.spell.name} on PARTY!")
+                            if not action.spell.is_cantrip:
+                                attacker.update_spell_slots(action.spell, best_slot_level)
+            except Exception as e:
+                debug(f"ERROR in combat loop: {type(e).__name__}: {str(e)}")
+                import traceback
+                debug(traceback.format_exc())
+                self.cprint(f"ERROR: {type(e).__name__}: {str(e)}")
+        debug(f"Combat loop finished. Round {self.round_num + 1} complete")
         self.round_num += 1
 
         # End of Round

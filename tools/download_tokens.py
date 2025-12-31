@@ -4,7 +4,7 @@ from urllib.parse import quote
 
 import requests
 
-from dao_classes import Monster
+# from dao_classes import Monster
 from populate_functions import populate, request_monster
 
 
