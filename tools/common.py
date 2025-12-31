@@ -179,26 +179,36 @@ def exit_message(message: str = None):
     Args:
         message (str, optional): Message to display before the prompt
     """
-    try:
-        if message:
-            print(message)
-        print('[Return] to continue')
+    if message:
+        print(message)
+    print('[Return] to continue')
 
+    try:
+        # Try to use get_key() for better control
         while True:
             try:
                 k = get_key()
                 # Check for both 'return' and '\r' as different systems might return different values
-                if k.lower() in ('return', '\r', '\n', '\r\n'):
+                if k and k.lower() in ('return', '\r', '\n', '\r\n'):
                     break
-            except (AttributeError, TypeError) as e:
-                # If get_key() fails, fall back to input()
-                input()
-                break
+            except (OSError, IOError, AttributeError, TypeError) as e:
+                # If get_key() fails (ioctl error, etc.), fall back to simple input()
+                if "ioctl" in str(e).lower() or "Inappropriate" in str(e):
+                    input()  # Simple fallback
+                    break
+                else:
+                    # For other errors, try input() as fallback
+                    input()
+                    break
             except KeyboardInterrupt:
                 print("\nExiting...")
                 break
     except Exception as e:
-        print(f"An error occurred: {str(e)}")
+        # Final fallback - just use input()
+        try:
+            input()
+        except:
+            pass  # If even input() fails, just continue
         # Ensure the program doesn't hang even if there's an error
         input("Press Enter to continue...")
 
