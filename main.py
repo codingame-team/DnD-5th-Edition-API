@@ -1757,60 +1757,57 @@ def generate_encounter_levels(party_level: int) -> List[int]:
 
 
 def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
-    """Combat simulation"""
+    """Combat simulation using CombatSystem from dnd-5e-core"""
+    from dnd_5e_core.combat import CombatSystem
+
     print(f"{color.PURPLE}-----------------------------------------------------------{color.END}")
     print(f"{color.PURPLE} Combat simulation engine based on DnD 5th edition API{color.END}")
     print(f"{color.PURPLE}-----------------------------------------------------------{color.END}")
-    # encounters_count: int = 0
-    # killed_monsters: int = 0
-
-    # difficulty: List[str] = ['HARD', 'MEDIUM', 'EASY']
-    # arena_level: str = read_choice(difficulty, 'Select difficulty:')
 
     max_level_char: int = max([c.level for c in party])
-
     party_level: int = round(sum([c.level for c in party]) / len(party))
 
-    # match arena_level:
-    #     case 'HARD':
-    #         monsters_to_fight = [m for m in monsters if m.challenge_rating > max_level_char]
-    #     case 'MEDIUM':
-    #         monsters_to_fight = [m for m in monsters if m.challenge_rating == max_level_char]
-    #     case 'EASY':
-    #         monsters_to_fight = [m for m in monsters if m.challenge_rating < max_level_char]
-
     encounter_levels: List[int] = generate_encounter_levels(party_level=party_level)
-
     spell_casters_only: bool = False
 
+    # Initialize combat system with verbose mode
+    combat_system = CombatSystem(verbose=True, message_callback=None)
+
     alive_chars: List[Character] = [c for c in party if c.hit_points > 0]
+
     while alive_chars:
         if continue_message(f"Do you want to go back to [Castle]? (Y/N)"):
             return
+
+        # Generate new encounter
         monster_groups_count: int = randint(1, 2)
         if not encounter_levels:
             encounter_levels: List[int] = generate_encounter_levels(party_level=party_level)
         encounter_level: int = encounter_levels.pop()
-        monsters: List[Monster] = generate_encounter(available_crs=available_crs, encounter_table=encounter_table, encounter_level=encounter_level, monsters=monsters_db, monster_groups_count=monster_groups_count, spell_casters_only=spell_casters_only, )
-        # monsters: List[Monster] = [request_monster(index_name='swarm-of-centipedes') for _ in range(randint(1, 2))]
-        # To debug monster multi-attacks
-        # monsters_names_for_debug = ['rug-of-smothering']
-        # monsters_names_for_debug = ['aboleth']
-        # monsters_names_for_debug = ['half-red-dragon-veteran']Ice Mephit
-        # monsters_names_for_debug = ['ice-mephit']
-        # monsters_names_for_debug = ['frog'] * 4
-        # monsters: List[Monster] = [request_monster(index_name) for index_name in monsters_names_for_debug]
+        monsters: List[Monster] = generate_encounter(
+            available_crs=available_crs,
+            encounter_table=encounter_table,
+            encounter_level=encounter_level,
+            monsters=monsters_db,
+            monster_groups_count=monster_groups_count,
+            spell_casters_only=spell_casters_only
+        )
+
         cprint(f"{color.PURPLE}-------------------------------------------------------------------------------------------------------------------------------------------{color.END}")
         cprint(f"{color.PURPLE} New encounter!{color.END}")
         display_group_of_monsters(monsters)
         cprint(f"{color.PURPLE}-------------------------------------------------------------------------------------------------------------------------------------------{color.END}")
+
+        # Initiative rolls
         attack_queue = [(c, randint(1, c.abilities.dex)) for c in party] + [(m, randint(1, m.abilities.dex)) for m in monsters]
         attack_queue.sort(key=lambda x: x[1], reverse=True)
         attackers = [c for c, init_roll in attack_queue]
+
         alive_monsters: List[Monster] = [c for c in monsters if c.hit_points > 0]
         alive_chars: List[Character] = [c for c in party if c.hit_points > 0]
         round_num = 0
         flee_combat: bool = False
+
         while alive_monsters and alive_chars:
             if round_num:
                 cprint("-------------------------------------------------------")
@@ -1818,166 +1815,47 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
                 display_group_of_monsters(monsters)
                 cprint("-------------------------------------------------------")
                 print(display(party))
+
             message: str = "engage" if not round_num else "continue"
             if not continue_message(f"Do you want to {message} combat? (Y/N)"):
                 flee_combat = True
                 break
+
             round_num += 1
-            # Start of Round
+
+            # Combat round using CombatSystem
             queue = [c for c in attackers if c.hit_points > 0]
+
             while queue:
                 attacker = queue.pop()
                 if attacker.hit_points > 0:
                     if isinstance(attacker, Monster):
-                        # check if monster can heal someone
-                        healing_spells: List[Spell] = []
-                        if attacker.is_spell_caster:
-                            healing_spells: List[Spell] = [s for s in attacker.sc.learned_spells if s.heal_at_slot_level and attacker.sc.spell_slots[s.level - 1] > 0]
-                            # cprint(f"{color.GREEN}{attacker.name}{color.END} has {len(healing_spells)} healing spells available!")
-                        if any(c for c in alive_monsters if c.hit_points < 0.5 * c.max_hit_points) and healing_spells:
-                            # spell = max(healing_spells, key=lambda s: s.level) # choose strongest spell (to be refined)
-                            max_spell_level: int = max([s.level for s in healing_spells])
-                            spell = choice([s for s in healing_spells if s.level == max_spell_level])
-                            monster: Monster = min(alive_monsters, key=lambda c: c.hit_points) # consider weakest char for optimal healing
-                            if spell.range == 5:
-                                attacker.cast_heal(spell, spell.level - 1, [monster])
-                            else:
-                                attacker.cast_heal(spell, spell.level - 1, alive_monsters)
-                            if not spell.is_cantrip:
-                                attacker.sc.spell_slots[spell.level - 1] -= 1
-                        else:
-                            # Monster attacks randomly
-                            melee_chars: List[Character] = [c for i, c in enumerate(alive_chars) if i < 3]
-                            ranged_chars: List[Character] = [c for i, c in enumerate(alive_chars) if i >= 3]
-                            if not melee_chars + ranged_chars:
-                                break
-                            # Precalculate ready spells & special attacks
-                            if attacker.is_spell_caster:
-                                cantric_spells: List[Spell] = [s for s in attacker.sc.learned_spells if not s.level and s.damage_type]
-                                slot_spells: List[Spell] = [s for s in attacker.sc.learned_spells if s.level and attacker.sc.spell_slots[s.level - 1] > 0 and s.damage_type]
-                                castable_spells: List[Spell] = cantric_spells + slot_spells
-                            if attacker.sa and round_num > 0:  # ou 1? (à vérifier)
-                                for special_attack in attacker.sa:
-                                    if special_attack.recharge_on_roll:
-                                        special_attack.ready = special_attack.recharge_success
-                            available_special_attacks: List[SpecialAbility] = list(filter(lambda a: a.ready, attacker.sa))
-                            # Main loop
-                            if attacker.is_spell_caster and castable_spells:
-                                target_char: Character = (choice(ranged_chars) if ranged_chars else choice(melee_chars))
-                                attack_spell: Spell = max(castable_spells, key=lambda s: s.level)
-                                attack_msg, damage = attacker.cast_attack(target_char, attack_spell, verbose=False)
-                                print(attack_msg)
-                                target_char.hit_points -= damage
-                                if target_char.hit_points <= 0:
-                                    alive_chars.remove(target_char)
-                                    target_char.status = "DEAD"
-                                    cprint(f"{target_char.name} is ** KILLED **!")
-                            elif available_special_attacks:
-                                special_attack: SpecialAbility = max(available_special_attacks, key=lambda a: sum([damage.dd.score(success_type=a.dc_success) for damage in a.damages]), )
-                                # cprint(special_attack)
-                                if special_attack.targets_count >= len(party):
-                                    cprint(f"{color.GREEN}{attacker.name}{color.END} launches ** {special_attack.name.upper()} ** on whole party!")
-                                    target_chars: List[Character] = party
-                                else:
-                                    if special_attack.range == RangeType.MELEE:
-                                        target_chars: List[Character] = sample(melee_chars, special_attack.targets_count)
-                                    elif special_attack.range == RangeType.RANGED:
-                                        target_chars: List[Character] = sample(ranged_chars, special_attack.targets_count)
-                                    else:
-                                        target_chars: List[Character] = sample(party, special_attack.targets_count)
-                                    targets: str = ", ".join([char.name for char in target_chars])
-                                    # Replace all ' and ' with ', ' except for the last one
-                                    targets_split = targets.rsplit(", ", 1)  # Split at the last ', '
-                                    formatted_targets = " and ".join(targets_split)
-                                    cprint(f"{color.GREEN}{attacker.name}{color.END} launches ** {special_attack.name.upper()} ** on {formatted_targets}!")
-                                # cprint('target chars: ' + '/'.join([c.name for c in target_chars]))
-                                for target_char in target_chars:
-                                    if target_char in alive_chars:
-                                        attack_msg, damage = attacker.special_attack(target_char, special_attack, verbose=False)
-                                        print(attack_msg)
-                                        target_char.hit_points -= damage
-                                        if target_char.hit_points <= 0:
-                                            # cprint('/'.join([c.name for c in alive_chars]))
-                                            # cprint(f'removing {char.name}')
-                                            alive_chars.remove(target_char)
-                                            target_char.status = "DEAD"
-                                            cprint(f"{target_char.name} is ** KILLED **!")
-                            else:
-                                target_char: Character = choice(melee_chars)
-                                melee_attacks: List[Action] = [a for a in attacker.actions if a.type in (ActionType.MELEE, ActionType.MIXED)] if attacker.actions else []
-                                if melee_attacks:
-                                    attack_msg, damage = attacker.attack(target=target_char, actions=melee_attacks)
-                                    print(attack_msg)
-                                    target_char.hit_points -= damage
-                                    if target_char.hit_points <= 0:
-                                        alive_chars.remove(target_char)
-                                        target_char.status = "DEAD"
-                                        cprint(f"{target_char.name} is ** KILLED **!")
-                                else:
-                                    cprint(f"** {attacker.name} ** has no MELEE attacks implemented!")
-                    else:  # CHARACTER ATTACKS
-                        if not alive_monsters:
-                            break
-                        # check if character can heal party's members
-                        # cprint(f'{attacker}')
-                        healing_spells: List[Spell] = []
-                        if attacker.is_spell_caster:
-                            healing_spells: List[Spell] = [s for s in attacker.sc.learned_spells if hasattr(s, 'heal_at_slot_level') and s.heal_at_slot_level and attacker.sc.spell_slots[s.level - 1] > 0]
-                            # cprint(f"{color.GREEN}{attacker.name}{color.END} has {len(healing_spells)} healing spells available!")
-                        if attacker.is_spell_caster and healing_spells and any(c for c in alive_chars if c.hit_points < 0.5 * c.max_hit_points):
-                            # spell = max(healing_spells, key=lambda s: s.level) # choose strongest spell (to be refined)
-                            max_spell_level: int = max([s.level for s in healing_spells])
-                            spell = choice([s for s in healing_spells if s.level == max_spell_level])
-                            char: Character = min(alive_chars, key=lambda c: c.hit_points) # consider weakest char for optimal healing
-                            best_slot_level: int = attacker.get_best_slot_level(heal_spell=spell, target=char)
-                            if spell.range == 5:
-                                attacker.cast_heal(spell, best_slot_level, [char])
-                            else:
-                                attacker.cast_heal(spell, best_slot_level, party)
-                            if not spell.is_cantrip:
-                                attacker.update_spell_slots(spell, best_slot_level)
-                        elif attacker.hit_points < 0.3 * attacker.max_hit_points and attacker.healing_potions:
-                            p: HealingPotion = attacker.choose_best_potion()
-                            drink_msg, success, hp_restored = attacker.drink(p, verbose=False)
-                            print(drink_msg)
-                            p_idx = next(i for i, item in enumerate(attacker.inventory) if item is not None and item == p)
-                            attacker.inventory[p_idx] = None
-                            cprint(f"{attacker.name} has {len(attacker.healing_potions)} remaining potions")
-                        else:
-                            # Character attacks the weakest alive monster or the restraining creature
-                            # order: int = alive_chars.index(attacker)
-                            restrained_effects: List[Condition] = [e for e in attacker.conditions if e.index == "restrained" and e.creature]
-                            if restrained_effects:
-                                effect = restrained_effects[0]
-                                # Make ability check to escape
-                                try:
-                                    if attacker.saving_throw(effect.dc_type.value, effect.dc_value):
-                                        cprint(f"{color.RED}{attacker.name}{color.END} is not restrained anymore from {effect.creature.name}!")
-                                        attacker.conditions.clear()
-                                        monster: Monster = min(alive_monsters, key=lambda m: m.hit_points)
-                                    else:
-                                        monster: Monster = effect.creature
-                                except AttributeError:
-                                    print(f"{effect}")
-                            else:
-                                monster: Monster = min(alive_monsters, key=lambda m: m.hit_points)
-                            cprint(f"{color.GREEN}{attacker.name}{color.END} attacks {monster.name.title()}!")
-                            attack_msg, damage = attacker.attack(monster=monster, in_melee=(attacker in alive_chars[:3]), verbose=False)
-                            print(attack_msg)
-                            monster.hit_points -= damage
-                            if monster.hit_points <= 0:
-                                alive_monsters.remove(monster)
-                                cprint(f"{color.RED}{monster.name.title()}{color.END} is ** KILLED **!")
-                                victory_msg, xp, gold = attacker.victory(monster, verbose=False)
-                                print(victory_msg)
-                                treasure_msg, item = attacker.treasure(weapons, armors, equipments, potions, verbose=False)
-                                print(treasure_msg)
-                                if not hasattr(attacker, "kills"): attacker.kills = []
-                                attacker.kills.append(monster)
+                        # Monster turn
+                        combat_system.monster_turn(
+                            monster=attacker,
+                            alive_chars=alive_chars,
+                            alive_monsters=alive_monsters,
+                            round_num=round_num,
+                            party=party
+                        )
+                    else:  # Character turn
+                        # Character turn
+                        combat_system.character_turn(
+                            character=attacker,
+                            alive_chars=alive_chars,
+                            alive_monsters=alive_monsters,
+                            party=party,
+                            weapons=weapons,
+                            armors=armors,
+                            equipments=equipments,
+                            potions=potions
+                        )
+
             # End of Round
             alive_chars: List[Character] = [c for c in party if c.hit_points >= 0]
             alive_monsters: List[Monster] = [c for c in monsters if c.hit_points >= 0]
 
+        # End of encounter
         if not alive_chars:
             for target_char in party:
                 target_char.conditions.clear()
@@ -1994,6 +1872,7 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
             exit_message(f"Party has earned {earned_gold} GP and gained {xp_gained} XP!")
         elif flee_combat:
             exit_message(f"** Party successfully escaped! **")
+
 
 
 def restore_all_roster(roster: List[Character]):
