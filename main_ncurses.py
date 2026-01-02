@@ -188,6 +188,7 @@ class DnDCursesUI:
 		self.reorder_cursor = 0
 		self.char_select_cursor = 0
 		self.inventory_item_cursor = 0  # For character inventory management
+		self.spell_cursor = 0  # For spell viewing
 		self.cheat_cursor = 0  # For cheat menu
 
 		# Submenu cursors
@@ -306,6 +307,29 @@ class DnDCursesUI:
 			self.push_message(f"Loaded encounter table")
 		else:
 			self.push_message("WARNING: No encounter table loaded!")
+
+		# Load character collections (races, classes, spells, etc.)
+		try:
+			self.races, self.subraces, self.classes, self.alignments, _, _, self.names, self.human_names, self.spells = load_character_collections()
+
+			# Debug: Check what was loaded
+			if self.races and self.classes:
+				self.push_message(f"✓ Loaded {len(self.races)} races, {len(self.classes)} classes, {len(self.spells)} spells")
+			else:
+				self.push_message(f"⚠ WARNING: races={len(self.races or [])}, classes={len(self.classes or [])}")
+		except Exception as e:
+			self.push_message(f"✗ ERROR loading character collections: {str(e)[:50]}")
+			# Initialize empty to avoid errors
+			self.races = []
+			self.subraces = []
+			self.classes = []
+			self.alignments = []
+			self.names = {}
+			self.human_names = {}
+			self.spells = []
+			self.names = {}
+			self.human_names = {}
+			self.spells = []
 
 		if self.monsters:
 			from fractions import Fraction
@@ -475,8 +499,14 @@ class DnDCursesUI:
 
 			start_y = 3
 
-			# Party status
-			self.stdscr.addstr(start_y, 2, "PARTY STATUS:", curses.A_BOLD | curses.A_UNDERLINE)
+			# Calculate column widths - split screen in half
+			party_col_start = 2
+			party_col_width = (cols - 4) // 2
+			monster_col_start = party_col_start + party_col_width + 2
+			monster_col_width = cols - monster_col_start - 2
+
+			# Party status (left side)
+			self.stdscr.addstr(start_y, party_col_start, "PARTY STATUS:", curses.A_BOLD | curses.A_UNDERLINE)
 			y = start_y + 1
 			for idx, char in enumerate(self.party[:6]):
 				hp_ratio = char.hit_points / max(char.max_hit_points, 1)
@@ -493,11 +523,62 @@ class DnDCursesUI:
 
 				status_str = f" [{char.status}]" if char.status != "OK" else ""
 				char_info = f"{idx + 1}. {char.name}: {hp_bar} {char.hit_points}/{char.max_hit_points} HP{status_str}"
-				self.stdscr.addstr(y, 4, char_info[:cols - 5], color)
+				self.stdscr.addstr(y, party_col_start + 2, char_info[:party_col_width - 2], color)
 				y += 1
 
-			# Dungeon log (last 12 messages)
-			log_y = y + 2
+			party_height = y - start_y  # Track party section height
+
+			# Monster status (right side) - only show if in combat
+			if hasattr(self, 'dungeon_state') and self.dungeon_state.get('monsters'):
+				monsters = self.dungeon_state.get('alive_monsters', self.dungeon_state.get('monsters', []))
+
+				if monsters:
+					self.stdscr.addstr(start_y, monster_col_start, "MONSTER STATUS:", curses.A_BOLD | curses.A_UNDERLINE)
+
+					# Calculate how many monsters fit in the same height as party
+					max_monster_rows = party_height - 1  # -1 for header
+					monsters_per_col = max(6, max_monster_rows)  # At least 6 per column
+
+					# Split monsters into columns if needed
+					num_cols = (len(monsters) + monsters_per_col - 1) // monsters_per_col
+					num_cols = min(num_cols, 2)  # Max 2 columns to avoid overflow
+
+					col_width = monster_col_width // num_cols if num_cols > 1 else monster_col_width
+
+					for col_idx in range(num_cols):
+						start_idx = col_idx * monsters_per_col
+						end_idx = min(start_idx + monsters_per_col, len(monsters))
+						col_monsters = monsters[start_idx:end_idx]
+
+						col_x = monster_col_start + (col_idx * col_width)
+						mon_y = start_y + 1
+
+						for idx, monster in enumerate(col_monsters):
+							if mon_y >= start_y + party_height:
+								break  # Don't exceed party height
+
+							# Calculate monster HP bar
+							hp_ratio = monster.hit_points / max(monster.max_hit_points, 1)
+							hp_bar_length = int(hp_ratio * 8)  # Shorter bar for monsters
+							hp_bar = f"[{'█' * hp_bar_length}{'·' * (8 - hp_bar_length)}]"
+
+							# Color based on HP
+							if hp_ratio > 0.66:
+								color = curses.color_pair(1)  # Green
+							elif hp_ratio > 0.33:
+								color = curses.color_pair(3)  # Yellow
+							else:
+								color = curses.color_pair(2)  # Red
+
+							# Display monster info
+							monster_name = monster.name if hasattr(monster, 'name') else str(monster)
+							monster_info = f"{monster_name[:15]}: {hp_bar} {monster.hit_points}/{monster.max_hit_points}"
+
+							self.stdscr.addstr(mon_y, col_x, monster_info[:col_width - 1], color)
+							mon_y += 1
+
+			# Dungeon log (last 12 messages) - start after party/monster section
+			log_y = start_y + party_height + 1
 			if log_y < lines - 3:
 				self.stdscr.addstr(log_y, 2, "COMBAT LOG:", curses.A_BOLD | curses.A_UNDERLINE)
 				log_y += 1
@@ -521,7 +602,12 @@ class DnDCursesUI:
 			if self.dungeon_message:
 				self.stdscr.addstr(lines - 3, 2, self.dungeon_message[:cols - 3], curses.A_BOLD)
 
-			self.draw_footer("[Enter] Continue  [Esc] Flee Combat", lines, cols)
+			# Footer depends on whether all party is dead
+			all_party_dead = all(c.hit_points <= 0 for c in self.party)
+			if all_party_dead:
+				self.draw_footer("[Enter] Return to Castle", lines, cols)
+			else:
+				self.draw_footer("[Enter] Continue  [Esc] Flee Combat", lines, cols)
 		except curses.error:
 			pass
 
@@ -912,12 +998,31 @@ class DnDCursesUI:
 			y += 1
 			self.stdscr.addstr(y, 2, f"HP: {character.hit_points}/{character.max_hit_points}")
 			y += 1
-			self.stdscr.addstr(y, 2, f"XP: {character.xp}")
+
+			# XP: current/needed for next level
+			xp_needed = "MAX"
+			if hasattr(self, 'xp_levels') and character.level < len(self.xp_levels):
+				xp_needed = str(self.xp_levels[character.level])
+			self.stdscr.addstr(y, 2, f"XP: {character.xp}/{xp_needed}")
 			y += 1
+
 			self.stdscr.addstr(y, 2, f"Gold: {character.gold} GP")
 			y += 1
-			self.stdscr.addstr(y, 2, f"Age: {character.age} weeks")
+
+			# Age in years (convert from weeks)
+			age_years = character.age // 52 if hasattr(character, 'age') else 0
+			age_display = f"{age_years} years" if age_years != 1 else "1 year"
+			self.stdscr.addstr(y, 2, f"Age: {age_display}")
 			y += 2
+
+			# Spell slots (if spell caster)
+			if hasattr(character, 'is_spell_caster') and character.is_spell_caster:
+				if hasattr(character, 'sc') and hasattr(character.sc, 'spell_slots'):
+					self.stdscr.addstr(y, 2, "SPELL SLOTS:", curses.A_UNDERLINE)
+					y += 1
+					slots_display = " ".join([f"L{i+1}:{s}" for i, s in enumerate(character.sc.spell_slots) if i < 9])
+					self.stdscr.addstr(y, 2, slots_display)
+					y += 2
 
 			# Abilities
 			if hasattr(character, 'abilities'):
@@ -946,7 +1051,80 @@ class DnDCursesUI:
 				else:
 					self.stdscr.addstr(y, 4, "(Empty)")
 
-			self.draw_footer("[i] Manage Inventory  [Esc] Back", lines, cols)
+			# Footer with spell menu if spell caster
+			if hasattr(character, 'is_spell_caster') and character.is_spell_caster:
+				self.draw_footer("[i] Manage Inventory  [s] View Spells  [Esc] Back", lines, cols)
+			else:
+				self.draw_footer("[i] Manage Inventory  [Esc] Back", lines, cols)
+		except curses.error:
+			pass
+
+	def draw_character_spells(self, lines: int, cols: int, character):
+		"""Draw character's spell list"""
+		try:
+			self.draw_header(f"SPELLS - {character.name}", lines, cols)
+
+			y = 3
+
+			# Spell slots
+			if hasattr(character, 'sc') and hasattr(character.sc, 'spell_slots'):
+				self.stdscr.addstr(y, 2, "SPELL SLOTS:", curses.A_BOLD)
+				y += 1
+				slots_display = " | ".join([f"Lvl {i+1}: {s}" for i, s in enumerate(character.sc.spell_slots) if i < 9])
+				self.stdscr.addstr(y, 2, slots_display)
+				y += 2
+
+			# Learned spells
+			if hasattr(character, 'sc') and hasattr(character.sc, 'learned_spells'):
+				spells = character.sc.learned_spells
+
+				if not spells:
+					self.stdscr.addstr(y, 2, "No spells learned")
+				else:
+					# Group by level
+					cantrips = [s for s in spells if not s.level or s.level == 0]
+					leveled_spells = {}
+					for spell in spells:
+						if spell.level and spell.level > 0:
+							if spell.level not in leveled_spells:
+								leveled_spells[spell.level] = []
+							leveled_spells[spell.level].append(spell)
+
+					# Display cantrips
+					if cantrips:
+						self.stdscr.addstr(y, 2, "CANTRIPS:", curses.A_UNDERLINE)
+						y += 1
+						for spell in cantrips:
+							spell_info = f"  {spell.name}"
+							if hasattr(spell, 'school'):
+								# school can be a string or an object with .name
+								school_name = spell.school.name if hasattr(spell.school, 'name') else str(spell.school)
+								spell_info += f" ({school_name})"
+							self.stdscr.addstr(y, 2, spell_info[:cols - 3])
+							y += 1
+						y += 1
+
+					# Display leveled spells
+					for level in sorted(leveled_spells.keys()):
+						if y >= lines - 3:
+							break
+						self.stdscr.addstr(y, 2, f"LEVEL {level}:", curses.A_UNDERLINE)
+						y += 1
+						for spell in leveled_spells[level]:
+							if y >= lines - 3:
+								break
+							spell_info = f"  {spell.name}"
+							if hasattr(spell, 'school'):
+								# school can be a string or an object with .name
+								school_name = spell.school.name if hasattr(spell.school, 'name') else str(spell.school)
+								spell_info += f" ({school_name})"
+							self.stdscr.addstr(y, 2, spell_info[:cols - 3])
+							y += 1
+						y += 1
+			else:
+				self.stdscr.addstr(y, 2, "Not a spell caster")
+
+			self.draw_footer("[Esc] Back", lines, cols)
 		except curses.error:
 			pass
 
@@ -1081,6 +1259,9 @@ class DnDCursesUI:
 		elif self.mode == 'character_inventory':
 			if self.character_viewing:
 				self.draw_character_inventory(lines, cols, self.character_viewing)
+		elif self.mode == 'character_spells':
+			if self.character_viewing:
+				self.draw_character_spells(lines, cols, self.character_viewing)
 		elif self.mode == 'char_select_party':
 			self.draw_char_select_menu(lines, cols, self.party, "Select Character from Party")
 		elif self.mode == 'char_select_roster':
@@ -1163,11 +1344,17 @@ class DnDCursesUI:
 			elif self.mode == 'char_select_party':
 				self._handle_char_select(c, self.party)
 			elif self.mode == 'char_select_roster':
-				self._handle_char_select(c, [c for c in self.roster if c not in self.party])
+				# Show all roster if coming from training, otherwise show only available
+				if self.previous_mode == 'training':
+					self._handle_char_select(c, self.roster)
+				else:
+					self._handle_char_select(c, [c for c in self.roster if c not in self.party])
 			elif self.mode == 'character_status':
 				self._handle_character_status(c)
 			elif self.mode == 'character_inventory':
 				self._handle_character_inventory(c)
+			elif self.mode == 'character_spells':
+				self._handle_character_spells(c)
 			elif self.mode == 'reorder_party':
 				self._handle_reorder_party(c)
 			elif self.mode == 'cheat_menu':
@@ -1185,12 +1372,27 @@ class DnDCursesUI:
 			self.menu_cursor = max(0, self.menu_cursor - 1)
 		elif c in (ord('\n'), ord('\r')):
 			if self.menu_cursor == 0:  # Start New Game
+				# Reset party for a fresh start, but keep roster
+				self.party = []
+				# Keep roster loaded - don't reset it!
+				# self.roster remains unchanged so characters can be created/viewed
+				self.push_panel("Starting new game...")
+				# Save empty party to disk
+				try:
+					save_party(self.party, _dir=self.game_path)
+					self.push_panel("New game initialized!")
+				except Exception as e:
+					self.push_panel(f"Error initializing new game: {e}")
 				self.mode = 'location'
 				self.location = Location.CASTLE
 			elif self.menu_cursor == 1:  # Load Game
-				self.push_panel("Loading game...")
-				self.load_game_data()
+				# Reload saved roster and party from disk
+				self.push_panel("Loading saved game...")
+				self.roster = get_roster(self.characters_dir)
+				self.party = load_party(_dir=self.game_path)
+				self.push_panel(f"Loaded {len(self.roster)} characters, {len(self.party)} in party")
 				self.mode = 'location'
+				self.location = Location.CASTLE
 			elif self.menu_cursor == 2:  # Cheat Menu
 				self.mode = 'cheat_menu'
 				self.cheat_cursor = 0
@@ -1421,18 +1623,47 @@ class DnDCursesUI:
 			if fee > char.gold:
 				self.push_panel("Not enough gold!")
 			else:
-				# Rest the character
-				while fee and char.hit_points < char.max_hit_points and char.gold >= fee:
-					char.hit_points = min(char.max_hit_points, char.hit_points + fee // 10)
-					char.gold -= fee
-					char.age += weeks
+				# Rest the character - ensure HP never exceeds max HP
+				hp_needed = char.max_hit_points - char.hit_points
+				if hp_needed > 0:
+					while fee and char.hit_points < char.max_hit_points and char.gold >= fee:
+						hp_recovery = min(fee // 10, hp_needed)
+						char.hit_points = min(char.max_hit_points, char.hit_points + hp_recovery)
+						char.gold -= fee
+						char.age += weeks
+						hp_needed = char.max_hit_points - char.hit_points
+						if hp_needed <= 0:
+							break
 
-				# Restore spell slots if spellcaster
+				# Check for level up FIRST (before restoring spell slots)
+				leveled_up = False
+				if hasattr(self, 'xp_levels') and char.level < len(self.xp_levels) and char.xp >= self.xp_levels[char.level]:
+					from populate_functions import populate, request_spell
+					try:
+						old_level = char.level
+						if hasattr(char.class_type, 'can_cast') and char.class_type.can_cast:
+							# Load spells for spell casters
+							spell_names = populate(collection_name="spells", key_name="results")
+							all_spells = [request_spell(name) for name in spell_names]
+							class_tome_spells = [s for s in all_spells if s is not None and hasattr(s, 'allowed_classes') and char.class_type.index in s.allowed_classes]
+							display_message, new_spells = char.gain_level(tome_spells=class_tome_spells, verbose=False)
+						else:
+							display_message, new_spells = char.gain_level(verbose=False)
+
+						leveled_up = True
+						# Show level up message with details
+						self.push_panel(f"{char.name} gained a level! (Lvl {old_level} → {char.level})")
+					except Exception as e:
+						# Show error for debugging
+						self.push_panel(f"Level up error: {str(e)[:40]}")
+
+				# Restore spell slots AFTER level up (uses new level)
 				if hasattr(char.class_type, 'can_cast') and char.class_type.can_cast:
 					if hasattr(char, 'sc') and hasattr(char.sc, 'spell_slots'):
 						char.sc.spell_slots = char.class_type.spell_slots[char.level]
-				# Add random HP recovery for resting
-				char.hit_points += randint(1, 3)
+
+				# Ensure HP doesn't exceed max
+				char.hit_points = min(char.hit_points, char.max_hit_points)
 
 				try:
 					save_character(char, _dir=self.characters_dir)
@@ -1689,34 +1920,48 @@ class DnDCursesUI:
 						self.stdscr.keypad(True)
 						if curses.has_colors():
 							curses.start_color()
+							curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)
+							curses.init_pair(2, curses.COLOR_RED, curses.COLOR_BLACK)
+							curses.init_pair(3, curses.COLOR_YELLOW, curses.COLOR_BLACK)
+							curses.init_pair(4, curses.COLOR_CYAN, curses.COLOR_BLACK)
 						self.push_panel("Character created")
 			elif self.training_cursor == 1:  # Create Random Character
 				if len(self.roster) >= MAX_ROSTER:
 					self.push_panel(f"Max roster ({MAX_ROSTER}) reached!")
 				else:
 					try:
+						# Load collections if needed
 						if not self.races:
 							self.races, self.subraces, self.classes, self.alignments, _, _, self.names, self.human_names, self.spells = load_character_collections()
 
-						new_char = generate_random_character(self.roster, self.races, self.subraces, self.classes, self.names, self.human_names, self.spells)
-						self.roster.append(new_char)
-						save_character(new_char, _dir=self.characters_dir)
-						self.push_panel(f"Created {new_char.name}")
+						# Validate that collections are not empty
+						if not self.races or not self.classes:
+							self.push_panel("Error: No races or classes available. Check data files.")
+						elif not self.names:
+							self.push_panel("Error: No names database available. Check data files.")
+						else:
+							new_char = generate_random_character(self.roster, self.races, self.subraces, self.classes, self.names, self.human_names, self.spells)
+							self.roster.append(new_char)
+							save_character(new_char, _dir=self.characters_dir)
+							self.push_panel(f"Created {new_char.name}")
 					except Exception as e:
-						self.push_panel(f"Error: {str(e)[:30]}")
+						self.push_panel(f"Error: {str(e)[:50]}")
 			elif self.training_cursor == 2:  # Character Status
-				available_chars = [c for c in self.roster if c not in self.party]
-				if not available_chars:
+				if not self.roster:
 					self.push_panel("No characters in roster")
 				else:
-					# Switch to ncurses character selection
+					# Switch to ncurses character selection - show all roster
 					self.mode = 'char_select_roster'
 					self.char_select_cursor = 0
 					self.previous_mode = 'training'
 			elif self.training_cursor == 3:  # Delete Character
-				self.mode = 'character_list'
-				self.roster_cursor = 0
-				self.previous_mode = 'training'
+				available_chars = [c for c in self.roster if c not in self.party]
+				if not available_chars:
+					self.push_panel("No characters available to delete")
+				else:
+					self.mode = 'character_list'
+					self.roster_cursor = 0
+					self.previous_mode = 'training'
 			elif self.training_cursor == 4:  # Rename Character
 				self.push_panel("Rename - Coming soon")
 			else:  # Return to Castle
@@ -1739,17 +1984,22 @@ class DnDCursesUI:
 				selected_char = available_chars[self.roster_cursor]
 
 				if self.previous_mode == 'tavern':
-					# Add to party
-					if len(self.party) < 6:
+					# Add to party - check if character is alive
+					if selected_char.status == "DEAD":
+						self.push_panel(f"{selected_char.name} is DEAD! Cannot add to party.")
+					elif len(self.party) < 6:
 						selected_char.id_party = len(self.party)
 						self.party.append(selected_char)
 						save_character(selected_char, _dir=self.characters_dir)
 						self.push_panel(f"Added {selected_char.name} to party")
+					else:
+						self.push_panel("Party is full (max 6)")
 					self.mode = 'tavern'
 				elif self.previous_mode == 'training':
 					# Delete character
 					if delete_character_prompt_ok(selected_char):
 						os.remove(f"{self.characters_dir}/{selected_char.name}.dmp")
+						self.roster.remove(selected_char)
 						self.push_panel(f"Deleted {selected_char.name}")
 					self.mode = 'training'
 				else:
@@ -1781,6 +2031,12 @@ class DnDCursesUI:
 		if c == ord('i'):  # Open inventory management
 			self.mode = 'character_inventory'
 			self.inventory_item_cursor = 0
+		elif c == ord('s'):  # View spells (if spell caster)
+			if self.character_viewing and hasattr(self.character_viewing, 'is_spell_caster') and self.character_viewing.is_spell_caster:
+				self.mode = 'character_spells'
+				self.spell_cursor = 0
+			else:
+				self.push_panel("This character is not a spell caster")
 		elif c == 27:  # Esc
 			self.character_viewing = None
 			# Return to appropriate selection mode
@@ -1807,27 +2063,30 @@ class DnDCursesUI:
 
 		if c in (curses.KEY_DOWN, ord('j')):
 			if total_items > 0:
-				self.inventory_item_cursor = (self.inventory_item_cursor + 1) % total_items
+				self.inventory_item_cursor = min(self.inventory_item_cursor + 1, total_items - 1)
 		elif c in (curses.KEY_UP, ord('k')):
 			if total_items > 0:
-				self.inventory_item_cursor = (self.inventory_item_cursor - 1) % total_items
+				self.inventory_item_cursor = max(0, self.inventory_item_cursor - 1)
 		elif c == ord('u'):  # Use item (potions only)
-			self._use_item_from_inventory()
+			self._use_item_from_inventory(potions, weapons, armors)
 		elif c == ord('e'):  # Equip/Unequip (weapons/armors only)
-			self._equip_unequip_item()
+			self._equip_unequip_item(potions, weapons, armors)
 		elif c == 27:  # Esc - return to character status
 			self.mode = 'character_status'
 			self.inventory_item_cursor = 0
 
-	def _use_item_from_inventory(self) -> None:
-		"""Use selected item (potions only) - similar to ui_curses.py"""
+	def _handle_character_spells(self, c: int) -> None:
+		"""Handle character spells viewing"""
+		if c == 27:  # Esc - return to character status
+			self.mode = 'character_status'
+			self.spell_cursor = 0
+
+	def _use_item_from_inventory(self, potions, weapons, armors) -> None:
+		"""Use selected item (potions only)"""
 		if not self.character_viewing:
 			return
 
-		from dao_classes import HealingPotion, Weapon, Armor
-
-		potions = [item for item in self.character_viewing.inventory if item and isinstance(item, HealingPotion)]
-
+		# Only potions can be used
 		if self.inventory_item_cursor < len(potions):
 			# It's a potion - use it
 			potion = potions[self.inventory_item_cursor]
@@ -1857,23 +2116,18 @@ class DnDCursesUI:
 					pass
 
 				# Adjust cursor if needed
-				if self.inventory_item_cursor >= len(potions) - 1:
-					self.inventory_item_cursor = max(0, self.inventory_item_cursor - 1)
+				remaining_potions = len([p for p in potions if p != potion])
+				if self.inventory_item_cursor >= remaining_potions:
+					self.inventory_item_cursor = max(0, remaining_potions - 1)
 			except Exception as e:
 				self.push_panel(f"Error using potion: {str(e)[:30]}")
 		else:
-			self.push_panel("Cannot use this item. Only potions can be used with 'u'.")
+			self.push_panel("Only potions can be used here")
 
-	def _equip_unequip_item(self) -> None:
-		"""Equip or unequip selected item (weapons/armors) - similar to ui_curses.py"""
+	def _equip_unequip_item(self, potions, weapons, armors) -> None:
+		"""Equip or unequip selected item (weapons/armors)"""
 		if not self.character_viewing:
 			return
-
-		from dao_classes import Weapon, Armor, HealingPotion
-
-		potions = [item for item in self.character_viewing.inventory if item and isinstance(item, HealingPotion)]
-		weapons = [item for item in self.character_viewing.inventory if item and isinstance(item, Weapon)]
-		armors = [item for item in self.character_viewing.inventory if item and isinstance(item, Armor)]
 
 		cursor = self.inventory_item_cursor
 
@@ -2057,6 +2311,8 @@ class DnDCursesUI:
 
 	def _cheat_level_up_all(self):
 		"""Cheat: Level up all characters"""
+		from populate_functions import populate, request_spell
+
 		leveled_count = 0
 		all_chars = self.roster + self.party
 
@@ -2127,7 +2383,15 @@ class DnDCursesUI:
 
 		state = self.dungeon_state
 
+		# Check if all party is dead
+		all_party_dead = all(c.hit_points <= 0 for c in self.party)
+
 		if c in (ord('\n'), ord('\r')):
+			# If all party dead, only allow return to castle
+			if all_party_dead:
+				self._exit_dungeon()
+				return
+
 			# Check if we want to leave
 			if state['combat_ended'] or not state['in_combat']:
 				if not state['encounter_levels']:
@@ -2156,9 +2420,12 @@ class DnDCursesUI:
 
 		elif c == 27:  # Esc - flee
 			if state['in_combat']:
+				# Flee from combat starts a new encounter instead of returning to castle
 				state['flee_combat'] = True
+				state['in_combat'] = False
+				state['combat_ended'] = False
 				self.dungeon_log.append("=== Party flees from combat! ===")
-				self._exit_dungeon()
+				self.dungeon_message = "Press Enter for next encounter or Esc to return to castle"
 			else:
 				self._exit_dungeon()
 
@@ -2306,121 +2573,52 @@ class DnDCursesUI:
 			self.dungeon_message = f"Round {state['round_num']} complete. Press Enter to continue..."
 
 	def _monster_attack(self, monster):
-		"""Monster attacks party"""
-		from random import choice, sample, randint
+		"""Monster attacks party - using CombatSystem from dnd-5e-core"""
+		from dnd_5e_core.combat import execute_combat_turn
 
 		state = self.dungeon_state
 		alive_chars = state['alive_chars']
+		alive_monsters = state['alive_monsters']
 
 		if not alive_chars:
 			return
 
-		# Simple attack logic - pick random target
-		melee_chars = [c for i, c in enumerate(alive_chars) if i < 3]
-		ranged_chars = [c for i, c in enumerate(alive_chars) if i >= 3]
-
-		if not melee_chars:
-			melee_chars = alive_chars
-
-		target = choice(melee_chars) if melee_chars else choice(alive_chars)
-
-		# Calculate damage (simplified)
-		if hasattr(monster, 'actions') and monster.actions:
-			damage = randint(1, 8) + (monster.challenge_rating if hasattr(monster, 'challenge_rating') else 1)
-		else:
-			damage = randint(1, 6)
-
-		target.hit_points -= damage
-
-		self.dungeon_log.append(f"{monster.name.title()} attacks {target.name} for {damage} damage!")
-
-		if target.hit_points <= 0:
-			state['alive_chars'].remove(target)
-			target.status = "DEAD"
-			self.dungeon_log.append(f"{target.name} is KILLED!")
+		# Use centralized combat system
+		execute_combat_turn(
+			attacker=monster,
+			alive_chars=alive_chars,
+			alive_monsters=alive_monsters,
+			party=self.party,
+			round_num=state['round_num'],
+			verbose=False,
+			message_callback=lambda msg: self.dungeon_log.append(msg)
+		)
 
 	def _character_attack(self, character):
-		"""Character attacks monster - captures stdout to avoid ncurses interference"""
-		from random import choice, randint
-		import sys
-		from io import StringIO
+		"""Character attacks monster - using CombatSystem from dnd-5e-core"""
+		from dnd_5e_core.combat import execute_combat_turn
 
 		state = self.dungeon_state
 		alive_monsters = state['alive_monsters']
+		alive_chars = state['alive_chars']
 
 		if not alive_monsters:
 			return
 
-		# Attack weakest monster
-		target = min(alive_monsters, key=lambda m: m.hit_points)
-
-		damage = 0
-
-		# Use actual attack method if available, capturing stdout
-		if hasattr(character, 'attack'):
-			try:
-				# Call the actual attack method with verbose=False to get messages
-				try:
-					attack_msg, damage = character.attack(monster=target, in_melee=True, verbose=False)
-
-					# Add attack messages to log
-					if attack_msg:
-						# Remove ANSI color codes
-						import re
-						ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
-						for line in attack_msg.strip().split('\n'):
-							clean_line = ansi_escape.sub('', line).strip()
-							if clean_line:
-								self.dungeon_log.append(clean_line)
-
-					# Apply damage
-					target.hit_points -= damage
-				except TypeError:
-					# Fallback for old format (returns int directly)
-					damage = character.attack(monster=target, in_melee=True)
-					target.hit_points -= damage
-					self.dungeon_log.append(f"{character.name} attacks {target.name.title()} for {damage} damage!")
-			except Exception as e:
-				# Fallback if attack fails
-				damage = randint(1, 8) + character.level
-				target.hit_points -= damage
-				self.dungeon_log.append(f"{character.name} attacks {target.name.title()} for {damage} damage!")
-		else:
-			# Simplified calculation if attack method not available
-			base_damage = randint(1, 8) + character.level
-
-			# Add weapon damage if available
-			if hasattr(character, 'weapon') and character.weapon and hasattr(character.weapon, 'damage_dice'):
-				try:
-					weapon_damage = character.weapon.damage_dice.roll()
-					damage = base_damage + weapon_damage
-				except:
-					damage = base_damage
-			else:
-				damage = base_damage
-
-			self.dungeon_log.append(f"{character.name} attacks {target.name.title()} for {damage} damage!")
-
-		# Check for death
-		if target.hit_points <= 0:
-			state['alive_monsters'].remove(target)
-			self.dungeon_log.append(f"{target.name.title()} is KILLED!")
-
-			# Victory rewards - use new format
-			if hasattr(character, 'victory'):
-				try:
-					victory_msg, xp, gold = character.victory(target, verbose=False)
-
-					# Add victory messages to log
-					if victory_msg:
-						import re
-						ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
-						for line in victory_msg.strip().split('\n'):
-							clean_line = ansi_escape.sub('', line).strip()
-							if clean_line and clean_line not in self.dungeon_log[-5:]:  # Avoid duplicates
-								self.dungeon_log.append(clean_line)
-				except:
-					pass
+		# Use centralized combat system
+		execute_combat_turn(
+			attacker=character,
+			alive_chars=alive_chars,
+			alive_monsters=alive_monsters,
+			party=self.party,
+			round_num=state['round_num'],
+			verbose=False,
+			message_callback=lambda msg: self.dungeon_log.append(msg),
+			weapons=self.weapons if hasattr(self, 'weapons') else [],
+			armors=self.armors if hasattr(self, 'armors') else [],
+			equipments=self.equipments if hasattr(self, 'equipments') else [],
+			potions=self.potions if hasattr(self, 'potions') else []
+		)
 
 	def _distribute_rewards(self):
 		"""Distribute XP and gold after victory"""
@@ -2471,6 +2669,18 @@ class DnDCursesUI:
 				save_character(char, _dir=self.characters_dir)
 			except Exception:
 				pass
+
+		# Remove all dead members from party
+		dead_members = [c for c in self.party if c.status == "DEAD"]
+		for char in dead_members:
+			char.id_party = -1
+			try:
+				save_character(char, _dir=self.characters_dir)
+			except Exception:
+				pass
+
+		# Keep only alive members in party
+		self.party = [c for c in self.party if c.status != "DEAD"]
 
 		try:
 			save_party(self.party, _dir=self.game_path)
