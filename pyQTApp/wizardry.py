@@ -28,17 +28,20 @@ if os.path.exists(_dnd_5e_core_path) and _dnd_5e_core_path not in sys.path:
 # ============================================
 from dnd_5e_core.entities import Character
 
-# Note: Data directory is now in dnd-5e-core/data and will be auto-detected
+# Import from persistence module
+from persistence import load_party, save_character, save_party, get_roster
 
+# Import from ui_helpers
+from ui_helpers import display_character_sheet
+
+# Import project-specific functions
 from main import (
-    load_party,
-    save_character,
-    save_party,
     load_character_collections,
     generate_random_character,
-    display_character_sheet,
-    get_roster,
 )
+
+# Note: Data directory is now in dnd-5e-core/data and will be auto-detected
+
 from pyQTApp.Castle.Boltac_module import Boltac_UI
 from pyQTApp.Castle.Cant_module import Cant_UI
 from pyQTApp.Castle.Inn_module import Inn_UI

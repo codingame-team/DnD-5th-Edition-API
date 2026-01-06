@@ -54,8 +54,19 @@ except ImportError:
 
 from algo.brehensam import in_view_range
 from algo.lee import parcours_largeur, parcours_a_star
-from main import get_roster, save_character, load_xp_levels, load_character
+
+# Import from persistence module
+from persistence import get_roster, save_character, load_character
+
+# Import D&D 5e rules from package
+from dnd_5e_core.mechanics import XP_LEVELS
+
+# Import populate functions
 from populate_functions import populate, request_armor, request_weapon, request_monster, request_spell, request_monster_other
+
+# Compatibility alias
+load_xp_levels = lambda: XP_LEVELS
+
 from populate_rpg_functions import load_potions_collections, load_weapon_image_name, load_armor_image_name, load_potion_image_name
 from tools.cell_bits_dnd import DOORSPACE, TRAPPED, STAIR_UP, STAIR_DN
 from tools.common import generate_cave, generate_dungeon, GREEN, resource_path, get_save_game_path, read, MAX_LEVELS

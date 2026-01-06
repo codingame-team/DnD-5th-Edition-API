@@ -123,8 +123,36 @@ def load_dungeon_collections():
 	return monsters, armors, weapons, equipments, equipment_categories, healing_potions
 
 
-# Now try to import the functions that might depend on PyQt5
-from main import (create_new_character, generate_random_character, display_character_sheet, menu_read_options, delete_character_prompt_ok, rename_character_prompt_ok, explore_dungeon, generate_encounter_levels, load_encounter_table, load_encounter_gold_table, load_xp_levels as load_xp_levels_func, generate_encounter)
+ # Import D&D 5e rules from package
+from dnd_5e_core.mechanics import (
+    XP_LEVELS,
+    generate_encounter_distribution,
+    ENCOUNTER_TABLE,
+    ENCOUNTER_GOLD_TABLE,
+    get_encounter_gold,
+)
+from dnd_5e_core.mechanics.encounter_builder import select_monsters_by_encounter_table
+
+# Import UI helpers
+from ui_helpers import (
+    display_character_sheet,
+    menu_read_options,
+    delete_character_prompt_ok,
+    rename_character_prompt_ok,
+)
+
+# Import project-specific functions from main
+from main import (
+    create_new_character,
+    explore_dungeon,
+)
+
+# Compatibility aliases
+load_xp_levels_func = XP_LEVELS
+generate_encounter_levels = generate_encounter_distribution
+load_encounter_table = lambda: ENCOUNTER_TABLE
+load_encounter_gold_table = lambda: ENCOUNTER_GOLD_TABLE
+generate_encounter = select_monsters_by_encounter_table
 
 
 MIN_COLS = 80
@@ -829,7 +857,7 @@ class DnDCursesUI:
 					marker = '►' if actual_idx == self.buy_cursor else ' '
 
 					# Check proficiency (like main.py line 1283-1284)
-					from dao_classes import Weapon
+					# Already imported at top: from dnd_5e_core.equipment import Weapon
 					prof_label = " [NOT PROF]" if isinstance(item, Weapon) and item not in character.prof_weapons else ""
 
 					cost = item.cost if hasattr(item, 'cost') else "??GP"
@@ -872,14 +900,14 @@ class DnDCursesUI:
 					marker = '►' if actual_idx == self.sell_cursor else ' '
 
 					# Check proficiency (like main.py line 1310)
-					from dao_classes import Weapon, Armor
+					# Already imported at top: from dnd_5e_core.equipment import Weapon, Armor
 					prof_label = " [NOT PROF]" if isinstance(item, Weapon) and hasattr(character, 'prof_weapons') and item not in character.prof_weapons else ""
 
 					# Check equipped (like main.py line 1311)
 					equipped_label = " (Equipped)" if (isinstance(item, Weapon) or isinstance(item, Armor)) and hasattr(item, 'equipped') and item.equipped else ""
 
 					# Handle different cost types (like main.py line 1312-1313)
-					from dao_classes import Cost
+					# Already imported at top: from dnd_5e_core.equipment import Cost
 					if hasattr(item, 'cost'):
 						if isinstance(item.cost, Cost):
 							cost = str(item.cost)
@@ -1141,7 +1169,7 @@ class DnDCursesUI:
 			y += 2
 
 			# Count items
-			from dao_classes import Weapon, Armor, HealingPotion
+			# Already imported at top: from dnd_5e_core.equipment import Weapon, Armor, HealingPotion
 
 			# Healing potions
 			potions = [item for item in character.inventory if item and isinstance(item, HealingPotion)]
@@ -1849,14 +1877,14 @@ class DnDCursesUI:
 				item = inventory_items[self.sell_cursor]
 
 				# Check if equipped (like main.py line 1311)
-				from dao_classes import Weapon, Armor
+				# Already imported at top: from dnd_5e_core.equipment import Weapon, Armor
 				equipped_label = " (Equipped)" if (isinstance(item, Weapon) or isinstance(item, Armor)) and hasattr(item, 'equipped') and item.equipped else ""
 
 				if equipped_label:
 					self.push_panel(f"Unequip {item.name} first!")
 				else:
 					# Calculate sell price: cost_value // 200 (like main.py line 1322-1324)
-					from dao_classes import Cost
+					# Already imported at top: from dnd_5e_core.equipment import Cost
 					if hasattr(item, 'cost'):
 						if isinstance(item.cost, Cost):
 							cost_value = item.cost.value
@@ -2053,7 +2081,7 @@ class DnDCursesUI:
 			self.mode = 'character_status'
 			return
 
-		from dao_classes import Weapon, Armor, HealingPotion
+		# Already imported at top: from dnd_5e_core.equipment import Weapon, Armor, HealingPotion
 
 		# Get items
 		potions = [item for item in self.character_viewing.inventory if item and isinstance(item, HealingPotion)]
