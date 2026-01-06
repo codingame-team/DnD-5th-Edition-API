@@ -1,4 +1,4 @@
-t"""
+"""
 UI Helpers Module for DnD-5th-Edition-API
 Display and interaction functions for console interfaces
 """
