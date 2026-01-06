@@ -4,12 +4,16 @@ import os
 import sys
 
 # ============================================
-# MIGRATION: Add dnd-5e-core to path
+# MIGRATION: Add dnd-5e-core to path (development mode)
 # ============================================
-sys.path.insert(0, '/Users/display/PycharmProjects/dnd-5e-core')
+_parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+_dnd_5e_core_path = os.path.join(_parent_dir, 'dnd-5e-core')
+if os.path.exists(_dnd_5e_core_path) and _dnd_5e_core_path not in sys.path:
+    sys.path.insert(0, _dnd_5e_core_path)
 
 # ============================================
 # MIGRATION: Import from dnd-5e-core package
+# ============================================
 from dnd_5e_core.entities import Character, Monster
 
 # Note: Data directory is now in dnd-5e-core/data and will be auto-detected
@@ -118,8 +122,9 @@ def run(character_name: str = 'Brottor'):
     global screen, font, white, black
     global screen_width, screen_height
 
-    # Initialize Pygame
-    pygame.init()
+    # Ensure Pygame is initialized (but don't reinitialize if already running)
+    if not pygame.get_init():
+        pygame.init()
 
     # Screen dimensions
     screen_width = 800

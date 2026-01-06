@@ -7,7 +7,15 @@ from typing import List
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QPushButton, QFrame
 
-from dao_classes import Character
+# ============================================
+# MIGRATION: Import from dnd-5e-core package
+# ============================================
+_parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+_dnd_5e_core_path = os.path.join(_parent_dir, 'dnd-5e-core')
+if os.path.exists(_dnd_5e_core_path) and _dnd_5e_core_path not in sys.path:
+	sys.path.insert(0, _dnd_5e_core_path)
+
+from dnd_5e_core.entities import Character
 
 
 def debug(*args):

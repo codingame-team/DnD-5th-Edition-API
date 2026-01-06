@@ -11,7 +11,17 @@ from collections import namedtuple, Counter
 from random import seed, sample, shuffle, choice
 from time import sleep, time
 
-from PyQt5.QtWidgets import QApplication, QDialog
+# ============================================
+# PyQt5 imports (optional - only for GUI mode)
+# ============================================
+try:
+    from PyQt5.QtWidgets import QApplication, QDialog
+    PYQT5_AVAILABLE = True
+except ImportError:
+    PYQT5_AVAILABLE = False
+    # Define dummy classes for console-only mode
+    QApplication = None
+    QDialog = None
 
 # ============================================
 # MIGRATION: Add dnd-5e-core to path (development mode)
@@ -50,8 +60,16 @@ set_data_directory(_data_dir)
 # Keep populate_functions for data loading
 from populate_functions import *
 from populate_rpg_functions import load_potion_image_name, load_potions_collections
-# from pyQTApp.character_sheet import display_char_sheet
-from pyQTApp.qt_designer_widgets.character_dialog import Ui_character_Dialog
+
+# PyQt UI widgets (optional - only for GUI mode)
+if PYQT5_AVAILABLE:
+    try:
+        from pyQTApp.qt_designer_widgets.character_dialog import Ui_character_Dialog
+    except ImportError:
+        Ui_character_Dialog = None
+else:
+    Ui_character_Dialog = None
+
 from tools.ability_scores_roll import ability_rolls
 from tools.common import exit_message, get_key, get_save_game_path
 
