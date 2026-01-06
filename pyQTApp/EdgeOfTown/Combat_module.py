@@ -22,12 +22,39 @@ from PyQt5.QtWidgets import (
     QTableWidgetItem,
 )
 
+# ============================================
+# MIGRATION: Import from dnd-5e-core package
+# ============================================
+_parent_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+_dnd_5e_core_path = os.path.join(_parent_dir, 'dnd-5e-core')
+if os.path.exists(_dnd_5e_core_path) and _dnd_5e_core_path not in sys.path:
+	sys.path.insert(0, _dnd_5e_core_path)
+
 from dnd_5e_core.entities import Character, Monster
-from dnd_5e_core.combat import Action, ActionType, SpecialAbility
+from dnd_5e_core.combat import Action, ActionType, SpecialAbility, RangeType
 from dnd_5e_core.spells import Spell
 from dnd_5e_core.classes import Proficiency
-from dao_classes import CharAction, CharActionType, RangeType
-from main import (load_party, generate_encounter_levels, generate_encounter, load_encounter_table, load_encounter_gold_table, )
+
+# UI-specific combat models (not in dnd-5e-core)
+from pyQTApp.combat_models import CharAction, CharActionType
+
+# Import from persistence module
+from persistence import load_party
+
+# Import D&D 5e rules from package
+from dnd_5e_core.mechanics import (
+    generate_encounter_distribution,
+    ENCOUNTER_TABLE,
+    ENCOUNTER_GOLD_TABLE,
+)
+from dnd_5e_core.mechanics.encounter_builder import select_monsters_by_encounter_table
+
+# Compatibility aliases
+generate_encounter_levels = generate_encounter_distribution
+load_encounter_table = lambda: ENCOUNTER_TABLE
+load_encounter_gold_table = lambda: ENCOUNTER_GOLD_TABLE
+generate_encounter = select_monsters_by_encounter_table
+
 from populate_functions import populate, request_monster
 from pyQTApp.common import color
 from pyQTApp.qt_designer_widgets.combat_QFrame import Ui_combatFrame

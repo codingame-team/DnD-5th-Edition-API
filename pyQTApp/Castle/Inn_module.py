@@ -1,11 +1,35 @@
 from functools import partial
 from typing import List, Optional
+import os
+import sys
 
-from PyQt5.QtCore import pyqtSlot, Qt, QItemSelection, QTimer
-from PyQt5.QtWidgets import (QFrame, QTableWidget, QMainWindow, QWidget, QHeaderView, QSizePolicy, QRadioButton, QVBoxLayout, QLabel, )
+from PyQt5.QtCore import pyqtSlot, Qt, QTimer
+from PyQt5.QtWidgets import (
+    QFrame, QTableWidget, QMainWindow, QWidget, QSizePolicy,
+    QRadioButton, QVBoxLayout, QLabel
+)
 
-from dao_classes import Character, Equipment, Potion
-from main import load_party, save_character, save_party, rest_character, load_xp_levels
+# ============================================
+# MIGRATION: Import from dnd-5e-core package
+# ============================================
+_parent_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+_dnd_5e_core_path = os.path.join(_parent_dir, 'dnd-5e-core')
+if os.path.exists(_dnd_5e_core_path) and _dnd_5e_core_path not in sys.path:
+	sys.path.insert(0, _dnd_5e_core_path)
+
+from dnd_5e_core.entities import Character
+from dnd_5e_core.equipment import Equipment, Potion
+from dnd_5e_core.mechanics import XP_LEVELS
+
+# Import from persistence module
+from persistence import load_party, save_character, save_party
+
+# Import from main (project-specific)
+from main import rest_character
+
+# Compatibility alias
+load_xp_levels = lambda: XP_LEVELS
+
 from populate_rpg_functions import load_potions_collections
 from pyQTApp.common import update_buttons, debug
 from pyQTApp.qt_designer_widgets.adventurerInn_QFrame import Ui_innFrame

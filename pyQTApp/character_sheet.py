@@ -27,7 +27,9 @@ from dnd_5e_core.equipment.potion import Potion
 
 print("✅ [MIGRATION v2] character_sheet.py - Using dnd-5e-core package")
 
-from main import get_roster
+# Import from persistence module
+from persistence import get_roster
+
 from pyQTApp.qt_designer_widgets.character_dialog import Ui_character_Dialog
 from pyQTApp.qt_common import populate_spell_table
 from pyQTApp.qt_designer_widgets.spells_dialog import Ui_spellsDialog
