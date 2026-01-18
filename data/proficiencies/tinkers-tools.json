@@ -1,0 +1,12 @@
+{
+  "index": "tinkers-tools",
+  "type": "Artisan's Tools",
+  "name": "Tinker's Tools",
+  "classes": [],
+  "races": [],
+  "url": "/api/proficiencies/tinkers-tools",
+  "reference": {
+    "index": "tinkers-tools",
+    "name": "Tinker's Tools",
+    "url": "/api/equipment/tinkers-tools"
+}}

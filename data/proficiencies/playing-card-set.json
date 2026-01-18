@@ -1,0 +1,12 @@
+{
+  "index": "playing-card-set",
+  "type": "Gaming Sets",
+  "name": "Playing Card Set",
+  "classes": [],
+  "races": [],
+  "url": "/api/proficiencies/playing-card-set",
+  "reference": {
+    "index": "playing-card-set",
+    "name": "Playing Card Set",
+    "url": "/api/equipment/playing-card-set"
+}}

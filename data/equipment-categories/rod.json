@@ -1,0 +1,37 @@
+{
+  "index": "rod",
+  "name": "Rod",
+  "equipment": [
+    {
+      "index": "immovable-rod",
+      "name": "Immovable Rod",
+      "url": "/api/magic-items/immovable-rod"
+    },
+    {
+      "index": "rod-of-absorption",
+      "name": "Rod of Absorption",
+      "url": "/api/magic-items/rod-of-absorption"
+    },
+    {
+      "index": "rod-of-alertness",
+      "name": "Rod of Alertness",
+      "url": "/api/magic-items/rod-of-alertness"
+    },
+    {
+      "index": "rod-of-lordly-might",
+      "name": "Rod of Lordly Might",
+      "url": "/api/magic-items/rod-of-lordly-might"
+    },
+    {
+      "index": "rod-of-rulership",
+      "name": "Rod of Rulership",
+      "url": "/api/magic-items/rod-of-rulership"
+    },
+    {
+      "index": "rod-of-security",
+      "name": "Rod of Security",
+      "url": "/api/magic-items/rod-of-security"
+    }
+  ],
+  "url": "/api/equipment-categories/rod"
+}

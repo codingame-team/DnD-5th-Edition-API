@@ -1,0 +1,20 @@
+{
+  "index": "ranger-fighting-style-archery",
+  "class": {
+    "index": "ranger",
+    "name": "Ranger",
+    "url": "/api/classes/ranger"
+  },
+  "name": "Fighting Style: Archery",
+  "level": 2,
+  "prerequisites": [],
+  "desc": [
+    "You gain a +2 bonus to attack rolls you make with ranged weapons."
+  ],
+  "parent": {
+    "index": "ranger-fighting-style",
+    "name": "Fighting Style",
+    "url": "/api/features/ranger-fighting-style"
+  },
+  "url": "/api/features/ranger-fighting-style-archery"
+}

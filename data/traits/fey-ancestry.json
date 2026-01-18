@@ -1,0 +1,22 @@
+{
+  "index": "fey-ancestry",
+  "races": [
+    {
+      "index": "elf",
+      "name": "Elf",
+      "url": "/api/races/elf"
+    },
+    {
+      "index": "half-elf",
+      "name": "Half-Elf",
+      "url": "/api/races/half-elf"
+    }
+  ],
+  "subraces": [],
+  "name": "Fey Ancestry",
+  "desc": [
+    "You have advantage on saving throws against being charmed, and magic cannot put you to sleep."
+  ],
+  "proficiencies": [],
+  "url": "/api/traits/fey-ancestry"
+}

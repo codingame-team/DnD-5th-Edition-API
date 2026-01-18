@@ -1,0 +1,18 @@
+{
+  "index": "skill-perception",
+  "type": "Skills",
+  "name": "Skill: Perception",
+  "classes": [],
+  "races": [
+    {
+      "index": "elf",
+      "name": "Elf",
+      "url": "/api/races/elf"
+    }
+  ],
+  "url": "/api/proficiencies/skill-perception",
+  "reference": {
+    "index": "perception",
+    "name": "Perception",
+    "url": "/api/skills/perception"
+}}

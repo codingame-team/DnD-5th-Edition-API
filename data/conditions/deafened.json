@@ -1,0 +1,8 @@
+{
+  "index": "deafened",
+  "name": "Deafened",
+  "desc": [
+    "- A deafened creature can't hear and automatically fails any ability check that requires hearing."
+  ],
+  "url": "/api/conditions/deafened"
+}

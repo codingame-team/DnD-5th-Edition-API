@@ -1,0 +1,8 @@
+{
+  "index": "bludgeoning",
+  "name": "Bludgeoning",
+  "desc": [
+    "Blunt force attacks, falling, constriction, and the like deal bludgeoning damage."
+  ],
+  "url": "/api/damage-types/bludgeoning"
+}

@@ -1,0 +1,12 @@
+{
+  "index": "glassblowers-tools",
+  "type": "Artisan's Tools",
+  "name": "Glassblower's Tools",
+  "classes": [],
+  "races": [],
+  "url": "/api/proficiencies/glassblowers-tools",
+  "reference": {
+    "index": "glassblowers-tools",
+    "name": "Glassblower's Tools",
+    "url": "/api/equipment/glassblowers-tools"
+}}

@@ -1,0 +1,9 @@
+https://opengameart.org/content/bosses-and-monsters-spritesheets-ars-notoria
+https://opengameart.org/content/komato-berserker-bagedo-without-blades-for-fighting-games
+https://opengameart.org/content/lpc-medieval-fantasy-character-sprites
+https://opengameart.org/content/animated-rogue
+https://opengameart.org/content/dragon-fully-animated
+https://opengameart.org/content/animated-runner-character
+https://opengameart.org/content/dark-soldier-rework
+https://opengameart.org/content/warriors-in-armor-2d-game-sprite
+https://opengameart.org/content/necromancer-0

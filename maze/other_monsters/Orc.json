@@ -1,0 +1,47 @@
+{
+  'area': 4900,
+  'col': 21,
+  'contents': {
+    'detail': {
+      'monster': [
+        '2 x Orc (cr 1/2, mm 246) and 1 x Half-ogre (cr 1, mm 238); hard, 400 xp',
+        '--',
+        'Treasure: 200 cp, 10000 sp, 1500 gp, 140 pp, a fine leather belt sewn with copper (25 gp), a leather scabbard trimmed with fur (25 gp), a scroll of calligraphy (25 gp), an earthenware chalice painted with mythical creatures (25 gp), an ivory comb engraved with arcane runes (25 gp), +1 Rod of the Pact Keeper (uncommon, dmg 197), +1 Shield (uncommon, dmg 200), Pipes of the Sewers (uncommon, dmg 185), +1 Weapon (heavy crossbow) (uncommon, dmg 213)'
+      ],
+      'room_features': 'A group of monstrous faces have been carved into the east wall, and several pieces of broken glass are scattered throughout the room'
+    },
+    'inhabited': '2 x Orc and 1 x Half-ogre',
+    'summary': '2 x Orc and 1 x Half-ogre'
+  },
+  'doors': {
+    'east': [
+      {
+        'col': 28,
+        'desc': 'Trapped and Stuck Simple Wooden Door (DC 10 to break; 10 hp)',
+        'out_id': 3,
+        'row': 13,
+        'trap': 'Magic Missle Trap: DC 20 to find, DC 15 to disable;\n    one target, 4d10 force damage',
+        'type': 'trapped'
+      }
+    ],
+    'west': [
+      {
+        'col': 20,
+        'desc': 'Archway',
+        'out_id': 1,
+        'row': 11,
+        'type': 'arch'
+      }
+    ]
+  },
+  'east': 27,
+  'height': 70,
+  'id': 2,
+  'north': 7,
+  'row': 7,
+  'shape': 'square',
+  'size': '',
+  'south': 13,
+  'west': 21,
+  'width': 70
+}

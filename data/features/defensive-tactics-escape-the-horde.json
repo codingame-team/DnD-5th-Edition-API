@@ -1,0 +1,25 @@
+{
+  "index": "defensive-tactics-escape-the-horde",
+  "class": {
+    "index": "ranger",
+    "name": "Ranger",
+    "url": "/api/classes/ranger"
+  },
+  "subclass": {
+    "index": "hunter",
+    "name": "Hunter",
+    "url": "/api/subclasses/hunter"
+  },
+  "name": "Defensive Tactics: Escape the Horde",
+  "level": 7,
+  "prerequisites": [],
+  "desc": [
+    "Opportunity attacks against you are made with disadvantage."
+  ],
+  "parent": {
+    "index": "defensive-tactics",
+    "name": "Defensive Tactics",
+    "url": "/api/features/defensive-tactics"
+  },
+  "url": "/api/features/defensive-tactics-escape-the-horde"
+}

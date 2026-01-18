@@ -1,0 +1,21 @@
+# D&D 5e Games - Development Requirements
+# For local development with dnd-5e-core
+
+# Local dnd-5e-core package (editable install)
+-e ../dnd-5e-core
+
+# Game dependencies
+pygame>=2.5.0
+numpy>=1.20.0
+requests>=2.28.0
+
+# Build tools
+pyinstaller>=6.0.0
+
+# Development tools
+pytest>=7.0
+pytest-cov>=3.0
+black>=22.0
+mypy>=0.950
+flake8>=4.0
+

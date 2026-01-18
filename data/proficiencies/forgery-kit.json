@@ -1,0 +1,12 @@
+{
+  "index": "forgery-kit",
+  "type": "Artisan's Tools",
+  "name": "Forgery Kit",
+  "classes": [],
+  "races": [],
+  "url": "/api/proficiencies/forgery-kit",
+  "reference": {
+    "index": "forgery-kit",
+    "name": "Forgery Kit",
+    "url": "/api/equipment/forgery-kit"
+}}

@@ -1,0 +1,12 @@
+{
+  "index": "skill-history",
+  "type": "Skills",
+  "name": "Skill: History",
+  "classes": [],
+  "races": [],
+  "url": "/api/proficiencies/skill-history",
+  "reference": {
+    "index": "history",
+    "name": "History",
+    "url": "/api/skills/history"
+}}

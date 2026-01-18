@@ -1,0 +1,12 @@
+{
+  "index": "skill-investigation",
+  "type": "Skills",
+  "name": "Skill: Investigation",
+  "classes": [],
+  "races": [],
+  "url": "/api/proficiencies/skill-investigation",
+  "reference": {
+    "index": "investigation",
+    "name": "Investigation",
+    "url": "/api/skills/investigation"
+}}

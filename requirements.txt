@@ -1,0 +1,20 @@
+# D&D 5e Games - Core Requirements
+
+# Core D&D 5e package
+# For local development: pip install -e ../dnd-5e-core
+# For production: pip install dnd-5e-core
+-e ../dnd-5e-core
+
+# Core dependencies
+requests>=2.28.0
+numpy>=1.20.0
+
+# Pygame (for dungeon games)
+pygame>=2.5.0
+
+# PyQt5 (for main.py console game)
+PyQt5>=5.15.0
+
+# PyInstaller (for building executables)
+pyinstaller>=6.0.0
+

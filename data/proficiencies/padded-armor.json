@@ -1,0 +1,12 @@
+{
+  "index": "padded-armor",
+  "type": "Armor",
+  "name": "Padded Armor",
+  "classes": [],
+  "races": [],
+  "url": "/api/proficiencies/padded-armor",
+  "reference": {
+    "index": "padded-armor",
+    "name": "Padded Armor",
+    "url": "/api/equipment/padded-armor"
+}}

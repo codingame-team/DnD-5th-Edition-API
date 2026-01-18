@@ -1,0 +1,17 @@
+{
+  "index": "gnome-cunning",
+  "races": [
+    {
+      "index": "gnome",
+      "name": "Gnome",
+      "url": "/api/races/gnome"
+    }
+  ],
+  "subraces": [],
+  "name": "Gnome Cunning",
+  "desc": [
+    "You have advantage on all Intelligence, Wisdom, and Charisma saving throws against magic."
+  ],
+  "proficiencies": [],
+  "url": "/api/traits/gnome-cunning"
+}

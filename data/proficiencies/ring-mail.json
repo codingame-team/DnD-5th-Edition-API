@@ -1,0 +1,12 @@
+{
+  "index": "ring-mail",
+  "type": "Armor",
+  "name": "Ring Mail",
+  "classes": [],
+  "races": [],
+  "url": "/api/proficiencies/ring-mail",
+  "reference": {
+    "index": "ring-mail",
+    "name": "Ring Mail",
+    "url": "/api/equipment/ring-mail"
+}}

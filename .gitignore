@@ -1,0 +1,22 @@
+/.idea
+/venv/
+/pyQTApp/images/unused/
+/pyQTApp/unused/
+/pyQTApp/images/unused/
+/Flask/
+/dist/
+/wiz_fan_club/
+/training/
+__pycache__/
+*.pyc
+# Build artifacts
+build/
+output/
+*.exe
+*.pkg
+*.pyz
+# Virtual environments
+.venv*/
+# Binaries
+*.dylib
+*.so

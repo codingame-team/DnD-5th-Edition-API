@@ -1,0 +1,14 @@
+{
+  "index": "ring-of-water-walking",
+  "name": "Ring of Water Walking",
+  "equipment_category": {
+    "index": "ring",
+    "name": "Ring",
+    "url": "/api/equipment-categories/ring"
+  },
+  "desc": [
+    "Ring, uncommon",
+    "While wearing this ring, you can stand on and move across any liquid surface as if it were solid ground."
+  ],
+  "url": "/api/magic-items/ring-of-water-walking"
+}

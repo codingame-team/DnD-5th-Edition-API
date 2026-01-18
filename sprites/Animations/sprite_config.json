@@ -1,0 +1,230 @@
+{
+  "sprites": [
+    {
+      "name": "goblin",
+      "filename": "goblin.png",
+      "path": "sprites/Animations",
+      "columns": 11,
+      "rows": 5,
+      "cache_dir": "sprites/cache/goblin",
+      "animations": {
+        "down": {
+          "start": 0,
+          "end": 10
+        },
+        "right": {
+          "start": 11,
+          "end": 21
+        },
+        "up": {
+          "start": 22,
+          "end": 32
+        },
+        "left": {
+          "start": 33,
+          "end": 43
+        },
+        "acrobat": {
+          "start": 43,
+          "end": 48
+        }
+      }
+    },
+    {
+      "name": "goblinsword",
+      "filename": "goblinsword.png",
+      "path": "sprites/Animations",
+      "columns": 11,
+      "rows": 5,
+      "cache_dir": "sprites/cache/goblinsword",
+      "animations": {
+        "down": {
+          "start": 0,
+          "end": 10
+        },
+        "right": {
+          "start": 11,
+          "end": 21
+        },
+        "up": {
+          "start": 22,
+          "end": 32
+        },
+        "left": {
+          "start": 33,
+          "end": 43
+        },
+        "attack": {
+          "start": 43,
+          "end": 48
+        }
+      }
+    },
+    {
+      "name": "bat",
+      "filename": "bat.PNG",
+      "path": "sprites/Animations",
+      "columns": 4,
+      "rows": 4,
+      "cache_dir": "sprites/cache/bat",
+      "animations": {
+        "fly": {
+          "start": 0,
+          "end": 3
+        },
+        "attack": {
+          "start": 4,
+          "end": 7
+        },
+        "hurt": {
+          "start": 8,
+          "end": 11
+        },
+        "die": {
+          "start": 12,
+          "end": 15
+        }
+      }
+    },
+    {
+      "name": "minion",
+      "filename": "minion.png",
+      "path": "sprites/Animations",
+      "columns": 3,
+      "rows": 2,
+      "cache_dir": "sprites/cache/minion",
+      "animations": {
+        "default": {
+          "start": 0,
+          "end": 5
+        }
+      }
+    },
+    {
+      "name": "aerocephal",
+      "filename": "aerocephal.png",
+      "path": "sprites/Animations",
+      "columns": 4,
+      "rows": 1,
+      "cache_dir": "sprites/cache/aerocephal",
+      "animations": {
+        "default": {
+          "start": 0,
+          "end": 3
+        }
+      }
+    },
+    {
+      "name": "arcana_drake",
+      "filename": "arcana_drake.png",
+      "path": "sprites/Animations",
+      "columns": 4,
+      "rows": 1,
+      "cache_dir": "sprites/cache/arcana_drake",
+      "animations": {
+        "default": {
+          "start": 0,
+          "end": 3
+        }
+      }
+    },
+    {
+      "name": "aurum-drakueli",
+      "filename": "aurum-drakueli.png",
+      "path": "sprites/Animations",
+      "columns": 4,
+      "rows": 1,
+      "cache_dir": "sprites/cache/aurum-drakueli",
+      "animations": {
+        "default": {
+          "start": 0,
+          "end": 3
+        }
+      }
+    },
+    {
+      "name": "daemarbora",
+      "filename": "daemarbora.png",
+      "path": "sprites/Animations",
+      "columns": 4,
+      "rows": 1,
+      "cache_dir": "sprites/cache/daemarbora",
+      "animations": {
+        "default": {
+          "start": 0,
+          "end": 3
+        }
+      }
+    },
+    {
+      "name": "deceleon",
+      "filename": "deceleon.png",
+      "path": "sprites/Animations",
+      "columns": 4,
+      "rows": 1,
+      "cache_dir": "sprites/cache/deceleon",
+      "animations": {
+        "default": {
+          "start": 0,
+          "end": 3
+        }
+      }
+    },
+    {
+      "name": "demonic_essence",
+      "filename": "demonic_essence.png",
+      "path": "sprites/Animations",
+      "columns": 4,
+      "rows": 1,
+      "cache_dir": "sprites/cache/demonic_essence",
+      "animations": {
+        "default": {
+          "start": 0,
+          "end": 3
+        }
+      }
+    },
+    {
+      "name": "spider",
+      "filename": "spider.png",
+      "path": "sprites/Animations",
+      "columns": 4,
+      "rows": 1,
+      "cache_dir": "sprites/cache/spider",
+      "animations": {
+        "default": {
+          "start": 0,
+          "end": 3
+        }
+      }
+    },
+    {
+      "name": "scorpion",
+      "filename": "scorpion.png",
+      "path": "sprites/Animations",
+      "columns": 4,
+      "rows": 1,
+      "cache_dir": "sprites/cache/scorpion",
+      "animations": {
+        "default": {
+          "start": 0,
+          "end": 3
+        }
+      }
+    },
+    {
+      "name": "stygian_lizard",
+      "filename": "stygian_lizard.png",
+      "path": "sprites/Animations",
+      "columns": 4,
+      "rows": 1,
+      "cache_dir": "sprites/cache/stygian_lizard",
+      "animations": {
+        "default": {
+          "start": 0,
+          "end": 3
+        }
+      }
+    }
+  ]
+}

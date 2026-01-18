@@ -1,0 +1,12 @@
+{
+  "index": "skill-deception",
+  "type": "Skills",
+  "name": "Skill: Deception",
+  "classes": [],
+  "races": [],
+  "url": "/api/proficiencies/skill-deception",
+  "reference": {
+    "index": "deception",
+    "name": "Deception",
+    "url": "/api/skills/deception"
+}}

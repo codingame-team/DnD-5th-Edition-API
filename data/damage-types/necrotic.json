@@ -1,0 +1,8 @@
+{
+  "index": "necrotic",
+  "name": "Necrotic",
+  "desc": [
+    "Necrotic damage, dealt by certain undead and a spell such as chill touch, withers matter and even the soul."
+  ],
+  "url": "/api/damage-types/necrotic"
+}

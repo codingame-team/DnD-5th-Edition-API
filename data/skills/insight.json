@@ -1,0 +1,13 @@
+{
+  "index": "insight",
+  "name": "Insight",
+  "desc": [
+    "Your Wisdom (Insight) check decides whether you can determine the true intentions of a creature, such as when searching out a lie or predicting someone's next move. Doing so involves gleaning clues from body language, speech habits, and changes in mannerisms."
+  ],
+  "ability_score": {
+    "index": "wis",
+    "name": "WIS",
+    "url": "/api/ability-scores/wis"
+  },
+  "url": "/api/skills/insight"
+}

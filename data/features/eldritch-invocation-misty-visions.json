@@ -1,0 +1,20 @@
+{
+  "index": "eldritch-invocation-misty-visions",
+  "class": {
+    "index": "warlock",
+    "name": "Warlock",
+    "url": "/api/classes/warlock"
+  },
+  "name": "Eldritch Invocation: Misty Visions",
+  "level": 2,
+  "prerequisites": [],
+  "desc": [
+    "You can cast silent image at will, without expending a spell slot or material components."
+  ],
+  "parent": {
+    "index": "eldritch-invocations-1",
+    "name": "Eldritch Invocations",
+    "url": "/api/features/eldritch-invocations-1"
+  },
+  "url": "/api/features/eldritch-invocation-misty-visions"
+}

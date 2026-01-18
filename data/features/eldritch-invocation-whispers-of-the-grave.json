@@ -1,0 +1,25 @@
+{
+  "index": "eldritch-invocation-whispers-of-the-grave",
+  "class": {
+    "index": "warlock",
+    "name": "Warlock",
+    "url": "/api/classes/warlock"
+  },
+  "name": "Eldritch Invocation: Whispers of the Grave",
+  "level": 9,
+  "prerequisites": [
+    {
+      "type": "level",
+      "level": 9
+    }
+  ],
+  "desc": [
+    "You can cast speak with dead at will, without expending a spell slot."
+  ],
+  "parent": {
+    "index": "eldritch-invocations-1",
+    "name": "Eldritch Invocations",
+    "url": "/api/features/eldritch-invocations-1"
+  },
+  "url": "/api/features/eldritch-invocation-whispers-of-the-grave"
+}

@@ -1,0 +1,4 @@
+columns=4
+rows=4
+width=80
+height=32

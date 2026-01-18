@@ -1,0 +1,12 @@
+{
+  "index": "land-vehicles",
+  "type": "Vehicles",
+  "name": "Land Vehicles",
+  "classes": [],
+  "races": [],
+  "url": "/api/proficiencies/land-vehicles",
+  "reference": {
+    "index": "land-vehicles",
+    "name": "Land Vehicles",
+    "url": "/api/equipment-categories/land-vehicles"
+}}

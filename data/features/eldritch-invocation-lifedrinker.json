@@ -1,0 +1,29 @@
+{
+  "index": "eldritch-invocation-lifedrinker",
+  "class": {
+    "index": "warlock",
+    "name": "Warlock",
+    "url": "/api/classes/warlock"
+  },
+  "name": "Eldritch Invocation: Lifedrinker",
+  "level": 12,
+  "prerequisites": [
+    {
+      "type": "level",
+      "level": 12
+    },
+    {
+      "type": "feature",
+      "feature": "/api/features/pact-of-the-blade"
+    }
+  ],
+  "desc": [
+    "When you hit a creature with your pact weapon, the creature takes extra necrotic damage equal to your Charisma modifier (minimum 1)."
+  ],
+  "parent": {
+    "index": "eldritch-invocations-1",
+    "name": "Eldritch Invocations",
+    "url": "/api/features/eldritch-invocations-1"
+  },
+  "url": "/api/features/eldritch-invocation-lifedrinker"
+}

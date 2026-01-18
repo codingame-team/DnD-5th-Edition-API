@@ -1,0 +1,14 @@
+Roll d100;Weapon
+1-5;Axe +1
+6-10;Magic Bow
+11-35;10 Magic Arrows
+36-50;3-30 Magic Arrows
+51-65;Dagger +1 vs. Man-Sized Opponents, +2 vs. Goblins & Kobolds
+66-70;Dagger +2 vs. Man-Sized Opponents, +3 vs. Orcs, Goblins & Kobolds
+71-80;Mace +2
+81-86;Spear +1
+87-89;Spear +2
+90;Spear +3
+91-95;Warhammer +1
+96-99;Warhammer +2
+0;"Warhammer +3, 6"" Throwing Range with Return"

@@ -1,0 +1,20 @@
+{
+  "index": "metamagic-heightened-spell",
+  "class": {
+    "index": "sorcerer",
+    "name": "Sorcerer",
+    "url": "/api/classes/sorcerer"
+  },
+  "name": "Metamagic: Heightened Spell",
+  "level": 3,
+  "prerequisites": [],
+  "desc": [
+    "When you cast a spell that forces a creature to make a saving throw to resist its effects, you can spend 3 sorcery points to give one target of the spell disadvantage on its first saving throw made against the spell."
+  ],
+  "parent": {
+    "index": "metamagic-1",
+    "name": "Metamagic",
+    "url": "/api/features/metamagic-1"
+  },
+  "url": "/api/features/metamagic-heightened-spell"
+}

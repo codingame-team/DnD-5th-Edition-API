@@ -1,0 +1,571 @@
+{
+  "index": "adventuring-gear",
+  "name": "Adventuring Gear",
+  "equipment": [
+    {
+      "index": "abacus",
+      "name": "Abacus",
+      "url": "/api/equipment/abacus"
+    },
+    {
+      "index": "acid-vial",
+      "name": "Acid (vial)",
+      "url": "/api/equipment/acid-vial"
+    },
+    {
+      "index": "alchemists-fire-flask",
+      "name": "Alchemist's fire (flask)",
+      "url": "/api/equipment/alchemists-fire-flask"
+    },
+    {
+      "index": "arrow",
+      "name": "Arrow",
+      "url": "/api/equipment/arrow"
+    },
+    {
+      "index": "blowgun-needle",
+      "name": "Blowgun needle",
+      "url": "/api/equipment/blowgun-needle"
+    },
+    {
+      "index": "crossbow-bolt",
+      "name": "Crossbow bolt",
+      "url": "/api/equipment/crossbow-bolt"
+    },
+    {
+      "index": "sling-bullet",
+      "name": "Sling bullet",
+      "url": "/api/equipment/sling-bullet"
+    },
+    {
+      "index": "alms-box",
+      "name": "Alms box",
+      "url": "/api/equipment/alms-box"
+    },
+    {
+      "index": "amulet",
+      "name": "Amulet",
+      "url": "/api/equipment/amulet"
+    },
+    {
+      "index": "antitoxin-vial",
+      "name": "Antitoxin (vial)",
+      "url": "/api/equipment/antitoxin-vial"
+    },
+    {
+      "index": "backpack",
+      "name": "Backpack",
+      "url": "/api/equipment/backpack"
+    },
+    {
+      "index": "ball-bearings-bag-of-1000",
+      "name": "Ball bearings (bag of 1,000)",
+      "url": "/api/equipment/ball-bearings-bag-of-1000"
+    },
+    {
+      "index": "barrel",
+      "name": "Barrel",
+      "url": "/api/equipment/barrel"
+    },
+    {
+      "index": "basket",
+      "name": "Basket",
+      "url": "/api/equipment/basket"
+    },
+    {
+      "index": "bedroll",
+      "name": "Bedroll",
+      "url": "/api/equipment/bedroll"
+    },
+    {
+      "index": "bell",
+      "name": "Bell",
+      "url": "/api/equipment/bell"
+    },
+    {
+      "index": "blanket",
+      "name": "Blanket",
+      "url": "/api/equipment/blanket"
+    },
+    {
+      "index": "block-and-tackle",
+      "name": "Block and tackle",
+      "url": "/api/equipment/block-and-tackle"
+    },
+    {
+      "index": "block-of-incense",
+      "name": "Block of incense",
+      "url": "/api/equipment/block-of-incense"
+    },
+    {
+      "index": "book",
+      "name": "Book",
+      "url": "/api/equipment/book"
+    },
+    {
+      "index": "bottle-glass",
+      "name": "Bottle, glass",
+      "url": "/api/equipment/bottle-glass"
+    },
+    {
+      "index": "bucket",
+      "name": "Bucket",
+      "url": "/api/equipment/bucket"
+    },
+    {
+      "index": "caltrops",
+      "name": "Caltrops",
+      "url": "/api/equipment/caltrops"
+    },
+    {
+      "index": "candle",
+      "name": "Candle",
+      "url": "/api/equipment/candle"
+    },
+    {
+      "index": "case-crossbow-bolt",
+      "name": "Case, crossbow bolt",
+      "url": "/api/equipment/case-crossbow-bolt"
+    },
+    {
+      "index": "case-map-or-scroll",
+      "name": "Case, map or scroll",
+      "url": "/api/equipment/case-map-or-scroll"
+    },
+    {
+      "index": "censer",
+      "name": "Censer",
+      "url": "/api/equipment/censer"
+    },
+    {
+      "index": "chain-10-feet",
+      "name": "Chain (10 feet)",
+      "url": "/api/equipment/chain-10-feet"
+    },
+    {
+      "index": "chalk-1-piece",
+      "name": "Chalk (1 piece)",
+      "url": "/api/equipment/chalk-1-piece"
+    },
+    {
+      "index": "chest",
+      "name": "Chest",
+      "url": "/api/equipment/chest"
+    },
+    {
+      "index": "clothes-common",
+      "name": "Clothes, common",
+      "url": "/api/equipment/clothes-common"
+    },
+    {
+      "index": "clothes-costume",
+      "name": "Clothes, costume",
+      "url": "/api/equipment/clothes-costume"
+    },
+    {
+      "index": "clothes-fine",
+      "name": "Clothes, fine",
+      "url": "/api/equipment/clothes-fine"
+    },
+    {
+      "index": "clothes-travelers",
+      "name": "Clothes, traveler's",
+      "url": "/api/equipment/clothes-travelers"
+    },
+    {
+      "index": "component-pouch",
+      "name": "Component pouch",
+      "url": "/api/equipment/component-pouch"
+    },
+    {
+      "index": "crowbar",
+      "name": "Crowbar",
+      "url": "/api/equipment/crowbar"
+    },
+    {
+      "index": "emblem",
+      "name": "Emblem",
+      "url": "/api/equipment/emblem"
+    },
+    {
+      "index": "fishing-tackle",
+      "name": "Fishing tackle",
+      "url": "/api/equipment/fishing-tackle"
+    },
+    {
+      "index": "flask-or-tankard",
+      "name": "Flask or tankard",
+      "url": "/api/equipment/flask-or-tankard"
+    },
+    {
+      "index": "grappling-hook",
+      "name": "Grappling hook",
+      "url": "/api/equipment/grappling-hook"
+    },
+    {
+      "index": "hammer",
+      "name": "Hammer",
+      "url": "/api/equipment/hammer"
+    },
+    {
+      "index": "hammer-sledge",
+      "name": "Hammer, sledge",
+      "url": "/api/equipment/hammer-sledge"
+    },
+    {
+      "index": "holy-water-flask",
+      "name": "Holy water (flask)",
+      "url": "/api/equipment/holy-water-flask"
+    },
+    {
+      "index": "hourglass",
+      "name": "Hourglass",
+      "url": "/api/equipment/hourglass"
+    },
+    {
+      "index": "hunting-trap",
+      "name": "Hunting trap",
+      "url": "/api/equipment/hunting-trap"
+    },
+    {
+      "index": "ink-1-ounce-bottle",
+      "name": "Ink (1 ounce bottle)",
+      "url": "/api/equipment/ink-1-ounce-bottle"
+    },
+    {
+      "index": "ink-pen",
+      "name": "Ink pen",
+      "url": "/api/equipment/ink-pen"
+    },
+    {
+      "index": "jug-or-pitcher",
+      "name": "Jug or pitcher",
+      "url": "/api/equipment/jug-or-pitcher"
+    },
+    {
+      "index": "climbers-kit",
+      "name": "Climber's Kit",
+      "url": "/api/equipment/climbers-kit"
+    },
+    {
+      "index": "disguise-kit",
+      "name": "Disguise Kit",
+      "url": "/api/equipment/disguise-kit"
+    },
+    {
+      "index": "forgery-kit",
+      "name": "Forgery Kit",
+      "url": "/api/equipment/forgery-kit"
+    },
+    {
+      "index": "herbalism-kit",
+      "name": "Herbalism Kit",
+      "url": "/api/equipment/herbalism-kit"
+    },
+    {
+      "index": "healers-kit",
+      "name": "Healer's Kit",
+      "url": "/api/equipment/healers-kit"
+    },
+    {
+      "index": "mess-kit",
+      "name": "Mess Kit",
+      "url": "/api/equipment/mess-kit"
+    },
+    {
+      "index": "poisoners-kit",
+      "name": "Poisoner's Kit",
+      "url": "/api/equipment/poisoners-kit"
+    },
+    {
+      "index": "ladder-10-foot",
+      "name": "Ladder (10-foot)",
+      "url": "/api/equipment/ladder-10-foot"
+    },
+    {
+      "index": "lamp",
+      "name": "Lamp",
+      "url": "/api/equipment/lamp"
+    },
+    {
+      "index": "lantern-bullseye",
+      "name": "Lantern, bullseye",
+      "url": "/api/equipment/lantern-bullseye"
+    },
+    {
+      "index": "lantern-hooded",
+      "name": "Lantern, hooded",
+      "url": "/api/equipment/lantern-hooded"
+    },
+    {
+      "index": "little-bag-of-sand",
+      "name": "Little bag of sand",
+      "url": "/api/equipment/little-bag-of-sand"
+    },
+    {
+      "index": "lock",
+      "name": "Lock",
+      "url": "/api/equipment/lock"
+    },
+    {
+      "index": "magnifying-glass",
+      "name": "Magnifying glass",
+      "url": "/api/equipment/magnifying-glass"
+    },
+    {
+      "index": "manacles",
+      "name": "Manacles",
+      "url": "/api/equipment/manacles"
+    },
+    {
+      "index": "mirror-steel",
+      "name": "Mirror, steel",
+      "url": "/api/equipment/mirror-steel"
+    },
+    {
+      "index": "oil-flask",
+      "name": "Oil (flask)",
+      "url": "/api/equipment/oil-flask"
+    },
+    {
+      "index": "paper-one-sheet",
+      "name": "Paper (one sheet)",
+      "url": "/api/equipment/paper-one-sheet"
+    },
+    {
+      "index": "parchment-one-sheet",
+      "name": "Parchment (one sheet)",
+      "url": "/api/equipment/parchment-one-sheet"
+    },
+    {
+      "index": "perfume-vial",
+      "name": "Perfume (vial)",
+      "url": "/api/equipment/perfume-vial"
+    },
+    {
+      "index": "pick-miners",
+      "name": "Pick, miner's",
+      "url": "/api/equipment/pick-miners"
+    },
+    {
+      "index": "piton",
+      "name": "Piton",
+      "url": "/api/equipment/piton"
+    },
+    {
+      "index": "poison-basic-vial",
+      "name": "Poison, basic (vial)",
+      "url": "/api/equipment/poison-basic-vial"
+    },
+    {
+      "index": "pole-10-foot",
+      "name": "Pole (10-foot)",
+      "url": "/api/equipment/pole-10-foot"
+    },
+    {
+      "index": "pot-iron",
+      "name": "Pot, iron",
+      "url": "/api/equipment/pot-iron"
+    },
+    {
+      "index": "pouch",
+      "name": "Pouch",
+      "url": "/api/equipment/pouch"
+    },
+    {
+      "index": "quiver",
+      "name": "Quiver",
+      "url": "/api/equipment/quiver"
+    },
+    {
+      "index": "ram-portable",
+      "name": "Ram, portable",
+      "url": "/api/equipment/ram-portable"
+    },
+    {
+      "index": "rations-1-day",
+      "name": "Rations (1 day)",
+      "url": "/api/equipment/rations-1-day"
+    },
+    {
+      "index": "reliquary",
+      "name": "Reliquary",
+      "url": "/api/equipment/reliquary"
+    },
+    {
+      "index": "robes",
+      "name": "Robes",
+      "url": "/api/equipment/robes"
+    },
+    {
+      "index": "rope-hempen-50-feet",
+      "name": "Rope, hempen (50 feet)",
+      "url": "/api/equipment/rope-hempen-50-feet"
+    },
+    {
+      "index": "rope-silk-50-feet",
+      "name": "Rope, silk (50 feet)",
+      "url": "/api/equipment/rope-silk-50-feet"
+    },
+    {
+      "index": "sack",
+      "name": "Sack",
+      "url": "/api/equipment/sack"
+    },
+    {
+      "index": "scale-merchants",
+      "name": "Scale, merchant's",
+      "url": "/api/equipment/scale-merchants"
+    },
+    {
+      "index": "sealing-wax",
+      "name": "Sealing wax",
+      "url": "/api/equipment/sealing-wax"
+    },
+    {
+      "index": "shovel",
+      "name": "Shovel",
+      "url": "/api/equipment/shovel"
+    },
+    {
+      "index": "signal-whistle",
+      "name": "Signal whistle",
+      "url": "/api/equipment/signal-whistle"
+    },
+    {
+      "index": "signet-ring",
+      "name": "Signet ring",
+      "url": "/api/equipment/signet-ring"
+    },
+    {
+      "index": "small-knife",
+      "name": "Small knife",
+      "url": "/api/equipment/small-knife"
+    },
+    {
+      "index": "soap",
+      "name": "Soap",
+      "url": "/api/equipment/soap"
+    },
+    {
+      "index": "spellbook",
+      "name": "Spellbook",
+      "url": "/api/equipment/spellbook"
+    },
+    {
+      "index": "spike-iron",
+      "name": "Spike, iron",
+      "url": "/api/equipment/spike-iron"
+    },
+    {
+      "index": "spyglass",
+      "name": "Spyglass",
+      "url": "/api/equipment/spyglass"
+    },
+    {
+      "index": "string-10-feet",
+      "name": "String (10 feet)",
+      "url": "/api/equipment/string-10-feet"
+    },
+    {
+      "index": "tent-two-person",
+      "name": "Tent, two-person",
+      "url": "/api/equipment/tent-two-person"
+    },
+    {
+      "index": "tinderbox",
+      "name": "Tinderbox",
+      "url": "/api/equipment/tinderbox"
+    },
+    {
+      "index": "torch",
+      "name": "Torch",
+      "url": "/api/equipment/torch"
+    },
+    {
+      "index": "vestments",
+      "name": "Vestments",
+      "url": "/api/equipment/vestments"
+    },
+    {
+      "index": "vial",
+      "name": "Vial",
+      "url": "/api/equipment/vial"
+    },
+    {
+      "index": "waterskin",
+      "name": "Waterskin",
+      "url": "/api/equipment/waterskin"
+    },
+    {
+      "index": "whetstone",
+      "name": "Whetstone",
+      "url": "/api/equipment/whetstone"
+    },
+    {
+      "index": "burglars-pack",
+      "name": "Burglar's Pack",
+      "url": "/api/equipment/burglars-pack"
+    },
+    {
+      "index": "diplomats-pack",
+      "name": "Diplomat's Pack",
+      "url": "/api/equipment/diplomats-pack"
+    },
+    {
+      "index": "dungeoneers-pack",
+      "name": "Dungeoneer's Pack",
+      "url": "/api/equipment/dungeoneers-pack"
+    },
+    {
+      "index": "entertainers-pack",
+      "name": "Entertainer's Pack",
+      "url": "/api/equipment/entertainers-pack"
+    },
+    {
+      "index": "explorers-pack",
+      "name": "Explorer's Pack",
+      "url": "/api/equipment/explorers-pack"
+    },
+    {
+      "index": "priests-pack",
+      "name": "Priest's Pack",
+      "url": "/api/equipment/priests-pack"
+    },
+    {
+      "index": "scholars-pack",
+      "name": "Scholar's Pack",
+      "url": "/api/equipment/scholars-pack"
+    },
+    {
+      "index": "crystal",
+      "name": "Crystal",
+      "url": "/api/equipment/crystal"
+    },
+    {
+      "index": "orb",
+      "name": "Orb",
+      "url": "/api/equipment/orb"
+    },
+    {
+      "index": "rod",
+      "name": "Rod",
+      "url": "/api/equipment/rod"
+    },
+    {
+      "index": "staff",
+      "name": "Staff",
+      "url": "/api/equipment/staff"
+    },
+    {
+      "index": "wand", "name": "Wand", "url": "/api/equipment/wand"
+}, {
+  "index": "sprig-of-mistletoe", "name": "Sprig of mistletoe", "url": "/api/equipment/sprig-of-mistletoe"
+}, {
+  "index": "totem", "name": "Totem", "url": "/api/equipment/totem"
+}, {
+  "index": "wooden-staff", "name": "Wooden staff", "url": "/api/equipment/wooden-staff"
+}, {
+  "index": "yew-wand", "name": "Yew wand", "url": "/api/equipment/yew-wand"
+}], "url": "/api/equipment-categories/adventuring-gear"
+}

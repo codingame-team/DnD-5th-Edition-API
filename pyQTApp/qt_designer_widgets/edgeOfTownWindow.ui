@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>EdgeOfTownWindow</class>
+ <widget class="QMainWindow" name="EdgeOfTownWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>803</width>
+    <height>605</height>
+   </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="windowTitle">
+   <string>Edge of Town</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QFrame" name="mazeFrame">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>801</width>
+      <height>561</height>
+     </rect>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::StyledPanel</enum>
+    </property>
+    <property name="frameShadow">
+     <enum>QFrame::Raised</enum>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>803</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuEdge_of_Town">
+    <property name="title">
+     <string>Edge of Town</string>
+    </property>
+    <addaction name="actionMaze"/>
+    <addaction name="actionRestart_an_OUT_party"/>
+    <addaction name="actionTraining_grounds"/>
+    <addaction name="actionLeave_game"/>
+    <addaction name="actionCastle"/>
+   </widget>
+   <addaction name="menuEdge_of_Town"/>
+  </widget>
+  <action name="actionMaze">
+   <property name="text">
+    <string>Maze</string>
+   </property>
+  </action>
+  <action name="actionRestart_an_OUT_party">
+   <property name="text">
+    <string>Restart an OUT party</string>
+   </property>
+  </action>
+  <action name="actionTraining_grounds">
+   <property name="text">
+    <string>Training grounds</string>
+   </property>
+  </action>
+  <action name="actionLeave_game">
+   <property name="text">
+    <string>Leave game</string>
+   </property>
+  </action>
+  <action name="actionCastle">
+   <property name="text">
+    <string>Return to Castle</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

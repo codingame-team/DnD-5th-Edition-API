@@ -1,0 +1,41 @@
+{
+  "index": "rock-gnome",
+  "name": "Rock Gnome",
+  "race": {
+    "index": "gnome",
+    "name": "Gnome",
+    "url": "/api/races/gnome"
+  },
+  "desc": "As a rock gnome, you have a natural inventiveness and hardiness beyond that of other gnomes.",
+  "ability_bonuses": [
+    {
+      "ability_score": {
+        "index": "con",
+        "name": "CON",
+        "url": "/api/ability-scores/con"
+      },
+      "bonus": 1
+    }
+  ],
+  "starting_proficiencies": [
+    {
+      "index": "tinkers-tools",
+      "name": "Tinker's Tools",
+      "url": "/api/proficiencies/tinkers-tools"
+    }
+  ],
+  "languages": [],
+  "racial_traits": [
+    {
+      "index": "artificers-lore",
+      "name": "Artificer's Lore",
+      "url": "/api/traits/artificers-lore"
+    },
+    {
+      "index": "tinker",
+      "name": "Tinker",
+      "url": "/api/traits/tinker"
+    }
+  ],
+  "url": "/api/subraces/rock-gnome"
+}

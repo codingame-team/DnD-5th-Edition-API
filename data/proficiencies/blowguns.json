@@ -1,0 +1,12 @@
+{
+  "index": "blowguns",
+  "type": "Weapons",
+  "name": "Blowguns",
+  "classes": [],
+  "races": [],
+  "url": "/api/proficiencies/blowguns",
+  "reference": {
+    "index": "blowgun",
+    "name": "Blowgun",
+    "url": "/api/equipment/blowgun"
+}}

@@ -1,0 +1,23 @@
+{
+  "index": "scale-mail",
+  "name": "Scale Mail",
+  "equipment_category": {
+    "index": "armor",
+    "name": "Armor",
+    "url": "/api/equipment-categories/armor"
+  },
+  "armor_category": "Medium",
+  "armor_class": {
+    "base": 14,
+    "dex_bonus": "True",
+    "max_bonus": 2
+  },
+  "str_minimum": 0,
+  "stealth_disadvantage": "True",
+  "weight": 45,
+  "cost": {
+    "quantity": 50,
+    "unit": "gp"
+  },
+  "url": "/api/equipment/scale-mail"
+}

@@ -1,0 +1,12 @@
+{
+  "index": "pan-flute",
+  "type": "Musical Instruments",
+  "name": "Pan flute",
+  "classes": [],
+  "races": [],
+  "url": "/api/proficiencies/pan-flute",
+  "reference": {
+    "index": "pan-flute",
+    "name": "Pan flute",
+    "url": "/api/equipment/pan-flute"
+}}

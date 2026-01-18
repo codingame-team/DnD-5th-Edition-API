@@ -1,0 +1,12 @@
+{
+  "index": "glaives",
+  "type": "Weapons",
+  "name": "Glaives",
+  "classes": [],
+  "races": [],
+  "url": "/api/proficiencies/glaives",
+  "reference": {
+    "index": "glaive",
+    "name": "Glaive",
+    "url": "/api/equipment/glaive"
+}}

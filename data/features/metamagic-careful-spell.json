@@ -1,0 +1,20 @@
+{
+  "index": "metamagic-careful-spell",
+  "class": {
+    "index": "sorcerer",
+    "name": "Sorcerer",
+    "url": "/api/classes/sorcerer"
+  },
+  "name": "Metamagic: Careful Spell",
+  "level": 3,
+  "prerequisites": [],
+  "desc": [
+    "When you cast a spell that forces other creatures to make a saving throw, you can protect some of those creatures from the spell's full force. To do so, you spend 1 sorcery point and choose a number of those creatures up to your Charisma modifier (minimum of one creature). A chosen creature automatically succeeds on its saving throw against the spell."
+  ],
+  "parent": {
+    "index": "metamagic-1",
+    "name": "Metamagic",
+    "url": "/api/features/metamagic-1"
+  },
+  "url": "/api/features/metamagic-careful-spell"
+}

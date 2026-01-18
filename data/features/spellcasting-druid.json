@@ -1,0 +1,16 @@
+{
+  "index": "spellcasting-druid",
+  "class": {
+    "index": "druid",
+    "name": "Druid",
+    "url": "/api/classes/druid"
+  },
+  "name": "Spellcasting: Druid",
+  "level": 1,
+  "prerequisites": [],
+  "desc": [
+    "Drawing on the divine essence of nature itself, you can cast spells to shape that essence to your will."
+  ],
+  "reference": "/api/classes/druid/spellcasting",
+  "url": "/api/features/spellcasting-druid"
+}

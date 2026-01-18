@@ -1,0 +1,20 @@
+{
+  "index": "fighter-fighting-style-dueling",
+  "class": {
+    "index": "fighter",
+    "name": "Fighter",
+    "url": "/api/classes/fighter"
+  },
+  "name": "Fighting Style: Dueling",
+  "level": 1,
+  "prerequisites": [],
+  "desc": [
+    "When you are wielding a melee weapon in one hand and no other weapons, you gain a +2 bonus to damage rolls with that weapon."
+  ],
+  "parent": {
+    "index": "fighter-fighting-style",
+    "name": "Fighting Style",
+    "url": "/api/features/fighter-fighting-style"
+  },
+  "url": "/api/features/fighter-fighting-style-dueling"
+}

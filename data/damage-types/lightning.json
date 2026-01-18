@@ -1,0 +1,8 @@
+{
+  "index": "lightning",
+  "name": "Lightning",
+  "desc": [
+    "A lightning bolt spell and a blue dragon's breath deal lightning damage."
+  ],
+  "url": "/api/damage-types/lightning"
+}

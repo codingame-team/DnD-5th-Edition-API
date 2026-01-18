@@ -1,0 +1,25 @@
+{
+  "index": "eldritch-invocation-bewitching-whispers",
+  "class": {
+    "index": "warlock",
+    "name": "Warlock",
+    "url": "/api/classes/warlock"
+  },
+  "name": "Eldritch Invocation: Bewitching Whispers",
+  "level": 7,
+  "prerequisites": [
+    {
+      "type": "level",
+      "level": 7
+    }
+  ],
+  "desc": [
+    "You can cast compulsion once using a warlock spell slot. You can't do so again until you finish a long rest."
+  ],
+  "parent": {
+    "index": "eldritch-invocations-1",
+    "name": "Eldritch Invocations",
+    "url": "/api/features/eldritch-invocations-1"
+  },
+  "url": "/api/features/eldritch-invocation-bewitching-whispers"
+}

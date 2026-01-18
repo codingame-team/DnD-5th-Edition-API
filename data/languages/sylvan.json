@@ -1,0 +1,10 @@
+{
+  "index": "sylvan",
+  "name": "Sylvan",
+  "type": "Exotic",
+  "typical_speakers": [
+    "Fey creatures"
+  ],
+  "script": "Elvish",
+  "url": "/api/languages/sylvan"
+}

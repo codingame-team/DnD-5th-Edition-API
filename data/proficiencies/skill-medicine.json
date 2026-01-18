@@ -1,0 +1,12 @@
+{
+  "index": "skill-medicine",
+  "type": "Skills",
+  "name": "Skill: Medicine",
+  "classes": [],
+  "races": [],
+  "url": "/api/proficiencies/skill-medicine",
+  "reference": {
+    "index": "medicine",
+    "name": "Medicine",
+    "url": "/api/skills/medicine"
+}}

@@ -1,0 +1,2 @@
+- [ ] Add effects on target condition from a monster's special attack
+  - Bugs: problème avec les maj des conditions des persos

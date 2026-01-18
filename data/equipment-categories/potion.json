@@ -1,0 +1,105 @@
+{
+  "index": "potion",
+  "name": "Potion",
+  "equipment": [
+    {
+      "index": "oil-of-etherealness",
+      "name": "Oil of Etherealness",
+      "url": "/api/magic-items/oil-of-etherealness"
+    },
+    {
+      "index": "oil-of-sharpness",
+      "name": "Oil of Sharpness",
+      "url": "/api/magic-items/oil-of-sharpness"
+    },
+    {
+      "index": "oil-of-slipperiness",
+      "name": "Oil of Slipperiness",
+      "url": "/api/magic-items/oil-of-slipperiness"
+    },
+    {
+      "index": "philter-of-love",
+      "name": "Philter of Love",
+      "url": "/api/magic-items/philter-of-love"
+    },
+    {
+      "index": "potion-of-animal-friendship",
+      "name": "Potion of Animal Friendship",
+      "url": "/api/magic-items/potion-of-animal-friendship"
+    },
+    {
+      "index": "potion-of-clairvoyance",
+      "name": "Potion of Clairvoyance",
+      "url": "/api/magic-items/potion-of-clairvoyance"
+    },
+    {
+      "index": "potion-of-climbing",
+      "name": "Potion of Climbing",
+      "url": "/api/magic-items/potion-of-climbing"
+    },
+    {
+      "index": "potion-of-diminution",
+      "name": "Potion of Diminution",
+      "url": "/api/magic-items/potion-of-diminution"
+    },
+    {
+      "index": "potion-of-flying",
+      "name": "Potion of Flying",
+      "url": "/api/magic-items/potion-of-flying"
+    },
+    {
+      "index": "potion-of-gaseous-form",
+      "name": "Potion of Gaseous Form",
+      "url": "/api/magic-items/potion-of-gaseous-form"
+    },
+    {
+      "index": "potion-of-giant-strength",
+      "name": "Potion of Giant Strength",
+      "url": "/api/magic-items/potion-of-giant-strength"
+    },
+    {
+      "index": "potion-of-growth",
+      "name": "Potion of Growth",
+      "url": "/api/magic-items/potion-of-growth"
+    },
+    {
+      "index": "potion-of-healing",
+      "name": "Potion of Healing",
+      "url": "/api/magic-items/potion-of-healing"
+    },
+    {
+      "index": "potion-of-heroism",
+      "name": "Potion of Heroism",
+      "url": "/api/magic-items/potion-of-heroism"
+    },
+    {
+      "index": "potion-of-invisibility",
+      "name": "Potion of Invisibility",
+      "url": "/api/magic-items/potion-of-invisibility"
+    },
+    {
+      "index": "potion-of-mind-reading",
+      "name": "Potion of Mind Reading",
+      "url": "/api/magic-items/potion-of-mind-reading"
+    },
+    {
+      "index": "potion-of-poison",
+      "name": "Potion of Poison",
+      "url": "/api/magic-items/potion-of-poison"
+    },
+    {
+      "index": "potion-of-resistance",
+      "name": "Potion of Resistance",
+      "url": "/api/magic-items/potion-of-resistance"
+    },
+    {
+      "index": "potion-of-speed",
+      "name": "Potion of Speed",
+      "url": "/api/magic-items/potion-of-speed"
+    },
+    {
+      "index": "potion-of-water-breathing",
+      "name": "Potion of Water Breathing",
+      "url": "/api/magic-items/potion-of-water-breathing"
+}], "url": "/api/equipment-categories/potion"
+}

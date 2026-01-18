@@ -1,0 +1,12 @@
+{
+  "index": "dice-set",
+  "type": "Gaming Sets",
+  "name": "Dice Set",
+  "classes": [],
+  "races": [],
+  "url": "/api/proficiencies/dice-set",
+  "reference": {
+    "index": "dice-set",
+    "name": "Dice Set",
+    "url": "/api/equipment/dice-set"
+}}

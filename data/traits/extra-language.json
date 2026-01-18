@@ -1,0 +1,17 @@
+{
+  "index": "extra-language",
+  "races": [],
+  "subraces": [
+    {
+      "index": "high-elf",
+      "name": "High Elf",
+      "url": "/api/subraces/high-elf"
+    }
+  ],
+  "name": "Extra Language",
+  "desc": [
+    "You can speak, read, and write one extra language of your choice."
+  ],
+  "proficiencies": [],
+  "url": "/api/traits/extra-language"
+}

@@ -1,0 +1,12 @@
+{
+  "index": "bagpipes",
+  "type": "Musical Instruments",
+  "name": "Bagpipes",
+  "classes": [],
+  "races": [],
+  "url": "/api/proficiencies/bagpipes",
+  "reference": {
+    "index": "bagpipes",
+    "name": "Bagpipes",
+    "url": "/api/equipment/bagpipes"
+}}

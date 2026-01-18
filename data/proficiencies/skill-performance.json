@@ -1,0 +1,12 @@
+{
+  "index": "skill-performance",
+  "type": "Skills",
+  "name": "Skill: Performance",
+  "classes": [],
+  "races": [],
+  "url": "/api/proficiencies/skill-performance",
+  "reference": {
+    "index": "performance",
+    "name": "Performance",
+    "url": "/api/skills/performance"
+}}

@@ -1,0 +1,14 @@
+{
+  "index": "boots-of-levitation",
+  "name": "Boots of Levitation",
+  "equipment_category": {
+    "index": "wondrous-items",
+    "name": "Wondrous Items",
+    "url": "/api/equipment-categories/wondrous-items"
+  },
+  "desc": [
+    "Wondrous item, rare (requires attunement)",
+    "While you wear these boots, you can use an action to cast the levitate spell on yourself at will."
+  ],
+  "url": "/api/magic-items/boots-of-levitation"
+}

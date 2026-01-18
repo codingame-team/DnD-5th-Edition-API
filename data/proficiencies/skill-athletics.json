@@ -1,0 +1,12 @@
+{
+  "index": "skill-athletics",
+  "type": "Skills",
+  "name": "Skill: Athletics",
+  "classes": [],
+  "races": [],
+  "url": "/api/proficiencies/skill-athletics",
+  "reference": {
+    "index": "athletics",
+    "name": "Athletics",
+    "url": "/api/skills/athletics"
+}}

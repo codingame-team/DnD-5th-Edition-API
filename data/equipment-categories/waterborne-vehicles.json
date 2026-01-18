@@ -1,0 +1,37 @@
+{
+  "index": "waterborne-vehicles",
+  "name": "Waterborne Vehicles",
+  "equipment": [
+    {
+      "index": "galley",
+      "name": "Galley",
+      "url": "/api/equipment/galley"
+    },
+    {
+      "index": "keelboat",
+      "name": "Keelboat",
+      "url": "/api/equipment/keelboat"
+    },
+    {
+      "index": "longship",
+      "name": "Longship",
+      "url": "/api/equipment/longship"
+    },
+    {
+      "index": "rowboat",
+      "name": "Rowboat",
+      "url": "/api/equipment/rowboat"
+    },
+    {
+      "index": "sailing-ship",
+      "name": "Sailing ship",
+      "url": "/api/equipment/sailing-ship"
+    },
+    {
+      "index": "warship",
+      "name": "Warship",
+      "url": "/api/equipment/warship"
+    }
+  ],
+  "url": "/api/equipment-categories/waterborne-vehicles"
+}

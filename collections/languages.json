@@ -1,0 +1,85 @@
+{
+  "count": 16,
+  "results": [
+    {
+      "index": "abyssal",
+      "name": "Abyssal",
+      "url": "/api/languages/abyssal"
+    },
+    {
+      "index": "celestial",
+      "name": "Celestial",
+      "url": "/api/languages/celestial"
+    },
+    {
+      "index": "common",
+      "name": "Common",
+      "url": "/api/languages/common"
+    },
+    {
+      "index": "deep-speech",
+      "name": "Deep Speech",
+      "url": "/api/languages/deep-speech"
+    },
+    {
+      "index": "draconic",
+      "name": "Draconic",
+      "url": "/api/languages/draconic"
+    },
+    {
+      "index": "dwarvish",
+      "name": "Dwarvish",
+      "url": "/api/languages/dwarvish"
+    },
+    {
+      "index": "elvish",
+      "name": "Elvish",
+      "url": "/api/languages/elvish"
+    },
+    {
+      "index": "giant",
+      "name": "Giant",
+      "url": "/api/languages/giant"
+    },
+    {
+      "index": "gnomish",
+      "name": "Gnomish",
+      "url": "/api/languages/gnomish"
+    },
+    {
+      "index": "goblin",
+      "name": "Goblin",
+      "url": "/api/languages/goblin"
+    },
+    {
+      "index": "halfling",
+      "name": "Halfling",
+      "url": "/api/languages/halfling"
+    },
+    {
+      "index": "infernal",
+      "name": "Infernal",
+      "url": "/api/languages/infernal"
+    },
+    {
+      "index": "orc",
+      "name": "Orc",
+      "url": "/api/languages/orc"
+    },
+    {
+      "index": "primordial",
+      "name": "Primordial",
+      "url": "/api/languages/primordial"
+    },
+    {
+      "index": "sylvan",
+      "name": "Sylvan",
+      "url": "/api/languages/sylvan"
+    },
+    {
+      "index": "undercommon",
+      "name": "Undercommon",
+      "url": "/api/languages/undercommon"
+    }
+  ]
+}

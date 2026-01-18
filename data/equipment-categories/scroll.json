@@ -1,0 +1,12 @@
+{
+  "index": "scroll",
+  "name": "Scroll",
+  "equipment": [
+    {
+      "index": "spell-scroll",
+      "name": "Spell Scroll",
+      "url": "/api/magic-items/spell-scroll"
+    }
+  ],
+  "url": "/api/equipment-categories/scroll"
+}

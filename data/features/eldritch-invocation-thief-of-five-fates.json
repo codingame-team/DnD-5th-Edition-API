@@ -1,0 +1,20 @@
+{
+  "index": "eldritch-invocation-thief-of-five-fates",
+  "class": {
+    "index": "warlock",
+    "name": "Warlock",
+    "url": "/api/classes/warlock"
+  },
+  "name": "Eldritch Invocation: Thief of Five Fates",
+  "level": 2,
+  "prerequisites": [],
+  "desc": [
+    "You can cast bane once using a warlock spell slot. You can't do so again until you finish a long rest."
+  ],
+  "parent": {
+    "index": "eldritch-invocations-1",
+    "name": "Eldritch Invocations",
+    "url": "/api/features/eldritch-invocations-1"
+  },
+  "url": "/api/features/eldritch-invocation-thief-of-five-fates"
+}

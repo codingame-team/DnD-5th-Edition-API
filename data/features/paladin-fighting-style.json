@@ -1,0 +1,39 @@
+{
+  "index": "paladin-fighting-style",
+  "class": {
+    "index": "paladin",
+    "name": "Paladin",
+    "url": "/api/classes/paladin"
+  },
+  "name": "Fighting Style",
+  "level": 2,
+  "prerequisites": [],
+  "desc": [
+    "At 2nd level, you adopt a style of fighting as your specialty. Choose one of the following options. You can't take a Fighting Style option more than once, even if you later get to choose again."
+  ],
+  "feature_specific": {
+    "subfeature_options": {
+      "choose": 1,
+      "type": "feature",
+      "from": [
+        {
+          "index": "fighting-style-defense",
+          "name": "Fighting Style: Defense",
+          "url": "/api/features/fighting-style-defense"
+        },
+        {
+          "index": "fighting-style-dueling",
+          "name": "Fighting Style: Dueling",
+          "url": "/api/features/fighting-style-dueling"
+        },
+        {
+          "index": "fighting-style-great-weapon-fighting",
+          "name": "Fighting Style: Great Weapon Fighting",
+          "url": "/api/features/fighting-style-great-weapon-fighting"
+        },
+        {
+          "index": "fighting-style-protection",
+          "name": "Fighting Style: Protection",
+          "url": "/api/features/fighting-style-protection"
+    }]}}, "url": "/api/features/paladin-fighting-style"
+}

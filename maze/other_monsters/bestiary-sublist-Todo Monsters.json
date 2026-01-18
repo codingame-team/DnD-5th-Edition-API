@@ -1,0 +1,84 @@
+{
+	"fileType": "bestiary-sublist",
+	"siteVersion": "1.208.0",
+	"name": "Todo Monsters",
+	"saveId": "a03e07da-2c70-4cdd-a60f-0ae92d316576",
+	"items": [
+		{
+			"h": "orc%20eye%20of%20gruumsh_mm",
+			"c": 1
+		},
+		{
+			"h": "bandit%20captain_mm",
+			"c": 1
+		},
+		{
+			"h": "giant%20rat_mm",
+			"c": 1
+		},
+		{
+			"h": "ogre%20bolt%20launcher_mpmm",
+			"c": 2
+		},
+		{
+			"h": "gelatinous%20cube_mm",
+			"c": 1
+		},
+		{
+			"h": "ogre%20battering%20ram_mpmm",
+			"c": 1
+		},
+		{
+			"h": "hobgoblin%20captain_mm",
+			"c": 1
+		},
+		{
+			"h": "piercer_mm",
+			"c": 1
+		},
+		{
+			"h": "silver%20dragon%20wyrmling_mm",
+			"c": 1
+		},
+		{
+			"h": "illusionist%20wizard_mpmm",
+			"c": 1
+		},
+		{
+			"h": "red%20dragon%20wyrmling_mm",
+			"c": 1
+		},
+		{
+			"h": "magma%20mephit_mm",
+			"c": 1
+		},
+		{
+			"h": "cult%20fanatic_mm",
+			"c": 1
+		},
+		{
+			"h": "goblin%20boss_mm",
+			"c": 1
+		}
+	],
+	"sources": [
+		"MM",
+		"MPMM"
+	],
+	"playersSimple": [
+		{
+			"count": 3,
+			"level": 4
+		}
+	],
+	"isAdvanced": false,
+	"colsExtraAdvanced": [],
+	"playersAdvanced": [
+		{
+			"name": "",
+			"level": 1,
+			"extras": [],
+			"extraCols": []
+		}
+	]
+}

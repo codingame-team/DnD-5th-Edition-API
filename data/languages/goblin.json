@@ -1,0 +1,10 @@
+{
+  "index": "goblin",
+  "name": "Goblin",
+  "type": "Standard",
+  "typical_speakers": [
+    "Goblinoids"
+  ],
+  "script": "Dwarvish",
+  "url": "/api/languages/goblin"
+}

@@ -1,0 +1,8 @@
+Roll d100;Armor
+01-30;Shield +1
+31-60;Armor +1
+61-75;Armor & Shield +1
+76-83;Shield +2
+84-90;Armor +2
+91-97;Armor & Shield +2
+98-00;Shield +3

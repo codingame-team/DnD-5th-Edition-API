@@ -1,0 +1,17 @@
+{
+  "index": "relentless-endurance",
+  "races": [
+    {
+      "index": "half-orc",
+      "name": "Half-Orc",
+      "url": "/api/races/half-orc"
+    }
+  ],
+  "subraces": [],
+  "name": "Relentless Endurance",
+  "desc": [
+    "When you are reduced to 0 hit points but not killed outright, you can drop to 1 hit point instead. you cannot use this feature again until you finish a long rest."
+  ],
+  "proficiencies": [],
+  "url": "/api/traits/relentless-endurance"
+}

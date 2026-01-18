@@ -1,0 +1,14 @@
+# D&D 5e Games - Requirements
+# For use with DnD-5th-Edition-API games
+
+# Core D&D 5e package (from PyPI when published)
+# For now, use local development version: pip install -e ../dnd-5e-core
+dnd-5e-core>=0.1.0
+
+# Game dependencies
+pygame>=2.5.0
+numpy>=1.20.0
+requests>=2.28.0
+
+# Build tools (optional, for creating executables)
+# pyinstaller>=6.0.0

@@ -1,0 +1,12 @@
+{
+  "index": "crossbows-light",
+  "type": "Weapons",
+  "name": "Crossbows, light",
+  "classes": [],
+  "races": [],
+  "url": "/api/proficiencies/crossbows-light",
+  "reference": {
+    "index": "crossbow-light",
+    "name": "Crossbow, light",
+    "url": "/api/equipment/crossbow-light"
+}}

@@ -1,0 +1,13 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "C/C++ Runner: Debug Session",
+      "type": "lldb",
+      "request": "launch",
+      "args": [],
+      "cwd": "/Users/display/PycharmProjects/DnD-5th-Edition-API/gameState/characters",
+      "program": "/Users/display/PycharmProjects/DnD-5th-Edition-API/gameState/characters/build/Debug/outDebug"
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "index": "alchemists-supplies",
+  "type": "Artisan's Tools",
+  "name": "Alchemist's Supplies",
+  "classes": [],
+  "races": [],
+  "url": "/api/proficiencies/alchemists-supplies",
+  "reference": {
+    "index": "alchemists-supplies",
+    "name": "Alchemist's Supplies",
+    "url": "/api/equipment/alchemists-supplies"
+}}

@@ -1,0 +1,14 @@
+{
+  "index": "ring-of-three-wishes",
+  "name": "Ring of Three Wishes",
+  "equipment_category": {
+    "index": "ring",
+    "name": "Ring",
+    "url": "/api/equipment-categories/ring"
+  },
+  "desc": [
+    "Ring, legendary",
+    "While wearing this ring, you can use an action to expend 1 of its 3 charges to cast the wish spell from it. The ring becomes nonmagical when you use the last charge."
+  ],
+  "url": "/api/magic-items/ring-of-three-wishes"
+}

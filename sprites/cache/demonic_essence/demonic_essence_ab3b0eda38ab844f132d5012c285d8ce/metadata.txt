@@ -1,0 +1,4 @@
+columns=4
+rows=1
+width=128
+height=192

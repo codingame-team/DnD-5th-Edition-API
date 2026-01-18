@@ -1,0 +1,37 @@
+{
+  "index": "hands",
+  "name": "Hands",
+  "equipment_category": {
+    "index": "weapon",
+    "name": "Weapon",
+    "url": "/api/equipment-categories/weapon"
+  },
+  "weapon_category": "Martial",
+  "weapon_range": "Melee",
+  "category_range": "Martial Melee",
+  "cost": {
+    "quantity": 0,
+    "unit": "gp"
+  },
+  "damage": {
+    "damage_dice": "1d2",
+    "damage_type": {
+      "index": "slashing",
+      "name": "Slashing",
+      "url": "/api/damage-types/slashing"
+    }
+  },
+  "range": {
+    "normal": 5,
+    "long": "None"
+  },
+  "weight": 0,
+  "properties": [
+    {
+      "index": "versatile",
+      "name": "Versatile",
+      "url": "/api/weapon-properties/versatile"
+    }
+  ],
+  "url": "/api/equipment/hands"
+}

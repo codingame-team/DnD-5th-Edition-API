@@ -1,0 +1,29 @@
+{
+  "index": "eldritch-invocation-thirsting-blade",
+  "class": {
+    "index": "warlock",
+    "name": "Warlock",
+    "url": "/api/classes/warlock"
+  },
+  "name": "Eldritch Invocation: Thirsting Blade",
+  "level": 5,
+  "prerequisites": [
+    {
+      "type": "level",
+      "level": 5
+    },
+    {
+      "type": "feature",
+      "feature": "/api/features/pact-of-the-blade"
+    }
+  ],
+  "desc": [
+    "You can attack with your pact weapon twice, instead of once, whenever you take the Attack action on your turn."
+  ],
+  "parent": {
+    "index": "eldritch-invocations-1",
+    "name": "Eldritch Invocations",
+    "url": "/api/features/eldritch-invocations-1"
+  },
+  "url": "/api/features/eldritch-invocation-thirsting-blade"
+}

@@ -1,0 +1,12 @@
+{
+  "index": "masons-tools",
+  "type": "Artisan's Tools",
+  "name": "Mason's Tools",
+  "classes": [],
+  "races": [],
+  "url": "/api/proficiencies/masons-tools",
+  "reference": {
+    "index": "masons-tools",
+    "name": "Mason's Tools",
+    "url": "/api/equipment/masons-tools"
+}}

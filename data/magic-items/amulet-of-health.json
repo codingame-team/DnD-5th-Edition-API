@@ -1,0 +1,14 @@
+{
+  "index": "amulet-of-health",
+  "name": "Amulet of Health",
+  "equipment_category": {
+    "index": "wondrous-items",
+    "name": "Wondrous Items",
+    "url": "/api/equipment-categories/wondrous-items"
+  },
+  "desc": [
+    "Wondrous item, rare (requires attunement)",
+    "Your Constitution score is 19 while you wear this amulet. It has no effect on you if your Constitution is already 19 or higher"
+  ],
+  "url": "/api/magic-items/amulet-of-health"
+}

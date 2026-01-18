@@ -1,0 +1,18 @@
+{
+  "index": "battleaxes",
+  "type": "Weapons",
+  "name": "Battleaxes",
+  "classes": [],
+  "races": [
+    {
+      "index": "dwarf",
+      "name": "Dwarf",
+      "url": "/api/races/dwarf"
+    }
+  ],
+  "url": "/api/proficiencies/battleaxes",
+  "reference": {
+    "index": "battleaxe",
+    "name": "Battleaxe",
+    "url": "/api/equipment/battleaxe"
+}}

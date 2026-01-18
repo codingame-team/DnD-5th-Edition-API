@@ -1,0 +1,12 @@
+{
+  "index": "war-picks",
+  "type": "Weapons",
+  "name": "War picks",
+  "classes": [],
+  "races": [],
+  "url": "/api/proficiencies/war-picks",
+  "reference": {
+    "index": "war-pick",
+    "name": "War pick",
+    "url": "/api/equipment/war-pick"
+}}

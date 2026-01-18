@@ -1,0 +1,14 @@
+{
+  "index": "ring-of-free-action",
+  "name": "Ring of Free Action",
+  "equipment_category": {
+    "index": "ring",
+    "name": "Ring",
+    "url": "/api/equipment-categories/ring"
+  },
+  "desc": [
+    "Ring, rare (requires attunement)",
+    "While you wear this ring, difficult terrain doesn't cost you extra movement. In addition, magic can neither reduce your speed nor cause you to be paralyzed or restrained."
+  ],
+  "url": "/api/magic-items/ring-of-free-action"
+}

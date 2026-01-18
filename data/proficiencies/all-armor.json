@@ -1,0 +1,23 @@
+{
+  "index": "all-armor",
+  "type": "Armor",
+  "name": "All armor",
+  "classes": [
+    {
+      "index": "fighter",
+      "name": "Fighter",
+      "url": "/api/classes/fighter"
+    },
+    {
+      "index": "paladin",
+      "name": "Paladin",
+      "url": "/api/classes/paladin"
+    }
+  ],
+  "races": [],
+  "url": "/api/proficiencies/all-armor",
+  "reference": {
+    "index": "armor",
+    "name": "Armor",
+    "url": "/api/equipment-categories/armor"
+}}

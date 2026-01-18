@@ -1,0 +1,52 @@
+{
+  "index": "ranged-weapons",
+  "name": "Ranged Weapons",
+  "equipment": [
+    {
+      "index": "blowgun",
+      "name": "Blowgun",
+      "url": "/api/equipment/blowgun"
+    },
+    {
+      "index": "crossbow-hand",
+      "name": "Crossbow, hand",
+      "url": "/api/equipment/crossbow-hand"
+    },
+    {
+      "index": "crossbow-heavy",
+      "name": "Crossbow, heavy",
+      "url": "/api/equipment/crossbow-heavy"
+    },
+    {
+      "index": "crossbow-light",
+      "name": "Crossbow, light",
+      "url": "/api/equipment/crossbow-light"
+    },
+    {
+      "index": "dart",
+      "name": "Dart",
+      "url": "/api/equipment/dart"
+    },
+    {
+      "index": "longbow",
+      "name": "Longbow",
+      "url": "/api/equipment/longbow"
+    },
+    {
+      "index": "net",
+      "name": "Net",
+      "url": "/api/equipment/net"
+    },
+    {
+      "index": "shortbow",
+      "name": "Shortbow",
+      "url": "/api/equipment/shortbow"
+    },
+    {
+      "index": "sling",
+      "name": "Sling",
+      "url": "/api/equipment/sling"
+    }
+  ],
+  "url": "/api/equipment-categories/ranged-weapons"
+}

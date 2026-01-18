@@ -1,0 +1,18 @@
+{
+  "index": "handaxes",
+  "type": "Weapons",
+  "name": "Handaxes",
+  "classes": [],
+  "races": [
+    {
+      "index": "dwarf",
+      "name": "Dwarf",
+      "url": "/api/races/dwarf"
+    }
+  ],
+  "url": "/api/proficiencies/handaxes",
+  "reference": {
+    "index": "handaxe",
+    "name": "Handaxe",
+    "url": "/api/equipment/handaxe"
+}}

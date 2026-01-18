@@ -1,0 +1,7 @@
+{
+  "index": "chaotic-evil",
+  "name": "Chaotic Evil",
+  "abbreviation": "CE",
+  "desc": "Chaotic evil (CE) creatures act with arbitrary violence, spurred by their greed, hatred, or bloodlust. Demons, red dragons, and orcs are chaotic evil.",
+  "url": "/api/alignments/chaotic-evil"
+}

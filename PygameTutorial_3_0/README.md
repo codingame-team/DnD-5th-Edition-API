@@ -1,0 +1,1 @@
+https://coderslegacy.com/python/python-intermediate/
