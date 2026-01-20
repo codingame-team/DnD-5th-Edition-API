@@ -233,40 +233,10 @@ def height_weight_table() -> List:
 """ JSON loads """
 
 
-def _load_json_data(category: str, index_name: str) -> dict:
-    """
-    Helper function to load JSON data from dnd-5e-core or local files.
-
-    :param category: Category of data (e.g., 'monsters', 'spells', 'weapons')
-    :param index_name: Index/slug of the item
-    :return: Dictionary with JSON data
-    """
-    if USE_DND_5E_CORE:
-        try:
-            # Try loading via dnd-5e-core loaders
-            if category == 'monsters':
-                return core_load_monster(index_name)
-            elif category == 'spells':
-                return core_load_spell(index_name)
-            elif category == 'weapons':
-                return core_load_weapon(index_name)
-            elif category in ('armor', 'armors'):
-                return core_load_armor(index_name)
-            elif category == 'races':
-                return core_load_race(index_name)
-            elif category == 'classes':
-                return core_load_class(index_name)
-            elif category == 'equipment':
-                return core_load_equipment(index_name)
-        except Exception as e:
-            # If core loader fails, fall back to local file
-            if os.getenv('DEBUG'):
-                print(f"Warning: dnd-5e-core load failed for {category}/{index_name} ({e}), using local file")
-
-    # Fallback: Load from local data directory
-    file_path = resource_path(f"data/{category}/{index_name}.json")
-    with open(file_path, "r") as f:
-        return json.loads(f.read())
+# DEPRECATED: This function is no longer used - use dnd_5e_core loaders directly
+# def _load_json_data(category: str, index_name: str):
+#     """DEPRECATED: Use dnd_5e_core.data.load_* functions instead"""
+#     pass
 
 
 def populate(collection_name: str, key_name: str, with_url=False, collection_path: str = None) -> List[str]:
@@ -390,200 +360,12 @@ def extract_special_ability_from(action: str, recharge_on_roll: int) -> Optional
 
 def request_monster(index_name: str) -> Optional[Monster]:
     """
-    Send a request to local database for a monster's characteristic
+    Load a monster using dnd-5e-core package
     :param index_name: name of the monster
     :return: Monster object or None if not found
     """
-    # print(index_name)
-    data = _load_json_data('monsters', index_name)
+    return core_load_monster(index_name)
 
-    # Check if monster data was loaded
-    if data is None:
-        return None
-
-    # If data is already a Monster object (from dnd-5e-core), return it directly
-    if isinstance(data, Monster):
-        return data
-
-    can_cast: bool = False
-    can_attack: bool = False
-    slots: List[int] = []
-    spells: List[Spell] = []
-    caster_level: int = None
-    dc: int = None
-    ability_modifier: int = 0
-    spell_caster: SpellCaster = None
-    special_abilities: List[SpecialAbility] = []
-    if "special_abilities" in data:
-        for special_ability in data['special_abilities']:
-            action_name: str = special_ability['name']
-            if special_ability['name'] == 'Spellcasting':
-                ability: dict = special_ability['spellcasting']
-                caster_level = ability['level']
-                dc_type = ability['ability']['index']
-                dc_value = ability['dc']
-                ability_modifier = ability['modifier']
-                slots = [s for s in ability['slots'].values()]
-                for spell_dict in ability['spells']:
-                    spell_index_name: str = spell_dict['url'].split('/')[3]
-                    spell = request_spell(spell_index_name)
-                    if spell is None:
-                        continue
-                    spells.append(spell)
-            elif 'damage' in special_ability:
-                damages: List[Damage] = []
-                for damage in special_ability['damage']:
-                    if "damage_type" in damage:
-                        can_attack = True
-                        damage_type: DamageType = request_damage_type(index_name=damage['damage_type']['index'])
-                        if '+' in damage['damage_dice']:
-                            damage_dice, bonus = damage['damage_dice'].split('+')
-                            bonus = int(bonus)
-                        elif '-' in damage['damage_dice']:
-                            damage_dice, bonus = damage['damage_dice'].split('-')
-                            bonus = -int(bonus)
-                        else:
-                            damage_dice, bonus = damage['damage_dice'], 0
-                        damages.append(Damage(type=damage_type, dd=DamageDice(damage_dice, bonus)))
-                # TODO: parse range in
-                desc: str = special_ability['desc']
-                area_of_effect: AreaOfEffect = AreaOfEffect(type='sphere', size=15)
-                if 'dc' in special_ability:
-                    dc_type = special_ability['dc']['dc_type']['index']
-                    dc_value = special_ability['dc']['dc_value']
-                    dc_success = special_ability['dc']['success_type']
-                else:
-                    dc_type = dc_success = dc_value = None
-                if damages:
-                    special_abilities.append(SpecialAbility(name=action_name,
-                                                            desc=special_ability['desc'],
-                                                            damages=damages,
-                                                            dc_type=dc_type,
-                                                            dc_value=dc_value,
-                                                            dc_success=dc_success,
-                                                            recharge_on_roll=None,
-                                                            area_of_effect=area_of_effect))
-        if spells:
-            can_attack = True
-            spell_caster: SpellCaster = SpellCaster(level=caster_level,
-                                                    spell_slots=slots,
-                                                    learned_spells=spells,
-                                                    dc_type=dc_type,
-                                                    dc_value=dc_value + ability_modifier,
-                                                    ability_modifier=ability_modifier)
-
-    actions: List[Action] = []
-
-    if "actions" in data:
-        # Melee attacks
-        for action in data['actions']:
-            # print(f"{data['name']} - action = {action}")
-            if action['name'] != 'Multiattack':
-                if "damage" in action:
-                    normal_range = long_range = 5
-                    is_melee_attack = re.search("Melee.*Attack", action['desc'])
-                    is_ranged_attack = re.search("Ranged.*Attack", action['desc'])
-                    if is_ranged_attack:
-                        # desc = "Ranged Weapon Attack: +7 to hit, range 150/600 ft., one target. Hit: 7 (1d8 + 3) piercing damage plus 13 (3d8) poison damage, and the target must succeed on a DC 14 Constitution saving throw or be poisoned. The poison lasts until it is removed by the lesser restoration spell or similar magic."
-                        range_pattern = r"range\s+(\d+)/(\d+)\s*ft\."
-                        match = re.search(range_pattern, action['desc'])
-                        if match:
-                            normal_range = int(match.group(1))
-                            long_range = int(match.group(2))
-                        else:
-                            normal_range = 5
-                            long_range = None
-                    damages: List[Damage] = []
-                    for damage in action['damage']:
-                        # print(f'damage = {damage}')
-                        if "choose" in damage and damage['type'] == 'damage':
-                            actions_count = int(damage['choose'])
-                            damages_list = damage['from']
-                            for damage_dict in damages_list:
-                                damage_type: DamageType = request_damage_type(index_name=damage_dict['damage_type']['index'])
-                                damage_choice = Damage(type=damage_type, dd=DamageDice(damage_dict['damage_dice']))
-                                action_type = ActionType.MIXED if is_melee_attack and is_ranged_attack else ActionType.MELEE if is_melee_attack else ActionType.RANGED
-                                actions.append(Action(name=action['name'], desc=action['desc'], type=action_type, normal_range=normal_range, long_range=long_range,
-                                                      attack_bonus=action.get('attack_bonus'), multi_attack=None, damages=[damage_choice]))
-                        elif "damage_type" in damage:
-                            damage_type: DamageType = request_damage_type(index_name=damage['damage_type']['index'])
-                            damages.append(Damage(type=damage_type, dd=DamageDice(damage['damage_dice'])))
-
-                if damages:
-                    can_attack = True
-                    action_type = ActionType.MIXED if is_melee_attack and is_ranged_attack else ActionType.MELEE if is_melee_attack else ActionType.RANGED
-                    actions.append(Action(name=action['name'], desc=action['desc'], type=action_type, normal_range=normal_range, long_range=long_range,
-                                          attack_bonus=action.get('attack_bonus'), multi_attack=None, damages=damages))
-        # Multiattacks
-        for action in data['actions']:
-            if action['name'] == 'Multiattack':
-                can_attack = True
-                multi_attack: List[Action] = []
-                # Todo: verify if there could be more than one choice...
-                VALID_TYPES = {ActionType.MELEE, ActionType.RANGED}
-                choose_count: int = action['options']['choose']
-                for action_dict in action['options']['from'][0]:
-                    try:
-                        count = int(action_dict['count'])
-                        action_match = next((a for a in actions if a.name == action_dict['name']), None)
-                        if action_match and action_match.type in VALID_TYPES:
-                            multi_attack.extend([action_match] * count)
-                    except (ValueError, KeyError):
-                        print(f"invalid count option for {index_name} : {action_dict['name']}")
-                # action_type: str = ActionType.MELEE if 'Melee' in action['desc'] else ActionType.RANGED if 'Ranged' in action['desc']
-                actions.append(Action(name=action['name'], desc=action['desc'], type=ActionType.MELEE, attack_bonus=None, multi_attack=multi_attack, damages=None))
-        # Special abilities
-        for action in data['actions']:
-            if 'dc' in action:
-                recharge_on_roll: Optional[int] = extract_recharge_on_roll_from(action)
-                if 'damage' in action:
-                    sa: Optional[SpecialAbility] = extract_special_ability_from(action, recharge_on_roll)
-                    if sa: special_abilities.append(sa)
-            elif 'attack_options' in action:
-                recharge_on_roll: Optional[int] = extract_recharge_on_roll_from(action)
-                options: str = action['attack_options']
-                if options.get('type') == 'attack':
-                    choose_count: int = int(options.get('choose'))
-                    if choose_count == 1:
-                        for a in options.get('from'):
-                            if 'dc' in a:
-                                if 'damage' in a:
-                                    sa: Optional[SpecialAbility] = extract_special_ability_from(a, recharge_on_roll)
-                                    if sa: special_abilities.append(sa)
-                    else:
-                        # TODO: check if there are multi-attack defined in some monster json
-                        continue
-
-
-    # TODO Check if there are other special abilities that we did not cover...
-    if not actions:
-        actions = request_other_actions(index_name)
-
-    proficiencies: List[Proficiency] = []
-    if 'proficiencies' in data:
-        for prof in data['proficiencies']:
-            proficiency: Proficiency = request_proficiency(index_name=prof['proficiency']['index'])
-            proficiency.value = prof.get('value')
-            proficiencies.append(proficiency)
-
-    # print(index_name)
-    speed: str = data['speed']['fly'] if 'fly' in data['speed'] else data['speed']['walk'] if 'walk' in data['speed'] else '30'
-
-    return Monster(
-                   index=index_name,
-                   name=data['name'],
-                   abilities=Abilities(str=data['strength'], dex=data['dexterity'], con=data['constitution'],
-                                       int=data['intelligence'], wis=data['wisdom'], cha=data['charisma']),
-                   proficiencies=proficiencies,
-                   armor_class=data['armor_class'],
-                   hit_points=data['hit_points'],
-                   hit_dice=data['hit_dice'],
-                   xp=data['xp'],
-                   speed=int(speed.split()[0]),
-                   challenge_rating=data['challenge_rating'],
-                   actions=actions,
-                   sc=spell_caster,
-                   sa=special_abilities)
 
 def get_special_monster_actions(name: str) -> tuple[List[Action], List[SpecialAbility], SpellCaster]:
     actions: List[Action] = []
@@ -2371,88 +2153,20 @@ def request_monster_other(name: str) -> Optional[Monster]:
 
 def request_spell(index_name: str) -> Optional[Spell]:
     """
-    Send a request to local database for a spell's characteristic
-    :param index_name: name of the monster
-    :return: Spell object
+    Load a spell using dnd-5e-core package
+    :param index_name: name of the spell
+    :return: Spell object or None if not found
     """
-    try:
-        data = _load_json_data('spells', index_name)
-    except (FileNotFoundError, Exception):
-        return None
-
-    allowed_classes: List[str] = [c['index'] for c in data['classes']]
-
-    range: int = int(data['range'].split()[0]) if 'feet' in data['range'] else 5
-
-    if 'area_of_effect' in data:
-        area_of_effect = AreaOfEffect(type=data['area_of_effect']['type'], size=data['area_of_effect']['size'])
-    else:
-        area_of_effect = AreaOfEffect(type='sphere', size=range)
-
-    school: str = data['school']['index']
-
-
-    heal_at_slot_level: Optional[dict] = None
-    if 'heal_at_slot_level' in data and data['duration'] == 'Instantaneous':
-        heal_at_slot_level = data['heal_at_slot_level']
-
-    damage_type: Optional[DamageType] = None
-    damage_at_slot_level: Optional[dict] = None
-    damage_at_character_level: Optional[dict] = None
-    dc_type: Optional[str] = None
-    dc_success: Optional[str] = None
-    if "damage" in data:
-        # print(data['index'], data['damage'])
-        damage_type = data['damage']['damage_type']['index'] if "damage_type" in data['damage'] else None
-        damage_at_slot_level = data['damage'].get('damage_at_slot_level')
-        damage_at_character_level = data['damage'].get('damage_at_character_level')
-        # print(f"{data['index']} - damage_at_character_level={damage_at_character_level}")
-        # print(f"{data['index']} - damage_at_slot_level={damage_at_slot_level}")
-
-        # print(data)
-        if "dc" in data:
-            dc_type = data['dc']['dc_type']['index']
-            dc_success = data['dc']['dc_success']
-            # print(f"{data['index']} - dc_type = {dc_type}")
-
-    return Spell(index=data['index'],
-                 name=data['name'],
-                 desc=data['desc'],
-                 level=data['level'],
-                 allowed_classes=allowed_classes,
-                 heal_at_slot_level=heal_at_slot_level,
-                 damage_type=damage_type,
-                 damage_at_slot_level=damage_at_slot_level,
-                 damage_at_character_level=damage_at_character_level,
-                 dc_type=dc_type,
-                 dc_success=dc_success,
-                 range=range,
-                 area_of_effect=area_of_effect,
-                 school=school
-                 )
+    return core_load_spell(index_name)
 
 
 def request_armor(index_name: str) -> Armor:
     """
-    Send a request to local database for a armor's characteristic
+    Load armor using dnd-5e-core package
     :param index_name: name of the armor
-    :return: Armor object (core business logic only - use GameEntity for positioning)
+    :return: Armor object
     """
-    data = _load_json_data('armors', index_name)
-    if "armor_class" in data:
-        return Armor(
-            index=data['index'],
-            name=data['name'],
-            armor_class=data['armor_class'],
-            str_minimum=data['str_minimum'],
-            category=request_equipment_category(data['equipment_category']['index']),
-            stealth_disadvantage=data['stealth_disadvantage'],
-            cost=Cost(data['cost']['quantity'], data['cost']['unit']),
-            weight=data['weight'],
-            desc=None,
-            equipped=False
-        )
-    return None
+    return core_load_armor(index_name)
 
 
 def request_weapon_property(index_name: str) -> WeaponProperty:
@@ -2469,39 +2183,11 @@ def request_weapon_property(index_name: str) -> WeaponProperty:
 
 def request_weapon(index_name: str) -> Weapon:
     """
-    Send a request to local database for a weapon's characteristic
+    Load weapon using dnd-5e-core package
     :param index_name: name of the weapon
-    :return: Weapon object (core business logic only - use GameEntity for positioning)
+    :return: Weapon object
     """
-    data = _load_json_data('weapons', index_name)
-    weapon_properties = None
-    if 'properties' in data:
-        weapon_properties: List[WeaponProperty] = [request_weapon_property(d['index']) for d in data['properties']]
-    throw_range = None
-    if 'throw_range' in data:
-        throw_range = WeaponThrowRange(data['throw_range']['normal'], data['throw_range']['long'])
-    if "damage" in data:
-        damage_dice_two_handed: DamageDice = None
-        if "two_handed_damage" in data:
-            damage_dice_two_handed: DamageDice = DamageDice(data['two_handed_damage']['damage_dice'])
-        return Weapon(
-            index=data['index'],
-            name=data['name'],
-            category=request_equipment_category(data['equipment_category']['index']),
-            category_type=CategoryType(data['weapon_category']),
-            range_type=RangeType(data['weapon_range']),
-            damage_dice=DamageDice(data['damage']['damage_dice']),
-            damage_dice_two_handed=damage_dice_two_handed,
-            damage_type=request_damage_type(index_name=data['damage']['damage_type']['index']),
-            weapon_range=WeaponRange(normal=data['range']['normal'], long=data['range']['long']),
-            throw_range=throw_range,
-            is_magic=False,
-            cost=Cost(data['cost']['quantity'], data['cost']['unit']),
-            weight=data['weight'],
-            properties=weapon_properties,
-            desc=None,
-            equipped=False
-        )
+    return core_load_weapon(index_name)
     return None
 
 
@@ -2519,24 +2205,11 @@ def request_trait(index_name: str) -> Trait:
 
 def request_race(index_name: str) -> Race:
     """
-    Send a request to local database for a race's characteristic
+    Load race using dnd-5e-core package
     :param index_name: name of the race
     :return: Race object
     """
-    data = _load_json_data('races', index_name)
-    ability_bonuses = dict([(ability_bonus['ability_score']['index'], ability_bonus['bonus']) for ability_bonus in data['ability_bonuses']])
-    starting_proficiencies: List[Proficiency] = [request_proficiency(
-        d['index']) for d in data.get('starting_proficiencies')]
-    starting_proficiency_options: List[Tuple[List[Proficiency], int]] = []
-    if data.get('starting_proficiency_options'):
-        dat = data.get('starting_proficiency_options')
-        choose: int = dat['choose']
-        proficiencies_choose: List[Proficiency] = [request_proficiency(d['index']) for d in dat['from']]
-        starting_proficiency_options.append((choose, proficiencies_choose))
-    languages: List[Language] = [lang['index']for lang in data['languages']]
-    traits: List[Trait] = [request_trait(d['index']) for d in data['traits']]
-    subraces: List[SubRace] = [request_subrace(d['index']) for d in data['subraces']]
-    subraces: List[str] = [d['index'] for d in data['subraces']]
+    return core_load_race(index_name)
     return Race(index=data['index'],
                 name=data['name'],
                 speed=data['speed'],
@@ -2650,6 +2323,12 @@ def list_equipment_category(index_name: str) -> List[Equipment]:
 
 def request_equipment(index_name: str) -> Optional[Equipment]:
     """
+    Load equipment using dnd-5e-core package
+    :param index_name: name of the equipment
+    :return: Equipment object or None if not found
+    """
+    return core_load_equipment(index_name)
+    """
     Send a request to local database for an equipment's characteristic
     :param index_name: name of the equipment
     :return: Equipment object
@@ -2747,14 +2426,11 @@ def get_spell_slots(class_name: str) -> Tuple[dict(), List[int], List[int]]:
 def request_class(index_name: str, known_proficiencies: List[Proficiency] = None,
                   abilities: List[AbilityType] = None) -> ClassType:
     """
-    Send a request to local database for a class's characteristic
+    Load class using dnd-5e-core package
     :param index_name: name of the class
     :return: ClassType object
     """
-    data = _load_json_data('classes', index_name)
-    proficiencies: List[Proficiency] = [request_proficiency(d['index']) for d in data['proficiencies']]
-    proficiency_choices: List[Tuple[List[Proficiency], int]] = []
-    for dat in data['proficiency_choices']:
+    return core_load_class(index_name)
         choose: int = dat['choose']
         proficiencies_choose: List[Proficiency] = [
             request_proficiency(d['index']) for d in dat['from']]
