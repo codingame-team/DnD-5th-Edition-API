@@ -233,10 +233,16 @@ def height_weight_table() -> List:
 """ JSON loads """
 
 
-# DEPRECATED: This function is no longer used - use dnd_5e_core loaders directly
-# def _load_json_data(category: str, index_name: str):
-#     """DEPRECATED: Use dnd_5e_core.data.load_* functions instead"""
-#     pass
+def _load_json_data(category: str, index_name: str):
+    """
+    Helper function to load JSON data from local files.
+    DEPRECATED: Most functions now use dnd-5e-core loaders directly.
+    This is kept only for legacy functions that haven't been migrated yet.
+    """
+    # Fallback: Load from local data directory
+    file_path = resource_path(f"data/{category}/{index_name}.json")
+    with open(file_path, "r") as f:
+        return json.loads(f.read())
 
 
 def populate(collection_name: str, key_name: str, with_url=False, collection_path: str = None) -> List[str]:
@@ -2431,92 +2437,3 @@ def request_class(index_name: str, known_proficiencies: List[Proficiency] = None
     :return: ClassType object
     """
     return core_load_class(index_name)
-        choose: int = dat['choose']
-        proficiencies_choose: List[Proficiency] = [
-            request_proficiency(d['index']) for d in dat['from']]
-        proficiency_choices.append((choose, proficiencies_choose))
-
-    starting_equipment: List[Inventory] = []
-    for equip_dict in data['starting_equipment']:
-        quantity: int = equip_dict['quantity']
-        equipment: Equipment = request_equipment(
-            equip_dict['equipment']['index'])
-        starting_equipment.append(
-            Inventory(quantity=quantity, equipment=equipment))
-
-    starting_equipment_options: List[List[Inventory]] = []
-    for st_eq_option in data['starting_equipment_options']:
-        choose: int = st_eq_option['choose']
-        equipments_choose: List[Inventory] = []
-        for eq_choice in st_eq_option['from']:
-            if known_proficiencies:
-                known_proficiencies: List[str] = [p.index for p in known_proficiencies]
-                prereq = True
-                for p_dict in eq_choice['prerequisites']:
-                    if p_dict['proficiency']['index'] not in known_proficiencies:
-                        prereq = False
-                if not prereq:
-                    continue
-            if 'equipment' in eq_choice:
-                equipment: Inventory = Inventory(
-                    quantity=eq_choice['quantity'], equipment=request_equipment(eq_choice['equipment']['index']))
-                equipments_choose.append(equipment)
-            elif 'equipment_option' in eq_choice:
-                quantity: int = eq_choice['quantity'] if 'quantity' in eq_choice else 1
-                equipment_category: EquipmentCategory = request_equipment_category(
-                    eq_choice['equipment_option']['from']['equipment_category']['index'])
-                equipments_choose.append(
-                    Inventory(quantity=quantity, equipment=equipment_category))
-            elif 'equipment_category' in eq_choice:
-                quantity: int = eq_choice['quantity'] if 'quantity' in eq_choice else 1
-                equipment_category: EquipmentCategory = request_equipment_category(
-                    eq_choice['equipment_category']['index'])
-                equipments_choose.append(
-                    Inventory(quantity=quantity, equipment=equipment_category))
-            else:
-                equipments: List[Inventory] = []
-                for item_no, equip_dict in eq_choice.items():
-                    # print(f'item_no: {item_no}, equip_dict: {equip_dict}')
-                    if 'equipment' in equip_dict:
-                        quantity: int = equip_dict['quantity'] if 'quantity' in equip_dict else 1
-                        equipment: Equipment = request_equipment(
-                            equip_dict['equipment']['index'])
-                        equipments.append(
-                            Inventory(quantity=quantity, equipment=equipment))
-                equipments_choose.append(equipments)
-        if equipments_choose:
-            # starting_equipment_options.append((choose, equipments_choose))
-            starting_equipment_options.append(equipments_choose)
-
-    saving_throws: List[AbilityType] = [AbilityType(
-        d['index']) for d in data['saving_throws']]
-
-    can_cast: bool = 'spells' in data
-    spell_slots, spells_known, cantrips_known = {}, [], []
-    if can_cast:
-        spell_slots, spells_known, cantrips_known = get_spell_slots(
-            class_name=data['name'])
-
-    spellcasting_level: int = None
-    spellcasting_ability: str = None
-    if 'spellcasting' in data:
-        spellcasting_level: int = int(data['spellcasting']['level'])
-        spellcasting_ability: str = data['spellcasting']['spellcasting_ability']['index']
-
-    return ClassType(index=data['index'],
-                     name=data['name'],
-                     hit_die=data['hit_die'],
-                     proficiency_choices=proficiency_choices,
-                     proficiencies=proficiencies,
-                     saving_throws=saving_throws,
-                     starting_equipment=starting_equipment,
-                     starting_equipment_options=starting_equipment_options,
-                     class_levels=data['class_levels'],
-                     multi_classing=data['multi_classing'],
-                     subclasses=data['subclasses'],
-                     spellcasting_level=spellcasting_level,
-                     spellcasting_ability=spellcasting_ability,
-                     can_cast='spells' in data,
-                     spell_slots=deepcopy(spell_slots),
-                     spells_known=spells_known,
-                     cantrips_known=cantrips_known)
