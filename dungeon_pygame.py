@@ -62,7 +62,15 @@ from persistence import get_roster, save_character, load_character
 from dnd_5e_core.mechanics import XP_LEVELS
 
 # Import populate functions
-from populate_functions import populate, request_armor, request_weapon, request_monster, request_spell, request_monster_other
+# Import data loaders from dnd-5e-core (note: they're called request_* not load_*)
+from dnd_5e_core.data.loaders import request_monster
+from dnd_5e_core.data import load_weapon, load_armor, load_spell, load_equipment
+
+# Import legacy functions still needed
+from populate_functions import request_armor, request_weapon, request_spell, populate, request_monster_other
+
+print("✅ [MIGRATION v2] dungeon_pygame.py - Using dnd-5e-core package")
+print()
 
 # Compatibility alias
 load_xp_levels = lambda: XP_LEVELS
@@ -311,12 +319,12 @@ class Level:
 					monsters: List[Monster] = []
 					if monsters_in_room:
 						for monster_name in monsters_in_room:
-							# Try to load monster from dnd-5e-core
+							# Load monster from dnd-5e-core
 							monster = request_monster(monster_name.lower().replace(' ', '-'))
 
-							# If not found in dnd-5e-core, try alternative source
+							# If not found, skip
 							if monster is None:
-								monster = request_monster_other(monster_name)
+								continue
 
 							# Add monster if found
 							if monster:

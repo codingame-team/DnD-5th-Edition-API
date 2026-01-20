@@ -4,9 +4,19 @@ A comprehensive simulation engine implementing D&D 5th Edition rules with multip
 
 ## 🏗️ Architecture
 
-This project uses **dnd-5e-core** package for all D&D 5e game logic. Most games import from dnd-5e-core for entities, combat, spells, equipment, etc.
+This project uses **dnd-5e-core v0.4.0** package for all D&D 5e game logic. Most games import from dnd-5e-core for entities, combat, spells, equipment, etc.
 
 **See [docs/ARCHITECTURE_JEUX.md](docs/ARCHITECTURE_JEUX.md) for detailed architecture documentation.**
+
+## 🆕 New Features (dnd-5e-core v0.4.0)
+
+- ✨ **ClassAbilities** - Automatic application (Extra Attack, Rage, Sneak Attack, etc.)
+- 🎭 **RacialTraits** - Automatic application (Darkvision, Fey Ancestry, Lucky, etc.)
+- ⚡ **Conditions System** - Auto-detection and display (Poisoned, Restrained, Paralyzed, etc.)
+- 🎁 **Magic Items** - 10+ predefined items (Ring of Protection, Wand of Magic Missiles, etc.)
+- 🎭 **Multiclassing** - Full multiclass support with spell slot calculation
+
+All frontends using dnd-5e-core benefit from these features automatically!
 
 ## Available Versions
 
@@ -118,6 +128,13 @@ git clone https://github.com/codingame-team/DnD-5th-Edition-API.git
 cd dnd-5e-core
 pip install -e .
 ```
+
+**OR** install from PyPI:
+```bash
+pip install dnd-5e-core>=0.4.0
+```
+
+**Note:** This project requires `dnd-5e-core` version **0.4.0 or higher** to benefit from all features (ClassAbilities, RacialTraits, Conditions, Magic Items, Multiclassing).
 
 3. Install game dependencies:
 ```bash

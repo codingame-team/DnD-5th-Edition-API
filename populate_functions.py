@@ -401,6 +401,10 @@ def request_monster(index_name: str) -> Optional[Monster]:
     if data is None:
         return None
 
+    # If data is already a Monster object (from dnd-5e-core), return it directly
+    if isinstance(data, Monster):
+        return data
+
     can_cast: bool = False
     can_attack: bool = False
     slots: List[int] = []
