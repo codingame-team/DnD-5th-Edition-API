@@ -2475,13 +2475,20 @@ class DnDCursesUI:
 		monsters = []
 
 		# Try to generate monsters with the official system
-		if self.monsters and self.encounter_table and self.available_crs:
+		if self.monsters:
 			try:
-				monsters = generate_encounter(available_crs=self.available_crs, encounter_table=self.encounter_table, encounter_level=encounter_level, monsters=self.monsters, monster_groups_count=monster_groups_count, spell_casters_only=False)
-				if monsters:
-					self.dungeon_log.append(f"[DEBUG] Generated {len(monsters)} monsters via generate_encounter")
+				# Use new API: select_monsters_by_encounter_table returns (monsters, encounter_type)
+				monsters_result, encounter_type = generate_encounter(
+					encounter_level=encounter_level,
+					available_monsters=self.monsters,
+					spell_casters_only=False,
+					allow_pairs=True
+				)
+				if monsters_result:
+					monsters = monsters_result
+					self.dungeon_log.append(f"[DEBUG] Generated {len(monsters)} monsters ({encounter_type}) via generate_encounter")
 			except Exception as e:
-				self.dungeon_log.append(f"[DEBUG] generate_encounter failed: {str(e)[:50]}")
+				self.dungeon_log.append(f"[DEBUG] generate_encounter failed: {str(e)[:100]}")
 				monsters = []
 
 		# Fallback 1: Pick random monsters from database
