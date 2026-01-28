@@ -808,47 +808,53 @@ class DnDCursesUI:
 		except curses.error:
 			pass
 
+	def _get_buy_items_list(self, character):
+		"""Get consistent list of items available for purchase"""
+		items = []
+
+		try:
+			from boltac_shop import get_boltac_shop
+			shop = get_boltac_shop()
+
+			# Get all weapons and armors (unlimited stock)
+			all_weapons = shop.get_all_weapons()
+			all_armors = shop.get_all_armors()
+
+			# Filter by proficiencies (compare by index)
+			prof_weapon_indices = {w.index for w in character.prof_weapons if hasattr(w, 'index')}
+			prof_armor_indices = {a.index for a in character.prof_armors if hasattr(a, 'index')}
+
+			weapons = [w for w in all_weapons if hasattr(w, 'index') and w.index in prof_weapon_indices]
+			armors = [a for a in all_armors if hasattr(a, 'index') and a.index in prof_armor_indices]
+
+			# Sort by cost
+			items.extend(sorted(weapons, key=lambda i: i.cost.value if hasattr(i.cost, 'value') else 0))
+			items.extend(sorted(armors, key=lambda i: i.cost.value if hasattr(i.cost, 'value') else 0))
+
+			# Add magic items (limited stock)
+			for item, stock in shop.get_magic_items_in_stock():
+				if stock > 0:
+					items.append(item)
+
+		except Exception as e:
+			# Fallback to old system
+			if self.weapons:
+				items.extend(sorted(self.weapons, key=lambda i: i.cost.value if hasattr(i.cost, 'value') else 0))
+			if hasattr(character, 'prof_armors') and character.prof_armors:
+				items.extend(sorted(character.prof_armors, key=lambda i: i.cost.value if hasattr(i.cost, 'value') else 0))
+
+		return items
+
 	def draw_buy_items(self, lines: int, cols: int, character):
-		"""Draw buy items menu - matches main.py logic"""
+		"""Draw buy items menu - uses BoltacShop"""
 		try:
 			self.draw_header(f"BUY ITEMS - {character.name}", lines, cols)
 
 			start_y = 4
 			self.stdscr.addstr(start_y, 2, f"Gold: {character.gold}GP", curses.A_BOLD)
 
-			# Get available items: weapons + prof_armors (like main.py line 1281)
-			items = []
-			debug_msgs = []
-
-			# Check weapons availability
-			if not self.weapons:
-				debug_msgs.append("No weapons in database")
-
-			# Check character attributes
-			if not hasattr(character, 'prof_armors'):
-				debug_msgs.append("Character has no prof_armors attribute")
-			if not hasattr(character, 'prof_weapons'):
-				debug_msgs.append("Character has no prof_weapons attribute")
-
-			# Build items list
-			if self.weapons and hasattr(character, 'prof_armors') and hasattr(character, 'prof_weapons'):
-				# Sort weapons by cost, then prof_armors by cost (like main.py line 1281)
-				try:
-					weapons_sorted = sorted(self.weapons, key=lambda i: i.cost.value if hasattr(i.cost, 'value') else 0)
-					items.extend(weapons_sorted)
-					debug_msgs.append(f"Added {len(weapons_sorted)} weapons")
-				except Exception as e:
-					debug_msgs.append(f"Error sorting weapons: {str(e)[:30]}")
-
-				try:
-					if character.prof_armors:
-						armors_sorted = sorted(character.prof_armors, key=lambda i: i.cost.value if hasattr(i.cost, 'value') else 0)
-						items.extend(armors_sorted)
-						debug_msgs.append(f"Added {len(armors_sorted)} armors")
-					else:
-						debug_msgs.append("Character has 0 prof_armors")
-				except Exception as e:
-					debug_msgs.append(f"Error sorting armors: {str(e)[:30]}")
+			# Get items from helper
+			items = self._get_buy_items_list(character)
 
 			if items:
 				display_start = max(0, self.buy_cursor - 10)
@@ -856,31 +862,64 @@ class DnDCursesUI:
 					actual_idx = display_start + idx
 					marker = '►' if actual_idx == self.buy_cursor else ' '
 
-					# Check proficiency (like main.py line 1283-1284)
-					# Already imported at top: from dnd_5e_core.equipment import Weapon
-					prof_label = " [NOT PROF]" if isinstance(item, Weapon) and item not in character.prof_weapons else ""
+					# Check proficiency by index
+					prof_label = ""
+					if isinstance(item, Weapon) and hasattr(item, 'index'):
+						try:
+							prof_weapon_indices = {w.index for w in character.prof_weapons if hasattr(w, 'index')}
+							if item.index not in prof_weapon_indices:
+								prof_label = " [NOT PROF]"
+						except:
+							pass
 
-					cost = item.cost if hasattr(item, 'cost') else "??GP"
-					affordable = "" if character.gold * 100 >= (item.cost.value if hasattr(item.cost, 'value') else 99999) else " (No gold)"
+					# Get cost display
+					if hasattr(item, 'cost') and item.cost:
+						if hasattr(item.cost, 'value'):
+							cost_gp = item.cost.value // 100
+							cost_display = f"{cost_gp} gp" if cost_gp > 0 else f"{item.cost.value} cp"
+						elif hasattr(item.cost, 'quantity') and hasattr(item.cost, 'unit'):
+							cost_display = f"{item.cost.quantity} {item.cost.unit}"
+						else:
+							cost_display = str(item.cost)
+					else:
+						cost_display = "0 gp"
 
-					item_line = f"{marker} {item.name} ({cost}){prof_label}{affordable}"
+					# Check if affordable
+					cost_value = item.cost.value if hasattr(item, 'cost') and hasattr(item.cost, 'value') else 0
+					affordable = "" if character.gold * 100 >= cost_value else " (No gold)"
 
-					# Color code if not proficient or can't afford
-					if prof_label or affordable:
-						self.stdscr.addstr(start_y + 2 + idx, 2, item_line[:cols - 3], curses.color_pair(2))  # Red
+					# Check stock
+					stock_text = ""
+					try:
+						from boltac_shop import get_boltac_shop
+						shop = get_boltac_shop()
+						stock = shop.get_item_stock(item)
+						if stock == 0:
+							stock_text = " [OUT]"
+						elif stock > 0 and stock != -1:
+							stock_text = f" [{stock}]"
+					except:
+						pass
+
+					item_line = f"{marker} {item.name} ({cost_display}){prof_label}{affordable}{stock_text}"
+
+					# Color code
+					if stock_text and "OUT" in stock_text:
+						self.stdscr.addstr(start_y + 2 + idx, 2, item_line[:cols - 3], curses.color_pair(2))
+					elif prof_label or affordable:
+						self.stdscr.addstr(start_y + 2 + idx, 2, item_line[:cols - 3], curses.color_pair(2))
 					else:
 						self.stdscr.addstr(start_y + 2 + idx, 2, item_line[:cols - 3])
 			else:
 				self.stdscr.addstr(start_y + 2, 2, "No items available")
-				# Display debug messages
-				y_offset = 4
-				for msg in debug_msgs[:5]:  # Show max 5 debug messages
-					self.stdscr.addstr(start_y + y_offset, 4, f"[DEBUG] {msg}"[:cols - 5])
-					y_offset += 1
 
 			self.draw_footer("[↑/↓] Navigate  [Enter] Buy  [Esc] Back", lines, cols)
 		except curses.error:
 			pass
+
+	def _get_sell_items_list(self, character):
+		"""Get consistent list of items available for sale from inventory"""
+		return [item for item in character.inventory if item]
 
 	def draw_sell_items(self, lines: int, cols: int, character):
 		"""Draw sell items menu - matches main.py logic"""
@@ -890,8 +929,8 @@ class DnDCursesUI:
 			start_y = 4
 			self.stdscr.addstr(start_y, 2, f"Gold: {character.gold}GP", curses.A_BOLD)
 
-			# Get character inventory
-			inventory_items = [item for item in character.inventory if item]
+			# Get character inventory using helper
+			inventory_items = self._get_sell_items_list(character)
 
 			if inventory_items:
 				display_start = max(0, self.sell_cursor - 10)
@@ -989,7 +1028,8 @@ class DnDCursesUI:
 			self.draw_header(title, lines, cols)
 
 			start_y = 4
-			available_chars = [c for c in self.roster if c not in self.party]
+			available_chars = [c for c in self.roster if c not in self.party and c.status != 'DEAD']
+			available_chars.sort(key=lambda c: c.level, reverse=True)
 
 			if available_chars:
 				display_start = max(0, self.roster_cursor - 10)
@@ -1546,7 +1586,7 @@ class DnDCursesUI:
 	def _handle_tavern(self, c: int) -> None:
 		"""Handle tavern menu"""
 		if c in (curses.KEY_DOWN, ord('j')):
-			self.tavern_cursor = min(self.tavern_cursor + 1, 6)
+		 self.tavern_cursor = min(self.tavern_cursor + 1, 6)
 		elif c in (curses.KEY_UP, ord('k')):
 			self.tavern_cursor = max(0, self.tavern_cursor - 1)
 		elif c in (ord('\n'), ord('\r')):
@@ -1815,12 +1855,8 @@ class DnDCursesUI:
 			self.mode = 'trading_actions'
 			return
 
-		# Get items list: weapons + prof_armors (like main.py line 1281)
-		items = []
-		if self.weapons and hasattr(self.character_trading, 'prof_armors'):
-			weapons_sorted = sorted(self.weapons, key=lambda i: i.cost.value if hasattr(i.cost, 'value') else 0)
-			armors_sorted = sorted(self.character_trading.prof_armors, key=lambda i: i.cost.value if hasattr(i.cost, 'value') else 0)
-			items = weapons_sorted + armors_sorted
+		# Get items list using helper method (CONSISTENT with draw_buy_items)
+		items = self._get_buy_items_list(self.character_trading)
 
 		if not items:
 			self.push_panel("No items available")
@@ -1834,7 +1870,18 @@ class DnDCursesUI:
 		elif c in (ord('\n'), ord('\r')):
 			if items and self.buy_cursor < len(items):
 				item = items[self.buy_cursor]
-				cost_value = item.cost.value if hasattr(item.cost, 'value') else 0
+
+				# Get cost properly
+				if hasattr(item, 'cost') and item.cost:
+					if hasattr(item.cost, 'value'):
+						cost_value = item.cost.value
+					elif hasattr(item.cost, 'quantity'):
+						unit = getattr(item.cost, 'unit', 'gp')
+						cost_value = item.cost.quantity * 100 if unit == 'gp' else item.cost.quantity
+					else:
+						cost_value = 0
+				else:
+					cost_value = 0
 
 				# Check if can afford (like main.py line 1291)
 				if self.character_trading.gold * 100 < cost_value:
@@ -1848,7 +1895,17 @@ class DnDCursesUI:
 					free_slots = [i for i, inv_item in enumerate(self.character_trading.inventory) if not inv_item]
 					if free_slots:
 						self.character_trading.inventory[free_slots[0]] = copy(item)
-						self.push_panel(f"Bought {item.name} for {item.cost}")
+
+					# Update shop stock if it's a magic item
+					if hasattr(item, 'index'):
+						try:
+							from boltac_shop import get_boltac_shop
+							shop = get_boltac_shop()
+							shop.buy_item(item, quantity=1)  # Decrements stock
+						except:
+							pass
+
+						self.push_panel(f"Bought {item.name}")
 						try:
 							save_character(self.character_trading, _dir=self.characters_dir)
 						except Exception:
@@ -1866,7 +1923,8 @@ class DnDCursesUI:
 			self.mode = 'trading_actions'
 			return
 
-		inventory_items = [item for item in self.character_trading.inventory if item]
+		# Get inventory items using helper (CONSISTENT with draw_sell_items)
+		inventory_items = self._get_sell_items_list(self.character_trading)
 
 		if c in (curses.KEY_DOWN, ord('j')):
 			self.sell_cursor = min(self.sell_cursor + 1, len(inventory_items) - 1) if inventory_items else 0
@@ -1898,22 +1956,32 @@ class DnDCursesUI:
 					else:
 						cost_value = 0
 
-					# Sell for half price (like main.py line 1323)
-					self.character_trading.gold += cost_value // 200
+				# Sell for half price (like main.py line 1323)
+				sell_price_copper = cost_value // 2
+				self.character_trading.gold += sell_price_copper // 100
 
-					# Remove from inventory (like main.py line 1325)
-					idx = self.character_trading.inventory.index(item)
-					self.character_trading.inventory[idx] = None
-					self.push_panel(f"Sold {item.name}")
+				# Add to Boltac's persistent inventory
+				try:
+					from boltac_shop import get_boltac_shop
+					shop = get_boltac_shop()
+					shop.sell_item(item, sell_price_copper)
+				except Exception as e:
+					# If shop inventory fails, just continue
+					pass
 
-					try:
-						save_character(self.character_trading, _dir=self.characters_dir)
-					except Exception:
-						pass
+				# Remove from inventory (like main.py line 1325)
+				idx = self.character_trading.inventory.index(item)
+				self.character_trading.inventory[idx] = None
+				self.push_panel(f"Sold {item.name} for {sell_price_copper // 100}GP")
 
-					# Reset cursor if needed
-					if self.sell_cursor >= len([i for i in self.character_trading.inventory if i]):
-						self.sell_cursor = max(0, self.sell_cursor - 1)
+				try:
+					save_character(self.character_trading, _dir=self.characters_dir)
+				except Exception:
+					pass
+
+				# Reset cursor if needed
+				if self.sell_cursor >= len([i for i in self.character_trading.inventory if i]):
+					self.sell_cursor = max(0, self.sell_cursor - 1)
 		elif c == 27:  # Esc
 			self.mode = 'trading_actions'
 
@@ -2001,7 +2069,8 @@ class DnDCursesUI:
 
 	def _handle_character_list(self, c: int) -> None:
 		"""Handle character list selection"""
-		available_chars = [c for c in self.roster if c not in self.party]
+		available_chars = [c for c in self.roster if c not in self.party and c.status != 'DEAD']
+		available_chars.sort(key=lambda x: x.level, reverse=True)
 
 		if c in (curses.KEY_DOWN, ord('j')):
 			self.roster_cursor = min(self.roster_cursor + 1, len(available_chars) - 1) if available_chars else 0
@@ -2339,6 +2408,7 @@ class DnDCursesUI:
 
 	def _cheat_level_up_all(self):
 		"""Cheat: Level up all characters"""
+
 		from populate_functions import populate, request_spell
 
 		leveled_count = 0
@@ -2656,32 +2726,77 @@ class DnDCursesUI:
 		)
 
 	def _distribute_rewards(self):
-		"""Distribute XP and gold after victory"""
-		from random import randint
+		"""Distribute XP and gold after victory using D&D 5e treasure system"""
+		from dnd_5e_core.mechanics.gold_rewards import calculate_treasure_hoard
+		from dnd_5e_core.equipment import get_magic_item, get_special_weapon, get_special_armor
 
 		state = self.dungeon_state
 
-		# Calculate rewards
+		# Calculate average party level and CR
 		party_level = round(sum([c.level for c in self.party]) / len(self.party))
 
-		if hasattr(self, 'encounter_gold_table') and self.encounter_gold_table:
-			try:
-				earned_gold = self.encounter_gold_table[min(party_level - 1, len(self.encounter_gold_table) - 1)]
-			except:
-				earned_gold = randint(50, 200)
-		else:
-			earned_gold = randint(50, 200)
+		# Calculate average monster CR
+		avg_cr = 0
+		if state['monsters']:
+			total_cr = sum([getattr(m, 'challenge_rating', 0.5) for m in state['monsters']])
+			avg_cr = total_cr / len(state['monsters'])
 
+		# Get party proficiencies for better item selection
+		party_profs = []
+		for char in self.party:
+			if hasattr(char, 'proficiencies'):
+				party_profs.extend(char.proficiencies)
+
+		# Generate treasure hoard
+		treasure = calculate_treasure_hoard(
+			level=party_level,
+			multiplier=1.0,  # Normal encounter
+			cr=avg_cr if avg_cr > 0 else None,
+			party_proficiencies=party_profs,
+			include_items=True
+		)
+
+		earned_gold = treasure['gold']
 		xp_gained = sum([getattr(m, 'xp', 100) for m in state['monsters']])
 
-		# Distribute to alive characters
+		# Distribute gold and XP to alive characters
 		alive_chars = [c for c in self.party if c.hit_points > 0]
 		if alive_chars:
-			for char in alive_chars:
-				char.gold += earned_gold // len(self.party)
-				char.xp += xp_gained // len(alive_chars)
+			gold_per_char = earned_gold // len(self.party)
+			xp_per_char = xp_gained // len(alive_chars)
 
+			for char in alive_chars:
+				char.gold += gold_per_char
+				char.xp += xp_per_char
+
+		# Log rewards
 		self.dungeon_log.append(f"Party earned {earned_gold} GP and {xp_gained} XP!")
+
+		# Distribute magic items
+		if treasure['items']:
+			self.dungeon_log.append(f"Magic items found: {len(treasure['items'])}")
+
+			for item_idx in treasure['items']:
+				# Try to get the item
+				item = get_magic_item(item_idx)
+				if not item:
+					item = get_special_weapon(item_idx)
+				if not item:
+					item = get_special_armor(item_idx)
+
+				if item:
+					# Give to first character with empty inventory slot
+					for char in alive_chars:
+						empty_slots = [i for i, inv_item in enumerate(char.inventory) if inv_item is None]
+						if empty_slots:
+							slot_idx = min(empty_slots)
+							char.inventory[slot_idx] = item
+							self.dungeon_log.append(f"{char.name} received {item.name}!")
+							break
+					else:
+						# No one has space
+						self.dungeon_log.append(f"No space for {item.name} - left behind!")
+
 
 	def _end_combat(self, victory=True):
 		"""End current combat"""

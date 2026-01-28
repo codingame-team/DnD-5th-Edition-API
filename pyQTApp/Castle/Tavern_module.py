@@ -77,7 +77,7 @@ class Tavern_UI(QWidget):
     @pyqtSlot()  # For button click
     def leave_tavern(self):
         game_path = get_save_game_path()
-        save_party(self.castle_window.party, game_path)
+        save_party(self.castle_window.party, _dir=game_path)
         self.tavernFrame.close()
         if self.castle_window.party:
             update_buttons(frame=self.castle_ui.nav_frame, enabled=True)

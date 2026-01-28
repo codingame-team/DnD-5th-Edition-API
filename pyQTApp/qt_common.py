@@ -129,6 +129,25 @@ def populate_character_row(table: QTableWidget, char: Character, row: int) -> No
 
 def populate_character_row_dungeon(table: QTableWidget, char: Character, row: int) -> None:
     """Populate a single row with character data using appropriate sorting types."""
+    # Determine status text including conditions
+    if char.hit_points <= 0:
+        status_text = "DEAD"
+    elif hasattr(char, 'conditions') and char.conditions:
+        # Display active conditions without emoji
+        condition_names = []
+        for condition in char.conditions:
+            if hasattr(condition, 'type'):
+                # It's a Condition object with type attribute
+                cond_name = condition.type.value if hasattr(condition.type, 'value') else str(condition.type)
+            elif hasattr(condition, 'name'):
+                cond_name = condition.name
+            else:
+                cond_name = str(condition)
+            condition_names.append(cond_name)
+        status_text = ', '.join(condition_names)
+    else:
+        status_text = "Alive"
+
     column_items = [
         (char.name, StringTableItem),
         (char.class_type, ClassTableItem),
@@ -136,7 +155,7 @@ def populate_character_row_dungeon(table: QTableWidget, char: Character, row: in
         (char.armor_class, IntegerTableItem),
         (char.hit_points, IntegerTableItem),
         (char.max_hit_points, IntegerTableItem),
-        ("Alive" if char.hit_points > 0 else "DEAD", StringTableItem),
+        (status_text, StringTableItem),
         ('', StringTableItem)
     ]
 

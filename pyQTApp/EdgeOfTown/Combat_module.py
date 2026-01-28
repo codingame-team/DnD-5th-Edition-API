@@ -5,8 +5,8 @@ from functools import partial
 from random import randint, choice, sample
 from typing import List, Optional
 
-from PyQt5.QtCore import Qt, QObject, QEvent, pyqtSlot, QTimer
-from PyQt5.QtGui import QPixmap, QCursor
+from PyQt5.QtCore import Qt, QObject, QEvent, pyqtSlot, QTimer, QRectF
+from PyQt5.QtGui import QPixmap, QCursor, QPainter, QColor, QFont, QPen
 from PyQt5.QtWidgets import (
     QMainWindow,
     QTableWidget,
@@ -106,7 +106,11 @@ class Combat_UI(QMainWindow):
 
         game_path = get_save_game_path()
         self.party: List[Character] = load_party(_dir=game_path)
-        self.refresh_party_table()
+
+        # Initialize party_table reference early
+        self.party_table: QTableWidget = self.ui.party_tableWidget
+        self.index = 0
+
         monster_names: List[str] = populate(collection_name="monsters", key_name="results")
         self.monsters_db: List[Monster] = [request_monster(name) for name in monster_names]
         path = os.path.dirname(__file__)
@@ -114,20 +118,28 @@ class Combat_UI(QMainWindow):
         self.monsters = self.load_monsters()
         self.display_monsters_groups()
         self.ui.char_actions_groupBox.setVisible(True)
+
         # Connect fight button to prepare_action so user can click a token to pick the group
         self.ui.fightButton.clicked.connect(lambda: self.prepare_action(CharActionType.MELEE_ATTACK))
         self.ui.castButton.clicked.connect(self.cast_spell)
         self.ui.parryButton.clicked.connect(self.parry)
-        self.party_table.itemSelectionChanged.connect(self.on_party_row_selected)
-        self.index = 0
+        # Add use item button if it exists in UI, otherwise add it dynamically
+        if hasattr(self.ui, 'useItemButton'):
+            self.ui.useItemButton.clicked.connect(self.use_item)
+
         self.actions: List[Optional[CharAction]] = [None] * len(self.party)
-        self.action_column = self.party_table.model().columnCount() - 1
-        self.party_table.setCurrentCell(self.index, self.action_column)
         self.setup_events_area()
         self.round_num = 0
         # Pending action holds a tuple (action_type, spell) when user pressed an action button and awaits target click
         self.pending_action = None
-        # self.exec()
+
+        # Now refresh party table and connect signals after initialization
+        self.refresh_party_table()
+
+        # Connect party table signals after refresh
+        self.party_table.itemSelectionChanged.connect(self.on_party_row_selected)
+        self.action_column = self.party_table.model().columnCount() - 1
+        self.party_table.setCurrentCell(self.index, self.action_column)
 
     def setup_events_area(self):
         """Initialize the scroll area with a widget and layout"""
@@ -244,6 +256,8 @@ class Combat_UI(QMainWindow):
                                     alive_chars.remove(target_char)
                                     target_char.status = "DEAD"
                                     self.cprint(f"{target_char.name} is ** KILLED **!")
+                                # Refresh party table to show updated conditions
+                                self.refresh_party_table()
                             elif available_special_attacks:
                                 special_attack: SpecialAbility = max(available_special_attacks, key=lambda a: sum([damage.dd.score(success_type=a.dc_success) for damage in a.damages]), )
                                 # cprint(special_attack)
@@ -274,6 +288,8 @@ class Combat_UI(QMainWindow):
                                             alive_chars.remove(target_char)
                                             target_char.status = "DEAD"
                                             self.cprint(f"{target_char.name} is ** KILLED **!")
+                                # Refresh party table to show updated conditions
+                                self.refresh_party_table()
                             else:
                                 # Monster attacks with any available action
                                 if melee_chars:
@@ -288,14 +304,19 @@ class Combat_UI(QMainWindow):
                                             melee_attacks = ranged_attacks
 
                                     if melee_attacks:
-                                        attack_msg, damage = attacker.attack(target=target_char, actions=melee_attacks, verbose=False)
-                                        target_char.hit_points -= damage
+                                        attack_msg, damage, damage_type = attacker.attack(target=target_char, actions=melee_attacks, verbose=False)
+                                        # Use take_damage to apply resistances/immunities
+                                        actual_damage = target_char.take_damage(damage, damage_type)
                                         self.cprint(attack_msg)
+                                        if actual_damage < damage:
+                                            self.cprint(f"   {color.CYAN}(Reduced from {damage} to {actual_damage} due to resistance/immunity){color.END}")
                                         self.cprint(f"{color.GREEN}{attacker.name}{color.END} attacks {target_char.name}")
                                         if target_char.hit_points <= 0:
                                             alive_chars.remove(target_char)
                                             target_char.status = "DEAD"
                                             self.cprint(f"{target_char.name} is ** KILLED **!")
+                                        # Refresh party table to show updated conditions
+                                        self.refresh_party_table()
                                     else:
                                         self.cprint(f"** {attacker.name} ** has no attacks available!")
                                         debug(f"  → {attacker.name} actions: {attacker.actions}")
@@ -368,8 +389,13 @@ class Combat_UI(QMainWindow):
         alive_monsters: List[Monster] = [c for c in self.monsters if c.hit_points > 0]
 
         if not alive_chars:
+            # Clear conditions from all party members after defeat
             for target_char in self.party:
-                target_char.conditions.clear()
+                if hasattr(target_char, 'conditions'):
+                    if target_char.conditions is None:
+                        target_char.conditions = []
+                    else:
+                        target_char.conditions.clear()
             self.cprint(f"** DEFEAT! ALL PARTY HAS BEEN KILLED **")
             self.ui.party_action_groupBox.setVisible(False)
             self.ui.char_actions_groupBox.setVisible(False)
@@ -377,12 +403,18 @@ class Combat_UI(QMainWindow):
             self.cprint(f"** VICTORY! **")
             party_level: int = round(sum([c.level for c in self.party]) / len(self.party))
             encounter_gold_table: List[int] = load_encounter_gold_table()
-            earned_gold: int = encounter_gold_table[party_level - 1]
+            earned_gold: int = encounter_gold_table[party_level]
             xp_gained: int = sum([m.xp for m in self.monsters])
+
+            # Clear conditions from surviving party members after victory
             for target_char in alive_chars:
                 target_char.gold += earned_gold // len(self.party)
                 target_char.xp += xp_gained // len(alive_chars)
-                target_char.conditions.clear()
+                if hasattr(target_char, 'conditions'):
+                    if target_char.conditions is None:
+                        target_char.conditions = []
+                    else:
+                        target_char.conditions.clear()
             self.cprint(f"Party has earned {earned_gold} GP and gained {xp_gained} XP!")
             self.monsters = self.load_monsters()
             self.cprint(f"** New encounter **")
@@ -408,12 +440,21 @@ class Combat_UI(QMainWindow):
     @pyqtSlot()
     def flee(self):
         self.cprint(f"** Party successfully escaped! **")
+
+        # Clear conditions from all party members when fleeing
+        for char in self.party:
+            if hasattr(char, 'conditions') and char.conditions:
+                char.conditions.clear()
+
         for row in range(self.party_table.rowCount()):
             self.update_cell(content='', row=row, col=self.action_column)
         self.monsters = self.load_monsters()
         self.display_monsters_groups()
         self.actions = [None] * len(self.party)
         self.round_num = 0
+
+        # Refresh party table to show cleared conditions
+        self.refresh_party_table()
 
     # Add this method to handle row selection
     @pyqtSlot()
@@ -427,9 +468,8 @@ class Combat_UI(QMainWindow):
             for button in self.ui.char_actions_groupBox.findChildren(QPushButton):
                 button.setEnabled(False)
         else:
-            # Enable all buttons in char_actions_groupBox
-            for button in self.ui.char_actions_groupBox.findChildren(QPushButton):
-                button.setEnabled(True)
+            # Enable buttons based on character conditions
+            self.update_action_buttons_state()
         if self.index >= 0:  # Make sure a valid row is selected
             self.ui.char_actions_groupBox.show()
             title: str = f"{char.name}'s Options"
@@ -438,6 +478,45 @@ class Combat_UI(QMainWindow):
                 self.ui.castButton.show()
             else:
                 self.ui.castButton.hide()
+
+    def update_action_buttons_state(self):
+        """Enable/disable action buttons based on character conditions"""
+        if self.index < 0 or self.index >= len(self.party):
+            return
+
+        char: Character = self.party[self.index]
+
+        # Check if character has incapacitating conditions
+        can_attack = True
+        can_cast = True
+
+        if hasattr(char, 'conditions') and char.conditions:
+            for condition in char.conditions:
+                condition_type = condition.type if hasattr(condition, 'type') else str(condition)
+                # Check for incapacitating conditions
+                if condition_type in ['INCAPACITATED', 'PARALYZED', 'PETRIFIED', 'STUNNED', 'UNCONSCIOUS']:
+                    can_attack = False
+                    can_cast = False
+                    break
+                # Restrained gives disadvantage but doesn't prevent actions
+                elif condition_type == 'RESTRAINED':
+                    # Still can attack/cast but with disadvantage (handled in combat logic)
+                    pass
+                # Blinded gives disadvantage on attacks
+                elif condition_type == 'BLINDED':
+                    # Still can attack but with disadvantage
+                    pass
+
+        # Enable/disable buttons
+        self.ui.fightButton.setEnabled(can_attack and char.hit_points > 0)
+        self.ui.castButton.setEnabled(can_cast and char.hit_points > 0 and char.is_spell_caster)
+        self.ui.parryButton.setEnabled(char.hit_points > 0)
+
+        # Add visual feedback
+        if not can_attack:
+            self.cprint(f"⚠️ {char.name} is incapacitated and cannot attack!")
+        if not can_cast and char.is_spell_caster:
+            self.cprint(f"⚠️ {char.name} is incapacitated and cannot cast spells!")
 
     def move_to_next_row(self):
         """Move cursor to the same column in the next row, skipping dead characters"""
@@ -537,10 +616,113 @@ class Combat_UI(QMainWindow):
         ui = Ui_party_select_Dialog()
         ui.setupUi(select_dialog)
         populate_table(table=ui.party_tableWidget, char_list=self.party, in_dungeon=True)
-        if select_dialog.exec_():
-            selected_row = ui.party_tableWidget.currentRow()
-            return [self.party[selected_row]]
-        return []
+
+        selected_chars = []
+
+        # Multi-selection: return all selected rows when OK is clicked
+        def on_ok():
+            selected_rows = set()
+            for item in ui.party_tableWidget.selectedItems():
+                selected_rows.add(item.row())
+            for row in sorted(selected_rows):
+                char_name = ui.party_tableWidget.item(row, 0).text()
+                char = next((c for c in self.party if c.name == char_name), None)
+                if char:
+                    selected_chars.append(char)
+            select_dialog.accept()
+
+        ui.buttonBox.accepted.connect(on_ok)
+        select_dialog.exec_()
+        return selected_chars
+
+    @pyqtSlot()
+    def use_item(self):
+        """Allow character to use a potion or item from inventory"""
+        if self.index < 0 or self.index >= len(self.party):
+            return
+
+        char: Character = self.party[self.index]
+
+        # Check if character has inventory
+        if not hasattr(char, 'inventory') or not char.inventory:
+            self.cprint(f"{char.name} has no items in inventory!")
+            return
+
+        # Filter usable items (potions)
+        from dnd_5e_core.equipment import HealingPotion
+        usable_items = [item for item in char.inventory if item and isinstance(item, HealingPotion)]
+
+        if not usable_items:
+            self.cprint(f"{char.name} has no usable items (potions)!")
+            return
+
+        # Create dialog to select item
+        item_dialog = QDialog(self)
+        item_dialog.setWindowTitle(f"{char.name}'s Inventory")
+        layout = QVBoxLayout(item_dialog)
+
+        # Add label
+        label = QLabel(f"Select an item to use:")
+        layout.addWidget(label)
+
+        # Create table with items
+        item_table = QTableWidget(len(usable_items), 2)
+        item_table.setHorizontalHeaderLabels(["Item", "Effect"])
+        item_table.horizontalHeader().setStretchLastSection(True)
+        item_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
+        item_table.setSelectionMode(QTableWidget.SelectionMode.SingleSelection)
+
+        for i, item in enumerate(usable_items):
+            item_table.setItem(i, 0, QTableWidgetItem(item.name))
+            if isinstance(item, HealingPotion):
+                effect = f"Heals {item.hit_dice}+{item.bonus} HP"
+                item_table.setItem(i, 1, QTableWidgetItem(effect))
+
+        layout.addWidget(item_table)
+
+        # Add buttons
+        button_layout = QVBoxLayout()
+        use_button = QPushButton("Use Item")
+        cancel_button = QPushButton("Cancel")
+        button_layout.addWidget(use_button)
+        button_layout.addWidget(cancel_button)
+        layout.addLayout(button_layout)
+
+        selected_item = None
+
+        def on_use():
+            nonlocal selected_item
+            if item_table.currentRow() >= 0:
+                selected_item = usable_items[item_table.currentRow()]
+                item_dialog.accept()
+
+        def on_cancel():
+            item_dialog.reject()
+
+        use_button.clicked.connect(on_use)
+        cancel_button.clicked.connect(on_cancel)
+
+        if item_dialog.exec_() == QDialog.DialogCode.Accepted and selected_item:
+            # Use the item
+            if isinstance(selected_item, HealingPotion):
+                # Heal the character
+                healing = selected_item.heal()
+                old_hp = char.hit_points
+                char.hit_points = min(char.hit_points + healing, char.max_hit_points)
+                actual_healing = char.hit_points - old_hp
+
+                # Remove item from inventory
+                char.inventory.remove(selected_item)
+
+                # Update action and display
+                self.actions[self.index] = CharAction(type=CharActionType.PARRY, targets=[], spell=None)
+                self.update_cell(content=f"Used {selected_item.name} (+{actual_healing} HP)", row=self.index, col=self.action_column)
+                self.cprint(f"✨ {char.name} used {selected_item.name} and healed {actual_healing} HP!")
+
+                # Refresh table to show updated HP
+                self.refresh_party_table()
+            else:
+                self.cprint(f"⚠️ {selected_item.name} cannot be used in combat!")
 
     @pyqtSlot()
     def select_monsters(self, action_type: CharActionType, spell: Optional[Spell] = None):
@@ -637,19 +819,87 @@ class Combat_UI(QMainWindow):
         # Sort party list - living characters first, dead characters last
         self.party.sort(key=lambda char: char.hit_points <= 0)
 
-        self.party_table: QTableWidget = self.ui.party_tableWidget
-        # Configure table
+        # Configure table (party_table is already initialized in __init__)
         populate_table(table=self.party_table, char_list=self.party, in_dungeon=True, sorting=False)
-        self.party_table.horizontalHeader().setStretchLastSection(True)
-        self.party_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+
+        # Set column resize modes - Status column (6) should resize to contents
+        header = self.party_table.horizontalHeader()
+        header.setStretchLastSection(True)
+
+        # Set most columns to Stretch mode
+        for col in range(self.party_table.columnCount() - 1):
+            if col == 6:  # Status column
+                header.setSectionResizeMode(col, QHeaderView.ResizeMode.ResizeToContents)
+            else:
+                header.setSectionResizeMode(col, QHeaderView.ResizeMode.Stretch)
+
+        # Update disabled state for action buttons based on conditions
+        self.update_action_buttons_state()
         # self.party_table.cellDoubleClicked.connect(self.inspect_char)
 
     def load_monster_token(self, name: str) -> Optional[str]:
         for filename in os.listdir(self.token_images_dir):
-             monster_name, _ = os.path.splitext(filename)
-             if monster_name == name:
+            monster_name = filename.replace('.webp', '').replace('.png', '').replace('_', ' ').replace('-', ' ').title()
+            if monster_name == name:
                  return os.path.join(self.token_images_dir, filename)
         return None
+
+    def add_source_badge(self, pixmap: QPixmap, source: str) -> QPixmap:
+        """
+        Add a source badge to the monster token pixmap.
+
+        Args:
+            pixmap: Original pixmap
+            source: Source book code (e.g., "MM", "MPMM", "SKT")
+
+        Returns:
+            Pixmap with badge
+        """
+        # Create a copy to not modify the original
+        result = QPixmap(pixmap)
+
+
+        # Create painter
+        painter = QPainter(result)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+
+        # Badge dimensions (top-right corner)
+        badge_width = min(60, result.width() // 3)
+        badge_height = 20
+        margin = 5
+
+        # Badge position (top-right)
+        badge_x = result.width() - badge_width - margin
+        badge_y = margin
+
+        # Choose color based on source
+        source_colors = {
+            'MM': QColor(70, 130, 180),      # Steel blue (official)
+            'MPMM': QColor(46, 139, 87),     # Sea green (updated)
+            'SKT': QColor(218, 165, 32),     # Golden rod
+            'VGM': QColor(138, 43, 226),     # Blue violet
+            'MTF': QColor(220, 20, 60),      # Crimson
+            'ERLW': QColor(255, 140, 0),     # Dark orange
+            'TCE': QColor(148, 0, 211),      # Dark violet
+            'BGDIA': QColor(178, 34, 34),    # Firebrick
+        }
+        badge_color = source_colors.get(source, QColor(105, 105, 105))  # Dim gray default
+
+        # Draw rounded rectangle background
+        painter.setBrush(badge_color)
+        painter.setPen(QPen(QColor(255, 255, 255), 1))  # White border
+        badge_rect = QRectF(badge_x, badge_y, badge_width, badge_height)
+        painter.drawRoundedRect(badge_rect, 3, 3)
+
+        # Draw text
+        font = QFont("Arial", 8, QFont.Weight.Bold)
+        painter.setFont(font)
+        painter.setPen(QColor(255, 255, 255))  # White text
+        painter.drawText(badge_rect, Qt.AlignmentFlag.AlignCenter, source)
+
+        painter.end()
+
+        return result
 
     def load_monsters(self) -> List[Monster]:
         # Default to level 1 if party is empty
@@ -695,12 +945,20 @@ class Combat_UI(QMainWindow):
             token_path = self.load_monster_token(unique_monsters[0])
             if token_path:
                 monster_1_pixmap = QPixmap(token_path)
+                # Add source badge if monster has source
+                monster_obj = next((m for m in self.monsters if m.name == unique_monsters[0]), None)
+                if monster_obj and hasattr(monster_obj, 'source') and monster_obj.source:
+                    monster_1_pixmap = self.add_source_badge(monster_1_pixmap, monster_obj.source)
                 self.ui.monster_1_Label.setAlignment(Qt.AlignmentFlag.AlignCenter)
                 label_map.append((monster_1_pixmap, self.ui.monster_1_Label, unique_monsters[0], 0))
         if len(unique_monsters) >= 2:
             token_path = self.load_monster_token(unique_monsters[1])
             if token_path:
                 monster_2_pixmap = QPixmap(token_path)
+                # Add source badge if monster has source
+                monster_obj = next((m for m in self.monsters if m.name == unique_monsters[1]), None)
+                if monster_obj and hasattr(monster_obj, 'source') and monster_obj.source:
+                    monster_2_pixmap = self.add_source_badge(monster_2_pixmap, monster_obj.source)
                 self.ui.monster_2_Label.setAlignment(Qt.AlignmentFlag.AlignCenter)
                 self.ui.monster_2_Label.setVisible(True)
                 label_map.append((monster_2_pixmap, self.ui.monster_2_Label, unique_monsters[1], 1))

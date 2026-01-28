@@ -498,13 +498,49 @@ def get_spell_caster(class_type, char_level, spells) -> Optional[SpellCaster]:
             cantrips_spells: List[Spell] = []
             if class_type.cantrips_known:
                 cantrips_spells = [s for s in learnable_spells if not s.level]
-                n_cantric_spells: int = min(len(cantrips_spells), class_type.cantrips_known[char_level - 1])
-                cantrips_spells = sample(cantrips_spells, n_cantric_spells)
+                # Safely get cantrips_known value with bounds checking
+                if char_level > 0 and char_level <= len(class_type.cantrips_known):
+                    n_cantric_spells: int = min(len(cantrips_spells), class_type.cantrips_known[char_level - 1])
+                else:
+                    # Use last available value or a default
+                    n_cantric_spells: int = min(len(cantrips_spells), class_type.cantrips_known[-1] if class_type.cantrips_known else 0)
+                if n_cantric_spells > 0:
+                    cantrips_spells = sample(cantrips_spells, n_cantric_spells)
+
             slot_spells: List[Spell] = [s for s in learnable_spells if s.level]
-            n_slot_spells: int = min(len(slot_spells), class_type.spells_known[char_level - 1])
-            slot_spells = sample(slot_spells, n_slot_spells)
+            # Safely get spells_known value with bounds checking
+            if class_type.spells_known and char_level > 0 and char_level <= len(class_type.spells_known):
+                n_slot_spells: int = min(len(slot_spells), class_type.spells_known[char_level - 1])
+            elif class_type.spells_known:
+                # Use last available value or default
+                n_slot_spells: int = min(len(slot_spells), class_type.spells_known[-1] if class_type.spells_known else len(slot_spells))
+            else:
+                # For classes without spells_known (like Wizard), use all available slot spells
+                n_slot_spells: int = len(slot_spells)
+
+            if n_slot_spells > 0:
+                slot_spells = sample(slot_spells, n_slot_spells)
             learned_spells = cantrips_spells + slot_spells
-        return SpellCaster(level=char_level, spell_slots=copy(class_type.spell_slots.get(char_level)), learned_spells=learned_spells, dc_type=class_type.spellcasting_ability, dc_value=None, ability_modifier=None, )
+
+        # Get spell slots for this level, with fallback to empty list
+        spell_slots_for_level = class_type.spell_slots.get(char_level) if class_type.spell_slots else None
+        if spell_slots_for_level is None:
+            # Fallback: try to get the highest level available
+            if class_type.spell_slots:
+                max_level = max(class_type.spell_slots.keys())
+                spell_slots_for_level = class_type.spell_slots.get(max_level, [0, 0, 0, 0, 0, 0, 0, 0, 0])
+            else:
+                # Default empty spell slots
+                spell_slots_for_level = [0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+        return SpellCaster(
+            level=char_level,
+            spell_slots=copy(spell_slots_for_level),
+            learned_spells=learned_spells,
+            dc_type=class_type.spellcasting_ability,
+            dc_value=None,
+            ability_modifier=None,
+        )
 
 
 def get_char_image(class_type) -> str:
@@ -1071,13 +1107,13 @@ def arena(character: Character):
                 p_idx = next(i for i, item in enumerate(character.inventory) if item is not None and item == potion)
                 character.inventory[p_idx] = None
             attack_count += 1
-            monster_attack_msg, monster_hp_damage = monster.attack(character)
+            monster_attack_msg, monster_hp_damage, damage_type = monster.attack(character)
             print(monster_attack_msg)
             character_attack_msg, character_hp_damage = character.attack(monster, in_melee=True, verbose=False)
             print(character_attack_msg)
             priority_dice = randint(0, 1)
             if priority_dice == 0:  # monster attacks first
-                character.hit_points -= monster_hp_damage
+                actual_damage = character.take_damage(monster_hp_damage, damage_type)
                 if character.hit_points <= 0:
                     character.status = "DEAD"
                     break
@@ -1394,80 +1430,135 @@ def temple_of_cant(party: List[Character], roster: List[Character]):
 
 
 def buy_items(char: Character):
+    shop = get_boltac_shop()
     exit_buy: bool = False
     while not exit_buy:
         efface_ecran()
-        # message = "+--------------------------------+\n"
-        # message += "|    ** BOLTAC'S TRADING POST **    |\n"
-        # message += "+--------------------------------+\n"
-        # print(message)
-        # items = char.allowed_armors + char.allowed_weapons
-        items = sorted(weapons, key=lambda i: i.cost.value) + sorted(char.prof_armors, key=lambda i: i.cost.value)
-        item_names: List[str] = []
-        for i in items:
-            prof_label: str = f'{Color.RED} ** NOT PROFICIENT **{Color.END}' if isinstance(i, Weapon) and i not in char.prof_weapons else ''
-            item_names.append(f"{i.name} ({i.cost}){prof_label}")
-        message = f"Which item to you want to buy?\n\tYou Have {char.gold} GP.\n"
-        choice: str = read_choice_or_exit(item_names, message)
-        if choice == "Exit":
+        # Build list: unlimited weapons/armors (from loader) + magic items in stock
+        menu_entries = []
+        # Non-magical weapons and armors (unlimited)
+        for w in shop.get_all_weapons():
+            menu_entries.append((w, -1))
+        for a in shop.get_all_armors():
+            menu_entries.append((a, -1))
+
+        # Magical items with limited stock
+        for item, stock in shop.get_magic_items_in_stock():
+            menu_entries.append((item, stock))
+
+        item_names = []
+        for item, stock in menu_entries:
+            cost_display = str(item.cost) if hasattr(item, 'cost') else f"{getattr(item, 'cost', 'N/A')}"
+            stock_label = 'Unlimited' if stock == -1 else f'Stock: {stock}'
+            prof_label = ''
+            if isinstance(item, Weapon) and hasattr(char, 'prof_weapons') and item not in char.prof_weapons:
+                prof_label = f' {Color.RED}** NOT PROFICIENT **{Color.END}'
+            item_names.append(f"{item.name} ({cost_display}) [{stock_label}]{prof_label}")
+
+        message = f"Which item do you want to buy?\n\tYou Have {char.gold} GP.\n"
+        choice = read_choice_or_exit(item_names, message)
+        if choice == 'Exit':
             exit_buy = True
+            continue
+
+        # find selected
+        sel_name = choice.split('(')[0].strip()
+        sel_index = next(i for i, (it, st) in enumerate(menu_entries) if it.name == sel_name)
+        item, stock = menu_entries[sel_index]
+
+        # Determine price in cp for comparison
+        price_cp = item.cost.value if hasattr(item, 'cost') and hasattr(item.cost, 'value') else (item.cost if isinstance(item.cost, int) else 0)
+        if char.gold * 100 < price_cp:
+            print("Go away! You don't have enough of money!")
+            sleep(2)
+            continue
+
+        # Deduct gold (cost stored in gp?), many existing costs are in gp units -> item.cost.value is gp
+        gp_cost = price_cp // 100 if price_cp >= 100 else price_cp // 1
+        # Conservative approach: if cost.value exists and unit is 'gp', use that
+        if hasattr(item, 'cost') and hasattr(item.cost, 'unit') and item.cost.unit == 'gp':
+            gp_cost = item.cost.quantity if hasattr(item.cost, 'quantity') else (item.cost.value // 100 if hasattr(item.cost, 'value') else 0)
+
+        if char.gold < gp_cost:
+            print("Go away! You don't have enough of money!")
+            sleep(2)
+            continue
+
+        # Process purchase
+        if stock == -1:
+            # Unlimited: give a copy
+            char.gold -= gp_cost
+            free_slots = [i for i, it in enumerate(char.inventory) if not it]
+            if free_slots:
+                char.inventory[free_slots[0]] = deepcopy(item)
+                print(f"{char.name} buys {item.name} for {item.cost}")
+                save_character(char, _dir=characters_dir)
+            else:
+                print("Inventory is full!")
+            sleep(2)
         else:
-            efface_ecran()
-            item_name: str = choice.split("(")[0].strip()
-            item: Equipment = [e for e in items if e.name == item_name][0]
-            if char.gold * 100 < item.cost.value:
-                print("Go away! You don't have enough of money!")
+            # Limited stock (magic item)
+            if shop.buy_item(item, quantity=1):
+                char.gold -= gp_cost
+                free_slots = [i for i, it in enumerate(char.inventory) if not it]
+                if free_slots:
+                    # create instance: if potion (concrete type) it's returned already by factory
+                    new_item = deepcopy(item)
+                    char.inventory[free_slots[0]] = new_item
+                    print(f"{char.name} buys {item.name} for {item.cost}")
+                    save_character(char, _dir=characters_dir)
+                else:
+                    print("Inventory is full! Transaction reversed.")
+                    # Refund and restore stock
+                    char.gold += gp_cost
+                    shop.sell_item(item, sell_price_cp=gp_cost*100)
                 sleep(2)
             else:
-                char.gold -= item.cost.value // 100
-                free_slots = [i for i, item in enumerate(char.inventory) if not item]
-                if free_slots:
-                    char.inventory[free_slots[0]] = copy(item)
-                    print(f"{char.name} buys {item.name} for {item.cost}")
-                else:
-                    print(f"Inventory is full!")
-                save_character(char, _dir=characters_dir)
-                sleep(2)
+                print("Item out of stock!")
+                sleep(1)
 
 
 def sell_items(char):
+    shop = get_boltac_shop()
     exit_sell: bool = False
     while not exit_sell:
         efface_ecran()
-        # message = "+--------------------------------+\n"
-        # message += "|    ** BOLTAC'S TRADING POST **    |\n"
-        # message += "+--------------------------------+\n"
-        # print(message)
         item_names: List[str] = []
-        for i in char.inventory:
-            if i:
-                prof_label: str = f'{Color.RED} ** NOT PROFICIENT **{Color.END}' if isinstance(i, Weapon) and i not in char.prof_weapons else ''
-                equipped_label: str = ' (Equipped)' if (isinstance(i, Weapon) or isinstance(i, Armor)) and i.equipped else ''
-                # cost: str = f"{i.cost.value // 200} {i.cost.unit}" if isinstance(i.cost, Cost) else f"{i.cost} gp"
-                cost: str = str(i.cost) if isinstance(i.cost, Cost) else f"{i.cost['quantity']} {i.cost['unit']}" if isinstance(i.cost, dict) else f"{i.cost} gp"
-                item_name = f"{i.name} ({cost}){equipped_label}{prof_label}"
-                item_names.append(item_name)
-        message = f"Which item to you want to sell?\n\tYou Have {char.gold} GP.\n"
-        choice: str = read_choice_or_exit(item_names, message)
-        if choice == "Exit":
+        inv_items = [i for i in char.inventory if i]
+        for i in inv_items:
+            prof_label = f'{Color.RED} ** NOT PROFICIENT **{Color.END}' if isinstance(i, Weapon) and i not in char.prof_weapons else ''
+            equipped_label = ' (Equipped)' if (isinstance(i, Weapon) or isinstance(i, Armor)) and getattr(i, 'equipped', False) else ''
+            cost = i.cost.quantity if hasattr(i, 'cost') and hasattr(i.cost, 'quantity') else (i.cost if isinstance(i.cost, int) else getattr(i, 'cost', 'N/A'))
+            item_name = f"{i.name} ({cost}){equipped_label}{prof_label}"
+            item_names.append(item_name)
+
+        message = f"Which item do you want to sell?\n\tYou Have {char.gold} GP.\n"
+        choice = read_choice_or_exit(item_names, message)
+        if choice == 'Exit':
             exit_sell = True
-        else:
-            efface_ecran()
-            item_name: str = choice.split("(")[0].strip()
-            item: Equipment = [e for e in char.inventory if e and e.name == item_name][0]
-            if not isinstance(item, (Weapon, Armor)) or not item.equipped:
-                cost_value: int = item.cost.value if isinstance(item.cost, Cost) else int(item.cost['quantity']) if isinstance(item.cost, dict) else item.cost
-                char.gold += cost_value // 200
-                # char.gold += item.cost.value // 200
-                char.inventory[char.inventory.index(item)] = None
-                print(f"{char.name} sells {item.name} for {item.cost}")
-                save_character(char, _dir=characters_dir)
-            else:
-                print(f"Please un-equip {item.name} first!")
+            continue
+
+        sel_name = choice.split('(')[0].strip()
+        item = next(e for e in char.inventory if e and e.name == sel_name)
+        if isinstance(item, (Weapon, Armor)) and getattr(item, 'equipped', False):
+            print(f"Please un-equip {item.name} first!")
             sleep(2)
+            continue
+
+        cost_value = item.cost.quantity if hasattr(item, 'cost') and hasattr(item.cost, 'quantity') else (item.cost if isinstance(item.cost, int) else 0)
+        sell_price_cp = cost_value * 100 // 4 if cost_value else 0
+        # Sell to shop (shop accepts everything)
+        shop.sell_item(item, sell_price_cp=sell_price_cp)
+        # Remove from character inventory
+        char.inventory[char.inventory.index(item)] = None
+        char.gold += sell_price_cp // 100
+        save_character(char, _dir=characters_dir)
+        print(f"{char.name} sells {item.name} for {sell_price_cp} cp")
+        sleep(2)
 
 
 def boltac_trading_post(party):
+    shop = get_boltac_shop()
     exit_trading_post: bool = False
     while not exit_trading_post:
         efface_ecran()
@@ -1484,7 +1575,7 @@ def boltac_trading_post(party):
             exit_character_menu: bool = False
             while not exit_character_menu:
                 efface_ecran()
-                message = f"\t  Hello, {char.name}!\n" # You have {char.gold} gp")
+                message = f"\t  Hello, {char.name}!\n"
                 choice: str = read_choice_or_exit(["Buy", "Sell", "Pool Gold"], banner + message)
                 match choice:
                     case "Buy":

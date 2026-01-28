@@ -28,8 +28,9 @@ from main import save_character, load_character
 from populate_functions import request_armor, request_weapon
 from populate_rpg_functions import load_potions_collections
 from tools.common import WHITE, RED, BLACK, get_save_game_path
+from boltac_shop import get_boltac_shop
 
-print("✅ [MIGRATION v2] boltac_tp_pygame.py - Using dnd-5e-core package")
+print("✅ [MIGRATION v2] boltac_tp_pygame.py - Using dnd-5e-core package with BoltacShop")
 print()
 
 # Constants
@@ -113,33 +114,47 @@ def handle_buy(hero, selected_item_index, selected_category):
         items_in_inventory = [i.name for i in hero.entity.inventory if i]
         empty_slots = [i for i, slot in enumerate(hero.entity.inventory) if not slot]
 
-        if len(items_in_inventory) == 20 or not empty_slots:
+        # Get item cost properly
+        if hasattr(item, 'cost') and item.cost:
+            if hasattr(item.cost, 'value'):
+                cost_value = item.cost.value  # in copper pieces
+            elif hasattr(item.cost, 'quantity'):
+                unit = getattr(item.cost, 'unit', 'gp')
+                cost_value = item.cost.quantity * 100 if unit == 'gp' else item.cost.quantity
+            else:
+                cost_value = 0
+        else:
+            cost_value = 0
+
+        # Check stock
+        shop = get_boltac_shop()
+        stock = shop.get_item_stock(item)
+
+        if stock == 0:
+            cprint(f'{item.name} is out of stock!')
+        elif len(items_in_inventory) == 20 or not empty_slots:
             cprint('Your inventory is full!')
-        elif item.cost.value > hero.entity.gold * 100:
+        elif cost_value > hero.entity.gold * 100:
             cprint(f'Not enough Gold to buy {item.name}!')
-        elif isinstance(item, Potion) and hero.entity.level < item.min_level:
+        elif isinstance(item, Potion) and hasattr(item, 'min_level') and hero.entity.level < item.min_level:
             cprint(f'You need to be level {item.min_level} to buy {item.name}!')
         else:
-            cprint(f'You bought {item.name}!')
-            print(f'[DEBUG] Gold BEFORE purchase: {hero.entity.gold}')
-            hero.entity.gold -= item.cost.value // 100
-            print(f'[DEBUG] Gold AFTER purchase: {hero.entity.gold}')
+            # Purchase from shop (updates stock)
+            if shop.buy_item(item, quantity=1):
+                cprint(f'You bought {item.name}!')
+                hero.entity.gold -= cost_value // 100
 
-            if isinstance(item, Potion):
-                bought_item = copy(item)
-            elif isinstance(item, Armor):
-                bought_item = request_armor(item.index)
-            else:
-                bought_item = request_weapon(item.index)
+                if isinstance(item, Potion):
+                    bought_item = copy(item)
+                elif isinstance(item, Armor):
+                    bought_item = request_armor(item.index) if hasattr(item, 'index') else copy(item)
+                elif isinstance(item, Equipment):
+                    bought_item = copy(item)
+                else:
+                    bought_item = request_weapon(item.index) if hasattr(item, 'index') else copy(item)
 
-            slot_index = min(empty_slots)
-            print(f'[DEBUG] Adding {item.name} to inventory slot {slot_index}')
-            print(f'[DEBUG] Inventory BEFORE: {[i.name if i else None for i in hero.entity.inventory]}')
-            hero.entity.inventory[slot_index] = bought_item
-            print(f'[DEBUG] Inventory AFTER: {[i.name if i else None for i in hero.entity.inventory]}')
-            print(f'[DEBUG] hero object id: {id(hero)}')
-            print(f'[DEBUG] hero.entity object id: {id(hero.entity)}')
-            print(f'[DEBUG] hero.entity.inventory object id: {id(hero.entity.inventory)}')
+                slot_index = min(empty_slots)
+                hero.entity.inventory[slot_index] = bought_item
 
 
 def handle_sell(hero, selected_item_index):
@@ -150,18 +165,33 @@ def handle_sell(hero, selected_item_index):
                 cprint("There's no item in this slot to sell!")
                 return
 
-            # Calculate sell price: half the item's value in cp, then convert to gp
-            sell_price_cp = item.cost.value // 2
+            # Get item cost properly
+            if hasattr(item, 'cost') and item.cost:
+                if hasattr(item.cost, 'value'):
+                    cost_value = item.cost.value
+                elif hasattr(item.cost, 'quantity'):
+                    unit = getattr(item.cost, 'unit', 'gp')
+                    cost_value = item.cost.quantity * 100 if unit == 'gp' else item.cost.quantity
+                else:
+                    cost_value = 0
+            else:
+                cost_value = 0
+
+            # Calculate sell price: half value
+            sell_price_cp = cost_value // 2
             sell_price_gp = sell_price_cp // 100
 
-            # Display in appropriate currency unit
-            if sell_price_cp >= 100:
-                cprint(f'You sold {item.name} for {sell_price_gp} gp!')
+            # Sell to shop
+            shop = get_boltac_shop()
+            if shop.sell_item(item, sell_price_cp):
+                if sell_price_cp >= 100:
+                    cprint(f'You sold {item.name} for {sell_price_gp} gp!')
+                else:
+                    cprint(f'You sold {item.name} for {sell_price_cp} cp!')
+                hero.entity.gold += sell_price_gp
+                hero.entity.inventory[selected_item_index] = None
             else:
-                cprint(f'You sold {item.name} for {sell_price_cp} cp!')
-
-            hero.entity.gold += sell_price_gp
-            hero.entity.inventory[selected_item_index] = None
+                cprint(f"Shop doesn't have enough gold!")
         except (AttributeError, IndexError) as e:
             print(f'Error: {e}')
 
@@ -354,10 +384,43 @@ def load_game_data(character_name: str):
             hero = create_game_character(char, x=-1, y=-1, image_name=image_name, char_id=1)
             original_game = None  # No gamestate for new characters
 
-        # Get available equipment
-        weapons = sorted(char.prof_weapons, key=lambda x: x.cost.value)
-        armors = sorted(char.prof_armors, key=lambda x: x.cost.value)
+        # Get shop instance
+        shop = get_boltac_shop()
+
+        # Get available equipment from shop
+        # Non-magical items (unlimited stock)
+        all_weapons = shop.get_all_weapons()
+        all_armors = shop.get_all_armors()
+
+        # Filter by character proficiencies (compare by index to avoid type mismatch)
+        prof_weapon_indices = {w.index for w in char.prof_weapons if hasattr(w, 'index')}
+        prof_armor_indices = {a.index for a in char.prof_armors if hasattr(a, 'index')}
+
+        weapons = [w for w in all_weapons if hasattr(w, 'index') and w.index in prof_weapon_indices]
+        armors = [a for a in all_armors if hasattr(a, 'index') and a.index in prof_armor_indices]
+
+        # Sort by cost
+        weapons = sorted(weapons, key=lambda x: x.cost.value if hasattr(x.cost, 'value') else 0)
+        armors = sorted(armors, key=lambda x: x.cost.value if hasattr(x.cost, 'value') else 0)
+
+        # Get potions (regular + magic)
         potions = load_potions_collections()
+
+        # Get magical items from shop (limited stock)
+        magic_items_with_stock = shop.get_magic_items_in_stock()
+        magic_items = [item for item, stock in magic_items_with_stock if stock > 0]
+
+        # Get player-sold items
+        player_items = [item for item, stock in shop.get_player_sold_items()]
+
+        # Categorize magic items
+        magic_potions = [item for item in magic_items if hasattr(item, 'item_type') and 'potion' in str(item.item_type).lower()]
+        other_magic = [item for item in magic_items if item not in magic_potions]
+
+        # Merge categories
+        potions.extend(magic_potions)
+        armors.extend(other_magic)
+        armors.extend(player_items)  # Add player-sold items
 
         return hero, [weapons, armors, potions], original_game
     except Exception as e:

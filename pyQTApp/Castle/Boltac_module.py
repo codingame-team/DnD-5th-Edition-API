@@ -18,10 +18,17 @@ from PyQt5.QtWidgets import (
 _parent_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 _dnd_5e_core_path = os.path.join(_parent_dir, 'dnd-5e-core')
 if os.path.exists(_dnd_5e_core_path) and _dnd_5e_core_path not in sys.path:
-	sys.path.insert(0, _dnd_5e_core_path)
+    sys.path.insert(0, _dnd_5e_core_path)
 
 from dnd_5e_core.entities import Character
 from dnd_5e_core.equipment import Equipment, Potion
+
+# Import BoltacShop for shared catalog
+try:
+    from boltac_shop import get_boltac_shop
+    BOLTAC_SHOP_AVAILABLE = True
+except ImportError:
+    BOLTAC_SHOP_AVAILABLE = False
 
 # Import from persistence module
 from persistence import load_party, save_character, save_party
@@ -94,7 +101,35 @@ class Boltac_UI(QWidget):
     def populate_buy_table(self, char: Character):
         self.buy_table: QTableWidget = self.ui.boltacBuy_tableWidget
         self.buy_table.clearContents()
-        self.equipment_list = char.prof_armors + char.prof_weapons + self.potions
+
+        # Get items from BoltacShop if available
+        if BOLTAC_SHOP_AVAILABLE:
+            try:
+                shop = get_boltac_shop()
+
+                # Get all weapons and armors
+                all_weapons = shop.get_all_weapons()
+                all_armors = shop.get_all_armors()
+
+                # Filter by proficiencies (compare by index)
+                prof_weapon_indices = {w.index for w in char.prof_weapons if hasattr(w, 'index')}
+                prof_armor_indices = {a.index for a in char.prof_armors if hasattr(a, 'index')}
+
+                weapons = [w for w in all_weapons if hasattr(w, 'index') and w.index in prof_weapon_indices]
+                armors = [a for a in all_armors if hasattr(a, 'index') and a.index in prof_armor_indices]
+
+                # Get magic items with stock
+                magic_items = [item for item, stock in shop.get_magic_items_in_stock() if stock > 0]
+
+                # Combine all items
+                self.equipment_list = weapons + armors + self.potions + magic_items
+            except Exception as e:
+                # Fallback to old system
+                self.equipment_list = char.prof_armors + char.prof_weapons + self.potions
+        else:
+            # Old system
+            self.equipment_list = char.prof_armors + char.prof_weapons + self.potions
+
         self.buy_table.setRowCount(len(self.equipment_list))
         # Ensure table is visible and has proper size
         self.buy_table.setVisible(True)
@@ -151,26 +186,97 @@ class Boltac_UI(QWidget):
             self.ui.sellButton.setEnabled(True)
             self.update_gold_info()
 
+    def _get_gp_cost(self, item) -> int:
+        # Robust cost extraction: prefer Cost.quantity (gp), else Cost.value interpreted as cp
+        if hasattr(item, 'cost'):
+            cost = item.cost
+            if hasattr(cost, 'quantity'):
+                return int(cost.quantity)
+            if hasattr(cost, 'value'):
+                # assume value is in copper pieces
+                return int(cost.value) // 100
+        # Fallbacks
+        if isinstance(getattr(item, 'cost', None), int):
+            return int(item.cost)
+        return 0
+
     def buy_item_logic(self, row: int):
-        """Common logic for buying an item"""
+        """Common logic for buying an item (uses shared BoltacShop when available)"""
         item_name: str = self.buy_table.item(row, 0).text()
         item: Equipment = [c for c in self.equipment_list if c.name == item_name][0]
+        shop = None
+        if BOLTAC_SHOP_AVAILABLE:
+            try:
+                shop = get_boltac_shop()
+            except Exception:
+                shop = None
+
+        # Determine gp cost
+        gp_cost = self._get_gp_cost(item)
+
+        # Check funds
+        if self.selected_char.gold < gp_cost:
+            # insufficient funds - should not happen if UI disabled correctly
+            return
+
+        # If it's a magic item with limited stock, ask shop to buy
+        is_limited = False
+        if shop is not None and hasattr(item, 'index') and item.index in shop.magic_stock:
+            is_limited = True
+
+        if is_limited:
+            if not shop.buy_item(item, quantity=1):
+                # out of stock
+                return
+
+        # Add to character inventory
         inventory = list(filter(None, self.selected_char.inventory))
-        addItem(table=self.sell_table, item=item, row=len(inventory))
-        min_slot: int = min([i for i, item in enumerate(self.selected_char.inventory) if item is None])
-        self.selected_char.inventory[min_slot] = item
-        self.selected_char.gold -= item.cost.value / 100
+        min_slot: int = min([i for i, it in enumerate(self.selected_char.inventory) if it is None])
+        # deep copy for non-magical unlimited items to avoid shared refs
+        from copy import deepcopy
+        self.selected_char.inventory[min_slot] = deepcopy(item)
+        self.selected_char.gold -= gp_cost
         save_character(char=self.selected_char, _dir=self.characters_dir)
         save_party(self.party, get_save_game_path())
         self.populate_sell_table(char=self.selected_char)
+        # refresh buy table if limited stock changed
+        if is_limited and shop is not None:
+            self.populate_buy_table(self.selected_char)
 
     def sell_item_logic(self, row: int):
-        """Common logic for selling an item"""
+        """Common logic for selling an item (uses shared BoltacShop when available)"""
         item_name: str = self.sell_table.item(row, 0).text()
         item: Equipment = [c for c in self.selected_char.inventory if c and c.name == item_name][0]
+        shop = None
+        if BOLTAC_SHOP_AVAILABLE:
+            try:
+                shop = get_boltac_shop()
+            except Exception:
+                shop = None
+
+        # compute sell price: default quarter of gp value in cp
+        cost_value = 0
+        if hasattr(item, 'cost') and hasattr(item.cost, 'quantity'):
+            cost_value = int(item.cost.quantity)
+        elif hasattr(item, 'cost') and hasattr(item.cost, 'value'):
+            cost_value = int(item.cost.value) // 100
+        elif isinstance(getattr(item, 'cost', None), int):
+            cost_value = int(item.cost)
+
+        sell_price_cp = cost_value * 100 // 4 if cost_value else 0
+
+        # Give gold to character and remove from inventory
         slot: int = self.selected_char.inventory.index(item)
         self.selected_char.inventory[slot] = None
-        self.selected_char.gold += (item.cost.value / 100) // 2
+        self.selected_char.gold += sell_price_cp / 100
+
+        # If shop available, record player-sold item in shop (shop accepts everything)
+        if shop is not None:
+            try:
+                shop.sell_item(item, sell_price_cp=int(sell_price_cp))
+            except Exception:
+                pass
+
         self.sell_table.removeRow(row)
         save_character(char=self.selected_char, _dir=self.characters_dir)
         save_party(self.party, get_save_game_path())

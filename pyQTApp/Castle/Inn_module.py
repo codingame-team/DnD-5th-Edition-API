@@ -5,8 +5,8 @@ import sys
 
 from PyQt5.QtCore import pyqtSlot, Qt, QTimer
 from PyQt5.QtWidgets import (
-    QFrame, QTableWidget, QMainWindow, QWidget, QSizePolicy,
-    QRadioButton, QVBoxLayout, QLabel
+    QFrame, QTableWidget, QMainWindow, QWidget,
+    QRadioButton, QVBoxLayout, QLabel, QSizePolicy
 )
 
 # ============================================

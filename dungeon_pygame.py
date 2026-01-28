@@ -2314,21 +2314,26 @@ def handle_monster_actions(game: Game, monster: Monster) -> Optional[int]:
 		if available_spells:
 			# print(f'{monster.name} - old spell slots: {monster.sc.spell_slots}')
 			attack_spell: Spell = max(available_spells, key=lambda s: s.level)
-			attack_msg, damage = monster.cast_attack(game.hero, attack_spell, verbose=True)  # print(f'{monster.name} - new spell slots: {monster.sc.spell_slots}')
+			attack_msg, damage, damage_type = monster.cast_attack(game.hero, attack_spell, verbose=True)
+			game.hero.take_damage(damage, damage_type)
+			# print(f'{monster.name} - new spell slots: {monster.sc.spell_slots}')
 		elif available_special_attacks:
 			special_attack: SpecialAbility = max(available_special_attacks, key=lambda a: sum([damage.dd.score(success_type=a.dc_success) for damage in a.damages]))
 			# cprint(special_attack)
 			cprint(f'{color.GREEN}{monster.name}{color.END} launches ** {special_attack.name.upper()} ** on {game.hero.name}!')
 			# cprint('target chars: ' + '/'.join([c.name for c in target_chars]))
-			attack_msg, damage = monster.special_attack(game.hero, special_attack, verbose=True)
+			attack_msg, damage, damage_type = monster.special_attack(game.hero, special_attack, verbose=True)
+			game.hero.take_damage(damage, damage_type)
 		elif mh_dist(monster.pos, game.pos) <= 1:
 			melee_attacks: List[Action] = list(filter(lambda a: a.type in [ActionType.MELEE, ActionType.MIXED], monster.actions))
 			# Monster attacks the hero
-			attack_msg, damage = monster.attack(target=game.hero, actions=melee_attacks, distance=range, verbose=True)
+			attack_msg, damage, damage_type = monster.attack(target=game.hero, actions=melee_attacks, distance=range, verbose=True)
+			game.hero.take_damage(damage, damage_type)
 		else:
 			ranged_attacks: List[Action] = list(filter(lambda a: a.type in [ActionType.RANGED, ActionType.MIXED] and ((a.long_range and range <= a.long_range) or range <= a.normal_range), monster.actions))
 			if ranged_attacks:
-				attack_msg, damage = monster.attack(target=game.hero, actions=ranged_attacks, distance=range, verbose=True)
+				attack_msg, damage, damage_type = monster.attack(target=game.hero, actions=ranged_attacks, distance=range, verbose=True)
+				game.hero.take_damage(damage, damage_type)
 			else:
 				# Monster moves towards the hero
 				if not hasattr(monster, 'speed'):
