@@ -59,7 +59,7 @@ Complete graphical game with multiple modules:
 - Melee & ranged combat (D&D 5th Edition rules)
 - Graphical interface with mouse support
 
-[Pygame Version Documentation](README_pygame_version.md)
+[Pygame Version Documentation](manual/README_pygame_version.md)
 
 ### 4. Tkinter Version ❌ Standalone (simplified D&D rules)
 Basic arena with **simplified custom D&D rules** (does not use dnd-5e-core).
