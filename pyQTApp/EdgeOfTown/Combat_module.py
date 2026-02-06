@@ -5,8 +5,8 @@ from functools import partial
 from random import randint, choice, sample
 from typing import List, Optional
 
-from PyQt5.QtCore import Qt, QObject, QEvent, pyqtSlot, QTimer, QRectF
-from PyQt5.QtGui import QPixmap, QCursor, QPainter, QColor, QFont, QPen
+from PyQt5.QtCore import Qt, QObject, QEvent, pyqtSlot, QTimer
+from PyQt5.QtGui import QPixmap, QCursor
 from PyQt5.QtWidgets import (
     QMainWindow,
     QTableWidget,
@@ -22,39 +22,8 @@ from PyQt5.QtWidgets import (
     QTableWidgetItem,
 )
 
-# ============================================
-# MIGRATION: Import from dnd-5e-core package
-# ============================================
-_parent_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-_dnd_5e_core_path = os.path.join(_parent_dir, 'dnd-5e-core')
-if os.path.exists(_dnd_5e_core_path) and _dnd_5e_core_path not in sys.path:
-	sys.path.insert(0, _dnd_5e_core_path)
-
-from dnd_5e_core.entities import Character, Monster
-from dnd_5e_core.combat import Action, ActionType, SpecialAbility, RangeType
-from dnd_5e_core.spells import Spell
-from dnd_5e_core.classes import Proficiency
-
-# UI-specific combat models (not in dnd-5e-core)
-from pyQTApp.combat_models import CharAction, CharActionType
-
-# Import from persistence module
-from persistence import load_party
-
-# Import D&D 5e rules from package
-from dnd_5e_core.mechanics import (
-    generate_encounter_distribution,
-    ENCOUNTER_TABLE,
-    ENCOUNTER_GOLD_TABLE,
-)
-from dnd_5e_core.mechanics.encounter_builder import select_monsters_by_encounter_table
-
-# Compatibility aliases
-generate_encounter_levels = generate_encounter_distribution
-load_encounter_table = lambda: ENCOUNTER_TABLE
-load_encounter_gold_table = lambda: ENCOUNTER_GOLD_TABLE
-generate_encounter = select_monsters_by_encounter_table
-
+from dao_classes import Character, Monster, CharAction, ActionType, CharActionType, Spell, SpecialAbility, RangeType, Action
+from main import (load_party, generate_encounter_levels, generate_encounter, load_encounter_table, load_encounter_gold_table, )
 from populate_functions import populate, request_monster
 from pyQTApp.common import color
 from pyQTApp.qt_designer_widgets.combat_QFrame import Ui_combatFrame
@@ -105,12 +74,8 @@ class Combat_UI(QMainWindow):
         self.ui.castleButton.clicked.connect(edge_of_town_window.return_to_castle)
 
         game_path = get_save_game_path()
-        self.party: List[Character] = load_party(_dir=game_path)
-
-        # Initialize party_table reference early
-        self.party_table: QTableWidget = self.ui.party_tableWidget
-        self.index = 0
-
+        self.party: List[Character] = load_party(game_path)
+        self.refresh_party_table()
         monster_names: List[str] = populate(collection_name="monsters", key_name="results")
         self.monsters_db: List[Monster] = [request_monster(name) for name in monster_names]
         path = os.path.dirname(__file__)
@@ -118,28 +83,20 @@ class Combat_UI(QMainWindow):
         self.monsters = self.load_monsters()
         self.display_monsters_groups()
         self.ui.char_actions_groupBox.setVisible(True)
-
         # Connect fight button to prepare_action so user can click a token to pick the group
         self.ui.fightButton.clicked.connect(lambda: self.prepare_action(CharActionType.MELEE_ATTACK))
         self.ui.castButton.clicked.connect(self.cast_spell)
         self.ui.parryButton.clicked.connect(self.parry)
-        # Add use item button if it exists in UI, otherwise add it dynamically
-        if hasattr(self.ui, 'useItemButton'):
-            self.ui.useItemButton.clicked.connect(self.use_item)
-
+        self.party_table.itemSelectionChanged.connect(self.on_party_row_selected)
+        self.index = 0
         self.actions: List[Optional[CharAction]] = [None] * len(self.party)
+        self.action_column = self.party_table.model().columnCount() - 1
+        self.party_table.setCurrentCell(self.index, self.action_column)
         self.setup_events_area()
         self.round_num = 0
         # Pending action holds a tuple (action_type, spell) when user pressed an action button and awaits target click
         self.pending_action = None
-
-        # Now refresh party table and connect signals after initialization
-        self.refresh_party_table()
-
-        # Connect party table signals after refresh
-        self.party_table.itemSelectionChanged.connect(self.on_party_row_selected)
-        self.action_column = self.party_table.model().columnCount() - 1
-        self.party_table.setCurrentCell(self.index, self.action_column)
+        # self.exec()
 
     def setup_events_area(self):
         """Initialize the scroll area with a widget and layout"""
@@ -156,14 +113,9 @@ class Combat_UI(QMainWindow):
 
     def cprint(self, message: str):
         """Print colored message to events area"""
-        import re
-
-        # Remove ANSI color codes
-        ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
-        clean_message = ansi_escape.sub('', message)
 
         # Create label with message
-        label = QLabel(clean_message)
+        label = QLabel(message)
         label.setWordWrap(True)
 
         # Insert label before the stretch
@@ -172,9 +124,6 @@ class Combat_UI(QMainWindow):
         # Auto scroll to bottom
         QTimer.singleShot(0, self.scroll_to_bottom)
 
-        # Also print to console for debugging
-        debug(clean_message)
-
     def scroll_to_bottom(self):
         """Scroll to the bottom of the scroll area"""
         scrollbar = self.ui.event_scrollArea.verticalScrollBar()
@@ -182,206 +131,150 @@ class Combat_UI(QMainWindow):
 
     @pyqtSlot()
     def combat(self):
-        if any([action is None for i, action in enumerate(self.actions) if self.party[i].hit_points > 0]):
+        if any([action is None for i, action in enumerate(self.actions) if not self.party[i].is_dead]):
             debug("Not all actions are selected")
-            self.cprint("⚠️ Please select an action for all living party members!")
             return
         debug(f"actions {self.actions}")
-        self.cprint(f"=== ROUND {self.round_num + 1} ===")
         attack_queue = [(c, randint(1, c.abilities.dex)) for c in self.party] + [(m, randint(1, m.abilities.dex)) for m in self.monsters]
         attack_queue.sort(key=lambda x: x[1], reverse=True)
         attackers = [c for c, init_roll in attack_queue]
         alive_monsters: List[Monster] = [c for c in self.monsters if c.hit_points > 0]
         alive_chars: List[Character] = [c for c in self.party if c.hit_points > 0]
-        debug(f"Queue size: {len(attackers)}, Alive monsters: {len(alive_monsters)}, Alive chars: {len(alive_chars)}")
         # Start of Round
         queue = [c for c in attackers if c.hit_points > 0]
-        debug(f"Starting combat loop with {len(queue)} attackers in queue")
         while queue:
-            try:
-                attacker = queue.pop()
-                debug(f"Processing attacker: {attacker.name if hasattr(attacker, 'name') else 'Unknown'} (HP: {attacker.hit_points})")
-                if attacker.hit_points > 0:
-                    debug(f"  → Attacker is alive, checking type...")
-                    if isinstance(attacker, Monster):
-                        debug(f"  → {attacker.name} is a Monster")
-                        # check if monster can heal someone
-                        healing_spells: List[Spell] = []
-                        if attacker.is_spell_caster:
-                            healing_spells: List[Spell] = [s for s in attacker.sc.learned_spells if s.heal_at_slot_level and attacker.sc.spell_slots[s.level - 1] > 0]
-                            # cprint(f"{color.GREEN}{attacker.name}{color.END} has {len(healing_spells)} healing spells available!")
-                        if any(c for c in alive_monsters if c.hit_points < 0.5 * c.max_hit_points) and healing_spells:
-                            # spell = max(healing_spells, key=lambda s: s.level) # choose strongest spell (to be refined)
-                            max_spell_level: int = max([s.level for s in healing_spells])
-                            spell = choice([s for s in healing_spells if s.level == max_spell_level])
-                            monster: Monster = min(alive_monsters, key=lambda c: c.hit_points)  # consider weakest char for optimal healing
-                            if spell.range == 5:
-                                attacker.cast_heal(spell, spell.level - 1, [monster])
-                                self.cprint(f"{color.GREEN}{attacker.name}{color.END} heals {monster.name}")
-                            else:
-                                attacker.cast_heal(spell, spell.level - 1, alive_monsters)
-                                self.cprint(f"{color.GREEN}{attacker.name}{color.END} heals all monsters")
-                            if not spell.is_cantrip:
-                                attacker.sc.spell_slots[spell.level - 1] -= 1
+            attacker = queue.pop()
+            if attacker.hit_points > 0:
+                if isinstance(attacker, Monster):
+                    # check if monster can heal someone
+                    healing_spells: List[Spell] = []
+                    if attacker.is_spell_caster:
+                        healing_spells: List[Spell] = [s for s in attacker.sc.learned_spells if s.heal_at_slot_level and attacker.sc.spell_slots[s.level - 1] > 0]
+                        # cprint(f"{color.GREEN}{attacker.name}{color.END} has {len(healing_spells)} healing spells available!")
+                    if any(c for c in alive_monsters if c.hit_points < 0.5 * c.max_hit_points) and healing_spells:
+                        # spell = max(healing_spells, key=lambda s: s.level) # choose strongest spell (to be refined)
+                        max_spell_level: int = max([s.level for s in healing_spells])
+                        spell = choice([s for s in healing_spells if s.level == max_spell_level])
+                        monster: Monster = min(alive_monsters, key=lambda c: c.hit_points)  # consider weakest char for optimal healing
+                        if spell.range == 5:
+                            attacker.cast_heal(spell, spell.level - 1, [monster])
+                            self.cprint(f"{color.GREEN}{attacker.name}{color.END} heals {monster.name}")
                         else:
-                            # Monster attacks randomly
-                            melee_chars: List[Character] = [c for i, c in enumerate(alive_chars) if i < 3]
-                            ranged_chars: List[Character] = [c for i, c in enumerate(alive_chars) if i >= 3]
-                            if not melee_chars + ranged_chars:
-                                break
-                            # Precompute castable spells safely
-                            castable_spells: List[Spell] = []
-                            if attacker.is_spell_caster:
-                                cantric_spells: List[Spell] = [s for s in attacker.sc.learned_spells if not s.level and s.damage_type]
-                                slot_spells: List[Spell] = [
-                                    s
-                                    for s in attacker.sc.learned_spells
-                                    if s.level and attacker.sc.spell_slots[s.level - 1] > 0 and s.damage_type
-                                ]
-                                castable_spells = cantric_spells + slot_spells
-                            if attacker.sa and self.round_num > 0:  # ou 1? (à vérifier)
-                                for special_attack in attacker.sa:
-                                    if special_attack.recharge_on_roll:
-                                        special_attack.ready = special_attack.recharge_success
-                            available_special_attacks: List[SpecialAbility] = list(filter(lambda a: a.ready, attacker.sa)) if attacker.sa else []
-                            # Main loop
-                            if attacker.is_spell_caster and castable_spells:
-                                target_char: Character = (choice(ranged_chars) if ranged_chars else choice(melee_chars))
-                                attack_spell: Spell = max(castable_spells, key=lambda s: s.level)
-                                attack_msg, damage = attacker.cast_attack(target_char, attack_spell, verbose=False)
-                                target_char.hit_points -= damage
-                                self.cprint(attack_msg)
-                                self.cprint(f"{color.GREEN}{attacker.name}{color.END} attacks {target_char.name} with ** {attack_spell.name.upper()} **")
+                            attacker.cast_heal(spell, spell.level - 1, alive_monsters)
+                            self.cprint(f"{color.GREEN}{attacker.name}{color.END} heals all monsters")
+                        if not spell.is_cantrip:
+                            attacker.sc.spell_slots[spell.level - 1] -= 1
+                    else:
+                        # Monster attacks randomly
+                        melee_chars: List[Character] = [c for i, c in enumerate(alive_chars) if i < 3]
+                        ranged_chars: List[Character] = [c for i, c in enumerate(alive_chars) if i >= 3]
+                        if not melee_chars + ranged_chars:
+                            break
+                        # Precompute castable spells safely
+                        castable_spells: List[Spell] = []
+                        if attacker.is_spell_caster:
+                            cantric_spells: List[Spell] = [s for s in attacker.sc.learned_spells if not s.level and s.damage_type]
+                            slot_spells: List[Spell] = [
+                                s
+                                for s in attacker.sc.learned_spells
+                                if s.level and attacker.sc.spell_slots[s.level - 1] > 0 and s.damage_type
+                            ]
+                            castable_spells = cantric_spells + slot_spells
+                        if attacker.sa and self.round_num > 0:  # ou 1? (à vérifier)
+                            for special_attack in attacker.sa:
+                                if special_attack.recharge_on_roll:
+                                    special_attack.ready = special_attack.recharge_success
+                        available_special_attacks: List[SpecialAbility] = list(filter(lambda a: a.ready, attacker.sa))
+                        # Main loop
+                        if attacker.is_spell_caster and castable_spells:
+                            target_char: Character = (choice(ranged_chars) if ranged_chars else choice(melee_chars))
+                            attack_spell: Spell = max(castable_spells, key=lambda s: s.level)
+                            target_char.hit_points -= attacker.cast_attack(target_char, attack_spell)
+                            self.cprint(f"{color.GREEN}{attacker.name}{color.END} attacks {target_char.name} with ** {attack_spell.name.upper()} **")
+                            if target_char.hit_points <= 0:
+                                alive_chars.remove(target_char)
+                                target_char.status = "DEAD"
+                                self.cprint(f"{target_char.name} is ** KILLED **!")
+                        elif available_special_attacks:
+                            special_attack: SpecialAbility = max(available_special_attacks, key=lambda a: sum([damage.dd.score(success_type=a.dc_success) for damage in a.damages]), )
+                            # cprint(special_attack)
+                            if special_attack.targets_count >= len(self.party):
+                                self.cprint(f"{color.GREEN}{attacker.name}{color.END} launches ** {special_attack.name.upper()} ** on whole party!")
+                                target_chars: List[Character] = self.party
+                            else:
+                                if special_attack.range == RangeType.MELEE:
+                                    target_chars: List[Character] = sample(melee_chars, special_attack.targets_count)
+                                elif special_attack.range == RangeType.RANGED:
+                                    target_chars: List[Character] = sample(ranged_chars, special_attack.targets_count)
+                                else:
+                                    target_chars: List[Character] = sample(self.party, special_attack.targets_count)
+                                targets: str = ", ".join([char.name for char in target_chars])
+                                # Replace all ' and ' with ', ' except for the last one
+                                targets_split = targets.rsplit(", ", 1)  # Split at the last ', '
+                                formatted_targets = " and ".join(targets_split)
+                                self.cprint(f"{color.GREEN}{attacker.name}{color.END} launches ** {special_attack.name.upper()} ** on {formatted_targets}!")
+                            # cprint('target chars: ' + '/'.join([c.name for c in target_chars]))
+                            for target_char in target_chars:
+                                if target_char in alive_chars:
+                                    target_char.hit_points -= attacker.special_attack(target_char, special_attack)
+                                    if target_char.hit_points <= 0:
+                                        # cprint('/'.join([c.name for c in alive_chars]))
+                                        # cprint(f'removing {char.name}');
+                                        alive_chars.remove(target_char)
+                                        target_char.status = "DEAD"
+                                        self.cprint(f"{target_char.name} is ** KILLED **!")
+                        else:
+                            target_char: Character = choice(melee_chars)
+                            melee_attacks: List[Action] = [a for a in attacker.actions if a.type in (ActionType.MELEE, ActionType.MIXED)] if attacker.actions else []
+                            if melee_attacks:
+                                target_char.hit_points -= attacker.attack(character=target_char, actions=melee_attacks)
+                                self.cprint(f"{color.GREEN}{attacker.name}{color.END} attacks {target_char.name}")
                                 if target_char.hit_points <= 0:
                                     alive_chars.remove(target_char)
                                     target_char.status = "DEAD"
                                     self.cprint(f"{target_char.name} is ** KILLED **!")
-                                # Refresh party table to show updated conditions
-                                self.refresh_party_table()
-                            elif available_special_attacks:
-                                special_attack: SpecialAbility = max(available_special_attacks, key=lambda a: sum([damage.dd.score(success_type=a.dc_success) for damage in a.damages]), )
-                                # cprint(special_attack)
-                                if special_attack.targets_count >= len(self.party):
-                                    self.cprint(f"{color.GREEN}{attacker.name}{color.END} launches ** {special_attack.name.upper()} ** on whole party!")
-                                    target_chars: List[Character] = self.party
-                                else:
-                                    if special_attack.range == RangeType.MELEE:
-                                        target_chars: List[Character] = sample(melee_chars, special_attack.targets_count)
-                                    elif special_attack.range == RangeType.RANGED:
-                                        target_chars: List[Character] = sample(ranged_chars, special_attack.targets_count)
-                                    else:
-                                        target_chars: List[Character] = sample(self.party, special_attack.targets_count)
-                                    targets: str = ", ".join([char.name for char in target_chars])
-                                    # Replace all ' and ' with ', ' except for the last one
-                                    targets_split = targets.rsplit(", ", 1)  # Split at the last ', '
-                                    formatted_targets = " and ".join(targets_split)
-                                    self.cprint(f"{color.GREEN}{attacker.name}{color.END} launches ** {special_attack.name.upper()} ** on {formatted_targets}!")
-                                # cprint('target chars: ' + '/'.join([c.name for c in target_chars]))
-                                for target_char in target_chars:
-                                    if target_char in alive_chars:
-                                        attack_msg, damage = attacker.special_attack(target_char, special_attack, verbose=False)
-                                        target_char.hit_points -= damage
-                                        self.cprint(attack_msg)
-                                        if target_char.hit_points <= 0:
-                                            # cprint('/'.join([c.name for c in alive_chars]))
-                                            # cprint(f'removing {char.name}');
-                                            alive_chars.remove(target_char)
-                                            target_char.status = "DEAD"
-                                            self.cprint(f"{target_char.name} is ** KILLED **!")
-                                # Refresh party table to show updated conditions
-                                self.refresh_party_table()
                             else:
-                                # Monster attacks with any available action
-                                if melee_chars:
-                                    target_char: Character = choice(melee_chars)
-                                    # Try melee first, then mixed, then ranged
-                                    melee_attacks: List[Action] = [a for a in attacker.actions if a.type in (ActionType.MELEE, ActionType.MIXED)] if attacker.actions else []
-                                    if not melee_attacks:
-                                        # If no melee, try ranged attacks on ranged chars
-                                        ranged_attacks: List[Action] = [a for a in attacker.actions if a.type == ActionType.RANGED] if attacker.actions else []
-                                        if ranged_attacks and ranged_chars:
-                                            target_char = choice(ranged_chars)
-                                            melee_attacks = ranged_attacks
-
-                                    if melee_attacks:
-                                        attack_msg, damage, damage_type = attacker.attack(target=target_char, actions=melee_attacks, verbose=False)
-                                        # Use take_damage to apply resistances/immunities
-                                        actual_damage = target_char.take_damage(damage, damage_type)
-                                        self.cprint(attack_msg)
-                                        if actual_damage < damage:
-                                            self.cprint(f"   {color.CYAN}(Reduced from {damage} to {actual_damage} due to resistance/immunity){color.END}")
-                                        self.cprint(f"{color.GREEN}{attacker.name}{color.END} attacks {target_char.name}")
-                                        if target_char.hit_points <= 0:
-                                            alive_chars.remove(target_char)
-                                            target_char.status = "DEAD"
-                                            self.cprint(f"{target_char.name} is ** KILLED **!")
-                                        # Refresh party table to show updated conditions
-                                        self.refresh_party_table()
-                                    else:
-                                        self.cprint(f"** {attacker.name} ** has no attacks available!")
-                                        debug(f"  → {attacker.name} actions: {attacker.actions}")
-                                else:
-                                    debug(f"  → No targets available for {attacker.name}")
-                    elif isinstance(attacker, Character): # CHARACTER Attacks
-                        debug(f"  → {attacker.name} is a Character")
-                        attacker_index: int = self.party.index(attacker)
-                        action = self.actions[attacker_index]
-                        debug(f"  → Character action: {action.type if action else 'None'}")
-                        if action.type == CharActionType.PARRY:
-                            self.cprint(f"{color.GREEN}{attacker.name}{color.END} parries!")
-                            continue
-                        monsters = list(filter(lambda m: m.hit_points > 0, action.targets))
-                        if not monsters:
-                            continue
-                        monster: Monster = min(monsters, key=lambda m: m.hit_points)
-                        if action.type == CharActionType.MELEE_ATTACK:
-                            attack_msg, damage = attacker.attack(monster=monster, in_melee=(attacker in alive_chars[:3]), verbose=False)
-                            monster.hit_points -= damage
-                            self.cprint(attack_msg)
-                            self.cprint(f"{color.GREEN}{attacker.name}{color.END} attacks {monster.name.title()}!")
-                            if monster.hit_points <= 0:
-                                alive_monsters.remove(monster)
-                                self.cprint(f"{color.RED}{monster.name.title()}{color.END} is ** KILLED **!")
-                                victory_msg, xp, gold = attacker.victory(monster, verbose=False)
-                                self.cprint(victory_msg)
-                                # attacker.treasure(weapons, armors, equipments, potions)
-                                if not hasattr(attacker, "kills"): attacker.kills = []
-                                attacker.kills.append(monster)
-                        elif action.type == CharActionType.SPELL_ATTACK:
-                            monster: Monster = min(alive_monsters, key=lambda m: m.hit_points)
-                            attack_msg, damage = attacker.cast_attack(action.spell, monster, verbose=False)
-                            monster.hit_points -= damage
-                            self.cprint(attack_msg)
-                            if not action.spell.is_cantrip:
-                                attacker.update_spell_slots(spell=action.spell)
-                            self.cprint(f"{color.GREEN}{attacker.name}{color.END} casts {action.spell.name} on {monster.name.title()}!")
-                            if monster.hit_points <= 0:
-                                alive_monsters.remove(monster)
-                                self.cprint(f"{color.RED}{monster.name.title()}{color.END} is ** KILLED **!")
-                                victory_msg, xp, gold = attacker.victory(monster, verbose=False)
-                                self.cprint(victory_msg)
-                                # attacker.treasure(weapons, armors, equipments, potions)
-                                if not hasattr(attacker, "kills"): attacker.kills = []
-                                attacker.kills.append(monster)
-                        elif action.type == CharActionType.SPELL_DEFENSE:
-                            # Ensure best_slot_level exists even if loop doesn't run
-                            best_slot_level = 0
-                            for char in action.targets:
-                                best_slot_level = attacker.get_best_slot_level(heal_spell=action.spell, target=char)
-                                if action.spell.range == 5:
-                                    attacker.cast_heal(action.spell, best_slot_level, [char])
-                                    self.cprint(f"{color.GREEN}{attacker.name}{color.END} casts {action.spell.name} on {char.name}!")
-                                else:
-                                    attacker.cast_heal(action.spell, best_slot_level, self.party)
-                                    self.cprint(f"{color.GREEN}{attacker.name}{color.END} casts {action.spell.name} on PARTY!")
-                            if not action.spell.is_cantrip:
-                                attacker.update_spell_slots(action.spell, best_slot_level)
-            except Exception as e:
-                debug(f"ERROR in combat loop: {type(e).__name__}: {str(e)}")
-                import traceback
-                debug(traceback.format_exc())
-                self.cprint(f"ERROR: {type(e).__name__}: {str(e)}")
-        debug(f"Combat loop finished. Round {self.round_num + 1} complete")
+                                self.cprint(f"** {attacker.name} ** has no MELEE attacks implemented!")
+                else: # CHARACTER Attacks
+                    attacker_index: int = self.party.index(attacker)
+                    action = self.actions[attacker_index]
+                    if action.type == CharActionType.PARRY:
+                        self.cprint(f"{color.GREEN}{attacker.name}{color.END} parries!")
+                        continue
+                    monsters = list(filter(lambda m: m.hit_points > 0, action.targets))
+                    if not monsters:
+                        continue
+                    monster: Monster = min(monsters, key=lambda m: m.hit_points)
+                    if action.type == CharActionType.MELEE_ATTACK:
+                        monster.hit_points -= attacker.attack(monster=monster)
+                        self.cprint(f"{color.GREEN}{attacker.name}{color.END} attacks {monster.name.title()}!")
+                        monster.hit_points -= attacker.attack(monster=monster, in_melee=(attacker in alive_chars[:3]))
+                    elif action.type == CharActionType.SPELL_ATTACK:
+                        monster: Monster = min(alive_monsters, key=lambda m: m.hit_points)
+                        monster.hit_points -= attacker.cast_attack(action.spell, monster)
+                        if not action.spell.is_cantrip:
+                            attacker.update_spell_slots(spell=action.spell)
+                        self.cprint(f"{color.GREEN}{attacker.name}{color.END} casts {action.spell.name} on {monster.name.title()}!")
+                    elif action.type == CharActionType.SPELL_DEFENSE:
+                        # Ensure best_slot_level exists even if loop doesn't run
+                        best_slot_level = 0
+                        for char in action.targets:
+                            best_slot_level = attacker.get_best_slot_level(heal_spell=action.spell, target=char)
+                            if action.spell.range == 5:
+                                attacker.cast_heal(action.spell, best_slot_level, [char])
+                                self.cprint(f"{color.GREEN}{attacker.name}{color.END} casts {action.spell.name} on {char.name}!")
+                            else:
+                                attacker.cast_heal(action.spell, best_slot_level, self.party)
+                                self.cprint(f"{color.GREEN}{attacker.name}{color.END} casts {action.spell.name} on PARTY!")
+                        if not action.spell.is_cantrip:
+                            attacker.update_spell_slots(action.spell, best_slot_level)
+                    if monster.hit_points <= 0:
+                        alive_monsters.remove(monster)
+                        self.cprint(f"{color.RED}{monster.name.title()}{color.END} is ** KILLED **!")
+                        attacker.victory(monster)
+                        # attacker.treasure(weapons, armors, equipments, potions)
+                        if not hasattr(attacker, "kills"): attacker.kills = []
+                        attacker.kills.append(monster)
         self.round_num += 1
 
         # End of Round
@@ -389,13 +282,8 @@ class Combat_UI(QMainWindow):
         alive_monsters: List[Monster] = [c for c in self.monsters if c.hit_points > 0]
 
         if not alive_chars:
-            # Clear conditions from all party members after defeat
             for target_char in self.party:
-                if hasattr(target_char, 'conditions'):
-                    if target_char.conditions is None:
-                        target_char.conditions = []
-                    else:
-                        target_char.conditions.clear()
+                target_char.conditions.clear()
             self.cprint(f"** DEFEAT! ALL PARTY HAS BEEN KILLED **")
             self.ui.party_action_groupBox.setVisible(False)
             self.ui.char_actions_groupBox.setVisible(False)
@@ -403,18 +291,12 @@ class Combat_UI(QMainWindow):
             self.cprint(f"** VICTORY! **")
             party_level: int = round(sum([c.level for c in self.party]) / len(self.party))
             encounter_gold_table: List[int] = load_encounter_gold_table()
-            earned_gold: int = encounter_gold_table[party_level]
+            earned_gold: int = encounter_gold_table[party_level - 1]
             xp_gained: int = sum([m.xp for m in self.monsters])
-
-            # Clear conditions from surviving party members after victory
             for target_char in alive_chars:
                 target_char.gold += earned_gold // len(self.party)
                 target_char.xp += xp_gained // len(alive_chars)
-                if hasattr(target_char, 'conditions'):
-                    if target_char.conditions is None:
-                        target_char.conditions = []
-                    else:
-                        target_char.conditions.clear()
+                target_char.conditions.clear()
             self.cprint(f"Party has earned {earned_gold} GP and gained {xp_gained} XP!")
             self.monsters = self.load_monsters()
             self.cprint(f"** New encounter **")
@@ -440,21 +322,12 @@ class Combat_UI(QMainWindow):
     @pyqtSlot()
     def flee(self):
         self.cprint(f"** Party successfully escaped! **")
-
-        # Clear conditions from all party members when fleeing
-        for char in self.party:
-            if hasattr(char, 'conditions') and char.conditions:
-                char.conditions.clear()
-
         for row in range(self.party_table.rowCount()):
             self.update_cell(content='', row=row, col=self.action_column)
         self.monsters = self.load_monsters()
         self.display_monsters_groups()
         self.actions = [None] * len(self.party)
         self.round_num = 0
-
-        # Refresh party table to show cleared conditions
-        self.refresh_party_table()
 
     # Add this method to handle row selection
     @pyqtSlot()
@@ -468,8 +341,9 @@ class Combat_UI(QMainWindow):
             for button in self.ui.char_actions_groupBox.findChildren(QPushButton):
                 button.setEnabled(False)
         else:
-            # Enable buttons based on character conditions
-            self.update_action_buttons_state()
+            # Enable all buttons in char_actions_groupBox
+            for button in self.ui.char_actions_groupBox.findChildren(QPushButton):
+                button.setEnabled(True)
         if self.index >= 0:  # Make sure a valid row is selected
             self.ui.char_actions_groupBox.show()
             title: str = f"{char.name}'s Options"
@@ -478,45 +352,6 @@ class Combat_UI(QMainWindow):
                 self.ui.castButton.show()
             else:
                 self.ui.castButton.hide()
-
-    def update_action_buttons_state(self):
-        """Enable/disable action buttons based on character conditions"""
-        if self.index < 0 or self.index >= len(self.party):
-            return
-
-        char: Character = self.party[self.index]
-
-        # Check if character has incapacitating conditions
-        can_attack = True
-        can_cast = True
-
-        if hasattr(char, 'conditions') and char.conditions:
-            for condition in char.conditions:
-                condition_type = condition.type if hasattr(condition, 'type') else str(condition)
-                # Check for incapacitating conditions
-                if condition_type in ['INCAPACITATED', 'PARALYZED', 'PETRIFIED', 'STUNNED', 'UNCONSCIOUS']:
-                    can_attack = False
-                    can_cast = False
-                    break
-                # Restrained gives disadvantage but doesn't prevent actions
-                elif condition_type == 'RESTRAINED':
-                    # Still can attack/cast but with disadvantage (handled in combat logic)
-                    pass
-                # Blinded gives disadvantage on attacks
-                elif condition_type == 'BLINDED':
-                    # Still can attack but with disadvantage
-                    pass
-
-        # Enable/disable buttons
-        self.ui.fightButton.setEnabled(can_attack and char.hit_points > 0)
-        self.ui.castButton.setEnabled(can_cast and char.hit_points > 0 and char.is_spell_caster)
-        self.ui.parryButton.setEnabled(char.hit_points > 0)
-
-        # Add visual feedback
-        if not can_attack:
-            self.cprint(f"⚠️ {char.name} is incapacitated and cannot attack!")
-        if not can_cast and char.is_spell_caster:
-            self.cprint(f"⚠️ {char.name} is incapacitated and cannot cast spells!")
 
     def move_to_next_row(self):
         """Move cursor to the same column in the next row, skipping dead characters"""
@@ -616,113 +451,10 @@ class Combat_UI(QMainWindow):
         ui = Ui_party_select_Dialog()
         ui.setupUi(select_dialog)
         populate_table(table=ui.party_tableWidget, char_list=self.party, in_dungeon=True)
-
-        selected_chars = []
-
-        # Multi-selection: return all selected rows when OK is clicked
-        def on_ok():
-            selected_rows = set()
-            for item in ui.party_tableWidget.selectedItems():
-                selected_rows.add(item.row())
-            for row in sorted(selected_rows):
-                char_name = ui.party_tableWidget.item(row, 0).text()
-                char = next((c for c in self.party if c.name == char_name), None)
-                if char:
-                    selected_chars.append(char)
-            select_dialog.accept()
-
-        ui.buttonBox.accepted.connect(on_ok)
-        select_dialog.exec_()
-        return selected_chars
-
-    @pyqtSlot()
-    def use_item(self):
-        """Allow character to use a potion or item from inventory"""
-        if self.index < 0 or self.index >= len(self.party):
-            return
-
-        char: Character = self.party[self.index]
-
-        # Check if character has inventory
-        if not hasattr(char, 'inventory') or not char.inventory:
-            self.cprint(f"{char.name} has no items in inventory!")
-            return
-
-        # Filter usable items (potions)
-        from dnd_5e_core.equipment import HealingPotion
-        usable_items = [item for item in char.inventory if item and isinstance(item, HealingPotion)]
-
-        if not usable_items:
-            self.cprint(f"{char.name} has no usable items (potions)!")
-            return
-
-        # Create dialog to select item
-        item_dialog = QDialog(self)
-        item_dialog.setWindowTitle(f"{char.name}'s Inventory")
-        layout = QVBoxLayout(item_dialog)
-
-        # Add label
-        label = QLabel(f"Select an item to use:")
-        layout.addWidget(label)
-
-        # Create table with items
-        item_table = QTableWidget(len(usable_items), 2)
-        item_table.setHorizontalHeaderLabels(["Item", "Effect"])
-        item_table.horizontalHeader().setStretchLastSection(True)
-        item_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
-        item_table.setSelectionMode(QTableWidget.SelectionMode.SingleSelection)
-
-        for i, item in enumerate(usable_items):
-            item_table.setItem(i, 0, QTableWidgetItem(item.name))
-            if isinstance(item, HealingPotion):
-                effect = f"Heals {item.hit_dice}+{item.bonus} HP"
-                item_table.setItem(i, 1, QTableWidgetItem(effect))
-
-        layout.addWidget(item_table)
-
-        # Add buttons
-        button_layout = QVBoxLayout()
-        use_button = QPushButton("Use Item")
-        cancel_button = QPushButton("Cancel")
-        button_layout.addWidget(use_button)
-        button_layout.addWidget(cancel_button)
-        layout.addLayout(button_layout)
-
-        selected_item = None
-
-        def on_use():
-            nonlocal selected_item
-            if item_table.currentRow() >= 0:
-                selected_item = usable_items[item_table.currentRow()]
-                item_dialog.accept()
-
-        def on_cancel():
-            item_dialog.reject()
-
-        use_button.clicked.connect(on_use)
-        cancel_button.clicked.connect(on_cancel)
-
-        if item_dialog.exec_() == QDialog.DialogCode.Accepted and selected_item:
-            # Use the item
-            if isinstance(selected_item, HealingPotion):
-                # Heal the character
-                healing = selected_item.heal()
-                old_hp = char.hit_points
-                char.hit_points = min(char.hit_points + healing, char.max_hit_points)
-                actual_healing = char.hit_points - old_hp
-
-                # Remove item from inventory
-                char.inventory.remove(selected_item)
-
-                # Update action and display
-                self.actions[self.index] = CharAction(type=CharActionType.PARRY, targets=[], spell=None)
-                self.update_cell(content=f"Used {selected_item.name} (+{actual_healing} HP)", row=self.index, col=self.action_column)
-                self.cprint(f"✨ {char.name} used {selected_item.name} and healed {actual_healing} HP!")
-
-                # Refresh table to show updated HP
-                self.refresh_party_table()
-            else:
-                self.cprint(f"⚠️ {selected_item.name} cannot be used in combat!")
+        if select_dialog.exec_():
+            selected_row = ui.party_tableWidget.currentRow()
+            return [self.party[selected_row]]
+        return []
 
     @pyqtSlot()
     def select_monsters(self, action_type: CharActionType, spell: Optional[Spell] = None):
@@ -819,107 +551,36 @@ class Combat_UI(QMainWindow):
         # Sort party list - living characters first, dead characters last
         self.party.sort(key=lambda char: char.hit_points <= 0)
 
-        # Configure table (party_table is already initialized in __init__)
+        self.party_table: QTableWidget = self.ui.party_tableWidget
+        # Configure table
         populate_table(table=self.party_table, char_list=self.party, in_dungeon=True, sorting=False)
-
-        # Set column resize modes - Status column (6) should resize to contents
-        header = self.party_table.horizontalHeader()
-        header.setStretchLastSection(True)
-
-        # Set most columns to Stretch mode
-        for col in range(self.party_table.columnCount() - 1):
-            if col == 6:  # Status column
-                header.setSectionResizeMode(col, QHeaderView.ResizeMode.ResizeToContents)
-            else:
-                header.setSectionResizeMode(col, QHeaderView.ResizeMode.Stretch)
-
-        # Update disabled state for action buttons based on conditions
-        self.update_action_buttons_state()
+        self.party_table.horizontalHeader().setStretchLastSection(True)
+        self.party_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         # self.party_table.cellDoubleClicked.connect(self.inspect_char)
 
     def load_monster_token(self, name: str) -> Optional[str]:
         for filename in os.listdir(self.token_images_dir):
-            monster_name = filename.replace('.webp', '').replace('.png', '').replace('_', ' ').replace('-', ' ').title()
-            if monster_name == name:
+             monster_name, _ = os.path.splitext(filename)
+             if monster_name == name:
                  return os.path.join(self.token_images_dir, filename)
         return None
 
-    def add_source_badge(self, pixmap: QPixmap, source: str) -> QPixmap:
-        """
-        Add a source badge to the monster token pixmap.
-
-        Args:
-            pixmap: Original pixmap
-            source: Source book code (e.g., "MM", "MPMM", "SKT")
-
-        Returns:
-            Pixmap with badge
-        """
-        # Create a copy to not modify the original
-        result = QPixmap(pixmap)
-
-
-        # Create painter
-        painter = QPainter(result)
-        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-
-        # Badge dimensions (top-right corner)
-        badge_width = min(60, result.width() // 3)
-        badge_height = 20
-        margin = 5
-
-        # Badge position (top-right)
-        badge_x = result.width() - badge_width - margin
-        badge_y = margin
-
-        # Choose color based on source
-        source_colors = {
-            'MM': QColor(70, 130, 180),      # Steel blue (official)
-            'MPMM': QColor(46, 139, 87),     # Sea green (updated)
-            'SKT': QColor(218, 165, 32),     # Golden rod
-            'VGM': QColor(138, 43, 226),     # Blue violet
-            'MTF': QColor(220, 20, 60),      # Crimson
-            'ERLW': QColor(255, 140, 0),     # Dark orange
-            'TCE': QColor(148, 0, 211),      # Dark violet
-            'BGDIA': QColor(178, 34, 34),    # Firebrick
-        }
-        badge_color = source_colors.get(source, QColor(105, 105, 105))  # Dim gray default
-
-        # Draw rounded rectangle background
-        painter.setBrush(badge_color)
-        painter.setPen(QPen(QColor(255, 255, 255), 1))  # White border
-        badge_rect = QRectF(badge_x, badge_y, badge_width, badge_height)
-        painter.drawRoundedRect(badge_rect, 3, 3)
-
-        # Draw text
-        font = QFont("Arial", 8, QFont.Weight.Bold)
-        painter.setFont(font)
-        painter.setPen(QColor(255, 255, 255))  # White text
-        painter.drawText(badge_rect, Qt.AlignmentFlag.AlignCenter, source)
-
-        painter.end()
-
-        return result
-
     def load_monsters(self) -> List[Monster]:
-        # Default to level 1 if party is empty
-        if not self.party:
-            party_level = 1
-        else:
-            party_level: int = round(sum([c.level for c in self.party]) / len(self.party))
-
+        party_level: int = round(sum([c.level for c in self.party]) / len(self.party))
+        encounter_table = load_encounter_table()
+        available_crs: List[Fraction] = [Fraction(str(m.challenge_rating)) for m in self.monsters_db]
         encounter_levels: List[int] = generate_encounter_levels(party_level=party_level)
+        monster_groups_count: int = randint(1, 2)
         if not encounter_levels:
             encounter_levels = generate_encounter_levels(party_level=party_level)
-        encounter_level: int = encounter_levels.pop() if encounter_levels else party_level
-
-        # Use new API: select_monsters_by_encounter_table returns (monsters, encounter_type)
-        monsters, encounter_type = generate_encounter(
+        encounter_level: int = encounter_levels.pop()
+        monsters: List[Monster] = generate_encounter(
+            available_crs=available_crs,
+            encounter_table=encounter_table,
             encounter_level=encounter_level,
-            available_monsters=self.monsters_db,
-            allow_pairs=True
+            monsters=self.monsters_db,
+            monster_groups_count=monster_groups_count,
         )
-
         for m in monsters:
             m.hp_roll()
         return monsters
@@ -945,20 +606,12 @@ class Combat_UI(QMainWindow):
             token_path = self.load_monster_token(unique_monsters[0])
             if token_path:
                 monster_1_pixmap = QPixmap(token_path)
-                # Add source badge if monster has source
-                monster_obj = next((m for m in self.monsters if m.name == unique_monsters[0]), None)
-                if monster_obj and hasattr(monster_obj, 'source') and monster_obj.source:
-                    monster_1_pixmap = self.add_source_badge(monster_1_pixmap, monster_obj.source)
                 self.ui.monster_1_Label.setAlignment(Qt.AlignmentFlag.AlignCenter)
                 label_map.append((monster_1_pixmap, self.ui.monster_1_Label, unique_monsters[0], 0))
         if len(unique_monsters) >= 2:
             token_path = self.load_monster_token(unique_monsters[1])
             if token_path:
                 monster_2_pixmap = QPixmap(token_path)
-                # Add source badge if monster has source
-                monster_obj = next((m for m in self.monsters if m.name == unique_monsters[1]), None)
-                if monster_obj and hasattr(monster_obj, 'source') and monster_obj.source:
-                    monster_2_pixmap = self.add_source_badge(monster_2_pixmap, monster_obj.source)
                 self.ui.monster_2_Label.setAlignment(Qt.AlignmentFlag.AlignCenter)
                 self.ui.monster_2_Label.setVisible(True)
                 label_map.append((monster_2_pixmap, self.ui.monster_2_Label, unique_monsters[1], 1))

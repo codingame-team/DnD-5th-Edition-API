@@ -2359,9 +2359,11 @@ def handle_fountains(game):
 
 		# Restore spell slots if spellcaster
 		if char.class_type.can_cast:
-			if char.sc.spell_slots != char.class_type.spell_slots[char.level]:
+			# Safely get spell slots with fallback
+			expected_slots = char.class_type.spell_slots.get(char.level, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]) if hasattr(char.class_type, 'spell_slots') and isinstance(char.class_type.spell_slots, dict) else [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+			if char.sc.spell_slots != expected_slots:
 				print(f'{char.name} has memorized all his spells')
-				char.sc.spell_slots = copy(char.class_type.spell_slots[char.level])
+				char.sc.spell_slots = copy(expected_slots)
 
 		# Handle level gain
 		if char.level < len(game.xp_levels) and char.xp >= game.xp_levels[char.level]:

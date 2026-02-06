@@ -9,8 +9,9 @@ import time
 import os
 import sys
 import pickle
+import json
 from typing import List
-from random import seed, randint
+from random import seed, randint, choice
 
 # ============================================
 # MIGRATION: Add dnd-5e-core to path (development mode)
@@ -24,9 +25,8 @@ if os.path.exists(_dnd_5e_core_path) and _dnd_5e_core_path not in sys.path:
 # MIGRATION: Import from dnd-5e-core package
 # ============================================
 
-from dnd_5e_core.entities import Character, Monster
-from dnd_5e_core.equipment import Weapon, Armor, Cost, Equipment, EquipmentCategory, HealingPotion
-from dnd_5e_core.ui import cprint, Color
+from dnd_5e_core.entities import Character
+from dnd_5e_core.equipment import Weapon, Armor, Cost, HealingPotion
 
 # Note: Data directory is now in dnd-5e-core/data and will be auto-detected
 # No need to call set_data_directory() anymore
@@ -103,8 +103,27 @@ def save_character(char, _dir: str):
 
 
 def load_character_collections():
-	"""Load character creation collections - stub for now"""
-	return [], [], [], [], [], [], {}, {}, []
+	"""Charge les collections de création de personnage depuis les fichiers JSON et dnd_5e_core"""
+	from dnd_5e_core.data import list_races, list_classes, load_race, load_class, load_names, load_human_names, list_subraces, load_subrace, list_spells, load_spell
+	# Races
+	races = [load_race(r) for r in list_races()]
+	subraces = [load_subrace(s) for s in list_subraces()]
+	classes = [load_class(c) for c in list_classes()]
+	alignments = [
+		"Lawful Good", "Neutral Good", "Chaotic Good",
+		"Lawful Neutral", "True Neutral", "Chaotic Neutral",
+		"Lawful Evil", "Neutral Evil", "Chaotic Evil"
+	]
+	# Noms
+	names = {}
+	for race in list_races():
+		if race == "human":
+			continue
+		names[race] = load_names(race)
+	human_names = load_human_names()
+	# Sorts (optionnel)
+	spells = [load_spell(s) for s in list_spells()]
+	return races, subraces, classes, alignments, [], [], names, human_names, spells
 
 
 def load_dungeon_collections():
@@ -123,29 +142,26 @@ def load_dungeon_collections():
 	return monsters, armors, weapons, equipments, equipment_categories, healing_potions
 
 
- # Import D&D 5e rules from package
+# Correction indentation XP_LEVELS et TRAINING_GROUNDS
 from dnd_5e_core.mechanics import (
-    XP_LEVELS,
-    generate_encounter_distribution,
-    ENCOUNTER_TABLE,
-    ENCOUNTER_GOLD_TABLE,
-    get_encounter_gold,
+	XP_LEVELS,
+	generate_encounter_distribution,
+	ENCOUNTER_TABLE,
+	ENCOUNTER_GOLD_TABLE,
+	get_encounter_gold,
 )
 from dnd_5e_core.mechanics.encounter_builder import select_monsters_by_encounter_table
 
 # Import UI helpers
-from ui_helpers import (
-    display_character_sheet,
-    menu_read_options,
-    delete_character_prompt_ok,
-    rename_character_prompt_ok,
-)
+from ui_helpers import delete_character_prompt_ok
 
 # Import project-specific functions from main
 from main import (
     create_new_character,
     explore_dungeon,
+    generate_random_character
 )
+import main
 
 # Compatibility aliases
 load_xp_levels_func = XP_LEVELS
@@ -925,26 +941,20 @@ class DnDCursesUI:
 		"""Draw sell items menu - matches main.py logic"""
 		try:
 			self.draw_header(f"SELL ITEMS - {character.name}", lines, cols)
-
 			start_y = 4
 			self.stdscr.addstr(start_y, 2, f"Gold: {character.gold}GP", curses.A_BOLD)
-
 			# Get character inventory using helper
 			inventory_items = self._get_sell_items_list(character)
-
 			if inventory_items:
 				display_start = max(0, self.sell_cursor - 10)
 				for idx, item in enumerate(inventory_items[display_start:display_start + 15]):
 					actual_idx = display_start + idx
 					marker = '►' if actual_idx == self.sell_cursor else ' '
-
 					# Check proficiency (like main.py line 1310)
 					# Already imported at top: from dnd_5e_core.equipment import Weapon, Armor
 					prof_label = " [NOT PROF]" if isinstance(item, Weapon) and hasattr(character, 'prof_weapons') and item not in character.prof_weapons else ""
-
 					# Check equipped (like main.py line 1311)
 					equipped_label = " (Equipped)" if (isinstance(item, Weapon) or isinstance(item, Armor)) and hasattr(item, 'equipped') and item.equipped else ""
-
 					# Handle different cost types (like main.py line 1312-1313)
 					# Already imported at top: from dnd_5e_core.equipment import Cost
 					if hasattr(item, 'cost'):
@@ -956,9 +966,7 @@ class DnDCursesUI:
 							cost = f"{item.cost} gp"
 					else:
 						cost = "?? gp"
-
 					item_line = f"{marker} {item.name} ({cost}){equipped_label}{prof_label}"
-
 					# Color code if equipped or not proficient
 					if equipped_label:
 						self.stdscr.addstr(start_y + 2 + idx, 2, item_line[:cols - 3], curses.color_pair(3))  # Yellow
@@ -968,7 +976,6 @@ class DnDCursesUI:
 						self.stdscr.addstr(start_y + 2 + idx, 2, item_line[:cols - 3])
 			else:
 				self.stdscr.addstr(start_y + 2, 2, "No items in inventory")
-
 			self.draw_footer("[↑/↓] Navigate  [Enter] Sell  [Esc] Back", lines, cols)
 		except curses.error:
 			pass
@@ -1007,7 +1014,7 @@ class DnDCursesUI:
 		try:
 			self.draw_header("TRAINING GROUNDS", lines, cols)
 
-			options = ["Create a New Character", "Create a Random Character", "Character Status", "Delete a Character", "Rename a Character", "Return to Castle"]
+			options = ["Create a Random Character", "Character Status", "Delete a Character", "Rename a Character", "Return to Castle"]
 
 			start_y = 4
 			for idx, opt in enumerate(options):
@@ -1048,10 +1055,9 @@ class DnDCursesUI:
 	def draw_character_status(self, lines: int, cols: int, character):
 		"""Draw detailed character status in ncurses"""
 		try:
-			self.draw_header(f"CHARACTER STATUS - {character.name}", lines, cols)
-
-			y = 3
 			# Basic info
+			self.draw_header(f"CHARACTER STATUS - {character.name}", lines, cols)
+			y = 3
 			self.stdscr.addstr(y, 2, f"Name: {character.name}", curses.A_BOLD)
 			y += 1
 			self.stdscr.addstr(y, 2, f"Race: {character.race.name if hasattr(character, 'race') else 'Unknown'}")
@@ -1076,7 +1082,6 @@ class DnDCursesUI:
 
 			self.stdscr.addstr(y, 2, f"Gold: {character.gold} GP")
 			y += 1
-
 			# Age in years (convert from weeks)
 			age_years = character.age // 52 if hasattr(character, 'age') else 0
 			age_display = f"{age_years} years" if age_years != 1 else "1 year"
@@ -1200,9 +1205,7 @@ class DnDCursesUI:
 		"""Draw interactive character inventory for equipping/using items (like ui_curses.py)"""
 		try:
 			self.draw_header(f"INVENTORY - {character.name}", lines, cols)
-
 			y = 3
-			# Gold and HP display
 			self.stdscr.addstr(y, 2, f"Gold: {character.gold} GP", curses.A_BOLD)
 			y += 1
 			self.stdscr.addstr(y, 2, f"HP: {character.hit_points}/{character.max_hit_points}")
@@ -1728,7 +1731,11 @@ class DnDCursesUI:
 				# Restore spell slots AFTER level up (uses new level)
 				if hasattr(char.class_type, 'can_cast') and char.class_type.can_cast:
 					if hasattr(char, 'sc') and hasattr(char.sc, 'spell_slots'):
-						char.sc.spell_slots = char.class_type.spell_slots[char.level]
+						# Safely get spell slots with fallback
+						if hasattr(char.class_type, 'spell_slots') and isinstance(char.class_type.spell_slots, dict):
+							char.sc.spell_slots = char.class_type.spell_slots.get(char.level, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+						else:
+							char.sc.spell_slots = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
 				# Ensure HP doesn't exceed max
 				char.hit_points = min(char.hit_points, char.max_hit_points)
@@ -1992,36 +1999,7 @@ class DnDCursesUI:
 		elif c in (curses.KEY_UP, ord('k')):
 			self.training_cursor = max(0, self.training_cursor - 1)
 		elif c in (ord('\n'), ord('\r')):
-			if self.training_cursor == 0:  # Create New Character
-				if len(self.roster) >= MAX_ROSTER:
-					self.push_panel(f"Max roster ({MAX_ROSTER}) reached!")
-				else:
-					# Call create_new_character from main.py
-					curses.endwin()
-					try:
-						# Load collections if needed
-						if not self.races:
-							self.races, self.subraces, self.classes, self.alignments, _, _, self.names, self.human_names, self.spells = load_character_collections()
-
-						new_char = create_new_character(self.roster)
-						self.roster.append(new_char)
-						save_character(new_char, _dir=self.characters_dir)
-					except Exception as e:
-						print(f"Character creation error: {e}")
-						input("Press Enter to continue...")
-					finally:
-						self.stdscr = curses.initscr()
-						curses.noecho()
-						curses.cbreak()
-						self.stdscr.keypad(True)
-						if curses.has_colors():
-							curses.start_color()
-							curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)
-							curses.init_pair(2, curses.COLOR_RED, curses.COLOR_BLACK)
-							curses.init_pair(3, curses.COLOR_YELLOW, curses.COLOR_BLACK)
-							curses.init_pair(4, curses.COLOR_CYAN, curses.COLOR_BLACK)
-						self.push_panel("Character created")
-			elif self.training_cursor == 1:  # Create Random Character
+			if self.training_cursor == 0:  # Create Random Character
 				if len(self.roster) >= MAX_ROSTER:
 					self.push_panel(f"Max roster ({MAX_ROSTER}) reached!")
 				else:
@@ -2036,13 +2014,13 @@ class DnDCursesUI:
 						elif not self.names:
 							self.push_panel("Error: No names database available. Check data files.")
 						else:
-							new_char = generate_random_character(self.roster, self.races, self.subraces, self.classes, self.names, self.human_names, self.spells)
+							new_char = main.generate_random_character(self.roster, self.races, self.subraces, self.classes, self.names, self.human_names, self.spells)
 							self.roster.append(new_char)
 							save_character(new_char, _dir=self.characters_dir)
 							self.push_panel(f"Created {new_char.name}")
 					except Exception as e:
 						self.push_panel(f"Error: {str(e)[:50]}")
-			elif self.training_cursor == 2:  # Character Status
+			elif self.training_cursor == 1:  # Character Status
 				if not self.roster:
 					self.push_panel("No characters in roster")
 				else:
@@ -2050,7 +2028,7 @@ class DnDCursesUI:
 					self.mode = 'char_select_roster'
 					self.char_select_cursor = 0
 					self.previous_mode = 'training'
-			elif self.training_cursor == 3:  # Delete Character
+			elif self.training_cursor == 2:  # Delete Character
 				available_chars = [c for c in self.roster if c not in self.party]
 				if not available_chars:
 					self.push_panel("No characters available to delete")
@@ -2058,7 +2036,7 @@ class DnDCursesUI:
 					self.mode = 'character_list'
 					self.roster_cursor = 0
 					self.previous_mode = 'training'
-			elif self.training_cursor == 4:  # Rename Character
+			elif self.training_cursor == 3:  # Rename Character
 				self.push_panel("Rename - Coming soon")
 			else:  # Return to Castle
 				self.location = Location.CASTLE
@@ -2094,7 +2072,7 @@ class DnDCursesUI:
 					self.mode = 'tavern'
 				elif self.previous_mode == 'training':
 					# Delete character
-					if delete_character_prompt_ok(selected_char):
+					if delete_character_prompt_ok(selected_char.name, stdscr=self.stdscr, push_panel=self.push_panel):
 						os.remove(f"{self.characters_dir}/{selected_char.name}.dmp")
 						self.roster.remove(selected_char)
 						self.push_panel(f"Deleted {selected_char.name}")
@@ -2438,7 +2416,12 @@ class DnDCursesUI:
 					# Update spell slots if caster
 					if char.class_type.can_cast:
 						if hasattr(char, 'sc') and hasattr(char.sc, 'spell_slots'):
-							char.sc.spell_slots = char.class_type.spell_slots[char.level].copy()
+							# Safely get spell slots with fallback
+							if hasattr(char.class_type, 'spell_slots') and isinstance(char.class_type.spell_slots, dict):
+								slots = char.class_type.spell_slots.get(char.level, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+								char.sc.spell_slots = slots.copy() if isinstance(slots, list) else [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+							else:
+								char.sc.spell_slots = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
 					# Show level up message
 					self.push_panel(f"⚡ {char.name} reached level {char.level}!")
@@ -2466,8 +2449,6 @@ class DnDCursesUI:
 
 	def _handle_dungeon_explore(self, c: int) -> None:
 		"""Handle dungeon exploration - full implementation matching main.py"""
-		from random import randint, choice, sample
-
 		# Initialize dungeon state if first time
 		if not hasattr(self, 'dungeon_state'):
 			self.dungeon_state = {'in_combat': False, 'round_num': 0, 'monsters': [], 'alive_monsters': [], 'alive_chars': [], 'attackers': [], 'encounter_levels': [], 'flee_combat': False, 'combat_ended': False}
@@ -2529,9 +2510,6 @@ class DnDCursesUI:
 
 	def _start_new_encounter(self):
 		"""Start a new monster encounter"""
-		from random import randint, choice
-		from copy import copy
-
 		state = self.dungeon_state
 
 		# Generate encounter
@@ -2631,7 +2609,6 @@ class DnDCursesUI:
 
 	def _execute_combat_round(self):
 		"""Execute one round of combat"""
-		from random import randint, choice, sample
 
 		state = self.dungeon_state
 		state['round_num'] += 1

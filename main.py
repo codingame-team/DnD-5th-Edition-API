@@ -614,27 +614,19 @@ def generate_random_name(race: str, gender: str, names: dict(), reserved_names):
 
 def generate_random_character(roster: List[Character], races: List[Race], subraces: List[SubRace], classes: List[ClassType], names: dict[str, List[str]], human_names, spells: list[Spell]) -> Character:
     """
-    Generate a preset character with random selections.
-
-    :param races: List of available races
-    :param classes: List of available classes
-    :param names: Dictionary of names by race
-    :return: A new Character instance with randomly selected attributes
+    Génère un personnage aléatoire avec l'équipement de départ optimal (meilleure arme et armure non magique).
+    Ajoute une vérification explicite si aucun équipement n'est trouvé.
     """
+    from dnd_5e_core.data.collections import load_all_weapons, load_all_armors
 
     # Phase 1: character selection
 
     char_proficiencies: List[Proficiency] = []
-    """ 1. Choose a race """
-    # Select random race
     race = choice(races)
-    # Select optional subrace
     subraces_names: List[str] = [s.index for s in subraces for r in races if r.index == race.index and r.index in s.index]
     subrace: Optional[SubRace] = [r for r in subraces if r.index == choice(subraces_names)][0] if subraces_names else None
     char_proficiencies = race.starting_proficiencies
 
-    """ 2. Choose a class """
-    # Select random class
     class_type = choice(classes)
     char_proficiencies += class_type.proficiencies
 
@@ -642,16 +634,12 @@ def generate_random_character(roster: List[Character], races: List[Race], subrac
 
     char_proficiencies = [request_proficiency(prof_index) for prof_index in set([p.index for p in char_proficiencies])]
 
-    """ 3. Determine ability scores (Strength, Dexterity, Constitution, Intelligence, Wisdom, and Charisma.)"""
     strength, dexterity, constitution, intelligence, wisdom, charisma = ability_rolls()
     abilities: Abilities = Abilities(strength, dexterity, constitution, intelligence, wisdom, charisma)
     mod = lambda x: (x - 10) // 2
     ability_modifiers: Abilities = Abilities(mod(strength), mod(dexterity), mod(constitution), mod(intelligence), mod(wisdom), mod(charisma))
 
-    """ 4. Describe your character (name, gender, clan/family/virtue/ethnic, height/weight, ...) """
-    # Generate random gender
     gender = choice(["male", "female"])
-
     ethnic: str = None
     reserved_names: List[str] = [c.name for c in roster]
     if race.index in ['human', 'half-elf']:
@@ -664,11 +652,54 @@ def generate_random_character(roster: List[Character], races: List[Race], subrac
     hit_points = class_type.hit_die + ability_modifiers.con
 
     # Phase 2: Spell selection
-    char_level: int = 1  # could be changed to create higher level characters
+    char_level: int = 1
     spell_caster: Optional[SpellCaster] = get_spell_caster(class_type, char_level, spells)
 
-    # Note: Character no longer has id, x, y, old_x, old_y, image_name
-    # These are now part of GameEntity for pygame games only
+    # Phase 3: Equipement de départ optimal
+    # Charger toutes les armes et armures non magiques
+    all_weapons = [w for w in load_all_weapons() if not getattr(w, 'is_magic', False)]
+    all_armors = [a for a in load_all_armors() if not getattr(a, 'is_magic', False)]
+    if not all_weapons:
+        print("[ERREUR] Aucun équipement d'arme chargé (load_all_weapons vide)")
+    if not all_armors:
+        print("[ERREUR] Aucun équipement d'armure chargé (load_all_armors vide)")
+    # Filtrer selon les maîtrises du personnage
+    prof_weapon_indices = {p.index for p in char_proficiencies if hasattr(p, 'type') and p.type == 'weapon'}
+    prof_armor_indices = {p.index for p in char_proficiencies if hasattr(p, 'type') and p.type == 'armor'}
+    available_weapons = [w for w in all_weapons if w.index in prof_weapon_indices]
+    available_armors = [a for a in all_armors if a.index in prof_armor_indices]
+    if not available_weapons:
+        print(f"[ERREUR] Aucune arme compatible avec les maîtrises: {prof_weapon_indices}")
+    if not available_armors:
+        print(f"[ERREUR] Aucune armure compatible avec les maîtrises: {prof_armor_indices}")
+    # Sélectionner la meilleure arme (dégâts max, simple ou martiale selon la classe)
+    def weapon_score(w):
+        try:
+            return w.damage_dice.score()
+        except Exception:
+            return 0
+    best_weapon = max(available_weapons, key=weapon_score, default=None)
+    # Sélectionner la meilleure armure (CA max)
+    def armor_score(a):
+        try:
+            return a.armor_class.get('base', 0)
+        except Exception:
+            return 0
+    best_armor = max(available_armors, key=armor_score, default=None)
+    # Fallback si aucun équipement trouvé
+    if not best_weapon and all_weapons:
+        best_weapon = all_weapons[0]
+        print(f"[INFO] Arme par défaut attribuée: {best_weapon.name}")
+    if not best_armor and all_armors:
+        best_armor = all_armors[0]
+        print(f"[INFO] Armure par défaut attribuée: {best_armor.name}")
+    # Préparer l'inventaire
+    inventory = [None] * 20
+    if best_weapon:
+        inventory[0] = best_weapon
+    if best_armor:
+        inventory[1] = best_armor
+
     return Character(
         race=race,
         subrace=subrace,
@@ -681,7 +712,7 @@ def generate_random_character(roster: List[Character], races: List[Race], subrac
         ethnic=ethnic,
         height=height,
         weight=weight,
-        inventory=[None] * 20,
+        inventory=inventory,
         hit_points=hit_points,
         max_hit_points=hit_points,
         xp=0,
@@ -1349,9 +1380,11 @@ def rest_character(char: Character, fee: int, weeks: int, xp_levels, console_mod
     else:
         display_msg += [f"{char.name} is partially healed!"]
     if char.class_type.can_cast:
-        if char.sc.spell_slots != char.class_type.spell_slots[char.level]:
+        # Safely get spell slots with fallback
+        expected_slots = char.class_type.spell_slots.get(char.level, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]) if hasattr(char.class_type, 'spell_slots') and isinstance(char.class_type.spell_slots, dict) else [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        if char.sc.spell_slots != expected_slots:
             display_msg += [f"{char.name} has memorized all his spells"]
-            char.sc.spell_slots = copy(char.class_type.spell_slots[char.level])
+            char.sc.spell_slots = copy(expected_slots)
     if char.level < len(xp_levels) and char.xp >= xp_levels[char.level]:
         if char.class_type.can_cast:
             spell_names: List[str] = populate(collection_name="spells", key_name="results")
@@ -1981,7 +2014,6 @@ def explore_dungeon(party: List[Character], monsters_db: List[Monster]):
             exit_message(f"Party has earned {earned_gold} GP and gained {xp_gained} XP!")
         elif flee_combat:
             exit_message(f"** Party successfully escaped! **")
-
 
 
 def restore_all_roster(roster: List[Character]):
