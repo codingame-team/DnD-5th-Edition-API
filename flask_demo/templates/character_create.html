@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+
+{% block title %}Créer un Personnage - D&D 5e Demo{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-lg">
+            <div class="card-header bg-primary text-white">
+                <h2 class="mb-0"><i class="bi bi-person-plus-fill"></i> Création de Personnage</h2>
+            </div>
+            <div class="card-body">
+                {% if success and character %}
+                <!-- Message de succès -->
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <h4 class="alert-heading"><i class="bi bi-check-circle-fill"></i> Personnage créé avec succès !</h4>
+                    <p>{{ message if message else character.name ~ " a été ajouté au roster !" }}</p>
+                    <hr>
+                    <p class="mb-0">
+                        <i class="bi bi-arrow-right-circle"></i>
+                        <a href="/training-grounds" class="alert-link">Allez aux Training Grounds</a> pour le recruter dans votre groupe.
+                    </p>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+
+                <!-- Fiche du personnage créé -->
+                <div class="card mb-4">
+                    <div class="card-header bg-success text-white">
+                        <h4 class="mb-0">{{ character.name }}</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong><i class="bi bi-person"></i> Race:</strong> {{ character.race|title }}</p>
+                                <p><strong><i class="bi bi-shield"></i> Classe:</strong> {{ character.class|title }}</p>
+                                <p><strong><i class="bi bi-star"></i> Niveau:</strong> {{ character.level }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong><i class="bi bi-heart-fill text-danger"></i> Points de Vie:</strong> {{ character.hp }}/{{ character.max_hp }}</p>
+                                <p><strong><i class="bi bi-shield-fill-check text-primary"></i> Classe d'Armure:</strong> {{ character.ac }}</p>
+                                <p><strong><i class="bi bi-coin text-warning"></i> Or:</strong> {{ character.gold }} po</p>
+                            </div>
+                        </div>
+
+                        <h5 class="mt-3"><i class="bi bi-list-stars"></i> Caractéristiques</h5>
+                        <div class="row text-center">
+                            <div class="col-4 col-md-2 mb-2">
+                                <div class="border rounded p-2">
+                                    <small class="text-muted">FOR</small>
+                                    <div class="h5 mb-0">{{ character.str }}</div>
+                                </div>
+                            </div>
+                            <div class="col-4 col-md-2 mb-2">
+                                <div class="border rounded p-2">
+                                    <small class="text-muted">DEX</small>
+                                    <div class="h5 mb-0">{{ character.dex }}</div>
+                                </div>
+                            </div>
+                            <div class="col-4 col-md-2 mb-2">
+                                <div class="border rounded p-2">
+                                    <small class="text-muted">CON</small>
+                                    <div class="h5 mb-0">{{ character.con }}</div>
+                                </div>
+                            </div>
+                            <div class="col-4 col-md-2 mb-2">
+                                <div class="border rounded p-2">
+                                    <small class="text-muted">INT</small>
+                                    <div class="h5 mb-0">{{ character.int }}</div>
+                                </div>
+                            </div>
+                            <div class="col-4 col-md-2 mb-2">
+                                <div class="border rounded p-2">
+                                    <small class="text-muted">SAG</small>
+                                    <div class="h5 mb-0">{{ character.wis }}</div>
+                                </div>
+                            </div>
+                            <div class="col-4 col-md-2 mb-2">
+                                <div class="border rounded p-2">
+                                    <small class="text-muted">CHA</small>
+                                    <div class="h5 mb-0">{{ character.cha }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                    <a href="/character/create" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Créer un autre personnage</a>
+                    <a href="/training-grounds" class="btn btn-success"><i class="bi bi-people"></i> Voir le roster et recruter</a>
+                </div>
+
+                {% elif error %}
+                <!-- Message d'erreur -->
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <h4 class="alert-heading"><i class="bi bi-exclamation-triangle-fill"></i> Erreur</h4>
+                    <p>{{ error }}</p>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endif %}
+
+                {% if not success %}
+                <!-- Formulaire de création -->
+                <form method="POST" action="/character/create">
+                    <div class="mb-3">
+                        <label for="name" class="form-label"><i class="bi bi-cursor-text"></i> Nom du Personnage *</label>
+                        <input type="text" class="form-control" id="name" name="name" required
+                               placeholder="Ex: Conan, Gandalf, Legolas...">
+                        <div class="form-text">Choisissez un nom unique pour votre personnage.</div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="race" class="form-label"><i class="bi bi-person"></i> Race *</label>
+                            <select class="form-select" id="race" name="race" required>
+                                <option value="">-- Choisir une race --</option>
+                                {% for race in races %}
+                                <option value="{{ race }}">{{ race|title }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="class" class="form-label"><i class="bi bi-shield"></i> Classe *</label>
+                            <select class="form-select" id="class" name="class" required>
+                                <option value="">-- Choisir une classe --</option>
+                                {% for cls in classes %}
+                                <option value="{{ cls }}">{{ cls|title }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="level" class="form-label"><i class="bi bi-star"></i> Niveau *</label>
+                        <input type="number" class="form-control" id="level" name="level"
+                               min="1" max="20" value="1" required>
+                        <div class="form-text">Niveau de 1 à 20</div>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="/party" class="btn btn-secondary"><i class="bi bi-x-circle"></i> Annuler</a>
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-plus-circle-fill"></i> Créer le Personnage</button>
+                    </div>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Informations -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-info-circle"></i> Informations</h5>
+            </div>
+            <div class="card-body">
+                <p>Les personnages créés sont automatiquement ajoutés à votre groupe. Vous pouvez ensuite les utiliser pour partir en combat.</p>
+                <ul class="mb-0">
+                    <li>Les caractéristiques sont générées aléatoirement selon les règles D&D 5e</li>
+                    <li>L'équipement de départ est attribué automatiquement</li>
+                    <li>Les compétences et capacités de classe sont appliquées</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block title %}Château - D&D 5e Demo{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-12">
+        <!-- En-tête -->
+        <div class="card shadow-lg mb-4">
+            <div class="card-header bg-primary text-white">
+                <h2 class="mb-0"><i class="bi bi-building"></i> Le Château</h2>
+            </div>
+            <div class="card-body">
+                {% if session.get('info_message') %}
+                <div class="alert alert-info alert-dismissible fade show" role="alert">
+                    <i class="bi bi-info-circle-fill"></i> {{ session.pop('info_message') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endif %}
+                <p class="lead">Bienvenue au château ! Que souhaitez-vous faire ?</p>
+            </div>
+        </div>
+
+        <!-- Locations disponibles -->
+        <div class="row g-4">
+            <!-- Taverne de Gilgamesh -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 border-warning">
+                    <div class="card-header bg-warning">
+                        <h5 class="mb-0"><i class="bi bi-cup-straw"></i> Taverne de Gilgamesh</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>Recrutez des aventuriers et gérez votre groupe.</p>
+                        <ul>
+                            <li>Recruter des personnages</li>
+                            <li>Retirer du groupe</li>
+                            <li>Réorganiser le groupe</li>
+                        </ul>
+                    </div>
+                    <div class="card-footer">
+                        <a href="/tavern" class="btn btn-warning w-100">
+                            <i class="bi bi-cup-straw"></i> Entrer
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Auberge de l'Aventurier -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 border-info">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0"><i class="bi bi-house"></i> Auberge de l'Aventurier</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>Reposez-vous et récupérez vos forces.</p>
+                        <ul>
+                            <li>Différentes chambres disponibles</li>
+                            <li>Restauration des HP</li>
+                            <li>Restauration des sorts</li>
+                        </ul>
+                    </div>
+                    <div class="card-footer">
+                        <a href="/inn" class="btn btn-info w-100">
+                            <i class="bi bi-house"></i> Entrer
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Temple de Cant -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 border-light">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0"><i class="bi bi-star-fill"></i> Temple de Cant</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>Soins divins et résurrection.</p>
+                        <ul>
+                            <li>Soins (10 PO/HP)</li>
+                            <li>Résurrection</li>
+                            <li>Guérison de malédictions</li>
+                        </ul>
+                    </div>
+                    <div class="card-footer">
+                        <a href="/temple" class="btn btn-light w-100">
+                            <i class="bi bi-star-fill"></i> Entrer
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Trading Post de Boltac -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 border-success">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0"><i class="bi bi-shop"></i> Trading Post de Boltac</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>Le meilleur équipement de la région !</p>
+                        <ul>
+                            <li>Armes et armures</li>
+                            <li>Objets magiques</li>
+                            <li>Achat et vente</li>
+                        </ul>
+                    </div>
+                    <div class="card-footer">
+                        <a href="/shop" class="btn btn-success w-100">
+                            <i class="bi bi-shop"></i> Entrer
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Edge of Town -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 border-danger">
+                    <div class="card-header bg-danger text-white">
+                        <h5 class="mb-0"><i class="bi bi-geo"></i> Sortie de la Ville</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>Aventure et entraînement vous attendent !</p>
+                        <ul>
+                            <li>Terrains d'entraînement</li>
+                            <li>Entrée du donjon</li>
+                            <li>Exploration</li>
+                        </ul>
+                    </div>
+                    <div class="card-footer">
+                        <a href="/edge-of-town" class="btn btn-danger w-100">
+                            <i class="bi bi-geo"></i> Y aller
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Groupe -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 border-primary">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="bi bi-people-fill"></i> Mon Groupe</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>Consultez votre groupe d'aventuriers.</p>
+                        {% if party %}
+                        <p class="mb-0"><strong>{{ party|length }}</strong> personnage(s) dans le groupe</p>
+                        {% else %}
+                        <p class="text-muted">Aucun personnage dans le groupe</p>
+                        {% endif %}
+                    </div>
+                    <div class="card-footer">
+                        <a href="/party" class="btn btn-primary w-100">
+                            <i class="bi bi-people-fill"></i> Voir
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="mt-4 text-center">
+            <a href="/" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Retour à l'accueil
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,723 @@
+/* ===== Reset et Base ===== */
+}
+    }
+        grid-template-columns: 1fr;
+    .party-grid {
+
+    }
+        grid-template-columns: 1fr;
+    .combat-field {
+
+    }
+        grid-template-columns: 1fr;
+    .form-row {
+
+    }
+        grid-template-columns: 1fr;
+    .features {
+
+    }
+        font-size: 2rem;
+    .hero h1 {
+
+    }
+        font-size: 0.875rem;
+        gap: 1rem;
+    .nav-links {
+@media (max-width: 768px) {
+/* ===== Responsive ===== */
+
+}
+    text-decoration: underline;
+footer a:hover {
+
+}
+    text-decoration: none;
+    color: var(--primary-color);
+footer a {
+
+}
+    color: var(--text-muted);
+    text-align: center;
+    margin-top: 4rem;
+    padding: 2rem 0;
+    border-top: 2px solid var(--primary-color);
+    background: var(--surface-color);
+footer {
+/* ===== Footer ===== */
+
+}
+    margin-top: 1rem;
+    justify-content: center;
+    gap: 1rem;
+    display: flex;
+.doc-links {
+
+}
+    text-align: center;
+    margin: 2rem 0;
+    border-radius: 1rem;
+    padding: 2rem;
+    background: var(--surface-color);
+.documentation {
+
+}
+    margin: 2rem 0;
+    border-radius: 1rem;
+    padding: 2rem;
+    background: var(--surface-color);
+.info-section {
+/* ===== Documentation ===== */
+
+}
+    color: var(--danger-color);
+.error-container h3 {
+
+}
+    color: var(--success-color);
+.result-container h3 {
+
+}
+    border: 2px solid var(--danger-color);
+.error-container {
+
+}
+    margin-top: 2rem;
+    border-radius: 1rem;
+    padding: 2rem;
+    background: var(--surface-color);
+.result-container, .error-container {
+/* ===== Result/Error Containers ===== */
+
+}
+    margin-top: 2rem;
+    justify-content: center;
+    gap: 1rem;
+    display: flex;
+.result-actions {
+
+}
+    margin-bottom: 1rem;
+    font-size: 3rem;
+.result-card h2 {
+
+}
+    margin: 0 auto;
+    max-width: 600px;
+    border-radius: 1rem;
+    padding: 3rem;
+    background: var(--surface-color);
+.result-card {
+
+}
+    padding: 4rem 2rem;
+    text-align: center;
+.combat-result {
+
+}
+    justify-content: center;
+    gap: 1rem;
+    display: flex;
+.combat-actions {
+
+}
+    border-bottom: 1px solid var(--border-color);
+    padding: 0.25rem 0;
+.log-entry {
+
+}
+    font-size: 0.875rem;
+    font-family: 'Courier New', monospace;
+    overflow-y: auto;
+    height: 400px;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    background: var(--card-color);
+.combat-log {
+
+}
+    grid-column: 2;
+.combat-log-column {
+
+}
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    gap: 1rem;
+    display: flex;
+.combatant-stats {
+
+}
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+.combatant-name {
+
+}
+    border-color: var(--danger-color);
+    opacity: 0.5;
+.combatant.dead {
+
+}
+    border: 2px solid var(--border-color);
+    border-radius: 0.5rem;
+    margin-bottom: 0.5rem;
+    padding: 1rem;
+    background: var(--surface-color);
+.combatant {
+
+}
+    min-height: 300px;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    background: var(--card-color);
+.combatants-list {
+
+}
+    margin-bottom: 1rem;
+    text-align: center;
+.combatants-column h3 {
+
+}
+    margin-bottom: 2rem;
+    gap: 1rem;
+    grid-template-columns: 1fr 1fr 1fr;
+    display: grid;
+.combat-field {
+
+}
+    gap: 1rem;
+    align-items: center;
+    display: flex;
+.combat-round {
+
+}
+    margin-bottom: 2rem;
+    align-items: center;
+    justify-content: space-between;
+    display: flex;
+.combat-header {
+
+}
+    margin-top: 2rem;
+    text-align: center;
+.setup-actions {
+
+}
+    font-style: italic;
+    color: var(--text-muted);
+.selected-monsters .empty {
+
+}
+    margin-top: 1rem;
+.selected-monsters {
+
+}
+    color: var(--text-color);
+    background: var(--bg-color);
+    border-radius: 0.5rem;
+    border: 2px solid var(--border-color);
+    padding: 0.75rem;
+    margin-right: 0.5rem;
+    width: 70%;
+.monster-select {
+
+}
+    margin: 1rem 0;
+.custom-encounter {
+
+}
+    margin: 0.25rem;
+.quick-encounters button {
+
+}
+    margin-bottom: 0.5rem;
+.quick-encounters h4 {
+
+}
+    margin-bottom: 1rem;
+.quick-encounters {
+
+}
+    color: var(--danger-color);
+.member-hp {
+
+}
+    margin: 0 1rem;
+    color: var(--text-muted);
+.member-info {
+
+}
+    flex: 1;
+    font-weight: bold;
+.member-name {
+
+}
+    border-radius: 0.5rem;
+    background: var(--surface-color);
+    margin-bottom: 0.5rem;
+    padding: 0.75rem;
+    align-items: center;
+    justify-content: space-between;
+    display: flex;
+.party-member, .selected-monsters li {
+
+}
+    border-radius: 0.5rem;
+    padding: 1rem;
+    background: var(--card-color);
+.party-list, .selected-monsters ul {
+
+}
+    margin-bottom: 2rem;
+.setup-section {
+
+}
+    margin-bottom: 2rem;
+    border-radius: 1rem;
+    padding: 2rem;
+    background: var(--surface-color);
+.combat-setup, .combat-arena {
+/* ===== Combat ===== */
+
+}
+    padding: 0.5rem 0;
+.feature-list li {
+
+}
+    list-style: none;
+.feature-list {
+
+}
+    margin-bottom: 0.5rem;
+.info-box li {
+
+}
+    color: var(--text-muted);
+    list-style-position: inside;
+.info-box ul {
+
+}
+    margin-bottom: 1rem;
+.info-box h3 {
+
+}
+    border-left: 4px solid var(--primary-color);
+    margin: 2rem 0;
+    border-radius: 1rem;
+    padding: 2rem;
+    background: var(--surface-color);
+.info-box {
+/* ===== Info Box ===== */
+
+}
+    margin-bottom: 2rem;
+    color: var(--text-muted);
+.empty-state p {
+
+}
+    margin-bottom: 1rem;
+.empty-state h2 {
+
+}
+    opacity: 0.5;
+    margin-bottom: 1rem;
+    font-size: 5rem;
+.empty-icon {
+
+}
+    margin: 2rem 0;
+    border-radius: 1rem;
+    background: var(--surface-color);
+    padding: 4rem 2rem;
+    text-align: center;
+.empty-state {
+/* ===== Empty State ===== */
+
+}
+    margin-top: 2rem;
+    justify-content: center;
+    gap: 1rem;
+    display: flex;
+.party-actions {
+
+}
+    margin-bottom: 2rem;
+    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    display: grid;
+.party-grid {
+/* ===== Party Grid ===== */
+
+}
+    color: #fbbf24;
+    font-weight: bold;
+    margin-top: 1rem;
+    text-align: center;
+.gold {
+
+}
+    color: var(--primary-color);
+    font-size: 1.25rem;
+    display: block;
+.ability strong {
+
+}
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    display: block;
+.ability span {
+
+}
+    border-radius: 0.5rem;
+    background: var(--surface-color);
+    padding: 0.5rem;
+    text-align: center;
+.ability {
+
+}
+    margin: 1rem 0;
+    gap: 0.5rem;
+    grid-template-columns: repeat(6, 1fr);
+    display: grid;
+.abilities {
+
+}
+    color: var(--primary-color);
+    font-weight: bold;
+    font-size: 1.25rem;
+    display: block;
+.stat-value {
+
+}
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    display: block;
+.stat-label {
+
+}
+    text-align: center;
+    flex: 1;
+.stat {
+
+}
+    border-radius: 0.5rem;
+    background: var(--surface-color);
+    padding: 1rem;
+    margin: 1rem 0;
+    gap: 1rem;
+    display: flex;
+.stats {
+
+}
+    margin-bottom: 0.5rem;
+.character-details p {
+
+}
+    color: var(--primary-color);
+    margin: 0;
+.character-header h3 {
+
+}
+    margin-bottom: 1rem;
+    align-items: center;
+    justify-content: space-between;
+    display: flex;
+.character-header {
+
+}
+    border: 2px solid var(--border-color);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    background: var(--card-color);
+.character-card {
+/* ===== Character Cards ===== */
+
+}
+    font-size: 1.1rem;
+    color: var(--text-muted);
+.page-header p {
+
+}
+    margin-bottom: 0.5rem;
+.page-header h1 {
+
+}
+    margin-bottom: 2rem;
+    text-align: center;
+.page-header {
+/* ===== Page Header ===== */
+
+}
+    margin-top: 2rem;
+    gap: 1rem;
+    display: flex;
+.form-actions {
+
+}
+    gap: 1rem;
+    grid-template-columns: 1fr 1fr;
+    display: grid;
+.form-row {
+
+}
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    margin-top: 0.25rem;
+    display: block;
+.form-group small {
+
+}
+    border-color: var(--primary-color);
+    outline: none;
+.form-group select:focus {
+.form-group input:focus,
+
+}
+    font-size: 1rem;
+    color: var(--text-color);
+    background: var(--bg-color);
+    border-radius: 0.5rem;
+    border: 2px solid var(--border-color);
+    padding: 0.75rem;
+    width: 100%;
+.form-group select {
+.form-group input,
+
+}
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    display: block;
+.form-group label {
+
+}
+    margin-bottom: 1.5rem;
+.form-group {
+
+}
+    margin-bottom: 2rem;
+    border-radius: 1rem;
+    padding: 2rem;
+    background: var(--surface-color);
+    margin: 0 auto;
+    max-width: 600px;
+.form-container {
+/* ===== Forms ===== */
+
+}
+    margin-bottom: 1.5rem;
+    color: var(--text-muted);
+.feature-card p {
+
+}
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+.feature-card h2 {
+
+}
+    margin-bottom: 1rem;
+    font-size: 3rem;
+.feature-icon {
+
+}
+    transform: translateY(-5px);
+    border-color: var(--primary-color);
+.feature-card:hover {
+
+}
+    transition: all 0.3s;
+    border: 2px solid transparent;
+    text-align: center;
+    border-radius: 1rem;
+    padding: 2rem;
+    background: var(--surface-color);
+.feature-card {
+
+}
+    margin-bottom: 3rem;
+    gap: 2rem;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    display: grid;
+.features {
+/* ===== Features Grid ===== */
+
+}
+    color: var(--text-muted);
+    font-size: 1.25rem;
+.lead {
+
+}
+    margin-bottom: 1rem;
+    font-size: 3rem;
+.hero h1 {
+
+}
+    margin-bottom: 3rem;
+    padding: 3rem 0;
+    text-align: center;
+.hero {
+/* ===== Hero Section ===== */
+
+}
+    margin-left: 10px;
+    cursor: pointer;
+    height: 24px;
+    width: 24px;
+    border-radius: 50%;
+    border: none;
+    color: white;
+    background: var(--danger-color);
+.btn-remove-small {
+
+}
+    line-height: 1;
+    font-size: 1.2rem;
+    cursor: pointer;
+    height: 30px;
+    width: 30px;
+    border-radius: 50%;
+    border: none;
+    color: white;
+    background: var(--danger-color);
+.btn-remove {
+
+}
+    background: #b91c1c;
+.btn-danger:hover {
+
+}
+    color: white;
+    background: var(--danger-color);
+.btn-danger {
+
+}
+    background: #047857;
+.btn-success:hover {
+
+}
+    color: white;
+    background: var(--success-color);
+.btn-success {
+
+}
+    background: #1d4ed8;
+.btn-secondary:hover {
+
+}
+    color: white;
+    background: var(--secondary-color);
+.btn-secondary {
+
+}
+    transform: translateY(-2px);
+    background: #6d28d9;
+.btn-primary:hover {
+
+}
+    color: white;
+    background: var(--primary-color);
+.btn-primary {
+
+}
+    font-weight: 600;
+    transition: all 0.3s;
+    text-decoration: none;
+    font-size: 1rem;
+    cursor: pointer;
+    border-radius: 0.5rem;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    display: inline-block;
+.btn {
+/* ===== Buttons ===== */
+
+}
+    font-size: 1.5rem;
+h3 {
+
+}
+    color: var(--primary-color);
+    font-size: 2rem;
+h2 {
+
+}
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    -webkit-background-clip: text;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    font-size: 2.5rem;
+h1 {
+
+}
+    margin-bottom: 1rem;
+h1, h2, h3, h4 {
+/* ===== Typography ===== */
+
+}
+    color: var(--primary-color);
+.nav-links a:hover {
+
+}
+    transition: color 0.3s;
+    text-decoration: none;
+    color: var(--text-color);
+.nav-links a {
+
+}
+    gap: 2rem;
+    list-style: none;
+    display: flex;
+.nav-links {
+
+}
+    text-decoration: none;
+    color: var(--primary-color);
+    font-weight: bold;
+    font-size: 1.5rem;
+.logo {
+
+}
+    align-items: center;
+    justify-content: space-between;
+    display: flex;
+.navbar .container {
+
+}
+    margin-bottom: 2rem;
+    padding: 1rem 0;
+    border-bottom: 2px solid var(--primary-color);
+    background: var(--surface-color);
+.navbar {
+/* ===== Navigation ===== */
+
+}
+    padding: 0 20px;
+    margin: 0 auto;
+    max-width: 1200px;
+.container {
+
+}
+    min-height: 100vh;
+    line-height: 1.6;
+    color: var(--text-color);
+    background: var(--bg-color);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+body {
+
+}
+    --border-color: #475569;
+    --text-muted: #94a3b8;
+    --text-color: #f1f5f9;
+    --card-color: #334155;
+    --surface-color: #1e293b;
+    --bg-color: #0f172a;
+    --warning-color: #d97706;
+    --danger-color: #dc2626;
+    --success-color: #059669;
+    --secondary-color: #2563eb;
+    --primary-color: #7c3aed;
+:root {
+
+}
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+* {

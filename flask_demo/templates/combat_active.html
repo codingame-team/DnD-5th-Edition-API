@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block title %}Combat Actif - D&D 5e Demo{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-12">
+        <!-- Header Combat -->
+        <div class="card shadow-lg mb-3">
+            <div class="card-header bg-danger text-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h3 class="mb-0"><i class="bi bi-fire"></i> Combat - Tour {{ combat_state.round }}</h3>
+                    <form method="POST" action="/combat/end" style="display: inline;">
+                        <button type="submit" class="btn btn-sm btn-dark">
+                            <i class="bi bi-x-circle"></i> Abandonner
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Colonne Groupe -->
+            <div class="col-md-5">
+                <div class="card mb-3">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="bi bi-people-fill"></i> Votre Groupe</h5>
+                    </div>
+                    <div class="card-body">
+                        {% for char in combat_state.party %}
+                        <div class="card mb-2 {% if char.hp <= 0 %}border-danger{% endif %}">
+                            <div class="card-body p-2">
+                                <h6 class="mb-1">{{ char.name }}</h6>
+                                <small class="text-muted">{{ char.class }} niv.{{ char.level }}</small>
+
+                                <!-- Barre de vie -->
+                                <div class="progress mt-2" style="height: 25px;">
+                                    {% set hp_percent = (char.hp / char.max_hp * 100)|int %}
+                                    {% if hp_percent > 50 %}
+                                        {% set bar_color = 'success' %}
+                                    {% elif hp_percent > 25 %}
+                                        {% set bar_color = 'warning' %}
+                                    {% else %}
+                                        {% set bar_color = 'danger' %}
+                                    {% endif %}
+                                    <div class="progress-bar bg-{{ bar_color }}"
+                                         style="width: {{ hp_percent }}%">
+                                        {{ char.hp }}/{{ char.max_hp }} PV
+                                    </div>
+                                </div>
+
+                                <div class="mt-2">
+                                    <small>
+                                        <span class="badge bg-info">CA: {{ char.ac }}</span>
+                                        <span class="badge bg-secondary">FOR: {{ char.str }}</span>
+                                        <span class="badge bg-secondary">DEX: {{ char.dex }}</span>
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Colonne Journal de Combat -->
+            <div class="col-md-2 text-center">
+                <form method="POST" action="/combat/turn">
+                    <button type="submit" class="btn btn-lg btn-primary mb-3"
+                            {% if not combat_state.active %}disabled{% endif %}>
+                        <i class="bi bi-play-fill"></i><br>
+                        <small>Tour Suivant</small>
+                    </button>
+                </form>
+
+                {% if not combat_state.active %}
+                <div class="alert alert-{{ 'success' if combat_won else 'danger' }}">
+                    <h5>{% if combat_won %}🏆 Victoire !{% else %}💀 Défaite...{% endif %}</h5>
+                    <a href="/combat" class="btn btn-sm btn-primary mt-2">
+                        Nouveau Combat
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Colonne Monstres -->
+            <div class="col-md-5">
+                <div class="card mb-3">
+                    <div class="card-header bg-danger text-white">
+                        <h5 class="mb-0"><i class="bi bi-crosshair"></i> Monstres</h5>
+                    </div>
+                    <div class="card-body">
+                        {% for monster in combat_state.monsters %}
+                        <div class="card mb-2 {% if monster.hp <= 0 %}border-secondary opacity-50{% endif %}">
+                            <div class="card-body p-2">
+                                <h6 class="mb-1">{{ monster.name }}</h6>
+                                <small class="text-muted">{{ monster.type or 'Créature' }} (CR {{ monster.cr }})</small>
+
+                                <!-- Barre de vie -->
+                                <div class="progress mt-2" style="height: 25px;">
+                                    {% set hp_percent = (monster.hp / monster.max_hp * 100)|int %}
+                                    {% if hp_percent > 50 %}
+                                        {% set bar_color = 'success' %}
+                                    {% elif hp_percent > 25 %}
+                                        {% set bar_color = 'warning' %}
+                                    {% else %}
+                                        {% set bar_color = 'danger' %}
+                                    {% endif %}
+                                    <div class="progress-bar bg-{{ bar_color }}"
+                                         style="width: {{ hp_percent }}%">
+                                        {{ monster.hp }}/{{ monster.max_hp }} PV
+                                    </div>
+                                </div>
+
+                                <div class="mt-2">
+                                    <small>
+                                        <span class="badge bg-info">CA: {{ monster.ac }}</span>
+                                        <span class="badge bg-warning">XP: {{ monster.xp }}</span>
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Journal de Combat -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-journal-text"></i> Journal de Combat</h5>
+            </div>
+            <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+                {% if combat_state.messages %}
+                    {% for message in combat_state.messages[-20:] %}
+                    <div class="border-bottom pb-1 mb-1">
+                        <small>{{ message }}</small>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">Le combat commence...</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}Sortie de la Ville - D&D 5e Demo{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card shadow-lg mb-3">
+            <div class="card-header bg-danger text-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h2 class="mb-0"><i class="bi bi-geo"></i> Sortie de la Ville</h2>
+                    <a href="/castle" class="btn btn-sm btn-light">
+                        <i class="bi bi-arrow-left"></i> Retour au Château
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <p class="lead">L'aventure commence ici ! Où voulez-vous aller ?</p>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- Training Grounds -->
+            <div class="col-md-6">
+                <div class="card h-100 border-info">
+                    <div class="card-header bg-info text-white">
+                        <h4 class="mb-0"><i class="bi bi-people"></i> Terrains d'Entraînement</h4>
+                    </div>
+                    <div class="card-body">
+                        <p>Créez et gérez vos personnages.</p>
+                        <ul>
+                            <li>Créer de nouveaux personnages</li>
+                            <li>Voir le roster complet</li>
+                            <li>Gérer les personnages</li>
+                        </ul>
+                    </div>
+                    <div class="card-footer">
+                        <a href="/training-grounds" class="btn btn-info w-100">
+                            <i class="bi bi-people"></i> Aller aux Terrains
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dungeon -->
+            <div class="col-md-6">
+                <div class="card h-100 border-danger">
+                    <div class="card-header bg-danger text-white">
+                        <h4 class="mb-0"><i class="bi bi-fire"></i> Entrer dans le Donjon</h4>
+                    </div>
+                    <div class="card-body">
+                        {% if party and party|length > 0 %}
+                        <p>Votre groupe est prêt à l'aventure !</p>
+                        <p><strong>Groupe:</strong> {{ party|length }} personnage(s)</p>
+                        <p><strong>Niveau moyen:</strong> {{ (party|sum(attribute='level') / party|length)|int }}</p>
+
+                        <h6 class="mt-3">Type de rencontre:</h6>
+                        <form method="POST" action="/combat/auto">
+                            <select name="encounter_type" class="form-select mb-3">
+                                <option value="random">Aléatoire</option>
+                                <option value="easy">Facile</option>
+                                <option value="medium">Moyen</option>
+                                <option value="hard">Difficile</option>
+                                <option value="deadly">Mortel</option>
+                            </select>
+                            <button type="submit" class="btn btn-danger w-100">
+                                <i class="bi bi-fire"></i> Explorer le Donjon
+                            </button>
+                        </form>
+                        {% else %}
+                        <div class="alert alert-warning">
+                            <i class="bi bi-exclamation-triangle"></i> Vous devez avoir un groupe pour explorer le donjon !
+                        </div>
+                        <a href="/character/create" class="btn btn-primary w-100">
+                            <i class="bi bi-plus-circle"></i> Créer des Personnages
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Info Box -->
+        <div class="alert alert-info mt-4">
+            <h5><i class="bi bi-info-circle"></i> Système de Rencontres</h5>
+            <p class="mb-0">
+                Le système génère automatiquement des rencontres adaptées au niveau de votre groupe.
+                Les rencontres sont équilibrées selon le type choisi (Facile, Moyen, Difficile, ou Mortel).
+            </p>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

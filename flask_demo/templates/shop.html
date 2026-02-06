@@ -1,0 +1,352 @@
+{% extends "base.html" %}
+
+{% block title %}Magasin de Boltac - D&D 5e Demo{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-12">
+        <!-- En-tête -->
+        <div class="card shadow-lg mb-3">
+            <div class="card-header bg-success text-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h2 class="mb-0"><i class="bi bi-shop"></i> Magasin de Boltac</h2>
+                    <a href="/party" class="btn btn-sm btn-light">
+                        <i class="bi bi-arrow-left"></i> Retour au Groupe
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <p class="lead">Bienvenue au Trading Post de Boltac ! Le meilleur équipement de la région.</p>
+
+                <!-- Sélection du personnage -->
+                {% if party and party|length > 0 %}
+                <div class="mb-3">
+                    <label for="character-select" class="form-label"><strong>Choisir un personnage:</strong></label>
+                    <select id="character-select" class="form-select" onchange="updateCharacterInfo()">
+                        {% for char in party %}
+                        <option value="{{ loop.index0 }}" data-gold="{{ char.gold }}">
+                            {{ char.name }} ({{ char.gold }} PO)
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <small class="text-muted">Or disponible: <span id="char-gold" class="text-warning fw-bold">{{ party[0].gold }}</span> PO</small>
+                </div>
+                {% else %}
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle"></i> Aucun personnage dans le groupe.
+                    <a href="/character/create">Créez un personnage</a> pour commencer à acheter.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if error %}
+        <div class="alert alert-danger">
+            <h5><i class="bi bi-exclamation-triangle"></i> Erreur</h5>
+            <pre>{{ error }}</pre>
+        </div>
+        {% endif %}
+
+        {% if party and party|length > 0 %}
+        <!-- Tabs Navigation -->
+        <ul class="nav nav-tabs mb-3" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link active" data-bs-toggle="tab" href="#weapons">
+                    <i class="bi bi-sword"></i> Armes ({{ weapons|length if weapons else 0 }})
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="tab" href="#armors">
+                    <i class="bi bi-shield"></i> Armures ({{ armors|length if armors else 0 }})
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="tab" href="#magic">
+                    <i class="bi bi-star-fill"></i> Objets Magiques ({{ magic_items|length if magic_items else 0 }})
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="tab" href="#inventory">
+                    <i class="bi bi-backpack"></i> Mon Inventaire
+                </a>
+            </li>
+        </ul>
+
+        <!-- Tabs Content -->
+        <div class="tab-content">
+            <!-- Armes -->
+            <div class="tab-pane fade show active" id="weapons">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-sword"></i> Armes Disponibles</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if weapons %}
+                        <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+                            <table class="table table-hover table-sm">
+                                <thead class="sticky-top bg-light">
+                                    <tr>
+                                        <th>Nom</th>
+                                        <th>Dégâts</th>
+                                        <th>Type</th>
+                                        <th>Prix</th>
+                                        <th>Stock</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for weapon in weapons %}
+                                    <tr>
+                                        <td><strong>{{ weapon.name }}</strong></td>
+                                        <td>{{ weapon.damage_dice if weapon.damage_dice else '-' }}</td>
+                                        <td><small>{{ weapon.damage_type if weapon.damage_type else '-' }}</small></td>
+                                        <td><span class="text-warning">{{ (weapon.cost.value / 100)|int if weapon.cost and weapon.cost.value else 10 }} PO</span></td>
+                                        <td><span class="badge bg-success">∞</span></td>
+                                        <td>
+                                            <button class="btn btn-sm btn-success"
+                                                    onclick="buyItem('{{ weapon.index if weapon.index else weapon.name }}', 'weapon', {{ (weapon.cost.value / 100)|int if weapon.cost and weapon.cost.value else 10 }})">
+                                                <i class="bi bi-cart-plus"></i> Acheter
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <p class="text-muted">Aucune arme disponible.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Armures -->
+            <div class="tab-pane fade" id="armors">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-shield"></i> Armures Disponibles</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if armors %}
+                        <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+                            <table class="table table-hover table-sm">
+                                <thead class="sticky-top bg-light">
+                                    <tr>
+                                        <th>Nom</th>
+                                        <th>CA de base</th>
+                                        <th>Catégorie</th>
+                                        <th>Prix</th>
+                                        <th>Stock</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for armor in armors %}
+                                    <tr>
+                                        <td><strong>{{ armor.name }}</strong></td>
+                                        <td>{{ armor.armor_class.base if armor.armor_class else '-' }}</td>
+                                        <td><small>{{ armor.category if armor.category else '-' }}</small></td>
+                                        <td><span class="text-warning">{{ (armor.cost.value / 100)|int if armor.cost and armor.cost.value else 50 }} PO</span></td>
+                                        <td><span class="badge bg-success">∞</span></td>
+                                        <td>
+                                            <button class="btn btn-sm btn-success"
+                                                    onclick="buyItem('{{ armor.index if armor.index else armor.name }}', 'armor', {{ (armor.cost.value / 100)|int if armor.cost and armor.cost.value else 50 }})">
+                                                <i class="bi bi-cart-plus"></i> Acheter
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <p class="text-muted">Aucune armure disponible.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Objets Magiques -->
+            <div class="tab-pane fade" id="magic">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-star-fill"></i> Objets Magiques</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if magic_items %}
+                        <div class="row">
+                            {% for item in magic_items %}
+                            <div class="col-md-6 col-lg-4 mb-3">
+                                <div class="card border-warning h-100">
+                                    <div class="card-body">
+                                        <h6 class="card-title text-warning">
+                                            <i class="bi bi-star-fill"></i> {{ item.name }}
+                                        </h6>
+                                        <p class="card-text"><small>{{ item.description[:100] if item.description else 'Objet magique puissant' }}...</small></p>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="text-warning"><strong>{{ (item.cost.value / 100)|int if item.cost and item.cost.value and item.cost.value > 0 else 500 }} PO</strong></span>
+                                            <button class="btn btn-sm btn-warning"
+                                                    onclick="buyItem('{{ item.index if item.index else item.name }}', 'magic', {{ (item.cost.value / 100)|int if item.cost and item.cost.value and item.cost.value > 0 else 500 }})">
+                                                <i class="bi bi-cart-plus"></i> Acheter
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <p class="text-muted">Aucun objet magique en stock.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Inventaire du personnage -->
+            <div class="tab-pane fade" id="inventory">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-backpack"></i> Inventaire de <span id="inventory-char-name">{{ party[0].name if party else '' }}</span></h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="inventory-content">
+                            {% if party and party[0].inventory and party[0].inventory|length > 0 %}
+                            <div class="list-group">
+                                {% for inv_item in party[0].inventory %}
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>{{ inv_item.name }}</strong>
+                                        <br><small class="text-muted">Type: {{ inv_item.type }}</small>
+                                    </div>
+                                    <button class="btn btn-sm btn-danger"
+                                            onclick="sellItem('{{ inv_item.name }}')">
+                                        <i class="bi bi-cash-coin"></i> Vendre
+                                    </button>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <p class="text-muted">L'inventaire est vide.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentCharIndex = 0;
+const partyData = {{ party|tojson if party else '[]' }};
+
+function updateCharacterInfo() {
+    const select = document.getElementById('character-select');
+    currentCharIndex = parseInt(select.value);
+    const option = select.options[select.selectedIndex];
+    const gold = option.getAttribute('data-gold');
+
+    document.getElementById('char-gold').textContent = gold;
+
+    // Mettre à jour l'inventaire
+    if (partyData[currentCharIndex]) {
+        const char = partyData[currentCharIndex];
+        document.getElementById('inventory-char-name').textContent = char.name;
+
+        const inventoryContent = document.getElementById('inventory-content');
+        if (char.inventory && char.inventory.length > 0) {
+            let html = '<div class="list-group">';
+            char.inventory.forEach(item => {
+                html += `
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>${item.name}</strong>
+                            <br><small class="text-muted">Type: ${item.type}</small>
+                        </div>
+                        <button class="btn btn-sm btn-danger" onclick="sellItem('${item.name}')">
+                            <i class="bi bi-cash-coin"></i> Vendre
+                        </button>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            inventoryContent.innerHTML = html;
+        } else {
+            inventoryContent.innerHTML = '<p class="text-muted">L\'inventaire est vide.</p>';
+        }
+    }
+}
+
+function buyItem(itemIndex, itemType, price) {
+    const charIndex = currentCharIndex;
+    const charGold = parseInt(document.getElementById('char-gold').textContent);
+
+    if (charGold < price) {
+        alert(`Pas assez d'or ! Vous avez ${charGold} PO, il faut ${price} PO.`);
+        return;
+    }
+
+    if (!confirm(`Acheter cet item pour ${price} PO ?`)) {
+        return;
+    }
+
+    fetch('/api/shop/buy', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            character_index: charIndex,
+            item_index: itemIndex,
+            item_type: itemType
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            window.location.reload();
+        } else {
+            alert('Erreur: ' + data.error);
+        }
+    })
+    .catch(error => {
+        alert('Erreur de connexion: ' + error.message);
+    });
+}
+
+function sellItem(itemName) {
+    const charIndex = currentCharIndex;
+
+    if (!confirm(`Vendre ${itemName} ?`)) {
+        return;
+    }
+
+    fetch('/api/shop/sell', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            character_index: charIndex,
+            item_name: itemName
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            window.location.reload();
+        } else {
+            alert('Erreur: ' + data.error);
+        }
+    })
+    .catch(error => {
+        alert('Erreur de connexion: ' + error.message);
+    });
+}
+</script>
+{% endblock %}

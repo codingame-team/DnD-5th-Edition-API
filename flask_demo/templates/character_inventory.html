@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}Inventaire - {{ character.name }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card shadow-lg">
+            <div class="card-header bg-primary text-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h2 class="mb-0"><i class="bi bi-backpack-fill"></i> Inventaire de {{ character.name }}</h2>
+                    <a href="/character/{{ index }}" class="btn btn-sm btn-light">
+                        <i class="bi bi-arrow-left"></i> Retour à la Fiche
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if character.inventory and character.inventory|length > 0 %}
+                <div class="row g-3">
+                    {% for item in character.inventory %}
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card h-100">
+                            <div class="card-header {% if item.type in ['Weapon', 'Armor', 'Shield'] %}bg-primary text-white{% else %}bg-secondary text-white{% endif %}">
+                                <strong>{{ item.name }}</strong>
+                            </div>
+                            <div class="card-body">
+                                <p><strong>Type:</strong> {{ item.type }}</p>
+
+                                <div class="d-grid gap-2">
+                                    {% if item.type in ['Weapon', 'Armor', 'Shield'] %}
+                                    <button class="btn btn-success" onclick="equipItem({{ index }}, '{{ item.name }}', '{{ item.type }}')">
+                                        <i class="bi bi-box-arrow-in-right"></i> Équiper
+                                    </button>
+                                    {% endif %}
+                                    <button class="btn btn-danger" onclick="dropItem({{ index }}, '{{ item.name }}')">
+                                        <i class="bi bi-trash"></i> Jeter
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="alert alert-info text-center py-5">
+                    <i class="bi bi-inbox" style="font-size: 3rem;"></i>
+                    <h4 class="mt-3">Inventaire vide</h4>
+                    <p>Visitez le <a href="/shop">magasin de Boltac</a> pour acheter des items.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function equipItem(charIdx, itemName, itemType) {
+    // Pas de confirmation - action directe
+    fetch(`/api/character/${charIdx}/equip`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({item_name: itemName, item_type: itemType})
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            window.location.href = window.location.href;
+        } else {
+            alert('Erreur: ' + data.error);
+        }
+    })
+    .catch(error => alert('Erreur: ' + error.message));
+}
+
+function dropItem(charIdx, itemName) {
+    if (!confirm(`Jeter ${itemName} ? Cette action est irréversible.`)) return;
+
+    fetch(`/api/character/${charIdx}/drop`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({item_name: itemName})
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            window.location.href = window.location.href;
+        } else {
+            alert('Erreur: ' + data.error);
+        }
+    })
+    .catch(error => alert('Erreur: ' + error.message));
+}
+</script>
+{% endblock %}

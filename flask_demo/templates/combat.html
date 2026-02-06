@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}Combat - D&D 5e Demo{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card shadow-lg">
+            <div class="card-header bg-danger text-white">
+                <h2 class="mb-0"><i class="bi bi-fire"></i> Système de Combat</h2>
+            </div>
+            <div class="card-body">
+                {% if session.get('error_message') %}
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill"></i> {{ session.pop('error_message') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endif %}
+
+                {% if not party %}
+                <div class="text-center py-5">
+                    <div class="display-1 text-muted mb-3">
+                        <i class="bi bi-people-fill"></i>
+                    </div>
+                    <h3>Aucun personnage disponible</h3>
+                    <p class="text-muted">Vous devez d'abord créer des personnages pour commencer un combat.</p>
+                    <a href="/character/create" class="btn btn-primary btn-lg">
+                        <i class="bi bi-plus-circle-fill"></i> Créer un personnage
+                    </a>
+                </div>
+                {% else %}
+
+                <!-- Votre Groupe -->
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="bi bi-people-fill"></i> Groupe ({{ party|length }})</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-2">
+                            {% for character in party %}
+                            <div class="col-md-6 col-lg-4">
+                                <div class="border rounded p-2">
+                                    <strong>{{ character.name }}</strong>
+                                    <small class="d-block text-muted">{{ character.class|title }} niv. {{ character.level }}</small>
+                                    <small><i class="bi bi-heart-fill text-danger"></i> {{ character.hp }}/{{ character.max_hp }}</small>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Génération Automatique de Rencontres -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-dice-6"></i> Sélection de la Difficulté</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-3">Le système générera automatiquement une rencontre adaptée au niveau de votre groupe (niveau moyen: {{ (party|sum(attribute='level') / party|length)|int }}).</p>
+
+                        <form method="POST" action="/combat/auto">
+                            <div class="mb-3">
+                                <label for="encounter-type" class="form-label"><strong>Difficulté de la rencontre:</strong></label>
+                                <select name="encounter_type" id="encounter-type" class="form-select form-select-lg">
+                                    <option value="random">Aléatoire (le système choisit)</option>
+                                    <option value="easy">Facile</option>
+                                    <option value="medium" selected>Moyen</option>
+                                    <option value="hard">Difficile</option>
+                                    <option value="deadly">Mortel</option>
+                                </select>
+                                <small class="text-muted">
+                                    Les monstres seront sélectionnés automatiquement selon la difficulté choisie.
+                                </small>
+                            </div>
+
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-danger btn-lg">
+                                    <i class="bi bi-fire"></i> Commencer le Combat
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Retour -->
+                <div class="text-center">
+                    <a href="/edge-of-town" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Retour à la Sortie de Ville
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,416 @@
+{% extends "base.html" %}
+
+{% block title %}Mon Groupe - D&D 5e Demo{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card shadow-lg mb-4">
+            <div class="card-header bg-primary text-white">
+                <h2 class="mb-0"><i class="bi bi-people-fill"></i> Mon Groupe d'Aventuriers</h2>
+            </div>
+            <div class="card-body">
+                {% if party %}
+                <div class="row g-4">
+                    {% for character in party %}
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card h-100">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">{{ character.name }}</h5>
+                                <div>
+                                    <a href="/character/{{ loop.index0 }}" class="btn btn-sm btn-info me-1">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <form method="POST" action="/api/party/remove/{{ loop.index0 }}" class="d-inline">
+                                        <button type="submit" class="btn btn-sm btn-danger"
+                                                onclick="return confirm('Voulez-vous vraiment retirer {{ character.name }} du groupe ?')">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <p class="mb-2"><strong><i class="bi bi-person"></i> Race:</strong> {{ character.race|title }}</p>
+                                <p class="mb-2"><strong><i class="bi bi-shield"></i> Classe:</strong> {{ character.class|title }}</p>
+                                <p class="mb-3"><strong><i class="bi bi-star"></i> Niveau:</strong> {{ character.level }}</p>
+
+                                <div class="row text-center mb-3">
+                                    <div class="col-4">
+                                        <div class="border rounded p-2">
+                                            <small class="text-muted d-block">PV</small>
+                                            <strong class="text-danger">{{ character.hp }}/{{ character.max_hp }}</strong>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="border rounded p-2">
+                                            <small class="text-muted d-block">CA</small>
+                                            <strong class="text-primary">{{ character.ac }}</strong>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="border rounded p-2">
+                                            <small class="text-muted d-block">XP</small>
+                                            <strong class="text-success">{{ character.xp }}</strong>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row text-center">
+                                    <div class="col-4 col-md-2 mb-2">
+                                        <div class="border rounded p-1">
+                                            <small class="text-muted d-block" style="font-size: 0.7rem;">FOR</small>
+                                            <strong style="font-size: 0.9rem;">{{ character.str }}</strong>
+                                        </div>
+                                    </div>
+                                    <div class="col-4 col-md-2 mb-2">
+                                        <div class="border rounded p-1">
+                                            <small class="text-muted d-block" style="font-size: 0.7rem;">DEX</small>
+                                            <strong style="font-size: 0.9rem;">{{ character.dex }}</strong>
+                                        </div>
+                                    </div>
+                                    <div class="col-4 col-md-2 mb-2">
+                                        <div class="border rounded p-1">
+                                            <small class="text-muted d-block" style="font-size: 0.7rem;">CON</small>
+                                            <strong style="font-size: 0.9rem;">{{ character.con }}</strong>
+                                        </div>
+                                    </div>
+                                    <div class="col-4 col-md-2 mb-2">
+                                        <div class="border rounded p-1">
+                                            <small class="text-muted d-block" style="font-size: 0.7rem;">INT</small>
+                                            <strong style="font-size: 0.9rem;">{{ character.int }}</strong>
+                                        </div>
+                                    </div>
+                                    <div class="col-4 col-md-2 mb-2">
+                                        <div class="border rounded p-1">
+                                            <small class="text-muted d-block" style="font-size: 0.7rem;">SAG</small>
+                                            <strong style="font-size: 0.9rem;">{{ character.wis }}</strong>
+                                        </div>
+                                    </div>
+                                    <div class="col-4 col-md-2 mb-2">
+                                        <div class="border rounded p-1">
+                                            <small class="text-muted d-block" style="font-size: 0.7rem;">CHA</small>
+                                            <strong style="font-size: 0.9rem;">{{ character.cha }}</strong>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <p class="mb-0 mt-3 text-center">
+                                    <i class="bi bi-coin text-warning"></i> <strong>{{ character.gold }}</strong> po
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="mt-4 d-flex gap-2 justify-content-center flex-wrap">
+                    <a href="/character/create" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i> Ajouter un personnage
+                    </a>
+                    <a href="/combat" class="btn btn-success">
+                        <i class="bi bi-fire"></i> Lancer un combat
+                    </a>
+                    <a href="/shop" class="btn btn-warning">
+                        <i class="bi bi-shop"></i> Magasin de Boltac
+                    </a>
+                </div>
+
+                <!-- Gestion du Groupe -->
+                <div class="mt-4">
+                    <div class="card border-warning">
+                        <div class="card-header bg-warning text-dark">
+                            <h6 class="mb-0"><i class="bi bi-tools"></i> Gestion du Groupe</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-2">
+                                <div class="col-md-4">
+                                    <button class="btn btn-primary w-100" onclick="showReorderModal()" {% if party|length < 2 %}disabled{% endif %}>
+                                        <i class="bi bi-arrows-move"></i> Réorganiser
+                                    </button>
+                                    {% if party|length < 2 %}
+                                    <small class="text-muted d-block">Besoin de 2+ personnages</small>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-4">
+                                    <button class="btn btn-success w-100" onclick="divvyGold()" {% if not party %}disabled{% endif %}>
+                                        <i class="bi bi-coin"></i> Répartir l'Or
+                                    </button>
+                                    {% if party %}
+                                    <small class="text-muted d-block">Total: {{ party|sum(attribute='gold') }} PO</small>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-4">
+                                    <button class="btn btn-danger w-100" onclick="disbandParty()" {% if not party %}disabled{% endif %}>
+                                        <i class="bi bi-x-octagon"></i> Dissoudre
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cheat Mode -->
+                <div class="mt-4">
+                    <div class="card bg-dark text-white">
+                        <div class="card-header">
+                            <h6 class="mb-0"><i class="bi bi-terminal"></i> Mode Triche (Développement)</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-sm btn-success" onclick="cheatHealParty()">
+                                    <i class="bi bi-heart-pulse"></i> Soigner le Groupe
+                                </button>
+                                <button type="button" class="btn btn-sm btn-warning" onclick="cheatAddGold()">
+                                    <i class="bi bi-coin"></i> +1000 PO
+                                </button>
+                                <button type="button" class="btn btn-sm btn-info" onclick="cheatLevelUp()">
+                                    <i class="bi bi-arrow-up-circle"></i> Niveau +1
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {% else %}
+                <!-- Empty State -->
+                <div class="text-center py-5">
+                    <div class="display-1 text-muted mb-3">
+                        <i class="bi bi-person-x"></i>
+                    </div>
+                    <h3>Aucun personnage dans votre groupe</h3>
+                    <p class="text-muted">Commencez par créer votre premier personnage pour partir à l'aventure !</p>
+                    <a href="/character/create" class="btn btn-primary btn-lg">
+                        <i class="bi bi-plus-circle-fill"></i> Créer mon premier personnage
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Conseils -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-lightbulb"></i> Conseils</h5>
+            </div>
+            <div class="card-body">
+                <ul class="mb-0">
+                    <li>Un groupe équilibré devrait contenir des combattants au corps à corps et à distance</li>
+                    <li>Les lanceurs de sorts devraient être positionnés en arrière (positions 3+)</li>
+                    <li>Un clerc ou paladin peut être très utile pour les soins</li>
+                    <li>Vous pouvez créer jusqu'à 6 personnages dans votre groupe</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Party Management Functions
+function showReorderModal() {
+    const party = {{ party|tojson if party else '[]' }};
+    if (party.length < 2) return;
+
+    let html = '<div style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:9999;display:flex;align-items:center;justify-content:center;" id="reorder-modal">';
+    html += '<div style="background:#1e293b;padding:2rem;border-radius:8px;max-width:500px;width:90%;">';
+    html += '<h5 class="text-white mb-3"><i class="bi bi-arrows-move"></i> Réorganiser le Groupe</h5>';
+    html += '<div id="reorder-list">';
+
+    party.forEach((char, i) => {
+        html += `<div class="d-flex align-items-center gap-2 mb-2 p-2 border rounded bg-dark">
+            <button class="btn btn-sm btn-secondary" onclick="moveUp(${i})" ${i === 0 ? 'disabled' : ''}>
+                <i class="bi bi-arrow-up"></i>
+            </button>
+            <button class="btn btn-sm btn-secondary" onclick="moveDown(${i})" ${i === party.length-1 ? 'disabled' : ''}>
+                <i class="bi bi-arrow-down"></i>
+            </button>
+            <span class="text-white flex-grow-1">${i+1}. ${char.name} - ${char.class} niv.${char.level}</span>
+        </div>`;
+    });
+
+    html += '</div>';
+    html += '<div class="mt-3 d-flex gap-2">';
+    html += '<button class="btn btn-success" onclick="saveReorder()"><i class="bi bi-check"></i> Valider</button>';
+    html += '<button class="btn btn-secondary" onclick="closeReorderModal()">Annuler</button>';
+    html += '</div></div></div>';
+
+    document.body.insertAdjacentHTML('beforeend', html);
+    window.currentPartyOrder = [...party];
+}
+
+function moveUp(index) {
+    if (index === 0) return;
+    const temp = window.currentPartyOrder[index];
+    window.currentPartyOrder[index] = window.currentPartyOrder[index - 1];
+    window.currentPartyOrder[index - 1] = temp;
+    refreshReorderModal();
+}
+
+function moveDown(index) {
+    if (index === window.currentPartyOrder.length - 1) return;
+    const temp = window.currentPartyOrder[index];
+    window.currentPartyOrder[index] = window.currentPartyOrder[index + 1];
+    window.currentPartyOrder[index + 1] = temp;
+    refreshReorderModal();
+}
+
+function refreshReorderModal() {
+    const listEl = document.getElementById('reorder-list');
+    let html = '';
+    window.currentPartyOrder.forEach((char, i) => {
+        html += `<div class="d-flex align-items-center gap-2 mb-2 p-2 border rounded bg-dark">
+            <button class="btn btn-sm btn-secondary" onclick="moveUp(${i})" ${i === 0 ? 'disabled' : ''}>
+                <i class="bi bi-arrow-up"></i>
+            </button>
+            <button class="btn btn-sm btn-secondary" onclick="moveDown(${i})" ${i === window.currentPartyOrder.length-1 ? 'disabled' : ''}>
+                <i class="bi bi-arrow-down"></i>
+            </button>
+            <span class="text-white flex-grow-1">${i+1}. ${char.name} - ${char.class} niv.${char.level}</span>
+        </div>`;
+    });
+    listEl.innerHTML = html;
+}
+
+function saveReorder() {
+    fetch('/api/party/reorder', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({order: window.currentPartyOrder.map(c => c.name)})
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            window.location.href = window.location.href;
+        } else {
+            alert('Erreur: ' + data.error);
+        }
+    });
+}
+
+function closeReorderModal() {
+    document.getElementById('reorder-modal')?.remove();
+}
+
+function divvyGold() {
+    // Pas de confirmation - action directe
+    fetch('/api/party/divvy-gold', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'}
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Rechargement forcé
+            window.location.href = window.location.href;
+        } else {
+            alert('Erreur: ' + data.error);
+        }
+    });
+}
+
+function disbandParty() {
+    if (!confirm('ATTENTION: Dissoudre le groupe supprimera tous les personnages du groupe. Cette action est irréversible. Continuer ?')) return;
+
+    fetch('/api/party/disband', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'}
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            window.location.href = '/party';
+        } else {
+            alert('Erreur: ' + data.error);
+        }
+    });
+}
+
+// Cheat Functions
+function cheatHealParty() {
+    fetch('/api/cheat/heal_party', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            window.location.href = window.location.href;
+        } else {
+            alert('Erreur: ' + data.error);
+        }
+    })
+    .catch(error => {
+        alert('Erreur de connexion: ' + error.message);
+    });
+}
+
+function cheatAddGold() {
+    fetch('/api/cheat/add_gold', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ amount: 1000 })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            window.location.href = window.location.href;
+        } else {
+            alert('Erreur: ' + data.error);
+        }
+    })
+    .catch(error => {
+        alert('Erreur de connexion: ' + error.message);
+    });
+}
+
+function cheatLevelUp() {
+    fetch('/api/cheat/level_up', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            window.location.href = window.location.href;
+        } else {
+            alert('Erreur: ' + data.error);
+        }
+    })
+    .catch(error => {
+        alert('Erreur de connexion: ' + error.message);
+    });
+}
+
+// Gérer la suppression via formulaire POST
+document.querySelectorAll('form[action^="/api/party/remove/"]').forEach(form => {
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        if (confirm('Voulez-vous vraiment retirer ce personnage du groupe ?')) {
+            // Envoyer la requête
+            fetch(this.action, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Recharger la page
+                    window.location.reload();
+                } else {
+                    alert('Erreur: ' + data.error);
+                }
+            })
+            .catch(error => {
+                alert('Erreur de connexion: ' + error.message);
+            });
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,3 @@
+Flask==3.0.0
+Werkzeug==3.0.1
+dnd-5e-core>=0.4.3

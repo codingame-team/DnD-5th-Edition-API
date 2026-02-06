@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}Accueil - D&D 5e Demo{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-12">
+        <!-- Hero Section -->
+        <div class="text-center mb-5">
+            <h1 class="display-3 mb-3">
+                <i class="bi bi-dice-6-fill text-primary"></i>
+                Bienvenue dans D&D 5e Demo
+            </h1>
+            <p class="lead text-muted">Application de démonstration utilisant dnd-5e-core</p>
+        </div>
+
+        <!-- Features -->
+        <div class="row g-4 mb-5">
+            <div class="col-md-4">
+                <div class="card h-100 text-center">
+                    <div class="card-body">
+                        <div class="display-1 mb-3">
+                            <i class="bi bi-person-plus-fill text-primary"></i>
+                        </div>
+                        <h3 class="card-title">Création de Personnages</h3>
+                        <p class="card-text">Créez vos héros en choisissant race, classe et niveau</p>
+                        <a href="/character/create" class="btn btn-primary">
+                            <i class="bi bi-plus-circle"></i> Créer un personnage
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card h-100 text-center">
+                    <div class="card-body">
+                        <div class="display-1 mb-3">
+                            <i class="bi bi-people-fill text-success"></i>
+                        </div>
+                        <h3 class="card-title">Constitution de Groupe</h3>
+                        <p class="card-text">Formez votre groupe d'aventuriers pour partir en quête</p>
+                        <a href="/party" class="btn btn-success">
+                            <i class="bi bi-eye"></i> Voir mon groupe
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card h-100 text-center">
+                    <div class="card-body">
+                        <div class="display-1 mb-3">
+                            <i class="bi bi-fire text-danger"></i>
+                        </div>
+                        <h3 class="card-title">Système de Combat</h3>
+                        <p class="card-text">Affrontez des monstres avec le système de combat complet</p>
+                        <a href="/combat" class="btn btn-danger">
+                            <i class="bi bi-crosshair"></i> Lancer un combat
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Caractéristiques -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="bi bi-book"></i> Caractéristiques</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <ul class="list-unstyled">
+                            <li><i class="bi bi-check-circle-fill text-success"></i> Plus de 332 monstres disponibles</li>
+                            <li><i class="bi bi-check-circle-fill text-success"></i> Système de combat complet D&D 5e</li>
+                            <li><i class="bi bi-check-circle-fill text-success"></i> Gestion des personnages persistante</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <ul class="list-unstyled">
+                            <li><i class="bi bi-check-circle-fill text-success"></i> Support des sorts et capacités spéciales</li>
+                            <li><i class="bi bi-check-circle-fill text-success"></i> Interface web responsive</li>
+                            <li><i class="bi bi-check-circle-fill text-success"></i> API REST complète</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Documentation -->
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0"><i class="bi bi-journal-code"></i> Documentation</h4>
+            </div>
+            <div class="card-body">
+                <p>Cette démo utilise le package <strong>dnd-5e-core</strong> qui fournit un moteur de règles complet pour D&D 5e.</p>
+                <div class="d-flex gap-2">
+                    <a href="https://github.com/codingame-team/dnd-5e-core" target="_blank" class="btn btn-outline-primary">
+                        <i class="bi bi-github"></i> GitHub
+                    </a>
+                    <a href="https://pypi.org/project/dnd-5e-core/" target="_blank" class="btn btn-outline-primary">
+                        <i class="bi bi-box"></i> PyPI
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

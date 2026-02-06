@@ -161,20 +161,37 @@ def menu_read_options(options: List[str], prompt: str = "Enter your choice: ") -
     return input(f"\n{prompt}")
 
 
-def delete_character_prompt_ok(char_name: str) -> bool:
+def delete_character_prompt_ok(char_name: str, stdscr=None, push_panel=None) -> bool:
     """
-    Confirm character deletion.
-
-    Args:
-        char_name: Name of character to delete
-
-    Returns:
-        True if confirmed, False otherwise
+    Confirme la suppression du personnage, compatible ncurses.
+    Affiche le prompt juste au-dessus de la barre de menu si stdscr est fourni.
     """
-    response = input(
-        f"{color.DARKCYAN}Are you sure you want to delete {char_name}? (Y/N){color.END}"
-    ).lower()
-    return response == 'y'
+    prompt = f"Êtes-vous sûr de vouloir supprimer {char_name} ? (Y/N)"
+    if stdscr is not None:
+        import curses
+        lines, cols = stdscr.getmaxyx()
+        # Affiche le prompt juste au-dessus de la barre de menu (avant-dernière ligne)
+        stdscr.move(lines - 2, 0)
+        stdscr.clrtoeol()
+        stdscr.addstr(lines - 2, 0, prompt[:cols - 1], curses.A_BOLD)
+        stdscr.refresh()
+        while True:
+            c = stdscr.getch()
+            if c in (ord('y'), ord('Y')):
+                # Efface le prompt après validation
+                stdscr.move(lines - 2, 0)
+                stdscr.clrtoeol()
+                stdscr.refresh()
+                return True
+            elif c in (ord('n'), ord('N'), 27):
+                # Efface le prompt après annulation
+                stdscr.move(lines - 2, 0)
+                stdscr.clrtoeol()
+                stdscr.refresh()
+                return False
+    else:
+        response = input(f"{color.DARKCYAN}Are you sure you want to delete {char_name}? (Y/N){color.END}").lower()
+        return response == 'y'
 
 
 def rename_character_prompt_ok() -> Optional[str]:
@@ -249,4 +266,3 @@ __all__ = [
     'exit_message',
     'display_monster_kills',
 ]
-

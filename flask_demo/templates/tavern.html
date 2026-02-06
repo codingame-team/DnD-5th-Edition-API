@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+
+{% block title %}Taverne de Gilgamesh - D&D 5e Demo{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-12">
+        <!-- En-tête -->
+        <div class="card shadow-lg mb-3">
+            <div class="card-header bg-warning">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h2 class="mb-0"><i class="bi bi-cup-straw"></i> Taverne de Gilgamesh</h2>
+                    <a href="/castle" class="btn btn-sm btn-dark">
+                        <i class="bi bi-arrow-left"></i> Retour au Château
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <p class="lead">Bienvenue à la taverne ! Recrutez des aventuriers pour votre groupe.</p>
+                <p class="text-muted"><em>Capacité du groupe: {{ party|length }}/6 personnages</em></p>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Groupe actuel -->
+            <div class="col-md-6">
+                <div class="card mb-3">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="bi bi-people-fill"></i> Groupe Actuel ({{ party|length }}/6)</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if party %}
+                        <div class="list-group">
+                            {% for char in party %}
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="flex-grow-1">
+                                        <strong>{{ loop.index }}. {{ char.name }}</strong>
+                                        {% if char.status == 'DEAD' %}
+                                            <span class="badge bg-danger ms-2">MORT</span>
+                                        {% endif %}
+                                        <br><small class="text-muted">
+                                            {{ char.class }} niv.{{ char.level }} -
+                                            {{ char.hp }}/{{ char.max_hp }} HP -
+                                            {{ char.gold }} PO
+                                        </small>
+                                    </div>
+                                    <div>
+                                        <a href="/character/{{ loop.index0 }}" class="btn btn-sm btn-info me-1">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <button class="btn btn-sm btn-danger" onclick="removeFromParty({{ loop.index0 }})">
+                                            <i class="bi bi-x-circle"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <p class="text-muted">Le groupe est vide. Créez ou recrutez des personnages !</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="col-md-6">
+                <div class="card mb-3">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0"><i class="bi bi-lightning"></i> Actions</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <a href="/character/create" class="btn btn-success">
+                                <i class="bi bi-plus-circle"></i> Créer un Nouveau Personnage
+                            </a>
+                            <a href="/training-grounds" class="btn btn-info">
+                                <i class="bi bi-people"></i> Voir le Roster (Terrains d'Entraînement)
+                            </a>
+                            <a href="/party" class="btn btn-primary">
+                                <i class="bi bi-eye"></i> Voir les Détails du Groupe
+                            </a>
+                        </div>
+
+                        <hr>
+
+                        <h6>Informations:</h6>
+                        <ul class="small mb-0">
+                            <li>Maximum 6 personnages dans le groupe</li>
+                            <li>Les personnages peuvent être créés aux Terrains d'Entraînement</li>
+                            <li>Utilisez le Temple de Cant pour ressusciter les morts</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Stats du groupe -->
+                {% if party %}
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0"><i class="bi bi-bar-chart"></i> Statistiques du Groupe</h6>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Taille:</strong> {{ party|length }} personnage(s)</p>
+                        <p><strong>Niveau moyen:</strong> {{ (party|sum(attribute='level') / party|length)|int }}</p>
+                        <p><strong>HP total:</strong> {{ party|sum(attribute='hp') }} / {{ party|sum(attribute='max_hp') }}</p>
+                        <p class="mb-0"><strong>Or total:</strong> {{ party|sum(attribute='gold') }} PO</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function removeFromParty(charIndex) {
+    if (!confirm('Retirer ce personnage du groupe ?')) return;
+
+    fetch(`/api/party/remove/${charIndex}`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'}
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Personnage retiré du groupe');
+            window.location.reload();
+        } else {
+            alert('Erreur: ' + data.error);
+        }
+    })
+    .catch(error => alert('Erreur: ' + error.message));
+}
+</script>
+{% endblock %}

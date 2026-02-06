@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}Auberge - D&D 5e Demo{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card shadow-lg mb-3">
+            <div class="card-header bg-info text-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h2 class="mb-0"><i class="bi bi-house"></i> Auberge de l'Aventurier</h2>
+                    <a href="/castle" class="btn btn-sm btn-light">
+                        <i class="bi bi-arrow-left"></i> Retour au Château
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <p class="lead">Reposez-vous et récupérez vos forces !</p>
+                <p class="text-muted">Les chambres restaurent tous vos points de vie.</p>
+            </div>
+        </div>
+
+        {% if party %}
+        <div class="row">
+            {% for char in party %}
+            <div class="col-md-6 col-lg-4 mb-3">
+                <div class="card h-100">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">{{ char.name }}</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <strong>HP:</strong> {{ char.hp }}/{{ char.max_hp }}
+                            <div class="progress mt-2">
+                                {% set hp_percent = (char.hp / char.max_hp * 100)|int %}
+                                <div class="progress-bar {% if hp_percent > 66 %}bg-success{% elif hp_percent > 33 %}bg-warning{% else %}bg-danger{% endif %}"
+                                     style="width: {{ hp_percent }}%">
+                                    {{ hp_percent }}%
+                                </div>
+                            </div>
+                        </div>
+                        <p><strong>Or:</strong> {{ char.gold }} PO</p>
+
+                        <h6 class="mt-3 mb-2">Choisir une chambre:</h6>
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-sm btn-outline-success" onclick="rest({{ loop.index0 }}, 'stables')">
+                                <i class="bi bi-moon"></i> Écuries - 1 PO
+                            </button>
+                            <button class="btn btn-sm btn-outline-info" onclick="rest({{ loop.index0 }}, 'cot')">
+                                <i class="bi bi-moon-stars"></i> Lit de camp - 5 PO
+                            </button>
+                            <button class="btn btn-sm btn-outline-primary" onclick="rest({{ loop.index0 }}, 'economy')">
+                                <i class="bi bi-moon-stars-fill"></i> Économique - 25 PO
+                            </button>
+                            <button class="btn btn-sm btn-outline-warning" onclick="rest({{ loop.index0 }}, 'merchant')">
+                                <i class="bi bi-stars"></i> Marchand - 50 PO
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="rest({{ loop.index0 }}, 'royal')">
+                                <i class="bi bi-gem"></i> Royale - 200 PO
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="alert alert-warning">
+            <i class="bi bi-exclamation-triangle"></i> Aucun personnage dans le groupe.
+            <a href="/character/create">Créez des personnages</a> pour utiliser l'auberge.
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function rest(charIndex, roomType) {
+    // Pas de confirmation - action directe
+    fetch('/api/inn/rest', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            character_index: charIndex,
+            room_type: roomType
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            window.location.reload();
+        } else {
+            alert('Erreur: ' + data.error);
+        }
+    })
+    .catch(error => {
+        alert('Erreur de connexion: ' + error.message);
+    });
+}
+</script>
+{% endblock %}

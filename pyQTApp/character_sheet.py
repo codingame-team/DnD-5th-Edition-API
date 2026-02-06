@@ -171,7 +171,7 @@ class CharacterDialog(QDialog):
         self.modified_char = True
 
     @pyqtSlot(QListWidgetItem)
-    def misc_item_double_clicked(self, item: QListWidgetItem):
+    def misc_item_double_clicked(self, item):
         """Equip/unequip non-weapon/non-armor magic items from the misc list."""
         name = item.text()
         # Find item in inventory by name
@@ -180,11 +180,12 @@ class CharacterDialog(QDialog):
             return
         # Toggle equipped state via equip_magic_item or remove
         from PyQt5.QtWidgets import QMessageBox
-        if isinstance(m_item, MagicItem):
+        if hasattr(m_item, 'is_magic') and getattr(m_item, 'is_magic', False):
             # If already equipped, unequip and remove effects
             if getattr(m_item, 'equipped', False):
                 m_item.equipped = False
-                m_item.remove_from_character(self.char)
+                if hasattr(m_item, 'remove_from_character'):
+                    m_item.remove_from_character(self.char)
             else:
                 # Try to equip through Character.equip_magic_item (handles attunement/slot rules)
                 msg, ok = self.char.equip_magic_item(m_item)
